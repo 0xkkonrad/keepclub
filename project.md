@@ -113,6 +113,30 @@ Local-first PWA, Supabase behind it.
 - **No accounts required to start.** Sign-in is what turns on sync, not what turns on the
   app. Anki's onboarding failure is a decision we get to not repeat.
 
+### Keeping Supabase awake
+
+Supabase pauses free projects after **7 days without database activity**. A paused project
+takes ~30 seconds to wake, but the real damage is quieter: sync stops, the app keeps
+working offline because it's local-first, and nobody finds out for a week.
+
+**Requirement: ping it once a day from the Hetzner box** (`shadow-server`, 78.47.227.135),
+alongside the vault sync jobs already running there.
+
+Two things that make this actually work rather than look like it works:
+
+- **It has to be a database query, not an HTTP request.** A REST call that returns a
+  cached response does not reset the inactivity timer. Do a real round trip — `select` or
+  `upsert` one row on a dedicated `keepalive` table.
+- **Log the outcome, and make a failure visible.** A keepalive that has itself been dead
+  for a month is the standard way this bug presents. It should complain somewhere Konrad
+  reads — Telegram via hermes is right there.
+
+Once a day is deliberate overkill against a 7-day window: it means six consecutive silent
+failures before anything is actually at risk.
+
+**Not wired yet** — blocked on the Supabase project existing. It's a cron line and a
+five-line script once there are keys.
+
 ## Phases
 
 **Phase 0 — extract the engine out of Day Skipper. This comes first.**
@@ -157,7 +181,8 @@ can eat a month; everything before it is a working app without it.
 
 ## Open
 
-- **Supabase project** — personal, or under an existing org? Keys not chosen.
+- **Supabase project** — personal, or under an existing org? Keys not chosen. This also
+  gates the daily keepalive above.
 - **Flick-grading on desktop.** Buttons are the stated fallback, but the best interaction
   in the product being mobile-only is a real cost. Trackpad gesture? Arrow keys with the
   same ghost label?
