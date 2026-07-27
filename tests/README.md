@@ -20,3 +20,10 @@ app's own `writeNow()` before asserting localStorage.
 
 The parity gate (project.md T7) means porting Day Skipper's four suites onto
 Munin; this file is the seed.
+
+Verified out-of-suite (network-dependent, so not wired into `npm test`):
+an offline reload of the live site — SW controlled, precache warm, network
+cut via CDP — boots Day Skipper fully. Sequence that matters: a fresh SW
+controls pages only after one controlled navigation, so reload online once
+before going offline. Day Skipper's own eight suites also run green against
+its checkout after the extraction (its repo untouched).
