@@ -19,6 +19,15 @@ DEST="$SITE/static/munin"
 mkdir -p "$DEST"
 rsync -a --delete --exclude 'README.md' --exclude '_*' "$HERE/web/" "$DEST/"
 
+# Stamp the service worker's cache name from the content actually shipped —
+# a cache-first shell only ever updates when this string changes. (Same rule
+# as Day Skipper's web_build.py; forgetting it strands returning users on
+# the old app for good.)
+STAMP=$(cd "$DEST" && find . -type f ! -name sw.js -print0 | sort -z | xargs -0 sha256sum | sha256sum | cut -c1-10)
+sed -i "s/^const V = 'munin-[^']*';/const V = 'munin-$STAMP';/" "$DEST/sw.js"
+grep -q "munin-$STAMP" "$DEST/sw.js" || { echo "sw stamp failed"; exit 1; }
+echo "sw cache: munin-$STAMP"
+
 cd "$SITE"
 git add -A static/munin
 git status --short static/munin | head -20
