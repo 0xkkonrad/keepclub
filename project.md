@@ -15,6 +15,10 @@ extracted Day Skipper engine, both courses playable, per-course state, sync stub
 until the parity gate. `web/README.md` documents the boot order and what differs from
 Day Skipper's app.js. /day-skipper is untouched and still the app of record.
 
+The `.apkg` importer (phase 3) is built on `feat/anki-importer`: drop a deck on the shelf,
+read the receipt, study it. Both Anki export formats, cloze and reversed cards, pictures
+and sound, stored in IndexedDB and never leaving the device.
+
 ---
 
 ## Where this came from
@@ -191,9 +195,29 @@ into a product.
 **Phase 2 — the new screens.** H1 home, R2 flick-grading with a real distance→grade
 mapping and its desktop fallback, the M1+M3 editor and the 4b edit paths, T1 progress.
 
-**Phase 3 — `.apkg` import.** sql.js over the collection's SQLite, media unzip, note-type
-flattening onto the markdown+stamp model, ending in the I3 receipt. This is the phase that
-can eat a month; everything before it is a working app without it.
+**Phase 3 — `.apkg` import.** Built on `feat/anki-importer`, ahead of phases 1 and 2:
+the import is what makes Munin usable by anyone who is not studying for the RYA, and it
+turned out to be a week rather than the month budgeted here. `web/README.md` documents it.
+
+Two decisions worth keeping.
+
+**Not sql.js.** Every query the importer makes is "give me every row of this table",
+which is a b-tree walk against a published, stable file format. A megabyte of WebAssembly
+to run SELECT statements we do not need is the wrong trade for an app whose whole claim is
+that it works offline and starts fast. `lib/sqlite.js` is 250 lines and was written against
+databases SQLite itself wrote. Writing it caught two bugs that a library would have hidden
+— index pages have a different local-payload limit from table pages, and a WITHOUT ROWID
+record stores its primary key columns first regardless of declaration order — both of which
+are exactly the modern Anki schema.
+
+**One dependency, and it is a compression codec.** `lib/vendor/fzstd.js` (MIT, 24 KB) is
+the only third-party code in Munin. Anki has written its payloads zstd-compressed since
+2.1.50 and no browser exposes a zstd decoder; hand-rolling one would have been the one
+place in this project where writing it myself was clearly worse than not.
+
+The import does not go through the M1+M3 markdown model — that model does not exist yet.
+It renders Anki's own templates and stores the result as Munin cards. When phase 2 lands,
+re-importing is the migration path, which is the same mechanism as replacing a deck.
 
 **Phase 4 — Supabase sync.** Auth, per-user RLS, conflict policy, media to Storage.
 
