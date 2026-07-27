@@ -1,0 +1,557 @@
+<title>Munin — theme &amp; shell picker</title>
+<!-- Built from mono/skills/html-picker template; picker styles/logic kept as-is,
+     with additions clearly scoped: DM Mono for mockups, .mocks/.mk mockup
+     blocks, and a logo grid variant of .opts. LS_KEY munin-theme-picker-v1. -->
+<style>
+  @font-face {
+    font-family: "DM Mono";
+    src: url(@@FONT400@@) format("woff2");
+    font-weight: 400; font-style: normal; font-display: swap;
+  }
+  @font-face {
+    font-family: "DM Mono";
+    src: url(@@FONT500@@) format("woff2");
+    font-weight: 500; font-style: normal; font-display: swap;
+  }
+  :root {
+    --bg: #faf8f4;
+    --surface: #ffffff;
+    --ink: #2b2620;
+    --ink-soft: #6d6357;
+    --line: #e6dfd4;
+    --accent: #0f766b;
+    --accent-soft: #e2f0ed;
+    --locked: #2e7d4f;
+    --locked-soft: #e7f3ec;
+    --warn: #a8541c;
+    --chip: #efe9df;
+    --mono: "DM Mono", ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
+    --sans: -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1c1b; --surface: #242726; --ink: #e9e6df; --ink-soft: #a3a79f;
+      --line: #383c3a; --accent: #4ed4c2; --accent-soft: #17322e;
+      --locked: #6cc394; --locked-soft: #1f3529; --warn: #e08a52; --chip: #2e3230;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1a1c1b; --surface: #242726; --ink: #e9e6df; --ink-soft: #a3a79f;
+    --line: #383c3a; --accent: #4ed4c2; --accent-soft: #17322e;
+    --locked: #6cc394; --locked-soft: #1f3529; --warn: #e08a52; --chip: #2e3230;
+  }
+  :root[data-theme="light"] {
+    --bg: #faf8f4; --surface: #ffffff; --ink: #2b2620; --ink-soft: #6d6357;
+    --line: #e6dfd4; --accent: #0f766b; --accent-soft: #e2f0ed;
+    --locked: #2e7d4f; --locked-soft: #e7f3ec; --warn: #a8541c; --chip: #efe9df;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.55; margin: 0;
+    font-size: 15.5px;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 0 20px 96px; }
+
+  header.top {
+    position: sticky; top: 0; z-index: 10;
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+    padding: 14px 0 12px;
+    margin-bottom: 28px;
+  }
+  .top-inner { max-width: 880px; margin: 0 auto; padding: 0 20px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .top h1 { font-size: 17px; margin: 0; font-weight: 700; letter-spacing: -0.01em; display: flex; align-items: center; gap: 10px; }
+  .top h1 svg { flex: none; }
+  .top .sub { color: var(--ink-soft); font-size: 12.5px; margin-top: 1px; }
+  .progress { margin-left: auto; display: flex; align-items: center; gap: 12px; }
+  .progress .count { font-family: var(--mono); font-size: 13px; color: var(--ink-soft); white-space: nowrap; }
+  .bar { width: 130px; height: 6px; background: var(--chip); border-radius: 3px; overflow: hidden; }
+  .bar i { display: block; height: 100%; width: 0%; background: var(--locked); border-radius: 3px; transition: width .25s ease; }
+  button.export {
+    background: var(--ink); color: var(--bg); border: none; cursor: pointer;
+    font: 600 13px var(--sans); padding: 8px 14px; border-radius: 7px;
+  }
+  button.export:hover { opacity: .88; }
+  button.export:focus-visible, .opt:focus-visible, summary:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px;
+  }
+
+  .lede { color: var(--ink-soft); font-size: 14.5px; max-width: 66ch; margin: 0 0 6px; }
+  .lede b { color: var(--ink); }
+
+  details.locked-ref {
+    border: 1px solid var(--line); border-radius: 10px; background: var(--surface);
+    margin: 22px 0 8px; padding: 0;
+  }
+  details.locked-ref summary {
+    cursor: pointer; padding: 12px 16px; font-weight: 650; font-size: 14px;
+    list-style: none; display: flex; align-items: center; gap: 8px;
+  }
+  details.locked-ref summary::before { content: "▸"; color: var(--ink-soft); transition: transform .15s; }
+  details.locked-ref[open] summary::before { transform: rotate(90deg); }
+  details.locked-ref .body { padding: 0 18px 14px; }
+  details.locked-ref ul { margin: 6px 0 0; padding-left: 18px; color: var(--ink-soft); font-size: 13.5px; }
+  details.locked-ref li { margin: 3px 0; }
+  details.locked-ref li b { color: var(--ink); font-weight: 600; }
+  details.locked-ref pre {
+    background: var(--chip); border-radius: 8px; padding: 12px 14px; overflow-x: auto;
+    font: 12px/1.6 var(--mono); color: var(--ink); margin: 10px 0 4px;
+  }
+
+  section.group { margin-top: 44px; }
+  .group-head { display: flex; align-items: baseline; gap: 12px; border-bottom: 2px solid var(--ink); padding-bottom: 8px; margin-bottom: 4px; }
+  .group-head h2 { font-size: 20px; margin: 0; letter-spacing: -0.015em; }
+  .group-head .gcount { font-family: var(--mono); font-size: 12px; color: var(--ink-soft); }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    padding: 20px 22px 18px; margin-top: 18px;
+    transition: border-color .2s;
+  }
+  .card.is-locked { border-color: var(--locked); }
+  .card .eyebrow {
+    font: 600 11px var(--mono); letter-spacing: .08em; text-transform: uppercase;
+    color: var(--ink-soft); display: flex; align-items: center; gap: 8px;
+  }
+  .card.is-locked .eyebrow .state { color: var(--locked); }
+  .eyebrow .state { color: var(--warn); }
+  .card h3 { font-size: 17px; margin: 6px 0 8px; letter-spacing: -0.01em; text-wrap: balance; }
+  .context { font-size: 13.5px; color: var(--ink-soft); margin: 0 0 14px; max-width: 70ch; }
+  .context b { color: var(--ink); font-weight: 600; }
+  .src { font-family: var(--mono); font-size: 11px; color: var(--ink-soft); background: var(--chip); border-radius: 4px; padding: 1px 6px; white-space: nowrap; }
+
+  .opts { display: flex; flex-direction: column; gap: 8px; }
+  .opt {
+    display: block; width: 100%; text-align: left; cursor: pointer;
+    background: transparent; color: inherit; font: inherit;
+    border: 1px solid var(--line); border-radius: 9px; padding: 11px 14px;
+    transition: border-color .12s, background .12s;
+  }
+  .opt:hover { border-color: var(--accent); }
+  .opt .t { font-weight: 650; font-size: 14.5px; display: flex; gap: 8px; align-items: baseline; }
+  .opt .t .rec { font: 600 10.5px var(--mono); color: var(--accent); letter-spacing: .05em; text-transform: uppercase; }
+  .opt .d { font-size: 13px; color: var(--ink-soft); margin-top: 3px; max-width: 66ch; }
+  .opt.sel { border-color: var(--accent); background: var(--accent-soft); }
+  .card.is-locked .opt.sel { border-color: var(--locked); background: var(--locked-soft); }
+  .card.is-locked .opt:not(.sel) { opacity: .45; }
+  .card.is-locked .opt:hover { opacity: 1; }
+
+  /* ── additions: logo grid ── */
+  .opts.logo { display: grid; grid-template-columns: repeat(auto-fill, minmax(158px, 1fr)); gap: 10px; }
+  .opts.logo .opt { text-align: center; padding: 12px 10px 10px; }
+  .opts.logo .glyph { display: block; margin: 0 auto 6px; width: 84px; height: 84px; color: var(--ink); }
+  .opts.logo .glyph svg { width: 100%; height: 100%; }
+  .opts.logo .opt.sel .glyph { color: var(--accent); }
+  .opts.logo .t { justify-content: center; font-family: var(--mono); font-size: 13px; }
+  .opts.logo .d { font-size: 11.5px; max-width: none; }
+
+  /* ── additions: mockups (always the app's paper theme — they are screenshots) ── */
+  .mocks { display: flex; gap: 14px; flex-wrap: wrap; margin: 12px 0 4px; }
+  .mk { margin: 0; flex: 0 1 196px; }
+  .mk-screen {
+    background: #f0eee7; color: #121214; border: 2px solid #121214;
+    border-radius: 16px; box-shadow: 4px 4px 0 #121214;
+    padding: 12px 12px 14px; font-family: var(--mono); font-size: 11px;
+    display: flex; flex-direction: column; gap: 8px; min-height: 178px;
+  }
+  .mk figcaption { font: 500 11.5px var(--mono); color: var(--ink-soft); margin-top: 9px; line-height: 1.45; }
+  .mk figcaption i { display: block; font-style: normal; opacity: .75; }
+  .mk-head { display: flex; align-items: center; gap: 6px; font-weight: 500; font-size: 12px; }
+  .mk-head svg { flex: none; }
+  .mk-big { font-size: 34px; font-weight: 500; line-height: 1; margin-top: 2px; }
+  .mk-sub { color: #55555e; }
+  .mk-btn {
+    background: var(--ma); color: #fffdf7; border: 2px solid #121214;
+    border-radius: 10px; box-shadow: 3px 3px 0 #121214;
+    text-align: center; padding: 6px 0; font-weight: 500; font-size: 12px; width: 82%;
+  }
+  .mk-chips { display: flex; gap: 4px; flex-wrap: wrap; }
+  .mk-chips span { border: 1px solid #12121466; border-radius: 99px; padding: 1px 7px; font-size: 9.5px; }
+  .mk-chips span.on { background: #ffd54a; border-color: #121214; }
+  .mk-tile {
+    display: flex; align-items: center; gap: 8px;
+    background: #fffdf7; border: 2px solid #121214; border-left: 5px solid var(--ta, #121214);
+    border-radius: 10px; box-shadow: 3px 3px 0 #121214; padding: 6px 8px;
+  }
+  .mk-tile svg { color: var(--ta, #121214); flex: none; }
+  .mk-tile b { display: block; font-weight: 500; font-size: 11px; }
+  .mk-tile i { font-style: normal; color: #55555e; font-size: 9.5px; }
+  .mk-add { border: 2px dashed #12121488; border-left-width: 2px; box-shadow: none; color: #55555e; justify-content: center; padding: 8px; }
+  .mk-cc { min-height: 56px; }
+  .mk-swatchrow { display: flex; align-items: center; gap: 7px; }
+  .mk-dot { width: 22px; height: 22px; border-radius: 50%; background: var(--ma); border: 2px solid #121214; }
+  .mk-swatchrow code { font-size: 10.5px; }
+  .mk-homescreen { flex-direction: row; align-items: flex-start; justify-content: space-evenly; padding-top: 20px; }
+  .mk-icon { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 56px; }
+  .mk-icon svg { background: #fffdf7; border: 2px solid #121214; border-radius: 12px; box-shadow: 2px 2px 0 #121214; padding: 6px; width: 44px; height: 44px; color: var(--ta); }
+  .mk-icon i { font-style: normal; font-size: 9px; text-align: center; }
+
+  .card-foot { display: flex; gap: 10px; margin-top: 14px; align-items: flex-start; flex-wrap: wrap; }
+  textarea.note {
+    flex: 1 1 300px; min-height: 38px; resize: vertical;
+    background: var(--bg); color: var(--ink); border: 1px solid var(--line);
+    border-radius: 8px; padding: 8px 10px; font: 13px var(--sans);
+  }
+  textarea.note::placeholder { color: var(--ink-soft); opacity: .7; }
+
+  .footer-cta {
+    margin-top: 52px; border: 1px dashed var(--line); border-radius: 12px;
+    padding: 20px 22px; text-align: center; color: var(--ink-soft); font-size: 14px;
+  }
+  .footer-cta.done { border-color: var(--locked); color: var(--ink); background: var(--locked-soft); }
+  .toast {
+    position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%);
+    background: var(--ink); color: var(--bg); font: 600 13px var(--sans);
+    padding: 10px 18px; border-radius: 8px; opacity: 0; pointer-events: none;
+    transition: opacity .2s; z-index: 30;
+  }
+  .toast.show { opacity: 1; }
+  .sheet-backdrop {
+    position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 20;
+    display: none; align-items: center; justify-content: center; padding: 20px;
+  }
+  .sheet-backdrop.show { display: flex; }
+  .sheet {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+    width: min(680px, 100%); max-height: 80vh; display: flex; flex-direction: column;
+    padding: 16px 18px;
+  }
+  .sheet h4 { margin: 0 0 4px; font-size: 15px; }
+  .sheet p { margin: 0 0 10px; font-size: 13px; color: var(--ink-soft); }
+  .sheet textarea {
+    flex: 1; min-height: 260px; resize: vertical; white-space: pre;
+    background: var(--bg); color: var(--ink); border: 1px solid var(--line);
+    border-radius: 8px; padding: 10px 12px; font: 12.5px var(--mono);
+  }
+  .sheet .row { display: flex; gap: 10px; margin-top: 12px; justify-content: flex-end; }
+  .sheet .row button {
+    cursor: pointer; border-radius: 8px; padding: 8px 16px; font: 650 13px var(--sans);
+    border: 1px solid var(--line); background: transparent; color: var(--ink);
+  }
+  .sheet .row button.primary { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<header class="top">
+  <div class="top-inner">
+    <div>
+      <h1>@@RAVEN_HEADER@@ Munin — theme &amp; shell picker</h1>
+      <div class="sub">Sources: munin scope doc (locked 26 Jul) · Konrad's brief 27 Jul · Day Skipper app + Competent Crew deck</div>
+    </div>
+    <div class="progress">
+      <span class="count" id="count">…</span>
+      <span class="bar"><i id="barfill"></i></span>
+      <button class="export" id="exportBtn">Copy summary</button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <p class="lede">Munin becomes the one app in front of Day Skipper and Competent Crew: pick a course, get today's app in that course's own accent + doodle set. This locks <b>what stays open</b> after the abstraction is specced — Munin's own logo and colour, what opening the app lands on, the Competent Crew theme, and where it all deploys. Tap to lock, tap again to unlock, notes for conditions. <b>Copy summary</b> at the end and paste it back — the implementation plan gets built from that. All mockups are drawn in the real app's paper style; the ten logo ravens went through Day Skipper's actual rough-line pipeline, so what you pick is what ships.</p>
+
+  <details class="locked-ref">
+    <summary>Already decided — not up for debate (scope doc + today's brief)</summary>
+    <div class="body">
+      <ul>
+        <li><b>One app, courses inside:</b> Competent Crew's deck was built content-only <i>because</i> the shell is Munin's job — the course picker in front is settled, this page decides its shape.</li>
+        <li><b>The engine is Day Skipper's, extracted (Phase 0):</b> PWA shell, review loop, lightbox, figures renderer, sync, tests come across; Day Skipper keeps working throughout and becomes the first course.</li>
+        <li><b>A course theme = accent pair (light+dark) + doodle set + section art. Nothing else varies.</b> Type, layout, grade flags, flag yellow, review UX are Munin, shared by every course.</li>
+        <li><b>Cards:</b> the engine eats Day Skipper's <code>cards.json</code> format — the Competent Crew build already emits it.</li>
+        <li><b>Default theme is the raven:</b> your-own-import decks get Munin's accent + raven doodle set (crow's-feet progress prints, the hoard for badges) — cute and doodly, per the scope doc's corvid table, not epic.</li>
+        <li><b>First run = the course shelf.</b> No tour, no account — sign-in only ever turns on sync.</li>
+        <li><b>Lowercase chrome, never card content</b> — inherited as-is.</li>
+        <li><b>Name check:</b> repo and scope say <b>Munin</b> (Odin's memory raven); the brief spelled it "mumin" — read as a typo. Shout if the Moomin spelling was actually intended (it's also a live trademark).</li>
+      </ul>
+      <pre>course bundle (one folder per course, loaded when picked)
+├─ course.json   { id, title, tagline,
+│                  accent: { light, dark } }   ← the one colour a course owns
+├─ doodles.js    named 32×32 rough paths; engine slots:
+│                  boot art · section art (per section key) ·
+│                  badge art · progress mark · empty states
+│                  missing slot → raven fallback, never a hole
+├─ cards.json    Day Skipper format (sections → cards)
+├─ figures.json  optional labelled drawings
+└─ videos.json   optional clip index</pre>
+    </div>
+  </details>
+
+  <div id="app"></div>
+
+  <div class="footer-cta" id="footcta">Pick everything and this turns green — then copy the summary and paste it back.</div>
+</div>
+
+<div class="toast" id="toast">Copied</div>
+
+<div class="sheet-backdrop" id="sheetBackdrop">
+  <div class="sheet" role="dialog" aria-label="Decision summary">
+    <h4>Decision summary</h4>
+    <p>Text is selected — press Ctrl/Cmd+C (or tap Copy below), then paste it back to Claude.</p>
+    <textarea id="sheetText" spellcheck="false"></textarea>
+    <div class="row">
+      <button type="button" id="sheetClose">Close</button>
+      <button type="button" class="primary" id="sheetCopy">Copy</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const MOCKS_S1 = @@MOCKS_S1@@;
+const MOCKS_I2 = @@MOCKS_I2@@;
+const MOCKS_C1 = @@MOCKS_C1@@;
+const MOCKS_S2 = @@MOCKS_S2@@;
+
+const GROUPS = [
+  {
+    name: "Munin's own face",
+    key: "I",
+    items: [
+      {
+        id: "munin-logo",
+        title: "Which raven is Munin?",
+        grid: true,
+        context: "Ten candidates, all drawn through Day Skipper's rough-line pipeline (2px ink, currentColor, 32×32) so they sit in the app unchanged. The pick becomes the app icon, the boot screen and the shelf mark. <b>The rest don't die</b> — runners-up seed the raven doodle set (empty states, badges, progress), so pick for logo duty: does it read at 16px, and is it still a raven?",
+        src: "brief 27 Jul",
+        opts: [
+          @@LOGO_OPTS@@
+        ]
+      },
+      {
+        id: "munin-accent",
+        title: "Munin's accent colour — the shell and every unthemed deck",
+        context: "Day Skipper owns indigo #3A30D8 and keeps it. Munin's own chrome (shelf, settings, imported decks) needs a colour that reads next to every course accent without being mistaken for one. Each option is a light/dark pair derived the same way the app already derives its dark accent." + MOCKS_I2,
+        src: "scope §character",
+        opts: [
+          { k: "A", rec: true, t: "Corvid sheen — teal #0F766B / #4ED4C2", d: "Raven feathers actually iridesce blue-green. Clearly not-indigo, clearly not-orange, calm on paper and in dark. Cost: teal is then off-limits for course accents." },
+          { k: "B", t: "Raven violet — #5B34C9 / #B39CFF", d: "Handsome and corvid-plausible, but it lives one hue-step from Day Skipper's indigo — on the shelf the app and its first course blur together." },
+          { k: "C", t: "Ink & gold — #B98207 / #E5B84B", d: "Black bird, gold eye. Distinctive, but it fights flag yellow #FFD54A, which is load-bearing for chips and marks in every course." }
+        ]
+      }
+    ]
+  },
+  {
+    name: "Shell & switching",
+    key: "S",
+    items: [
+      {
+        id: "app-entry",
+        title: "What does opening Munin land on?",
+        context: "The scope doc locked H1 as \"one session — one number, one button, decks demoted to chips\". Per-course themes pull the other way: a course is a <b>world</b> you re-chrome into. This decides which one the front door serves — and what \"one session\" ranges over. Whatever wins, the shelf always exists one tap away (the course name in the header)." + MOCKS_S1,
+        src: "scope §H1 vs brief",
+        opts: [
+          { k: "A", rec: true, t: "Resume last course — shelf one tap away", d: "Cold open = the course you were in, full theme, exactly today's Day Skipper. H1's one-number-one-button applies within the course. Zero taps for the daily habit; the shelf only appears when you ask for it (or on first run)." },
+          { k: "B", t: "Shelf first, every time", d: "Munin's raven greets you, courses are one tap in. Cleanest mental model and shows the other course's due count — but it taxes the every-single-day path with a tap, and study apps live or die on that path." },
+          { k: "C", t: "One global session across courses", d: "H1 taken literally: 17 due, one start button, course chips as filters. Purest Munin — but home has no course to take its theme from, cards re-chrome mid-session as they interleave, and courses stop being places. The strongest reading of the scope doc, the weakest reading of today's brief." }
+        ]
+      },
+      {
+        id: "pwa-install",
+        title: "What sits on the phone's home screen?",
+        context: "Today \"Day Skipper\" is installed as its own PWA with its own icon. One Munin app means one service worker, one cache, one icon — and Day Skipper becomes a screen inside it. Per-course manifests (distinct start_url per course) keep the today feel at the cost of N installs and N caches to keep honest." + MOCKS_S2,
+        src: "scope §shape",
+        opts: [
+          { k: "A", rec: true, t: "One installed app — the raven on the home screen", d: "One SW, one cache to version, one thing to debug. Combined with S-resume-last, tapping the icon still drops you straight into your course, so the installed-app feel survives." },
+          { k: "B", t: "Each course installable on its own", d: "Course manifests with their own icons + start_url. Preserves today's boat-on-the-home-screen exactly; costs a manifest per course, per-scope SW care, and the migration story doubles." }
+        ]
+      }
+    ]
+  },
+  {
+    name: "Competent Crew's theme",
+    key: "C",
+    items: [
+      {
+        id: "cc-accent",
+        title: "Competent Crew's accent",
+        context: "First real test of themes-per-course: same waters as Day Skipper, different colour. Indigo is taken; whatever I-accent wins above is off the table too." + MOCKS_C1,
+        src: "brief 27 Jul",
+        opts: [
+          { k: "A", rec: true, t: "Lifejacket orange — #C2551A / #FF9A5C", d: "The crew colour: the first thing you're handed on deck. Maximum distance from indigo, warm against Munin's teal, and it reads instantly on the shelf." },
+          { k: "B", t: "Sea green — #1F7A4D / #5ED49A", d: "Calm and nautical, but it sits close to the g3 mastery green the app already uses for \"known\" — progress bars and chrome start rhyming by accident." },
+          { k: "C", t: "Harbor slate — #33608D / #7FB2E8", d: "Safe and handsome, but it's indigo's quiet cousin — the two RYA courses end up near-matching, which defeats the point of per-course colour." }
+        ]
+      },
+      {
+        id: "cc-doodles",
+        title: "How much of the doodle set does Competent Crew redraw?",
+        context: "The theme contract lets a course override any doodle slot and fall back for the rest. Competent Crew is still boats and water — the question is how much crew-flavour is worth drawing for v1. (Every new drawing goes through the same doodles.py → rough pipeline.)",
+        src: "CC deck README",
+        opts: [
+          { k: "A", rec: true, t: "Nautical base + a crew handful", d: "Inherit boat/wave/knot/etc., redraw the slots that carry identity: boot art, badge art, and ~6 crew doodles — lifejacket, fender, winch handle, heaving line, tea mug, bucket. Distinct where it's seen, free where it isn't." },
+          { k: "B", t: "Full bespoke crew set", d: "All ~28 slots redrawn. Maximum identity, most drawing-hours — and half the set would be near-copies of Day Skipper's anyway (a wave is a wave)." },
+          { k: "C", t: "Colour-only reskin", d: "Zero drawings, accent does all the work. Cheapest, but then \"each course brings its own cute theme\" collapses to a stylesheet variable for the second course we ship." }
+        ]
+      }
+    ]
+  },
+  {
+    name: "Where it lives",
+    key: "D",
+    items: [
+      {
+        id: "url-home",
+        title: "Where does Munin deploy, and what happens to /day-skipper?",
+        context: "The scope doc left this open. Day Skipper is installed, synced and in daily use at kkonrad.com/day-skipper — whatever happens must not interrupt it mid-extraction.",
+        src: "scope §open",
+        opts: [
+          { k: "A", rec: true, t: "kkonrad.com/munin now; /day-skipper redirects at parity", d: "Same static hosting and deploy script pattern as today. Day Skipper stays untouched until Munin passes its four test suites + a state-migration check, then /day-skipper 301s in and the old app retires." },
+          { k: "B", t: "Own domain from day one", d: "Right if Munin is for other people soon — but that's a product decision, not a launch blocker; a domain can front /munin later without moving anything." },
+          { k: "C", t: "Build in place at /day-skipper", d: "No second deploy target, but the extraction happens inside a live app's URL — one bad service-worker push strands real study state. The scope doc explicitly treats DS as a live refactor; this fights that." }
+        ]
+      }
+    ]
+  }
+];
+
+const TOTAL = GROUPS.reduce((n, g) => n + g.items.length, 0);
+const LS_KEY = "munin-theme-picker-v1"; // NEVER change after the picker is shared — picks are stored under it
+let state = {};
+try { state = JSON.parse(localStorage.getItem(LS_KEY) || "{}"); } catch (e) { state = {}; }
+const save = () => localStorage.setItem(LS_KEY, JSON.stringify(state));
+
+const app = document.getElementById("app");
+let counter = 0;
+const GLYPH = d => '<span class="glyph"><svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="' + d + '"/></svg></span>';
+GROUPS.forEach(group => {
+  const sec = document.createElement("section");
+  sec.className = "group";
+  sec.innerHTML = `<div class="group-head"><h2>${group.name}</h2><span class="gcount" data-g="${group.key}"></span></div>`;
+  group.items.forEach(item => {
+    counter++;
+    const st = state[item.id] || {};
+    const card = document.createElement("div");
+    card.className = "card" + (st.pick ? " is-locked" : "");
+    card.id = "card-" + item.id;
+    card.innerHTML = `
+      <div class="eyebrow"><span>${group.key}${counter} · Decision</span><span class="state">${st.pick ? "LOCKED" : "OPEN"}</span><span class="src">${item.src}</span></div>
+      <h3>${item.title}</h3>
+      <p class="context">${item.context}</p>
+      <div class="opts${item.grid ? " logo" : ""}">
+        ${item.opts.map(o => `
+          <button type="button" class="opt${st.pick === o.k ? " sel" : ""}" data-id="${item.id}" data-k="${o.k}">
+            ${o.svg ? GLYPH(o.svg) : ""}
+            <span class="t"><span>${o.k} — ${o.t}</span>${o.rec ? '<span class="rec">Recommended</span>' : ""}</span>
+            <span class="d">${o.d}</span>
+          </button>`).join("")}
+      </div>
+      <div class="card-foot">
+        <textarea class="note" data-id="${item.id}" placeholder="Condition / note on this pick (optional)…">${st.note || ""}</textarea>
+      </div>`;
+    sec.appendChild(card);
+  });
+  app.appendChild(sec);
+});
+
+function refresh() {
+  const locked = Object.values(state).filter(s => s.pick).length;
+  document.getElementById("count").textContent = `${locked}/${TOTAL} locked`;
+  document.getElementById("barfill").style.width = (locked / TOTAL * 100) + "%";
+  GROUPS.forEach(g => {
+    const n = g.items.filter(i => state[i.id]?.pick).length;
+    document.querySelector(`[data-g="${g.key}"]`).textContent = `${n}/${g.items.length} locked`;
+  });
+  const foot = document.getElementById("footcta");
+  if (locked === TOTAL) {
+    foot.classList.add("done");
+    foot.textContent = `✅ All ${TOTAL} locked. Copy the summary (top right) and paste it back — the plan gets built from it.`;
+  } else {
+    foot.classList.remove("done");
+    foot.textContent = `Pick all ${TOTAL} and this turns green — then copy the summary and paste it back. ${TOTAL - locked} to go.`;
+  }
+}
+
+// Picking IS locking. Tapping the already-picked option unpicks it (back to OPEN);
+// tapping a different one switches the pick and stays locked.
+app.addEventListener("click", e => {
+  const opt = e.target.closest(".opt");
+  if (!opt) return;
+  const id = opt.dataset.id;
+  const pick = state[id]?.pick === opt.dataset.k ? null : opt.dataset.k;
+  state[id] = { ...(state[id] || {}), pick };
+  const card = document.getElementById("card-" + id);
+  card.querySelectorAll(".opt").forEach(b => b.classList.toggle("sel", pick && b === opt));
+  card.classList.toggle("is-locked", !!pick);
+  card.querySelector(".eyebrow .state").textContent = pick ? "LOCKED" : "OPEN";
+  save(); refresh();
+});
+app.addEventListener("input", e => {
+  const ta = e.target.closest(".note");
+  if (!ta) return;
+  const id = ta.dataset.id;
+  state[id] = { ...(state[id] || {}), note: ta.value };
+  save();
+});
+
+function buildSummary() {
+  let out = "# Munin — theme & shell decision lock\n\n";
+  GROUPS.forEach(g => {
+    out += `## ${g.name}\n`;
+    g.items.forEach(item => {
+      const st = state[item.id] || {};
+      const o = item.opts.find(x => x.k === st.pick);
+      const status = st.pick ? "LOCKED" : "OPEN — no pick";
+      out += `- **${item.title}** [${status}]: ${o ? o.k + " — " + o.t : "—"}`;
+      if (st.note && st.note.trim()) out += `\n  - note: ${st.note.trim()}`;
+      out += "\n";
+    });
+    out += "\n";
+  });
+  return out;
+}
+
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 1600);
+}
+
+const sheetBackdrop = document.getElementById("sheetBackdrop");
+const sheetText = document.getElementById("sheetText");
+
+function openSheet(text) {
+  sheetText.value = text;
+  sheetBackdrop.classList.add("show");
+  sheetText.focus();
+  sheetText.select();
+}
+
+// Copy with layered fallbacks: async clipboard API → execCommand on a
+// selected textarea → manual-copy sheet (always available).
+function tryCopy(text) {
+  const legacy = () => {
+    openSheet(text);
+    let ok = false;
+    try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+    if (ok) showToast("Copied");
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text)
+      .then(() => { openSheet(text); showToast("Copied"); })
+      .catch(legacy);
+  } else {
+    legacy();
+  }
+}
+
+document.getElementById("exportBtn").addEventListener("click", () => tryCopy(buildSummary()));
+document.getElementById("sheetCopy").addEventListener("click", () => {
+  sheetText.focus();
+  sheetText.select();
+  let ok = false;
+  try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+  if (!ok && navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(sheetText.value)
+      .then(() => showToast("Copied"))
+      .catch(() => showToast("Select the text and press Ctrl/Cmd+C"));
+    return;
+  }
+  showToast(ok ? "Copied" : "Select the text and press Ctrl/Cmd+C");
+});
+document.getElementById("sheetClose").addEventListener("click", () => sheetBackdrop.classList.remove("show"));
+sheetBackdrop.addEventListener("click", e => { if (e.target === sheetBackdrop) sheetBackdrop.classList.remove("show"); });
+document.addEventListener("keydown", e => { if (e.key === "Escape") sheetBackdrop.classList.remove("show"); });
+
+refresh();
+</script>
