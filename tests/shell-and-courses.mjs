@@ -48,7 +48,10 @@ ok((await p.textContent('body')).includes('200 cards'),
 /* ── a real session: two cards answered ── */
 // #study-all is static markup: wait for boot to finish (overlay hides last).
 await p.waitForFunction(() => document.getElementById('boot').hidden);
+ok(await p.locator('.shelf-btn').isVisible(), 'courses pill on the home screen');
 await p.click('#study-all');
+await p.waitForSelector('#reveal-btn:visible');
+ok(!(await p.locator('.shelf-btn').isVisible()), 'courses pill leaves during a session');
 for (let i = 0; i < 2; i++) {
   await p.waitForSelector('#reveal-btn:visible');
   await p.click('#reveal-btn');
