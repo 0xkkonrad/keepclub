@@ -35,8 +35,8 @@ ok((await p.textContent('.imp-how')).toLowerCase().includes('file → export'),
   'it says where an .apkg comes from');
 
 await give(p, 'legacy.apkg');
-await p.waitForSelector('.imp-book', { timeout: 20000 });
-const receipt = await p.textContent('.imp-book');
+await p.waitForSelector('.imp .imp-book', { timeout: 20000 });
+const receipt = await p.textContent('.imp .imp-book');
 // The document has to reconcile: what was in the file = kept + dropped.
 {
   const inFile = Number(/(\d+)\s*cards in the package/.exec(receipt)?.[1]);
@@ -91,6 +91,18 @@ ok(/^local-[a-z0-9]+$/.test(id), `the imported deck becomes the resume target ($
   ok(st && Object.keys(JSON.parse(st).recs || {}).length >= 2, 'answers are kept under the deck’s own key');
 }
 
+/* The account does not disappear when you start studying. */
+{
+  await p.click('[data-go="stats"], [data-nav="stats"], #nav-stats, .nav [data-screen="stats"]')
+    .catch(() => p.evaluate(() => go('stats')));
+  await p.waitForSelector('#s-stats:not([hidden])');
+  const stats = await p.textContent('#s-stats');
+  ok(/where this deck came from/i.test(stats), 'Progress keeps the import receipt');
+  ok(/cards in the package/.test(stats) && /imported \d+ \w+ \d{4}/.test(stats),
+    'with the same numbers and the date it arrived');
+  await p.evaluate(() => go('home'));
+}
+
 /* Pictures and sound came out of the package and are served from the device. */
 {
   await p.goto(URL_, { waitUntil: 'networkidle' });
@@ -122,7 +134,7 @@ ok(/^local-[a-z0-9]+$/.test(id), `the imported deck becomes the resume target ($
   await p.click('[data-byo]');
   await p.waitForSelector('#imp-file');
   await give(p, 'legacy.apkg');
-  await p.waitForSelector('.imp-book', { timeout: 20000 });
+  await p.waitForSelector('.imp .imp-book', { timeout: 20000 });
   ok(await p.locator('[data-keep="replace"]').isVisible(), 'it recognises a deck you already have');
   ok((await p.textContent('.imp-inner')).includes('keeping my progress'),
     'and offers to keep the progress');
@@ -144,7 +156,7 @@ ok(/^local-[a-z0-9]+$/.test(id), `the imported deck becomes the resume target ($
   await p.click('[data-byo]');
   await p.waitForSelector('#imp-file');
   await give(p, 'modern.apkg');
-  await p.waitForSelector('.imp-book', { timeout: 30000 });
+  await p.waitForSelector('.imp .imp-book', { timeout: 30000 });
   ok((await p.textContent('.imp-sub')).includes('current'), 'a current export is read as one');
   await p.click('[data-cancel]');
   ok((await p.locator('.imp').count()) === 0, 'throwing it away closes the importer');

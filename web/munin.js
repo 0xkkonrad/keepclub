@@ -243,6 +243,7 @@ async function bootLocal(id) {
     addEventListener('pagehide', () => { for (const u of urls.values()) URL.revokeObjectURL(u); });
   }
 
+  mountReceipt(rec);
   await startCourse({
     id,
     title: rec.title,
@@ -259,6 +260,35 @@ async function bootLocal(id) {
 
 const RAVEN_FRIEZE = ['perch', 'peek', 'flap', 'carry', 'roost', 'hoard', 'puff', 'strut', 'quill', 'bow'];
 const isLocal = (id) => /^local-[a-z0-9]+$/.test(String(id || ''));
+
+/* The receipt again, on Progress.
+ *
+ * "Drop it, get a receipt" is worth little if the receipt is gone the moment
+ * you start studying: the numbers it holds — what was dropped and why, what the
+ * import changed — are exactly what you want three weeks later, when a card is
+ * missing and you are trying to work out whether it ever arrived. It is already
+ * stored with the deck; this only draws it. */
+async function mountReceipt(rec) {
+  if (!rec.receipt) return;
+  try {
+    const { book, ensureCss } = await import('./lib/receipt.js');
+    const host = document.querySelector('#s-stats .body');
+    if (!host) return;
+    ensureCss();
+    const h = document.createElement('h2');
+    h.className = 'h-sect';
+    h.textContent = 'Where this deck came from';
+    const box = document.createElement('div');
+    box.innerHTML = book(rec.receipt);
+    const when = document.createElement('p');
+    when.className = 'key';
+    when.textContent = `imported ${new Date(rec.created).toLocaleDateString('en-GB', {
+      day: 'numeric', month: 'long', year: 'numeric' })} from an anki package`;
+    host.append(h, when, box);
+  } catch (e) {
+    console.error(e);
+  }
+}
 
 /* ── the shelf ───────────────────────────────────────────────────────────── */
 

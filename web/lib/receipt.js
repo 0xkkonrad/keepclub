@@ -149,14 +149,19 @@ function changed(r) {
   return li.join('');
 }
 
-export function receiptHtml(r, existing) {
-  return `<h2 class="imp-h">${esc(r.title)}</h2>
-    <p class="imp-sub">read from ${r.modern ? 'a current' : 'a legacy'} anki export</p>
-    <div class="imp-book">
+/** The account itself, without the decision attached to it. */
+export function book(r) {
+  return `<div class="imp-book">
       <h3>what landed</h3><ul>${landed(r)}</ul>
       ${lost(r) ? `<h3>what didn’t</h3><ul>${lost(r)}</ul>` : ''}
       <h3>what is different now</h3><ul>${changed(r)}</ul>
-    </div>
+    </div>`;
+}
+
+export function receiptHtml(r, existing) {
+  return `<h2 class="imp-h">${esc(r.title)}</h2>
+    <p class="imp-sub">read from ${r.modern ? 'a current' : 'a legacy'} anki export</p>
+    ${book(r)}
     ${existing ? `<p class="imp-sub">you already have a deck called ${esc(existing.title)}, imported ${
       new Date(existing.created).toLocaleDateString('en-GB')}. ${existing.sameDeck
     ? 'It is this same deck, so replacing it keeps what you have answered.'
