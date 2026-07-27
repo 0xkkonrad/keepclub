@@ -1,5 +1,10 @@
 # Munin tests
 
+`separation.mjs` — the T6 ruling as a gate: every course folder is
+self-contained (no cross-course references, own course.json/doodles/cards,
+own accent pair and loading screen), and the shell never statically loads a
+course file.
+
 `shell-and-courses.mjs` — the shell driven like a person on a fresh profile:
 shelf → Day Skipper (indigo) → courses overlay → Competent Crew (slate) →
 two cards answered → per-course storage asserted (and `rya-ds/v1`, the live

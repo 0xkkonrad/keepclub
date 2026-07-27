@@ -2,6 +2,6 @@
   "name": "munin-tests",
   "private": true,
   "type": "module",
-  "scripts": { "test": "node shell-and-courses.mjs" },
+  "scripts": { "test": "node separation.mjs && node shell-and-courses.mjs" },
   "dependencies": { "playwright-core": "^1.49.0" }
 }
