@@ -6,7 +6,9 @@ Anki's scheduler is the best thing in the category and its interface is the reas
 people who try it stop. Munin keeps the first and replaces the second.
 
 Named for Odin's raven of memory — a small friendly raven who remembers things for you.
-(Huginn was thought. We only need the other one.)
+(Huginn was thought. We only need the other one.) A hundred-name sweep across Slavic,
+Germanic and Egyptian myth is in `naming-research.md`; it ran after the name was locked,
+came out at the same answer, and is kept as a bench for naming everything else.
 
 Status: **scope only**. Nothing is built. Nothing here is committed to code yet.
 
