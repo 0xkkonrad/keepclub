@@ -12,7 +12,8 @@
 
 const DB = 'munin';
 const VERSION = 1;
-const DECKS = 'decks';
+const DECKS = 'decks';      // one small row per deck: what the shelf needs
+const CARDS = 'cards';      // the deck itself, fetched only when it is opened
 const MEDIA = 'media';
 
 let open = null;
@@ -24,6 +25,9 @@ function db() {
     r.onupgradeneeded = () => {
       const d = r.result;
       if (!d.objectStoreNames.contains(DECKS)) d.createObjectStore(DECKS, { keyPath: 'id' });
+      // The cards live apart from the deck's description on purpose: drawing
+      // the shelf should not deserialise twenty thousand cards per tile.
+      if (!d.objectStoreNames.contains(CARDS)) d.createObjectStore(CARDS);
       // Keyed by [deck, index] so a deck's media is one contiguous range.
       if (!d.objectStoreNames.contains(MEDIA)) d.createObjectStore(MEDIA);
     };
@@ -49,16 +53,27 @@ const wrap = (req) => new Promise((res, rej) => {
   req.onerror = () => rej(req.error);
 });
 
-/** Every imported deck, newest first — without touching a single picture. */
+/** Every imported deck, newest first — descriptions only, no cards, no media. */
 export async function list() {
   const d = await db();
   const rows = await wrap(d.transaction(DECKS).objectStore(DECKS).getAll());
   return rows.sort((a, b) => b.created - a.created);
 }
 
-export async function get(id) {
+/** A deck's description only — no cards, no media. */
+export async function meta(id) {
   const d = await db();
   return wrap(d.transaction(DECKS).objectStore(DECKS).get(id));
+}
+
+/** The whole thing, for opening it. */
+export async function get(id) {
+  const d = await db();
+  const tx = d.transaction([DECKS, CARDS]);
+  const rec = await wrap(tx.objectStore(DECKS).get(id));
+  if (!rec) return null;
+  rec.deck = await wrap(tx.objectStore(CARDS).get(id));
+  return rec.deck ? rec : null;
 }
 
 /**
@@ -67,7 +82,7 @@ export async function get(id) {
  */
 export async function put(record, media) {
   const d = await db();
-  const tx = d.transaction([DECKS, MEDIA], 'readwrite');
+  const tx = d.transaction([DECKS, CARDS, MEDIA], 'readwrite');
   const ms = tx.objectStore(MEDIA);
   // Replacing a deck: clear what the old one had first, or its media lingers
   // for as long as the browser does.
@@ -76,14 +91,17 @@ export async function put(record, media) {
     ms.put({ name: m.name, kind: m.kind, blob: new Blob([m.bytes], { type: mime(m.name) }) },
       [record.id, m.i]);
   }
-  tx.objectStore(DECKS).put(record);
+  const { deck, ...card } = record;
+  tx.objectStore(CARDS).put(deck, record.id);
+  tx.objectStore(DECKS).put(card);
   await done(tx);
 }
 
 export async function remove(id) {
   const d = await db();
-  const tx = d.transaction([DECKS, MEDIA], 'readwrite');
+  const tx = d.transaction([DECKS, CARDS, MEDIA], 'readwrite');
   tx.objectStore(MEDIA).delete(IDBKeyRange.bound([id], [id, []]));
+  tx.objectStore(CARDS).delete(id);
   tx.objectStore(DECKS).delete(id);
   await done(tx);
   // The deck is gone; its study history has nothing left to describe.

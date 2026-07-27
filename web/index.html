@@ -52,9 +52,10 @@
     <main id="main" class="body">
       <div class="ask-exam" id="ask-exam" hidden>
         <h2>When is your exam?</h2>
-        <p><span data-deck-size>The deck</span> is more than you can cram. Give the app a date and it works
-           out how many new cards a day you need, and stops scheduling anything
-           for after you have sat it.</p>
+        <!-- Written by app.js: what is true of a 537-card syllabus is not true
+             of an eleven-card deck someone just imported. -->
+        <p id="ask-why">Give the app a date and it works out how many new cards a
+           day you need, and stops scheduling anything for after you have sat it.</p>
         <label class="sr" for="home-exam">Exam date</label>
         <input type="date" id="home-exam">
         <p class="ask-parsed" id="home-exam-parsed"></p>

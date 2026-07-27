@@ -72,7 +72,10 @@ export function clozeOrds(text) {
 /* Japanese decks write readings as 漢字[かんじ]. Three filters read that: as
  * ruby, as the reading alone, or as the characters alone. Core 2k/6k is the
  * most downloaded deck there is, so this is not an exotic case. */
-const FURIGANA = /([^\s>\[\]]+)\[([^\]]*)\]/g;
+// Bounded on purpose: unbounded, `+` followed by a `[` that never comes makes
+// this quadratic, and one 40 KB field took a second on its own. A furigana
+// base is a word.
+const FURIGANA = /([^\s>\[\]]{1,64})\[([^\]]{0,64})\]/g;
 const furigana = (s) => s.replace(FURIGANA, (w, base, read) => `<ruby>${base}<rt>${read}</rt></ruby>`);
 const kana = (s) => s.replace(FURIGANA, (w, base, read) => read);
 const kanji = (s) => s.replace(FURIGANA, (w, base) => base);

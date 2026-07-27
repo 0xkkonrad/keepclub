@@ -90,6 +90,48 @@ def norowid(con):
                     [(f'key-{i}', bytes([i % 256]) * (i * 37 % 5000)) for i in range(300)])
 
 
+def ddl(con):
+    """The declarations that a hand-written DDL parser gets wrong."""
+    # Anki's own config table, at every schema >= 14. `KEY` is a column name.
+    con.execute('create table config (KEY text not null primary key, usn integer not null, '
+                'mtime_secs integer not null, val blob not null) without rowid')
+    con.executemany('insert into config values (?,?,?,?)',
+                    [(f'k{i}', i, i * 2, bytes([i % 256]) * 3) for i in range(40)])
+    # A comment in the middle of the column list, as in Anki's notes table.
+    con.execute("""create table commented (
+      id integer primary key,
+      flds text not null,
+      -- The use of type integer for sfld is deliberate, because it means that integer values
+      -- in this field will sort numerically.
+      sfld integer not null, /* and a block comment, with a comma, and a ( paren */
+      csum integer not null
+    )""")
+    con.executemany('insert into commented values (?,?,?,?)',
+                    [(i, f'f{i}', f's{i}', i) for i in range(30)])
+    # Columns whose names are keywords, unquoted.
+    con.execute('create table words (check_ text, "primary" text, unique_ text, id integer primary key)')
+    con.execute('insert into words values (?,?,?,?)', ('c', 'p', 'u', 1))
+    # A WITHOUT ROWID table whose key is neither first nor plainly spelled.
+    con.execute('create table late (v text not null, k text not null primary key, w integer) '
+                'without rowid')
+    con.executemany('insert into late values (?,?,?)', [(f'val{i}', f'key{i:03}', i) for i in range(50)])
+    con.execute('create table coll (v text, k text not null, primary key (k collate nocase)) '
+                'without rowid')
+    con.executemany('insert into coll values (?,?)', [(f'v{i}', f'K{i:03}') for i in range(50)])
+    # Columns added after the rows were written read as their default, not null.
+    con.execute('create table altered (id integer primary key, a text)')
+    con.executemany('insert into altered values (?,?)', [(i, f'a{i}') for i in range(10)])
+    con.execute("alter table altered add column b integer not null default 7")
+    con.execute("alter table altered add column c text not null default 'hello'")
+
+
+def rowids(con):
+    """Rowids big enough to need the eight- and nine-byte varint."""
+    con.execute('create table wide (id integer primary key, s text)')
+    for v in [2 ** 20, 2 ** 48, 2 ** 49, 2 ** 55, 2 ** 56, 2 ** 62, 2 ** 63 - 1, -1, -(2 ** 62)]:
+        con.execute('insert into wide values (?,?)', (v, f'row{v}'))
+
+
 if __name__ == '__main__':
     print('sqlite fixtures:')
     build('sql-basics', 4096, basics, ['kinds'])
@@ -97,3 +139,5 @@ if __name__ == '__main__':
     build('sql-norowid', 4096, norowid, ['pairs', 'lead'])
     build('sql-small-pages', 512, wide, ['many', 'big'])
     build('sql-big-pages', 65536, wide, ['many', 'big'])
+    build('sql-ddl', 4096, ddl, ['config', 'commented', 'words', 'late', 'coll', 'altered'])
+    build('sql-rowids', 4096, rowids, ['wide'])

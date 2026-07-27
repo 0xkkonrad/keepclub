@@ -193,7 +193,12 @@ export async function readApkg(bytes) {
     db = openDb(maybeUnzstd(await zip.read(member)));
   } catch (e) {
     if (e instanceof SqliteError || e instanceof ZipError) {
-      throw new ApkgError(`the collection inside this .apkg could not be read — ${e.message}`);
+      // The reason is a detail of the SQLite file format — "impossible page
+      // size" is true and useless. What a person can do about it is export the
+      // deck again; the detail goes to the console for whoever is debugging.
+      console.error('collection unreadable:', e.message);
+      throw new ApkgError('the collection inside this .apkg could not be read — the file looks damaged. '
+        + 'Exporting it from Anki again usually fixes it.');
     }
     throw e;
   }
@@ -201,6 +206,21 @@ export async function readApkg(bytes) {
     if (!db.has(t)) throw new ApkgError(`the collection has no ${t} table — this is not an Anki export`);
   }
 
+  // Everything from here reads tables, and a SqliteError escaping raw would
+  // reach the importer as an unknown crash rather than as "this file is bad".
+  try {
+    return assemble(db, zip, member);
+  } catch (e) {
+    if (e instanceof SqliteError) {
+      console.error('collection unreadable:', e.message);
+      throw new ApkgError('this .apkg could not be read — the collection inside it is not shaped '
+        + 'like one Anki writes.');
+    }
+    throw e;
+  }
+}
+
+async function assemble(db, zip, member) {
   const col = db.has('col') ? db.rows('col')[0] : null;
   const modern = db.has('notetypes');
   const notetypes = modern ? notetypesFromTables(db)
@@ -209,7 +229,16 @@ export async function readApkg(bytes) {
     ? decksFromTable(db)
     : decksFromJson(JSON.parse(String(col?.decks || '{}')));
 
-  const media = zip.has('media') ? readMediaMap(await zip.read('media')) : new Map();
+  // A media map we cannot parse means a deck with no pictures, not a deck that
+  // cannot be opened: "protobuf wire type 7" is not a sentence anyone can act on.
+  let media = new Map();
+  if (zip.has('media')) {
+    try {
+      media = readMediaMap(await zip.read('media'));
+    } catch (e) {
+      console.error('media map unreadable:', e.message);
+    }
+  }
 
   return {
     zip,

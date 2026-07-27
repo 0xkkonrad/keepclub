@@ -32,17 +32,34 @@ function int(dv, at, len) {
   return v;
 }
 
-/** SQLite's varint: seven bits a byte, big-endian, nine bytes at the outside. */
+/** SQLite's varint: seven bits a byte, big-endian, nine bytes at the outside.
+ *
+ *  The ninth byte is the exception — it contributes all eight of its bits, and
+ *  the whole thing is then a signed 64-bit value. Stopping a byte early (which
+ *  this did) returns exactly twice the right number for any eight-byte varint
+ *  and leaves the cursor one byte short for a nine, which desynchronises every
+ *  field after it. Anki never mints an id big enough to reach either, so it
+ *  would have sat here being wrong about nothing until it wasn't. */
 function varint(b, at) {
-  let v = 0;
-  for (let i = 0; i < 8; i++) {
-    const byte = b[at + i];
-    if (byte === undefined) throw new SqliteError('truncated varint');
-    if (i === 7) return [v * 256 + byte, at + 8];
-    v = v * 128 + (byte & 0x7f);
-    if (!(byte & 0x80)) return [v, at + i + 1];
+  let n = 0;
+  while (n < 8 && (b[at + n] & 0x80)) n++;
+  n++;                                   // the terminating byte, or the ninth
+  for (let i = 0; i < n; i++) {
+    if (b[at + i] === undefined) throw new SqliteError('truncated varint');
   }
-  return [v, at + 8];
+  // Seven bytes is 49 bits, which a double holds exactly. Eight is 56, which it
+  // does not: an eight-byte rowid came back two apart from itself.
+  if (n <= 7) {
+    let v = 0;
+    for (let i = 0; i < n; i++) v = v * 128 + (b[at + i] & 0x7f);
+    return [v, at + n];
+  }
+  let big = 0n;
+  for (let i = 0; i < Math.min(n, 8); i++) big = big * 128n + BigInt(b[at + i] & 0x7f);
+  if (n === 9) big = big * 256n + BigInt(b[at + 8]);
+  big = BigInt.asIntN(64, big);
+  const fits = big >= -9007199254740991n && big <= 9007199254740991n;
+  return [fits ? Number(big) : big, at + n];
 }
 
 /* Column names, and which one is the rowid in disguise.
@@ -50,7 +67,11 @@ function varint(b, at) {
  * `id integer primary key` is not stored in the record at all: it is an alias
  * for the row's key, and the record holds NULL in its place. Miss that and
  * every note in the collection comes back with id null. */
-function parseCreate(sql) {
+function parseCreate(raw) {
+  // Comments come off first, before anything counts a bracket: a block comment
+  // in Anki's own DDL contains an unmatched "(" and the search for the closing
+  // bracket of the column list never terminated.
+  const sql = strip(raw);
   const open = sql.indexOf('(');
   if (open < 0) throw new SqliteError('unreadable table definition');
   let depth = 0, end = -1;
@@ -74,7 +95,11 @@ function parseCreate(sql) {
   }
   parts.push(cur);
 
-  const CONSTRAINT = /^(constraint|primary|unique|check|foreign|key)\b/i;
+  /* A constraint, not a column — and the distinction is the shape, not the
+   * first word. Anki's own config table opens `KEY text NOT NULL PRIMARY KEY`,
+   * and treating any part beginning with a keyword as a constraint deleted that
+   * column and shifted every value in the row up by one. */
+  const CONSTRAINT = /^(constraint\s|primary\s+key\s*\(|unique\s*\(|check\s*\(|foreign\s+key\s*\()/i;
   const columns = [];
   let pk = null;
   for (const raw of parts) {
@@ -83,24 +108,81 @@ function parseCreate(sql) {
     if (CONSTRAINT.test(part)) {
       // A table-level PRIMARY KEY (a, b) — which is what a WITHOUT ROWID table
       // is keyed by, and therefore the order its records are stored in.
-      const m = /^primary\s+key\s*\(([^)]*)\)/i.exec(part);
-      if (m) pk = m[1].split(',').map((s) => unquote(s.trim().replace(/\s+(asc|desc)$/i, '')));
+      const m = /primary\s+key\s*\(([^)]*)\)/i.exec(part);
+      if (m) {
+        pk = m[1].split(',').map((s) => unquote(s.trim()
+          .replace(/\s+collate\s+\S+/i, '').replace(/\s+(asc|desc)$/i, '').trim()));
+      }
       continue;
     }
-    const m = /^("[^"]*"|`[^`]*`|\[[^\]]*\]|[^\s]+)/.exec(part);
+    const m = /^("(?:[^"]|"")*"|`(?:[^`]|``)*`|\[[^\]]*\]|[^\s]+)/.exec(part);
     if (!m) continue;
     const nm = unquote(m[1]);
     const rest = part.slice(m[1].length);
-    const rowid = /\binteger\b/i.test(rest) && /\bprimary\s+key\b/i.test(rest);
-    if (rowid && !pk) pk = [nm];
-    columns.push({ name: nm, rowid });
+    // Only `INTEGER PRIMARY KEY` is an alias for the rowid. `k text primary
+    // key` is an ordinary column that happens to be the key — which still
+    // decides the storage order of a WITHOUT ROWID table.
+    const inlinePk = /\bprimary\s+key\b/i.test(rest);
+    const rowid = inlinePk && /\binteger\b/i.test(rest);
+    if (inlinePk && !pk) pk = [nm];
+    columns.push({ name: nm, rowid, def: defaultOf(rest) });
   }
   return { columns, pk, withoutRowid: /\bwithout\s+rowid\b/i.test(sql.slice(end)) };
 }
 
+/* Comments, out. Anki's notes table carries a two-line `--` comment between
+ * `flds` and `sfld` explaining why sfld is typed integer, and that comment
+ * contains a comma: split on it naively and the table gains two columns called
+ * "--" and "because", after which sfld, csum, flags and data all name the value
+ * of their neighbour. Every real Anki collection has this. */
+function strip(sql) {
+  let out = '', quote = '';
+  for (let i = 0; i < sql.length; i++) {
+    const c = sql[i];
+    if (quote) {
+      out += c;
+      if (c === quote) quote = '';
+      continue;
+    }
+    if (c === '"' || c === "'" || c === '`') { quote = c; out += c; continue; }
+    if (c === '-' && sql[i + 1] === '-') {
+      const nl = sql.indexOf('\n', i);
+      if (nl < 0) break;
+      i = nl;
+      out += '\n';
+      continue;
+    }
+    if (c === '/' && sql[i + 1] === '*') {
+      const close = sql.indexOf('*/', i + 2);
+      if (close < 0) break;
+      i = close + 1;
+      out += ' ';
+      continue;
+    }
+    out += c;
+  }
+  return out;
+}
+
+/* A column added by ALTER TABLE is simply absent from every row written before
+ * it, and the spec says those rows read as the column's DEFAULT — not as NULL.
+ * Half a table reading right is the worst way to be wrong. */
+function defaultOf(rest) {
+  const m = /\bdefault\s+(-?\d+\.?\d*|'(?:[^']|'')*'|null|true|false)/i.exec(rest);
+  if (!m) return null;
+  const v = m[1];
+  if (/^null$/i.test(v)) return null;
+  if (/^true$/i.test(v)) return 1;
+  if (/^false$/i.test(v)) return 0;
+  if (v[0] === "'") return v.slice(1, -1).replaceAll("''", "'");
+  return Number(v);
+}
+
 function unquote(s) {
   const q = s[0];
-  if ((q === '"' || q === '`') && s.endsWith(q)) return s.slice(1, -1).replaceAll(q + q, q);
+  if ((q === '"' || q === '`') && s.length > 1 && s.endsWith(q)) {
+    return s.slice(1, -1).replaceAll(q + q, q);
+  }
   if (q === '[' && s.endsWith(']')) return s.slice(1, -1);
   return s;
 }
@@ -143,7 +225,7 @@ export class Db {
       if (String(row.name).startsWith('sqlite_')) continue;
       let def;
       try { def = parseCreate(String(row.sql)); } catch { continue; }
-      tables.set(String(row.name), {
+      tables.set(String(row.name).toLowerCase(), {
         name: String(row.name),
         root: Number(row.rootpage),
         sql: String(row.sql),
@@ -153,11 +235,18 @@ export class Db {
     return tables;
   }
 
-  get tableNames() { return [...this.schema.keys()]; }
-  has(name) { return this.schema.has(name); }
+  get tableNames() { return [...this.schema.values()].map((t) => t.name); }
+
+  /* SQLite matches table names without regard to case, and so must this: Anki
+   * 2.1.41 to 2.1.49 created the note-type tables as FIELDS and TEMPLATES, and
+   * there is no migration that renames them, so a collection upgraded under
+   * those versions carries the capitals for ever. Matching exactly made every
+   * such deck unreadable. */
+  #find(name) { return this.schema.get(String(name).toLowerCase()); }
+  has(name) { return !!this.#find(name); }
 
   columnsOf(name) {
-    const t = this.schema.get(name);
+    const t = this.#find(name);
     if (!t) throw new SqliteError(`no table named ${name}`);
     return t.columns.map((c) => c.name);
   }
@@ -165,7 +254,7 @@ export class Db {
   /** Every row of a table, one at a time — a big collection should not have to
    *  fit in memory twice. */
   *each(name) {
-    const t = this.schema.get(name);
+    const t = this.#find(name);
     if (!t) throw new SqliteError(`no table named ${name}`);
     // A WITHOUT ROWID table stores its primary key columns first, whatever
     // order they were declared in, and the rest after.
@@ -223,12 +312,12 @@ export class Db {
       if (type === 0x0d) {                       // leaf of a table
         const [size, a1] = varint(page, at);
         const [rowid, a2] = varint(page, a1);
-        yield this.#record(this.#payload(page, a2, size, false), table.columns, rowid);
+        yield this.#record(this.#payload(page, a2, Number(size), false), table.columns, rowid);
       } else if (type === 0x05) {                // interior of a table: keys only
         yield* this.#walk(dv.getUint32(at, false), table, index, seen, depth + 1);
       } else if (type === 0x0a) {                // leaf of an index
         const [size, a1] = varint(page, at);
-        yield this.#record(this.#payload(page, a1, size, true), table.columns, null);
+        yield this.#record(this.#payload(page, a1, Number(size), true), table.columns, null);
       } else {                                   // interior of an index
         const child = dv.getUint32(at, false);
         const [size, a1] = varint(page, at + 4);
@@ -236,7 +325,7 @@ export class Db {
         // anything below them. Skip these and a WITHOUT ROWID table quietly
         // loses one row per page boundary.
         yield* this.#walk(child, table, index, seen, depth + 1);
-        yield this.#record(this.#payload(page, a1, size, true), table.columns, null);
+        yield this.#record(this.#payload(page, a1, Number(size), true), table.columns, null);
       }
     }
     if (interior) {
@@ -284,10 +373,11 @@ export class Db {
   #record(payload, columns, rowid) {
     const dv = new DataView(payload.buffer, payload.byteOffset, payload.byteLength);
     let [headerLen, at] = varint(payload, 0);
+    headerLen = Number(headerLen);
     const types = [];
     while (at < headerLen) {
       const [t, next] = varint(payload, at);
-      types.push(t);
+      types.push(Number(t));
       at = next;
     }
     let body = headerLen;
@@ -296,7 +386,8 @@ export class Db {
       const col = columns[i];
       const t = types[i];
       let v = null;
-      if (t === undefined || t === 0 || t === 10 || t === 11) v = null;
+      if (t === undefined) v = col.def ?? null;
+      else if (t === 0 || t === 10 || t === 11) v = null;
       else if (t >= 1 && t <= 4) { v = int(dv, body, t); body += t; }
       else if (t === 5) { v = int(dv, body, 6); body += 6; }
       else if (t === 6) { v = int(dv, body, 8); body += 8; }

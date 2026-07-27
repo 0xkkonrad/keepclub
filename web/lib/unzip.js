@@ -66,9 +66,12 @@ function findDirectory(bytes, dv) {
   // Sixty-five thousand members sounds absurd until you meet a deck with a
   // photo on every card. Past that the counts saturate and the real ones live
   // in a second record, found through a locator just before this one.
-  if (count === 0xFFFF || start === 0xFFFFFFFF) {
-    const locAt = at - 20;
-    if (locAt < 0 || dv.getUint32(locAt, true) !== LOC64) throw new ZipError('zip64 locator missing');
+  // 65535 is a count, not a marker: a conformant writer with exactly that many
+  // members emits it with no zip64 record anywhere. Only the locator sitting
+  // where it should be means the real numbers are elsewhere.
+  const locAt = at - 20;
+  const hasLocator = locAt >= 0 && dv.getUint32(locAt, true) === LOC64;
+  if (hasLocator && (count === 0xFFFF || start === 0xFFFFFFFF)) {
     const at64 = Number(dv.getBigUint64(locAt + 8, true));
     if (at64 < 0 || at64 + 56 > bytes.length || dv.getUint32(at64, true) !== EOCD64) {
       throw new ZipError('zip64 directory missing');

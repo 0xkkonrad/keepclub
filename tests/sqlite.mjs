@@ -19,7 +19,7 @@ const norm = (v) => {
   if (typeof v === 'number') return 'n:' + (Number.isInteger(v) ? BigInt(v) : v);
   return 't:' + v;
 };
-const rowKey = (r) => Object.values(r).map(norm).join('');
+const rowKey = (r) => Object.values(r).map(norm).join('\u001f');
 
 function compare(file, tables) {
   if (!existsSync(new URL(`./fixtures/${file}.db`, import.meta.url))) {
@@ -76,6 +76,35 @@ compare('sql-big-pages', ['many', 'big']);
   ok(typeof huge === 'bigint' && huge.toString() === '-9223372036854775808',
     'an integer too big for a double comes back exact, as a BigInt');
   ok(db.rows('kinds').find((r) => r.id === 2).t.includes('🐦'), 'text is decoded as UTF-8');
+}
+
+/* The DDL a hand-written parser gets wrong. Every one of these was a real
+ * defect: the first two are in every Anki collection ever exported. */
+compare('sql-ddl', ['config', 'commented', 'words', 'late', 'coll', 'altered']);
+{
+  const db = openDb(new Uint8Array(readFileSync(new URL('./fixtures/sql-ddl.db', import.meta.url))));
+  ok(db.columnsOf('config')[0] === 'KEY',
+    `a column called KEY is a column, not a constraint (${db.columnsOf('config')[0]})`);
+  ok(JSON.stringify(db.columnsOf('commented')) === JSON.stringify(['id', 'flds', 'sfld', 'csum']),
+    `a comment inside CREATE TABLE invents no columns (${db.columnsOf('commented')})`);
+  const alt = db.rows('altered').find((r) => r.id === 3);
+  ok(alt.b === 7 && alt.c === 'hello',
+    `a column added by ALTER reads as its default, not as null (${alt.b}/${alt.c})`);
+  const late = db.rows('late')[0];
+  ok(late.v.startsWith('val') && late.k.startsWith('key'),
+    'a WITHOUT ROWID key that is not the first column still orders the record');
+}
+
+/* Rowids past the eight-byte varint. Anki never mints one, but reading it as
+ * exactly double the real value is the kind of wrong that never announces
+ * itself. */
+{
+  const db = openDb(new Uint8Array(readFileSync(new URL('./fixtures/sql-rowids.db', import.meta.url))));
+  const rows = db.rows('wide');
+  const bad = rows.filter((r) => r.s !== 'row' + r.id);
+  ok(bad.length === 0, `every rowid reads back exactly (${bad.length ? bad[0].id + ' vs ' + bad[0].s : '9 of 9'})`);
+  ok(rows.some((r) => String(r.id) === '9223372036854775807'), 'including the largest one there is');
+  ok(rows.some((r) => String(r.id) === '-1'), 'and a negative one');
 }
 
 /* Refusals: the reader must say what is wrong rather than loop or lie. */

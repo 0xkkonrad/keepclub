@@ -29,7 +29,7 @@ async function give(page, name) {
 await p.goto(URL_, { waitUntil: 'networkidle' });
 await p.waitForSelector('.shelf.on');
 await p.click('[data-byo]');
-await p.waitForSelector('#imp-drop');
+await p.waitForSelector('#imp-file');
 ok(true, 'the "your own deck" tile opens the importer');
 ok((await p.textContent('.imp-how')).toLowerCase().includes('file → export'),
   'it says where an .apkg comes from');
@@ -37,12 +37,23 @@ ok((await p.textContent('.imp-how')).toLowerCase().includes('file → export'),
 await give(p, 'legacy.apkg');
 await p.waitForSelector('.imp-book', { timeout: 20000 });
 const receipt = await p.textContent('.imp-book');
-ok(/11\s*cards/.test(receipt), `the receipt counts the cards that landed (${/(\d+)\s*cards/.exec(receipt)?.[1]})`);
-ok(receipt.includes('4') && /section/.test(receipt), 'it counts the sections');
+// The document has to reconcile: what was in the file = kept + dropped.
+{
+  const inFile = Number(/(\d+)\s*cards in the package/.exec(receipt)?.[1]);
+  const kept = Number(/(\d+)\s*kept/.exec(receipt)?.[1]);
+  const dropped = [...receipt.matchAll(/(\d+)\s*cards? dropped/g)].reduce((t, m) => t + Number(m[1]), 0);
+  ok(inFile === 13 && kept === 11 && dropped === 2,
+    `the receipt states the opening balance (${inFile} in the file, ${kept} kept, ${dropped} dropped)`);
+  ok(inFile === kept + dropped, 'and the three numbers add up');
+}
+ok(/4 sections/.test(receipt) && /anki decks/.test(receipt),
+  'it says what a section is, in Anki\u2019s words');
 ok(/dropped/.test(receipt), 'it says what was dropped');
 ok(/question side came out empty/.test(receipt), 'and why');
 ok(/note type is missing/.test(receipt), 'including the card whose note type was absent');
 ok(/gone\.png/.test(receipt), 'it names the picture the package did not contain');
+ok(!/munin-front-side/.test(receipt) && !/[\u0000-\u0008]/.test(receipt),
+  'the example of a dropped card is the deck\u2019s words, with none of Munin\u2019s plumbing');
 ok(/scheduling does not come across/.test(receipt), 'it warns that scheduling is not carried over');
 ok(/suspended/.test(receipt), 'it mentions the suspended card');
 ok((await p.textContent('.imp-h')) === 'Sailing', 'the deck is named after what its decks share');
@@ -109,7 +120,7 @@ ok(/^local-[a-z0-9]+$/.test(id), `the imported deck becomes the resume target ($
   await p.waitForSelector('.shelf.on');
   ok((await p.locator('.shelf-row').count()) === 1, 'the imported deck sits on the shelf');
   await p.click('[data-byo]');
-  await p.waitForSelector('#imp-drop');
+  await p.waitForSelector('#imp-file');
   await give(p, 'legacy.apkg');
   await p.waitForSelector('.imp-book', { timeout: 20000 });
   ok(await p.locator('[data-keep="replace"]').isVisible(), 'it recognises a deck you already have');
@@ -131,7 +142,7 @@ ok(/^local-[a-z0-9]+$/.test(id), `the imported deck becomes the resume target ($
   await p.click('.shelf-btn');
   await p.waitForSelector('.shelf.on');
   await p.click('[data-byo]');
-  await p.waitForSelector('#imp-drop');
+  await p.waitForSelector('#imp-file');
   await give(p, 'modern.apkg');
   await p.waitForSelector('.imp-book', { timeout: 30000 });
   ok((await p.textContent('.imp-sub')).includes('current'), 'a current export is read as one');
@@ -142,14 +153,26 @@ ok(/^local-[a-z0-9]+$/.test(id), `the imported deck becomes the resume target ($
 /* Refusals say what is wrong. */
 {
   await p.click('[data-byo]');
-  await p.waitForSelector('#imp-drop');
+  await p.waitForSelector('#imp-file');
   await give(p, 'notzip.apkg');
   await p.waitForSelector('.imp-err', { timeout: 15000 });
   ok((await p.textContent('.imp-err')).includes('could not be read'), 'junk is refused in plain words');
   await p.click('[data-again]');
-  await p.waitForSelector('#imp-drop');
+  await p.waitForSelector('#imp-file');
   ok(true, 'and you can try another file without starting over');
   await p.click('.imp-x');
+}
+
+/* The importer is a dialog: escape closes it and the shelf behind is inert. */
+{
+  await p.click('[data-byo]');
+  await p.waitForSelector('#imp-file');
+  ok(await p.evaluate(() => document.querySelector('.shelf')?.inert === true),
+    'the shelf behind the importer is out of tab reach');
+  await p.keyboard.press('Escape');
+  ok((await p.locator('.imp').count()) === 0, 'escape closes the importer');
+  ok(await p.evaluate(() => document.querySelector('.shelf')?.inert === false),
+    'and the shelf is reachable again');
 }
 
 /* Removing a deck takes two taps and takes its history with it. */
@@ -157,12 +180,20 @@ ok(/^local-[a-z0-9]+$/.test(id), `the imported deck becomes the resume target ($
   await p.waitForSelector('.shelf.on');
   await p.click('[data-del]');
   ok((await p.textContent('[data-del]')).trim() === 'remove?', 'the first tap asks');
+  await p.click('.shelf-sub');
+  ok((await p.textContent('[data-del]')).trim() === '\u2715',
+    'touching anything else puts the armed delete away');
   await p.click('[data-del]');
-  await p.waitForSelector('.shelf-row', { state: 'detached' });
+  // Removing the deck you are currently inside reloads: the session behind the
+  // overlay is otherwise still running over a deck that no longer exists.
+  await Promise.all([p.waitForEvent('load'), p.click('[data-del]')]);
+  await p.waitForSelector('.shelf.on');
   const gone = await p.evaluate((k) => ({
-    decks: null, state: localStorage.getItem(`munin/${k}/state/v1`),
+    state: localStorage.getItem(`munin/${k}/state/v1`),
+    last: localStorage.getItem('munin/last-course'),
   }), id);
   ok(gone.state === null, 'the second tap takes the deck and its history');
+  ok(gone.last === null, 'and it stops being the deck you resume into');
   const left = await p.evaluate(async () => (await (await import('./lib/store.js')).list()).length);
   ok(left === 0, 'and the database is empty again');
 }

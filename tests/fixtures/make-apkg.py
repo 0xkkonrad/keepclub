@@ -24,14 +24,29 @@ import zipfile
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
+# Copied verbatim from rslib/src/storage/schema11.sql — including the comment in
+# the middle of the notes table, which is the point: a fixture that tidies the
+# real DDL up is a fixture that cannot catch a DDL parser getting it wrong.
 SCHEMA11 = """
 CREATE TABLE col (id integer PRIMARY KEY, crt integer NOT NULL, mod integer NOT NULL,
   scm integer NOT NULL, ver integer NOT NULL, dty integer NOT NULL, usn integer NOT NULL,
   ls integer NOT NULL, conf text NOT NULL, models text NOT NULL, decks text NOT NULL,
   dconf text NOT NULL, tags text NOT NULL);
-CREATE TABLE notes (id integer PRIMARY KEY, guid text NOT NULL, mid integer NOT NULL,
-  mod integer NOT NULL, usn integer NOT NULL, tags text NOT NULL, flds text NOT NULL,
-  sfld integer NOT NULL, csum integer NOT NULL, flags integer NOT NULL, data text NOT NULL);
+CREATE TABLE notes (
+  id integer PRIMARY KEY,
+  guid text NOT NULL,
+  mid integer NOT NULL,
+  mod integer NOT NULL,
+  usn integer NOT NULL,
+  tags text NOT NULL,
+  flds text NOT NULL,
+  -- The use of type integer for sfld is deliberate, because it means that integer values in this
+  -- field will sort numerically.
+  sfld integer NOT NULL,
+  csum integer NOT NULL,
+  flags integer NOT NULL,
+  data text NOT NULL
+);
 CREATE TABLE cards (id integer PRIMARY KEY, nid integer NOT NULL, did integer NOT NULL,
   ord integer NOT NULL, mod integer NOT NULL, usn integer NOT NULL, type integer NOT NULL,
   queue integer NOT NULL, due integer NOT NULL, ivl integer NOT NULL, factor integer NOT NULL,
@@ -64,6 +79,12 @@ CREATE TABLE decks (id integer PRIMARY KEY NOT NULL, name text NOT NULL COLLATE 
 CREATE UNIQUE INDEX idx_decks_name ON decks (name);
 CREATE TABLE tags (tag text NOT NULL PRIMARY KEY COLLATE unicase, usn integer NOT NULL,
   collapsed boolean NOT NULL, config blob NULL) without rowid;
+CREATE TABLE config (
+  KEY text NOT NULL PRIMARY KEY,
+  usn integer NOT NULL,
+  mtime_secs integer NOT NULL,
+  val blob NOT NULL
+) without rowid;
 """
 
 # ── protobuf, by hand ──────────────────────────────────────────────────────
@@ -213,6 +234,7 @@ def fill(con, schema18, notes, decks=DECKS, notetypes=NOTETYPES):
         for did, name in decks.items():
             con.execute('insert into decks values (?,?,?,?,?,?)',
                         (did, name.replace('::', US), 0, 0, b'', b''))
+        con.execute('insert into config values (?,?,?,?)', ('curDeck', 0, 0, b'\x01\x02\x03'))
         models = decks_json = '{}'
     else:
         models = json.dumps({str(mid): {
@@ -288,6 +310,32 @@ def build_modern(name, notes, media=MEDIA):
     return out
 
 
+def build_caps(name):
+    """A collection upgraded under Anki 2.1.41–2.1.49, which ran a schema15
+    upgrade that spelled the tables FIELDS and TEMPLATES. There is no migration
+    that renames them, so those capitals are in the file for ever."""
+    db = os.path.join(HERE, '_caps.anki21b')
+    con = new_db(db, True)
+    fill(con, True, NOTES)
+    con.execute('alter table fields rename to FIELDS_TMP')
+    con.execute('alter table FIELDS_TMP rename to FIELDS')
+    con.execute('alter table templates rename to TEMPLATES_TMP')
+    con.execute('alter table TEMPLATES_TMP rename to TEMPLATES')
+    con.commit()
+    con.close()
+    with open(db, 'rb') as f:
+        raw = f.read()
+    os.remove(db)
+    out = os.path.join(HERE, name)
+    with zipfile.ZipFile(out, 'w', zipfile.ZIP_STORED) as z:
+        z.writestr('meta', pb_var(1, 3))
+        z.writestr('collection.anki21b', zstd(raw))
+        z.writestr('media', zstd(media_entries(list(MEDIA))))
+        for i, n in enumerate(MEDIA):
+            z.writestr(str(i), zstd(MEDIA[n]))
+    return out
+
+
 def build_big(name, count=3000):
     """Enough notes to cross into interior b-tree pages inside a real package."""
     notes = []
@@ -297,6 +345,79 @@ def build_big(name, count=3000):
                       [f'Question {i} ' + 'padding ' * (i % 40), f'Answer {i}'],
                       '', [(0, 0, 0)]))
     return build_legacy(name, notes, media={})
+
+
+# Packages that are legal, and awkward. Every one of these is a defect that
+# reached a user as lost work, a wrong number, or a card that teaches nothing.
+AWKWARD_DECKS = {
+    1: 'Default',
+    1700000000021: 'Chemistry',
+    1700000000022: 'Physics',
+    1700000000023: '::',
+}
+
+AWKWARD = [
+    # A per-cent sign in a filename: decodeURIComponent throws on it.
+    (2100001, BASIC, 1700000000021, ['<img src="100%.png"> which flask?', 'the round one'],
+     '', [(0, 0, 0)]),
+    (2100002, BASIC, 1700000000021, ['[sound:50%off.mp3] what note?', 'a flat one'], '', [(0, 0, 0)]),
+    # A cloze note type with nothing hidden, and a cloze card whose ordinal has
+    # no deletion: both render the answer on the question side.
+    (2100003, CLOZE, 1700000000022, ['No deletions at all here.', 'extra'], '', [(0, 0, 0)]),
+    (2100004, CLOZE, 1700000000022, ['The {{c1::halyard}} raises it.', 'extra'], '', [(7, 0, 0)]),
+    # Two cards with the same id, and two ids that collapse onto one double.
+    (2100005, BASIC, 1700000000022, ['Twin', 'one'], '', [(0, 0, 0)]),
+    (2100006, BASIC, 1700000000022, ['Big id 1', 'two'], '', [(0, 0, 0)]),
+    (2100007, BASIC, 1700000000023, ['Under a deck called colon-colon', 'three'], '', [(0, 0, 0)]),
+]
+
+BIG_IDS = [9007199254740993, 9007199254740992]
+
+
+def build_awkward(name):
+    db = os.path.join(HERE, '_awkward.anki2')
+    con = new_db(db, False)
+    fill(con, False, AWKWARD, decks=AWKWARD_DECKS)
+    # Rewrite the ids of the last few cards by hand: sequential ids cannot
+    # express "the same id twice" or "two ids one double apart".
+    rows = [r[0] for r in con.execute('select id from cards order by id').fetchall()]
+    con.execute('update cards set id=? where id=?', (7777777, rows[-3]))
+    con.execute('update cards set id=? where id=?', (BIG_IDS[0], rows[-2]))
+    con.commit()
+    con.close()
+    out = os.path.join(HERE, name)
+    media = {'100%.png': b'\x89PNG\r\n\x1a\n' + b'pct', '50%off.mp3': b'ID3' + b'pct',
+             'broken.svg': b'<svg xmlns="http://www.w3.org/2000/svg"></svg>'}
+    names = list(media)
+    with zipfile.ZipFile(out, 'w', zipfile.ZIP_DEFLATED) as z:
+        z.write(db, 'collection.anki2')
+        z.writestr('media', json.dumps({str(i): n for i, n in enumerate(names)}))
+        for i, n in enumerate(names):
+            z.writestr(str(i), media[n])
+    os.remove(db)
+    return out
+
+
+def build_badmedia(name):
+    """A modern package with one media file whose zstd body is garbage."""
+    db = os.path.join(HERE, '_badmedia.anki21b')
+    con = new_db(db, True)
+    fill(con, True, NOTES)
+    con.close()
+    with open(db, 'rb') as f:
+        raw = f.read()
+    os.remove(db)
+    out = os.path.join(HERE, name)
+    names = list(MEDIA)
+    with zipfile.ZipFile(out, 'w', zipfile.ZIP_STORED) as z:
+        z.writestr('meta', pb_var(1, 3))
+        z.writestr('collection.anki21b', zstd(raw))
+        z.writestr('media', zstd(media_entries(names)))
+        # The zstd magic is intact and the body is nonsense — a half-downloaded
+        # file, which used to refuse the whole package.
+        z.writestr('0', b'\x28\xb5\x2f\xfd' + b'\xde\xad\xbe\xef' * 4)
+        z.writestr('1', zstd(MEDIA[names[1]]))
+    return out
 
 
 def build_junk():
@@ -314,6 +435,9 @@ if __name__ == '__main__':
     for f in [build_legacy('legacy.apkg', NOTES),
               build_modern('modern.apkg', NOTES),
               build_legacy('hostile.apkg', HOSTILE, media={}),
+              build_caps('caps.apkg'),
+              build_awkward('awkward.apkg'),
+              build_badmedia('badmedia.apkg'),
               build_big('big.apkg')]:
         print(f'  {os.path.basename(f)}  ({os.path.getsize(f)} bytes)')
     build_junk()

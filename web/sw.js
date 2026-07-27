@@ -49,6 +49,7 @@ const SHELL = [
   'lib/anki.js',
   'lib/deck.js',
   'lib/html.js',
+  'lib/receipt.js',
   'lib/sqlite.js',
   'lib/store.js',
   'lib/template.js',

@@ -203,6 +203,7 @@ button { cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-colo
   margin: 0; font-size: 1.5rem; font-weight: 500; letter-spacing: -.03em;
   text-transform: lowercase;
 }
+.top h1.own { text-transform: none; }
 .sub { margin: 4px 0 0; color: var(--muted); font-size: .8rem; text-transform: lowercase; }
 
 .icon-btn {

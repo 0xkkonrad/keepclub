@@ -206,7 +206,12 @@ async function startCourse(c, loadDoodles) {
   await loadDoodles();
   await loadScript('app.js');
   const h1 = document.getElementById('course-title');
-  if (h1) h1.textContent = c.title.replace(/^RYA /, '');
+  if (h1) {
+    h1.textContent = c.title.replace(/^RYA /, '');
+    // Munin lowercases its own chrome. A deck someone imported is titled in
+    // their words, not Munin's, and the shelf already shows it as written.
+    h1.classList.toggle('own', !!c.deck);
+  }
   mountShelfButton(c);
 }
 
@@ -339,6 +344,30 @@ function courseTile(c) {
   </button>`;
 }
 
+/* Study history for a deck that is not here any more.
+ *
+ * store.remove() deletes the key as it goes, but the deck being removed may be
+ * the one open behind this overlay, and that session writes its state again on
+ * the way out — so the key comes back a moment after it was deleted, owned by
+ * nothing, for ever. Collecting orphans whenever the shelf draws is the only
+ * point where the full list of decks is in hand anyway. */
+function sweepOrphanState(decks) {
+  const live = new Set(decks.map((d) => d.id));
+  for (const k of Object.keys(localStorage)) {
+    const m = /^munin\/(local-[a-z0-9]+)\/state\/v1$/.exec(k);
+    if (m && !live.has(m[1])) localStorage.removeItem(k);
+  }
+}
+
+let disarmAt = 0;
+function disarm(root) {
+  clearTimeout(disarmAt);
+  for (const b of root.querySelectorAll('[data-armed]')) {
+    delete b.dataset.armed;
+    b.textContent = '\u2715';
+  }
+}
+
 /* An imported deck is titled by whoever made the .apkg, so everything about it
  * on this screen is escaped. */
 function localTile(d) {
@@ -348,7 +377,8 @@ function localTile(d) {
         style="--tile-accent:${MUNIN.accent.light}">
       <svg class="dood" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2"
         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${art}"/></svg>
-      <span><b>${escHtml(d.title)}</b><small>your deck · ${Number(d.cards).toLocaleString('en-GB')} cards</small></span>
+      <span><b>${escHtml(d.title)}</b><small>your deck · ${Number(d.cards).toLocaleString('en-GB')
+      } cards · ${new Date(d.created).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</small></span>
     </button>
     <button type="button" class="shelf-del" data-del="${escHtml(d.id)}"
       aria-label="Remove ${escHtml(d.title)}">✕</button>
@@ -379,6 +409,7 @@ async function renderShelf(asOverlay) {
   let mine = [];
   try {
     mine = await (await import('./lib/store.js')).list();
+    sweepOrphanState(mine);
   } catch (e) {
     console.error(e);
   }
@@ -431,16 +462,17 @@ async function renderShelf(asOverlay) {
     }
 
     // Removing a deck takes two taps and no dialog: the button says what the
-    // next tap does.
+    // next tap does. Anything else you touch puts it away again — an armed
+    // delete left sitting on the shelf is how you lose the wrong deck.
     const del = e.target.closest('[data-del]');
+    if (!del) disarm(el);
     if (del) {
       if (!del.dataset.armed) {
-        for (const other of el.querySelectorAll('[data-armed]')) {
-          delete other.dataset.armed;
-          other.textContent = '✕';
-        }
+        disarm(el);
         del.dataset.armed = '1';
         del.textContent = 'remove?';
+        clearTimeout(disarmAt);
+        disarmAt = setTimeout(() => disarm(el), 5000);
         return;
       }
       const id = del.dataset.del;
@@ -453,6 +485,10 @@ async function renderShelf(asOverlay) {
         return;
       }
       if (localStorage.getItem(MUNIN.lastKey) === id) localStorage.removeItem(MUNIN.lastKey);
+      // If that was the deck being studied, the screen behind this overlay is
+      // now a session over a deck that does not exist: answers would be written
+      // to a key nothing will ever read again.
+      if (globalThis.COURSE && COURSE.id === id) { location.reload(); return; }
       del.closest('.shelf-row').remove();
       return;
     }

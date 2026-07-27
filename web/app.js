@@ -88,6 +88,8 @@ function freshState() {
  * backup is the one place a string can reach these templates. */
 const n = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
 const isPlainObject = (v) => !!v && typeof v === 'object' && !Array.isArray(v);
+/** "1 day", not "1 days" — the app counts down to a date, so it hits 1 often. */
+const plural = (v, word) => `${n(v)} ${n(v) === 1 ? word : word + 's'}`;
 
 /** Make any stored or imported blob safe to run on.
  *
@@ -1013,7 +1015,8 @@ function renderHome() {
     $('#today-note').textContent = !c.fresh
       ? 'You have seen every card at least once. From here it is all repeats.'
       : pace > 0
-        ? `At ${pace} new cards a day you will have seen all ${DECK.cards.length} in ${daysToSeeAll(c.fresh)} days.`
+        ? `At ${pace} new cards a day you will have seen all ${DECK.cards.length} in ${
+          plural(daysToSeeAll(c.fresh), 'day')}.`
         : `New cards are switched off, so ${c.fresh} of ${DECK.cards.length} will stay unseen. Raise the daily number in Progress.`;
   } else {
     const batch = Math.min(AHEAD_BATCH, c.fresh || AHEAD_BATCH);
@@ -2736,6 +2739,14 @@ async function boot() {
   $('#boot-art').innerHTML = doodle((COURSE.boot || {}).art || COURSE.fallback);
   for (const el of document.querySelectorAll('[data-deck-size]')) {
     el.textContent = DECK.cards.length + ' cards';
+  }
+  // "537 cards is more than you can cram" is true of a syllabus and false of a
+  // deck someone imported on the bus. Say the thing that is true of this deck.
+  const cram = $('#ask-why');
+  if (cram) {
+    cram.textContent = DECK.cards.length > 120
+      ? `${DECK.cards.length} cards is more than you can cram. Give the app a date and it works out how many new cards a day you need, and stops scheduling anything for after you have sat it.`
+      : `Give the app a date and it works out how many of these ${DECK.cards.length} cards a day you need, and stops scheduling anything for after you have sat it.`;
   }
   byId = new Map(DECK.cards.map((c) => [c.i, c]));
   sectionOf = new Map(DECK.sections.map((s) => [s.k, s]));

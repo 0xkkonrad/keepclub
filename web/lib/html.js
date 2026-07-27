@@ -19,6 +19,9 @@ const KEEP = new Set([
   'table', 'thead', 'tbody', 'tfoot', 'tr', 'td', 'th', 'caption',
   'img', 'audio', 'code', 'pre', 'kbd', 'samp', 'var', 'blockquote', 'q', 'cite',
   'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'a', 'figure', 'figcaption', 'abbr', 'time',
+  // The furigana filter writes these. Without them the reading is glued onto
+  // the word it annotates — worse than leaving 漢字[かんじ] alone.
+  'ruby', 'rt', 'rp',
 ]);
 
 /** Dropped along with everything inside them. */
@@ -28,8 +31,14 @@ const BURN = new Set([
   'form', 'input', 'button', 'select', 'textarea', 'option', 'title', 'head',
 ]);
 
-/** Nothing closes these. */
-const VOID = new Set(['br', 'hr', 'img', 'wbr', 'source', 'track', 'col']);
+/* Nothing closes these — and the list has to be COMPLETE, not just the void
+ * tags we keep. `<meta>` is on the burn list, and treating it as an element
+ * with content means burning everything after it: one `<meta charset>` at the
+ * top of a field silently deleted the entire card, and the receipt then
+ * reported the question as empty. That is the failure this module exists to
+ * prevent, committed by this module. */
+const VOID = new Set(['area', 'base', 'br', 'col', 'embed', 'frame', 'hr', 'img',
+  'input', 'link', 'meta', 'param', 'source', 'track', 'wbr']);
 
 /** Per tag, the only attributes that survive. */
 const ATTRS = {
@@ -228,14 +237,51 @@ export function clean(src) {
   return { html: out.join('').trim(), media: [...media] };
 }
 
-/** What a card says, with the markup taken off — for sorting and searching. */
+/** What a card says, with the markup taken off — for sorting and searching.
+ *
+ *  Written as one pass over the string rather than four regex replaces. The
+ *  replaces were quadratic: a lazy `[\s\S]*?` looking for a `</script>` that
+ *  never arrives re-scans the whole field from every `<script`, which a note
+ *  with a hundred kilobytes of them turned into three-quarters of a second per
+ *  card. This runs on raw field text, so the input is a stranger's. */
 export function toText(src) {
-  let s = String(src ?? '');
-  s = s.replace(/<\s*(script|style)[\s\S]*?<\s*\/\s*\1\s*>/gi, ' ');
-  s = s.replace(/<\s*br\s*\/?\s*>/gi, ' ');
-  s = s.replace(/<\s*\/?(p|div|tr|li|h[1-6]|blockquote|table)\b[^>]*>/gi, ' ');
-  s = s.replace(/<[^>]*>/g, '');
-  return decodeEntities(s).replace(/\s+/g, ' ').trim();
+  const s = String(src ?? '');
+  const out = [];
+  let at = 0;
+  while (at < s.length) {
+    const lt = s.indexOf('<', at);
+    if (lt < 0) { out.push(s.slice(at)); break; }
+    out.push(s.slice(at, lt));
+    const m = /^<\s*(\/?)\s*([a-zA-Z][a-zA-Z0-9:-]*)?/.exec(s.slice(lt, lt + 32));
+    const name = (m && m[2] || '').toLowerCase();
+    const end = tagEnd(s, lt);
+    if (end < 0) { at = s.length; break; }        // an unclosed tag ends the text
+    // script and style hold code, not words. Skip to the close, or to the end.
+    if (!m[1] && (name === 'script' || name === 'style')) {
+      const close = s.toLowerCase().indexOf('</' + name, end);
+      at = close < 0 ? s.length : tagEnd(s, close) + 1 || s.length;
+      out.push(' ');
+      continue;
+    }
+    if (BREAKS.has(name)) out.push(' ');
+    at = end + 1;
+  }
+  return decodeEntities(out.join('')).replace(/\s+/g, ' ').trim();
+}
+
+const BREAKS = new Set(['br', 'p', 'div', 'tr', 'li', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+  'blockquote', 'table', 'td', 'th', 'hr']);
+
+/** Where a tag ends — respecting quotes, so alt=">" is not the end of it. */
+export function tagEnd(s, from) {
+  let quote = '';
+  for (let i = from; i < s.length; i++) {
+    const c = s[i];
+    if (quote) { if (c === quote) quote = ''; continue; }
+    if (c === '"' || c === "'") { quote = c; continue; }
+    if (c === '>') return i;
+  }
+  return -1;
 }
 
 /** Is there anything on this side of the card at all? */

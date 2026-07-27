@@ -10,9 +10,9 @@ const out = [], fails = [];
 const ok = (c, m) => (c ? out : fails).push((c ? 'PASS  ' : 'FAIL  ') + m);
 const load = (n) => new Uint8Array(readFileSync(new URL(`./fixtures/${n}`, import.meta.url)));
 
-const run = async (n) => {
+const run = async (n, fileName) => {
   const col = await readApkg(load(n));
-  return { col, ...(await buildDeck(col)) };
+  return { col, ...(await buildDeck(col, { fileName: fileName || n })) };
 };
 
 /* ── the legacy package: what a person actually gets ── */
@@ -142,6 +142,96 @@ const legacy = await run('legacy.apkg');
   const bad = cases.filter(([src, want]) => !want.test(clean(src).html));
   ok(bad.length === 0, `the sanitiser holds at the edges (${bad.map((b) => b[0]).join(' | ') || 'all 12'})`);
   ok(clean('<img src="munin-media:3">').media[0] === 3, 'it reports which media a card uses');
+}
+
+/* ── the defects an adversarial pass found, kept fixed ── */
+{
+  // A burned tag with no closing tag used to swallow the rest of the card, and
+  // then the receipt called the question empty. Silent, misreported loss.
+  for (const tag of ['<meta charset="utf-8">', '<link rel="x">', '<base href="/">', '<input id="t">']) {
+    const got = clean(tag + 'The whole question.').html;
+    ok(got.includes('The whole question.'), `${tag.slice(0, 6)}… does not eat the card (${got})`);
+  }
+
+  // Quadratic scanning: one note, a hundred thousand unterminated tags.
+  const nasty = '<img '.repeat(100000);
+  const t0 = process.hrtime.bigint();
+  clean(nasty);
+  toText('<script>a'.repeat(100000));
+  toText(nasty);
+  const ms = Number(process.hrtime.bigint() - t0) / 1e6;
+  ok(ms < 1000, `a megabyte of malformed markup is linear work (${Math.round(ms)}ms)`);
+
+  // A `>` inside a quoted attribute is not the end of the tag — the media
+  // rewriter used to stop there, so a hand-written reference got through.
+  const forged = clean('<img alt=">" src="munin-media:7">').html;
+  ok(forged.includes('munin-media:7'), 'the sanitiser reads a quoted > correctly');
+  ok(toText('<img alt=">" src="x">after') === 'after', 'and so does the text extractor');
+
+  // Ruby: the furigana filter writes it, so keeping it is the difference
+  // between a reading and two words glued together.
+  ok(clean('<ruby>\u6f22\u5b57<rt>\u304b\u3093\u3058</rt></ruby>').html.includes('<rt>'),
+    'furigana survives as ruby, not as glued-together text');
+}
+
+/* ── the schemas Anki has actually shipped ── */
+{
+  // Anki's notes table has a two-line comment in the middle of its column list,
+  // and its config table's first column is called KEY. Both used to break the
+  // DDL parser — silently, by shifting every value after them onto the wrong
+  // name. Neither is exotic: they are in every collection ever exported.
+  const col = legacy.col;
+  const notes = col.notes ? [...col.notes()] : [];
+  const first = notes[0];
+  ok(first && typeof first.sfld === 'string' && first.data === '',
+    `the notes table's columns survive the comment in its own DDL (sfld=${JSON.stringify(first?.sfld)})`);
+
+  const modern = await readApkg(load('modern.apkg'));
+  ok(modern.schema === 18, 'the modern collection reports schema 18');
+
+  // Anki 2.1.41–2.1.49 wrote FIELDS and TEMPLATES in capitals, and nothing has
+  // ever renamed them. Matching table names exactly made those decks unreadable.
+  const caps = await run('caps.apkg');
+  ok(caps.deck.cards.length === legacy.deck.cards.length,
+    `a collection with capitalised table names reads the same (${caps.deck.cards.length})`);
+  ok(JSON.stringify(caps.deck.cards) === JSON.stringify(legacy.deck.cards),
+    'down to the same cards');
+}
+
+/* ── packages that are legal and awkward ── */
+{
+  const { deck, receipt } = await run('awkward.apkg', 'my-collection.apkg');
+
+  ok(deck.cards.length > 0, `a per-cent sign in a filename does not refuse the package (${deck.cards.length} cards)`);
+  ok(receipt.media.images === 1 && receipt.media.sounds === 1,
+    `"100%.png" and "50%off.mp3" are found (${receipt.media.images}/${receipt.media.sounds})`);
+
+  // Decks that share no parent cannot name the deck between them.
+  ok(deck.name === 'my-collection',
+    `with nothing in common, the deck takes the file's name ("${deck.name}")`);
+
+  // A cloze card is a card because something is hidden.
+  ok(!deck.cards.some((c) => toText(c.q) === toText(c.a).replace(/ extra$/, '')),
+    'no card asks you its own answer');
+  ok(receipt.skipped.some((s) => /nothing was blanked out/.test(s.why)),
+    'a cloze with no deletion is dropped, and said so');
+
+  // Two cards must never be one card.
+  const ids = deck.cards.map((c) => c.i);
+  ok(new Set(ids).size === ids.length, `every card has an id of its own (${ids.length} cards, ${new Set(ids).size} ids)`);
+
+  // An SVG cannot be shown, so it is not a picture that landed.
+  ok(!receipt.media.missing.includes('broken.svg') || receipt.media.images === 1,
+    'an SVG is not counted as a picture that landed');
+}
+
+/* One damaged file inside a package costs you that file, not the deck. */
+{
+  const { deck, receipt } = await run('badmedia.apkg');
+  ok(deck.cards.length === 11, `a corrupt media file leaves the cards alone (${deck.cards.length})`);
+  ok(receipt.media.damaged?.length === 1, `and is named as damaged (${receipt.media.damaged})`);
+  ok(!deck.cards.some((c) => /munin-media:0"/.test(c.q + c.a)),
+    'the card it belonged to shows no broken image');
 }
 
 /* ── size, and the refusals ── */
