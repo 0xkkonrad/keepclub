@@ -31,6 +31,19 @@ the shelf and every course: a course cannot hold its own, or you would change
 colour by changing deck. The button sits on the picker as well as in each
 course header, and every `[data-theme-glyph]` on the page says the same thing.
 
+## Installing
+
+`beforeinstallprompt` is captured in `munin.js` **at parse time** — the shell is
+the only script that always runs. On the picker there is no course yet, so an
+`app.js` listener would register long after Chrome had fired and dropped the
+event (it does not queue), and the offer would never appear anywhere.
+
+Two places draw the one captured event: the picker, under the tiles, so first
+run can say "keep me" before anything is picked; and Settings, for people who
+go looking. Both vanish once installed. A browser that can neither prompt nor
+be told how is shown nothing; iOS, which has no install API, gets the two
+steps instead of a button.
+
 ## What differs from Day Skipper's app.js
 
 - The theme moved out of `state.settings` to `munin/theme` (above).

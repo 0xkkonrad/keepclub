@@ -101,6 +101,52 @@ ok((await p.textContent('#course-title')).trim().toLowerCase() === 'competent cr
   await c2.close();
 }
 
+/* ── the install offer: shown where it can be acted on, nowhere else ── */
+const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15'
+  + ' (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1';
+const offer = (pg) => pg.evaluate(() => {
+  const c = document.getElementById('shelf-install');
+  return {
+    shown: !c.hidden,
+    steps: [...c.querySelectorAll('.shelf-install-steps li')].length,
+    btn: !c.querySelector('#shelf-install-btn').hidden,
+  };
+});
+{
+  // A browser that can neither prompt nor be told how says nothing at all.
+  const c3 = await b.newContext({ viewport: { width: 390, height: 844 } });
+  const p3 = await c3.newPage();
+  await p3.goto(URL, { waitUntil: 'networkidle' });
+  await p3.waitForSelector('.shelf.on');
+  ok(!(await offer(p3)).shown, 'no install offer where installing is impossible');
+
+  // Chrome's event is fired once, early — synthesised here, since headless
+  // never decides it is installable. The picker must catch it: on first run
+  // there is no course, so app.js does not exist yet.
+  await p3.evaluate(() => {
+    const e = new Event('beforeinstallprompt');
+    e.prompt = () => { globalThis.__prompted = true; };
+    e.userChoice = Promise.resolve({ outcome: 'accepted' });
+    dispatchEvent(e);
+  });
+  const chrome = await offer(p3);
+  ok(chrome.shown && chrome.btn && chrome.steps === 0,
+    'a promptable browser gets one button on the picker');
+  await p3.click('#shelf-install-btn');
+  await p3.waitForFunction(() => globalThis.__prompted === true, { timeout: 3000 });
+  ok(true, "the picker's button reaches the browser's own install prompt");
+  await c3.close();
+
+  // iOS has no install API, so the offer is instructions instead.
+  const c4 = await b.newContext({ viewport: { width: 390, height: 844 }, userAgent: IPHONE });
+  const p4 = await c4.newPage();
+  await p4.goto(URL, { waitUntil: 'networkidle' });
+  await p4.waitForSelector('.shelf.on');
+  const ios = await offer(p4);
+  ok(ios.shown && ios.steps === 2 && !ios.btn, 'iPhone gets the two steps and no button');
+  await c4.close();
+}
+
 /* ── robustness: junk in the URL or in storage never strands anyone ── */
 {
   const c2 = await b.newContext({ viewport: { width: 390, height: 844 } });
