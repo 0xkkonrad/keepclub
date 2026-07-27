@@ -1985,10 +1985,11 @@ function renderSyncState() {
   const s = DSSync.status();
 
   if (!s.on) {
-    line.textContent = 'Sync is off. Your progress is on this device only.';
+    // Munin ships with sync off until the parity gate (see munin.js): no
+    // buttons that would silently do nothing.
+    line.textContent = 'Sync arrives with a later Munin build. Your progress is on this device only.';
     keyEl.hidden = true;
-    acts.innerHTML = '<button class="ghost" data-sync="new">Turn on sync</button>'
-      + '<button class="ghost" data-sync="join">Use a key from another device</button>';
+    acts.innerHTML = '';
     return;
   }
 
