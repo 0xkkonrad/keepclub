@@ -78,6 +78,31 @@ Konrad on #2: *"i love the strength of flipping being the how-easy-it-was ux."* 
 distinguishing interaction of the product — treat it as load-bearing, not a gesture
 shortcut over a button row.
 
+### Theme & shell — locked 27 Jul 2026
+
+Picker: `design/theme-picker/` (artifact linked in its README). The layering, in
+Konrad's words: **munin** is infra with the themes engine; **courses** bring colour +
+thematic doodles + loading screen + other thematic elements; **cards** are content,
+with tags/categories at the engine level.
+
+| # | Decision | Pick |
+|---|---|---|
+| T1 | Munin's logo | **perch** — the plain standing raven (candidates + geometry in `design/theme-picker/ravens.py`; runners-up seed the raven doodle set). |
+| T2 | Munin's accent | **Corvid sheen, much darker than round 1.** Open between #14524A / #0E3F39 / #0A2C28 (dark-theme pairs in the picker) — the one still-open pick. |
+| T3 | App entry | **Resume last course.** Cold open = the course you left off in, full theme; the shelf is one tap away behind the course name in the header, and greets first-run. H1's one-number-one-button applies *within* a course. |
+| T4 | Install | **One PWA.** The raven on the home screen; one service worker, one cache. Courses are screens inside. |
+| T5 | Competent Crew accent | **Harbor slate #33608D / #7FB2E8.** |
+| T6 | Competent Crew doodles | **Colour-only reskin — but physically separated.** CC ships its own doodle files that *happen* to coincide with Day Skipper's; theme files are never imported across courses. |
+| T7 | Deployment | **kkonrad.com/munin now.** /day-skipper stays untouched until Munin passes the four test suites + a state-migration check, then 301s in. |
+
+A course theme is exactly: accent pair (light+dark) + doodle set + section art +
+**loading screen** (boot art, its animation, its line — Day Skipper's rocking boat and
+"Loading deck…" stay Day Skipper's; the raven default gets its own). Everything else —
+type, layout, grade flags, flag yellow, review UX — is Munin, shared by every course.
+Every course folder is self-contained: course.json (id, title, accent, boot),
+doodles.js, cards.json (Day Skipper format), optional figures.json / videos.json.
+Missing doodle slot → raven fallback, never a hole.
+
 ### 4b — editing cards
 
 Anki's browser is a spreadsheet with a query language attached, which is why nobody edits
@@ -183,12 +208,14 @@ can eat a month; everything before it is a working app without it.
 
 ## Open
 
+- **Munin's accent** — corvid sheen, darkened; pick one of the three candidates in the
+  theme picker (T2 above).
 - **Supabase project** — personal, or under an existing org? Keys not chosen. This also
   gates the daily keepalive above.
 - **Flick-grading on desktop.** Buttons are the stated fallback, but the best interaction
   in the product being mobile-only is a real cost. Trackpad gesture? Arrow keys with the
   same ghost label?
 - **Distance→grade mapping.** Needs to be tuned on a real thumb, not designed on paper.
-- **Does Day Skipper stay separately deployed** at kkonrad.com/day-skipper, or become a
-  deck inside Munin with a redirect?
 - **Do edits ever reset scheduling** (see 4b).
+
+~~Does Day Skipper stay separately deployed~~ — resolved 27 Jul: T7 above.

@@ -89,9 +89,9 @@ MOCKS_S1 = '<div class="mocks">' + mk_home(
     "17", "due across 2 courses", ["day skipper 12", "competent crew 5"]) + "</div>"
 
 MOCKS_I2 = '<div class="mocks">' + \
-    mk_accent("A — corvid sheen", "#0f766b", "dark: #4ed4c2") + \
-    mk_accent("B — raven violet", "#5b34c9", "dark: #b39cff") + \
-    mk_accent("C — ink &amp; gold", "#b98207", "dark: #e5b84b") + "</div>"
+    mk_accent("A — deep sheen", "#14524a", "dark: #3fa894") + \
+    mk_accent("B — ink teal", "#0e3f39", "dark: #35917f") + \
+    mk_accent("C — black-green", "#0a2c28", "dark: #2c7f6f") + "</div>"
 
 MOCKS_C1 = '<div class="mocks">' + \
     mk_cc("A — lifejacket orange", "#c2551a") + \

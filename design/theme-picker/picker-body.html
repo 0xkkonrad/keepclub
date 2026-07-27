@@ -257,7 +257,9 @@
       <ul>
         <li><b>One app, courses inside:</b> Competent Crew's deck was built content-only <i>because</i> the shell is Munin's job — the course picker in front is settled, this page decides its shape.</li>
         <li><b>The engine is Day Skipper's, extracted (Phase 0):</b> PWA shell, review loop, lightbox, figures renderer, sync, tests come across; Day Skipper keeps working throughout and becomes the first course.</li>
-        <li><b>A course theme = accent pair (light+dark) + doodle set + section art. Nothing else varies.</b> Type, layout, grade flags, flag yellow, review UX are Munin, shared by every course.</li>
+        <li><b>The layering (Konrad, 27 Jul):</b> <b>munin</b> = infra with the themes engine · <b>courses</b> = colour + thematic doodles + loading screen + other thematic elements · <b>cards</b> = content, with tags/categories at the engine level.</li>
+        <li><b>A course theme = accent pair (light+dark) + doodle set + section art + loading screen. Nothing else varies.</b> Type, layout, grade flags, flag yellow, review UX are Munin, shared by every course. The loading screen is a first-class slot: boot art, its animation and its line ("Loading deck…" + the rocking boat is Day Skipper's; the raven default gets its own).</li>
+        <li><b>Theme files are never cross-linked (Konrad, 27 Jul):</b> every course folder is self-contained. When two courses use the same drawing it is a copy that <i>happens</i> to coincide, not a shared import — Competent Crew's colour-only reskin still ships its own doodle files.</li>
         <li><b>Cards:</b> the engine eats Day Skipper's <code>cards.json</code> format — the Competent Crew build already emits it.</li>
         <li><b>Default theme is the raven:</b> your-own-import decks get Munin's accent + raven doodle set (crow's-feet progress prints, the hoard for badges) — cute and doodly, per the scope doc's corvid table, not epic.</li>
         <li><b>First run = the course shelf.</b> No tour, no account — sign-in only ever turns on sync.</li>
@@ -266,12 +268,15 @@
       </ul>
       <pre>course bundle (one folder per course, loaded when picked)
 ├─ course.json   { id, title, tagline,
-│                  accent: { light, dark } }   ← the one colour a course owns
+│                  accent: { light, dark },    ← the one colour a course owns
+│                  boot: { art, anim, line } } ← the loading screen is the course's
 ├─ doodles.js    named 32×32 rough paths; engine slots:
 │                  boot art · section art (per section key) ·
 │                  badge art · progress mark · empty states
 │                  missing slot → raven fallback, never a hole
-├─ cards.json    Day Skipper format (sections → cards)
+│                  NEVER imported across courses — copies may coincide
+├─ cards.json    Day Skipper format (sections → cards; tags/categories
+│                  are engine-level, optional per card)
 ├─ figures.json  optional labelled drawings
 └─ videos.json   optional clip index</pre>
     </div>
@@ -320,12 +325,12 @@ const GROUPS = [
       {
         id: "munin-accent",
         title: "Munin's accent colour — the shell and every unthemed deck",
-        context: "Day Skipper owns indigo #3A30D8 and keeps it. Munin's own chrome (shelf, settings, imported decks) needs a colour that reads next to every course accent without being mistaken for one. Each option is a light/dark pair derived the same way the app already derives its dark accent." + MOCKS_I2,
-        src: "scope §character",
+        context: "Round 2. Corvid sheen won the direction, with the note <b>\"much much darker\"</b> — the first-round #0F766B read too bright. Three darkened candidates; light-mode accent is the colour named, the dark-theme pair is lifted the same way the app already lifts indigo to #9D95FF (a dark theme needs the luminance back or buttons vanish into the ground)." + MOCKS_I2,
+        src: "Konrad note 27 Jul",
         opts: [
-          { k: "A", rec: true, t: "Corvid sheen — teal #0F766B / #4ED4C2", d: "Raven feathers actually iridesce blue-green. Clearly not-indigo, clearly not-orange, calm on paper and in dark. Cost: teal is then off-limits for course accents." },
-          { k: "B", t: "Raven violet — #5B34C9 / #B39CFF", d: "Handsome and corvid-plausible, but it lives one hue-step from Day Skipper's indigo — on the shelf the app and its first course blur together." },
-          { k: "C", t: "Ink & gold — #B98207 / #E5B84B", d: "Black bird, gold eye. Distinctive, but it fights flag yellow #FFD54A, which is load-bearing for chips and marks in every course." }
+          { k: "A", t: "Deep sheen — #14524A / #3FA894", d: "Darker than round 1 by a third. Still visibly a colour at a glance; safest against the muted greys." },
+          { k: "B", rec: true, t: "Ink teal — #0E3F39 / #35917F", d: "Reads near-ink until it catches light — which is exactly what a raven does. Buttons stay legible on paper; the sheen shows in chips and links." },
+          { k: "C", t: "Black-green — #0A2C28 / #2C7F6F", d: "The maximal reading of the note: effectively a second ink with a green cast. Moody and gorgeous, but accent and ink start trading places in small UI." }
         ]
       }
     ]
