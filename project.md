@@ -165,6 +165,3 @@ can eat a month; everything before it is a working app without it.
 - **Does Day Skipper stay separately deployed** at kkonrad.com/day-skipper, or become a
   deck inside Munin with a redirect?
 - **Do edits ever reset scheduling** (see 4b).
-- **Repo name.** Created as `munin` — the raven of memory, matching the character. The
-  brief said "mumin" once and "munin" once; renaming is one command if that was the wrong
-  read.
