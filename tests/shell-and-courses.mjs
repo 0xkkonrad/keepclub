@@ -75,6 +75,20 @@ await p.waitForSelector('#study-all');
 ok((await p.textContent('#course-title')).trim().toLowerCase() === 'competent crew',
   'cold open resumes the last course, no shelf tap');
 
+/* ── robustness: junk in the URL or in storage never strands anyone ── */
+{
+  const c2 = await b.newContext({ viewport: { width: 390, height: 844 } });
+  const p2 = await c2.newPage();
+  await p2.goto(URL + '?course=not-a-course', { waitUntil: 'networkidle' });
+  await p2.waitForSelector('.shelf.on');
+  ok(true, 'bogus ?course= is ignored, shelf shown');
+  await p2.evaluate(() => localStorage.setItem('munin/last-course', 'deleted-course'));
+  await p2.goto(URL, { waitUntil: 'networkidle' });
+  await p2.waitForSelector('.shelf.on');
+  ok(true, 'a resume pointer at a removed course falls back to the shelf');
+  await c2.close();
+}
+
 await b.close();
 console.log(out.concat(fails).join('\n'));
 if (fails.length) { console.error(`\n${fails.length} failing`); process.exit(1); }
