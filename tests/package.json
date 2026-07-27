@@ -2,6 +2,7 @@
   "name": "munin-tests",
   "private": true,
   "type": "module",
-  "scripts": { "test": "node separation.mjs && node shell-and-courses.mjs" },
+  "scripts": { "fixtures": "python3 fixtures/make-sqlite.py && python3 fixtures/make-apkg.py",
+    "test": "npm run fixtures && node sqlite.mjs && node import.mjs && node separation.mjs && node shell-and-courses.mjs && node importer-ui.mjs" },
   "dependencies": { "playwright-core": "^1.49.0" }
 }

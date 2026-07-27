@@ -61,3 +61,46 @@ steps instead of a button.
 
 kkonrad.com/munin (locked). /day-skipper 301s here only at parity: four green
 test suites + a state-migration check. Not deployed yet if this line survives.
+
+## Importing an Anki deck
+
+`+ your own deck` on the shelf loads `import.js`, which is the only code here
+that is not on the boot path — the parsers are a fair chunk of JavaScript and
+nobody studying a built-in course should pay for them.
+
+```
+import.js        the screen: drop → progress → receipt → keep or throw away
+lib/unzip.js     the zip directory, and DecompressionStream for the members
+lib/sqlite.js    a read-only SQLite reader: b-trees, overflow, WITHOUT ROWID
+lib/anki.js      which collection is the real one, and the two schemas
+lib/template.js  Anki's card templates, including cloze
+lib/html.js      an allow-list sanitiser that re-writes rather than passes through
+lib/deck.js      collection → Munin deck, and the receipt
+lib/store.js     IndexedDB: one row per deck, one per media file
+lib/vendor/      fzstd (MIT) — the only third-party code in Munin
+```
+
+Four things worth knowing before changing any of it.
+
+**The newest collection wins.** A modern .apkg contains a decoy
+`collection.anki2` whose only content is a note telling old Anki to upgrade.
+Take the first file that looks like a collection and you import an empty deck
+and tell the user it worked.
+
+**Everything is written, nothing is passed through.** Card text goes into
+`innerHTML`, and a shared deck is a file from a stranger. `lib/html.js` parses
+to tokens and serialises fresh, so anything it fails to understand becomes
+visible text rather than markup. Media never keeps its own URL: it becomes
+`munin-media:<n>`, resolved to a blob at boot, so no card can reach the network.
+
+**The receipt is the feature.** Decision #6 in project.md is *drop it, get a
+receipt* — what landed, what didn't and why, and what is different now. Every
+drop is counted with a reason. A silent skip is the bug this screen exists to
+prevent.
+
+**Re-importing keeps your progress.** Card ids are Anki's own, so a second
+import of the same deck produces the same ids; replacing a deck reuses its
+record id and leaves `munin/<id>/state/v1` alone. That is the whole mechanism.
+
+Fixtures and tests: `tests/fixtures/make-apkg.py` builds packages to Anki's own
+DDL; `npm test` in `tests/` runs the lot.

@@ -42,6 +42,18 @@ const SHELL = [
   'app.js',
   'munin.js',
   'doodles-munin.js',
+  // The importer and its parsers. Loaded only when someone brings a deck, and
+  // precached anyway: importing a file off your own disk is exactly the thing
+  // that should not need a network.
+  'import.js',
+  'lib/anki.js',
+  'lib/deck.js',
+  'lib/html.js',
+  'lib/sqlite.js',
+  'lib/store.js',
+  'lib/template.js',
+  'lib/unzip.js',
+  'lib/vendor/fzstd.js',
   'manifest.webmanifest',
   'fonts/dm-mono-400.woff2',
   'fonts/architects-daughter.woff2',

@@ -1098,6 +1098,36 @@ mark {
   .nav { padding-inline: max(0px, calc(50% - 340px)); }
 }
 
+/* ── cards that came out of a .apkg ──────────────────────────────────────────
+ *
+ * A Munin course writes its own markup and gets its pictures through the
+ * diagram plate. An imported card brings whatever its author wrote: pictures
+ * inline, audio, tables, ruby text, and cloze deletions. Its own fonts and
+ * colours were dropped at import — these rules are what is left to make a
+ * stranger's markup sit inside Munin's type without fighting it. */
+.question img, .answer img, .b-text img {
+  max-width: 100%; height: auto; margin: 6px 0; border-radius: var(--r-sm);
+}
+.question audio, .answer audio, .b-text audio {
+  width: 100%; max-width: 300px; height: 34px; margin: 6px 0; display: block;
+}
+/* The blank a cloze card is asking about, and the same words once it answers. */
+.question .cloze, .answer .cloze, .b-text .cloze { color: var(--accent); font-weight: 500; }
+.question .hint, .answer .hint { color: var(--muted); font-style: italic; }
+.question table, .answer table, .b-text table {
+  border-collapse: collapse; margin: 8px 0; font-size: .92em; display: block;
+  max-width: 100%; overflow-x: auto;
+}
+.question td, .question th, .answer td, .answer th, .b-text td, .b-text th {
+  border: 1px solid var(--stroke); padding: 4px 8px; text-align: left;
+}
+.question pre, .answer pre { white-space: pre-wrap; overflow-x: auto; font-size: .9em; }
+.question ul, .question ol, .answer ul, .answer ol { margin: 6px 0; padding-left: 22px; text-align: left; }
+.question blockquote, .answer blockquote {
+  margin: 8px 0; padding-left: 12px; border-left: 3px solid var(--stroke); color: var(--muted);
+}
+.question ruby rt, .answer ruby rt { font-size: .6em; color: var(--muted); }
+
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
 }

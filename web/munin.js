@@ -193,11 +193,8 @@ function loadScript(src) {
   });
 }
 
-async function bootCourse(id) {
-  const base = 'courses/' + id + '/';
-  const r = await fetch(base + 'course.json', { cache: 'no-cache' });
-  const c = await r.json();
-  c.base = base;
+/** Everything a course needs once its theme is in hand. */
+async function startCourse(c, loadDoodles) {
   globalThis.COURSE = c;
   injectAccent(c.accent);
   const boot = document.getElementById('boot');
@@ -206,13 +203,57 @@ async function bootCourse(id) {
     boot.style.setProperty('--boot-anim', c.boot.anim || 'sail');
   }
   document.title = 'Munin — ' + c.title;
-  // A course with no doodles.js gets the raven set — a slot is never a hole.
-  await loadScript(base + 'doodles.js').catch(() => { globalThis.DOODLE = MUNIN_DOODLE; });
+  await loadDoodles();
   await loadScript('app.js');
   const h1 = document.getElementById('course-title');
   if (h1) h1.textContent = c.title.replace(/^RYA /, '');
   mountShelfButton(c);
 }
+
+async function bootCourse(id) {
+  const base = 'courses/' + id + '/';
+  const r = await fetch(base + 'course.json', { cache: 'no-cache' });
+  const c = await r.json();
+  c.base = base;
+  // A course with no doodles.js gets the raven set — a slot is never a hole.
+  await startCourse(c, () => loadScript(base + 'doodles.js')
+    .catch(() => { globalThis.DOODLE = MUNIN_DOODLE; }));
+}
+
+/* A deck someone imported. It has no folder and no files: the cards are in
+ * IndexedDB and its pictures are blobs, so the shell hands app.js the deck
+ * itself rather than a path to fetch. The theme is Munin's own — an imported
+ * deck has no colours of its own, and inventing some would be a lie about
+ * where it came from. */
+async function bootLocal(id) {
+  const store = await import('./lib/store.js');
+  const rec = await store.get(id);
+  if (!rec) throw new Error('that deck is not here any more');
+
+  const urls = await store.mediaUrls(id);
+  if (urls.size) {
+    const swap = (html) => String(html).replace(/munin-media:(\d+)/g,
+      (whole, i) => urls.get(Number(i)) || whole);
+    for (const card of rec.deck.cards) { card.q = swap(card.q); card.a = swap(card.a); }
+    addEventListener('pagehide', () => { for (const u of urls.values()) URL.revokeObjectURL(u); });
+  }
+
+  await startCourse({
+    id,
+    title: rec.title,
+    base: '',
+    accent: MUNIN.accent,
+    boot: { art: rec.art || 'perch', anim: 'hop', line: 'Loading your deck…' },
+    fallback: 'perch',
+    sectionArt: rec.sectionArt || {},
+    groupArt: rec.groupArt || {},
+    friezeArt: RAVEN_FRIEZE,
+    deck: rec.deck,
+  }, async () => { globalThis.DOODLE = MUNIN_DOODLE; });
+}
+
+const RAVEN_FRIEZE = ['perch', 'peek', 'flap', 'carry', 'roost', 'hoard', 'puff', 'strut', 'quill', 'bow'];
+const isLocal = (id) => /^local-[a-z0-9]+$/.test(String(id || ''));
 
 /* ── the shelf ───────────────────────────────────────────────────────────── */
 
@@ -239,6 +280,15 @@ const SHELF_CSS = `
   .shelf-tile small { color: var(--muted); font-size: .8rem; text-transform: lowercase; }
   .shelf-tile.byo { border-style: dashed; border-left-width: var(--bw);
     box-shadow: none; color: var(--muted); justify-content: center; }
+  /* An imported deck is the only thing here that can be got rid of, so it is
+   * the only thing carrying a control. Two taps: the second one confirms. */
+  .shelf-row { position: relative; display: flex; }
+  .shelf-row .shelf-tile { flex: 1; padding-right: 52px; }
+  .shelf-del { position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
+    min-width: 44px; min-height: 44px; background: none; border: 0; cursor: pointer;
+    color: var(--muted); font: inherit; font-size: .95rem; border-radius: var(--r-sm); }
+  .shelf-del[data-armed] { color: var(--accent); font-size: .74rem;
+    text-transform: lowercase; min-width: 66px; }
   .shelf-install { margin-top: 26px; padding: 16px 18px 18px;
     background: var(--surface); border: var(--bw) dashed var(--stroke);
     border-radius: var(--r); }
@@ -277,13 +327,32 @@ function ensureShelfCss() {
   document.head.appendChild(style);
 }
 
+const escHtml = (s) => String(s)
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
 function courseTile(c) {
   return `<button type="button" class="shelf-tile" data-course="${c.id}"
       style="--tile-accent:${c.accent.light}">
     <svg class="dood" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2"
       stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${c.shelfPath}"/></svg>
-    <span><b>${c.title}</b><small>${c.tagline || ''}</small></span>
+    <span><b>${escHtml(c.title)}</b><small>${escHtml(c.tagline || '')}</small></span>
   </button>`;
+}
+
+/* An imported deck is titled by whoever made the .apkg, so everything about it
+ * on this screen is escaped. */
+function localTile(d) {
+  const art = MUNIN_DOODLE[d.art] || MUNIN_DOODLE.perch;
+  return `<div class="shelf-row">
+    <button type="button" class="shelf-tile" data-course="${escHtml(d.id)}"
+        style="--tile-accent:${MUNIN.accent.light}">
+      <svg class="dood" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${art}"/></svg>
+      <span><b>${escHtml(d.title)}</b><small>your deck · ${Number(d.cards).toLocaleString('en-GB')} cards</small></span>
+    </button>
+    <button type="button" class="shelf-del" data-del="${escHtml(d.id)}"
+      aria-label="Remove ${escHtml(d.title)}">✕</button>
+  </div>`;
 }
 
 async function renderShelf(asOverlay) {
@@ -305,6 +374,15 @@ async function renderShelf(asOverlay) {
     return c;
   }));
 
+  // Imported decks, if the browser will tell us about them. A database that
+  // will not open is not a reason for the shelf to fail to draw.
+  let mine = [];
+  try {
+    mine = await (await import('./lib/store.js')).list();
+  } catch (e) {
+    console.error(e);
+  }
+
   const el = document.createElement('div');
   el.className = 'shelf on';
   el.innerHTML = `<div class="shelf-inner">
@@ -315,6 +393,7 @@ async function renderShelf(asOverlay) {
     <p class="shelf-sub">a friendly raven who remembers for you</p>
     <div class="shelf-tiles">
       ${metas.map(courseTile).join('')}
+      ${mine.map(localTile).join('')}
       <button type="button" class="shelf-tile byo" data-byo><span>+ your own deck</span></button>
     </div>
     <div class="shelf-install" id="shelf-install" hidden>
@@ -330,17 +409,54 @@ async function renderShelf(asOverlay) {
   el.querySelector('#shelf-install-btn').addEventListener('click', () => MuninInstall.prompt());
   MuninTheme.apply();
   renderShelfInstall();
+  // Dismiss by clicking off the card, not by clicking anything that is not a
+  // tile: the theme button and the remove button live up here too.
   if (asOverlay) el.addEventListener('click', (e) => {
-    if (!e.target.closest('.shelf-tile')) el.remove();
+    if (!e.target.closest('.shelf-inner')) el.remove();
   });
 
-  el.addEventListener('click', (e) => {
+  el.addEventListener('click', async (e) => {
     const byo = e.target.closest('[data-byo]');
     if (byo) {
       const note = el.querySelector('.shelf-note');
-      note.textContent = 'importing your own deck (.apkg) arrives in phase 3';
+      note.textContent = 'reading it here on your device — nothing is uploaded';
+      try {
+        const { openImporter } = await import('./import.js');
+        openImporter();
+      } catch (err) {
+        console.error(err);
+        note.textContent = 'the importer could not load — try again once you are online';
+      }
       return;
     }
+
+    // Removing a deck takes two taps and no dialog: the button says what the
+    // next tap does.
+    const del = e.target.closest('[data-del]');
+    if (del) {
+      if (!del.dataset.armed) {
+        for (const other of el.querySelectorAll('[data-armed]')) {
+          delete other.dataset.armed;
+          other.textContent = '✕';
+        }
+        del.dataset.armed = '1';
+        del.textContent = 'remove?';
+        return;
+      }
+      const id = del.dataset.del;
+      del.textContent = '…';
+      try {
+        await (await import('./lib/store.js')).remove(id);
+      } catch (err) {
+        console.error(err);
+        del.textContent = '✕';
+        return;
+      }
+      if (localStorage.getItem(MUNIN.lastKey) === id) localStorage.removeItem(MUNIN.lastKey);
+      del.closest('.shelf-row').remove();
+      return;
+    }
+
     const tile = e.target.closest('[data-course]');
     if (!tile) return;
     if (asOverlay && tile.dataset.course === localStorage.getItem(MUNIN.lastKey)) {
@@ -366,12 +482,15 @@ function mountShelfButton(c) {
 
 (function main() {
   MuninTheme.apply();
+  const known = (id) => MUNIN.courses.includes(id) || isLocal(id);
   // ?course=<id> deep-links a course and becomes the resume target.
   const q = new URLSearchParams(location.search).get('course');
-  if (q && MUNIN.courses.includes(q)) localStorage.setItem(MUNIN.lastKey, q);
+  if (q && known(q)) localStorage.setItem(MUNIN.lastKey, q);
   const last = localStorage.getItem(MUNIN.lastKey);
-  if (last && MUNIN.courses.includes(last)) {
-    bootCourse(last).catch((e) => {
+  if (last && known(last)) {
+    (isLocal(last) ? bootLocal(last) : bootCourse(last)).catch((e) => {
+      // A deck that was deleted, or a course that was renamed, sends you to
+      // the shelf instead of to a dead screen.
       console.error(e);
       localStorage.removeItem(MUNIN.lastKey);
       renderShelf();

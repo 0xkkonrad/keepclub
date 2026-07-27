@@ -2720,9 +2720,14 @@ async function boot() {
   load();
   applyTheme();
   try {
-    const res = await fetch(COURSE.base + 'cards.json', { cache: 'no-cache' });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    DECK = await res.json();
+    // An imported deck has no cards.json to fetch: it came out of a .apkg and
+    // lives in the browser's own database, so the shell hands it over directly.
+    if (COURSE.deck) DECK = COURSE.deck;
+    else {
+      const res = await fetch(COURSE.base + 'cards.json', { cache: 'no-cache' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      DECK = await res.json();
+    }
   } catch (e) {
     $('#boot').innerHTML =
       '<p>Could not load the deck.<br>Reload the page, or check you are online for the first visit.</p>';
@@ -2750,14 +2755,16 @@ async function boot() {
 
   // Optional, and deliberately not awaited with the deck: no video map, or a
   // stale one, must never stop the cards loading.
-  fetch(COURSE.base + 'videos.json', { cache: 'no-cache' })
+  // An imported deck brings no clips and no drawings; asking for them would be
+  // two guaranteed 404s on every boot.
+  if (!COURSE.deck) fetch(COURSE.base + 'videos.json', { cache: 'no-cache' })
     .then((r) => (r.ok ? r.json() : null))
     .then((v) => { if (v && v.clips && v.cards) VIDEOS = v; })
     .catch(() => {});
 
   // Same deal for the figures: a card with a missing drawing is a card with
   // no drawing, never a card that fails to appear.
-  fetch(COURSE.base + 'figures.json', { cache: 'no-cache' })
+  if (!COURSE.deck) fetch(COURSE.base + 'figures.json', { cache: 'no-cache' })
     .then((r) => (r.ok ? r.json() : null))
     .then((f) => { if (f) { FIGURES = f; const c = currentCard(); if (c) renderCardFigure(c); } })
     .catch(() => {});
