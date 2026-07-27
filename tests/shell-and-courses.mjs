@@ -75,6 +75,32 @@ await p.waitForSelector('#study-all');
 ok((await p.textContent('#course-title')).trim().toLowerCase() === 'competent crew',
   'cold open resumes the last course, no shelf tap');
 
+/* ── the theme is Munin's, and it is light until you say otherwise ── */
+{
+  // A device that prefers dark: the default still wins, because it is a choice.
+  const c2 = await b.newContext({ viewport: { width: 390, height: 844 }, colorScheme: 'dark' });
+  const p2 = await c2.newPage();
+  await p2.goto(URL, { waitUntil: 'networkidle' });
+  await p2.waitForSelector('.shelf.on');
+  const fresh = await p2.evaluate(() => document.documentElement.dataset.theme);
+  ok(fresh === 'light', `fresh install is light even on a dark device (${fresh})`);
+  ok(await p2.locator('#shelf-theme').isVisible(), 'the picker carries the theme button');
+
+  await p2.click('#shelf-theme');
+  const picked = await p2.evaluate(() => localStorage.getItem('munin/theme'));
+  ok(picked === 'dark', `the picker's button changes the theme (${picked})`);
+
+  await Promise.all([p2.waitForEvent('load'), p2.click('[data-course="day-skipper"]')]);
+  await p2.waitForFunction(() => document.getElementById('boot').hidden);
+  const inCourse = await p2.evaluate(() => ({
+    attr: document.documentElement.dataset.theme,
+    glyph: document.getElementById('theme-glyph').textContent,
+  }));
+  ok(inCourse.attr === 'dark', 'a course inherits the theme chosen on the picker');
+  ok(inCourse.glyph === '\u263E', 'the course header agrees with the picker');
+  await c2.close();
+}
+
 /* ── robustness: junk in the URL or in storage never strands anyone ── */
 {
   const c2 = await b.newContext({ viewport: { width: 390, height: 844 } });

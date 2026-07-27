@@ -23,8 +23,17 @@ videos.json, img/). **No file in one course folder ever references another
 course folder** — identical files are coincidences, per the 27 Jul ruling.
 The shelf mines each course's emblem out of that course's own doodles.js.
 
+## The theme belongs to Munin
+
+Light by default — the app is paper first, dark is a choice. One key,
+`munin/theme` (light / dark / auto), read before the first paint and shared by
+the shelf and every course: a course cannot hold its own, or you would change
+colour by changing deck. The button sits on the picker as well as in each
+course header, and every `[data-theme-glyph]` on the page says the same thing.
+
 ## What differs from Day Skipper's app.js
 
+- The theme moved out of `state.settings` to `munin/theme` (above).
 - `KEY` is `munin/<course>/state/v1` — per-course progress, fresh store.
   (kkonrad.com is one origin: the live /day-skipper keys stay untouched.)
 - Art maps + fallback doodle come from `COURSE`, not consts.
