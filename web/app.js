@@ -2705,7 +2705,7 @@ function wire() {
       toast('Offline storage is still starting up — try again in a moment.');
       return;
     }
-    const urls = Array.from(new Set(DECK.cards.filter((c) => c.m).map((c) => 'img/' + c.m)));
+    const urls = Array.from(new Set(DECK.cards.filter((c) => c.m).map((c) => COURSE.base + 'img/' + c.m)));
     btn.disabled = true;
     btn.textContent = `Saving 0 of ${urls.length}…`;
     reg.active.postMessage({ type: 'prefetch', urls });
