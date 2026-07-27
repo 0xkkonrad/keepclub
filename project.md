@@ -10,7 +10,10 @@ Named for Odin's raven of memory — a small friendly raven who remembers things
 Germanic and Egyptian myth is in `naming-research.md`; it ran after the name was locked,
 came out at the same answer, and is kept as a bench for naming everything else.
 
-Status: **scope only**. Nothing is built. Nothing here is committed to code yet.
+Status: **v0 live at kkonrad.com/munin** (27 Jul). The shell + themes engine over the
+extracted Day Skipper engine, both courses playable, per-course state, sync stubbed off
+until the parity gate. `web/README.md` documents the boot order and what differs from
+Day Skipper's app.js. /day-skipper is untouched and still the app of record.
 
 ---
 
