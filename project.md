@@ -91,7 +91,7 @@ with tags/categories at the engine level.
 | # | Decision | Pick |
 |---|---|---|
 | T1 | Munin's logo | **perch** — the plain standing raven (candidates + geometry in `design/theme-picker/ravens.py`; runners-up seed the raven doodle set). |
-| T2 | Munin's accent | **Corvid sheen, much darker than round 1.** Open between #14524A / #0E3F39 / #0A2C28 (dark-theme pairs in the picker) — the one still-open pick. |
+| T2 | Munin's accent | **Ink teal #0E3F39 / #35917F** — corvid sheen, much darker than round 1 (locked 27 Jul, round 2). |
 | T3 | App entry | **Resume last course.** Cold open = the course you left off in, full theme; the shelf is one tap away behind the course name in the header, and greets first-run. H1's one-number-one-button applies *within* a course. |
 | T4 | Install | **One PWA.** The raven on the home screen; one service worker, one cache. Courses are screens inside. |
 | T5 | Competent Crew accent | **Harbor slate #33608D / #7FB2E8.** |
@@ -211,8 +211,6 @@ can eat a month; everything before it is a working app without it.
 
 ## Open
 
-- **Munin's accent** — corvid sheen, darkened; pick one of the three candidates in the
-  theme picker (T2 above).
 - **Supabase project** — personal, or under an existing org? Keys not chosen. This also
   gates the daily keepalive above.
 - **Flick-grading on desktop.** Buttons are the stated fallback, but the best interaction
