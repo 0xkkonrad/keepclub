@@ -39,8 +39,9 @@ the only script that always runs. On the picker there is no course yet, so an
 event (it does not queue), and the offer would never appear anywhere.
 
 Two places draw the one captured event: the picker, under the tiles, so first
-run can say "keep me" before anything is picked; and Settings, for people who
-go looking. Both vanish once installed. A browser that can neither prompt nor
+run can make the case before anything is picked; and Settings, for people who
+go looking. The offer leads with why — spacing only pays if you turn up, and an
+icon is what makes you turn up — and the verb is *install* in both places. Both vanish once installed. A browser that can neither prompt nor
 be told how is shown nothing; iOS, which has no install API, gets the two
 steps instead of a button.
 

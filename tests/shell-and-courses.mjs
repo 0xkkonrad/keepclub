@@ -132,6 +132,8 @@ const offer = (pg) => pg.evaluate(() => {
   const chrome = await offer(p3);
   ok(chrome.shown && chrome.btn && chrome.steps === 0,
     'a promptable browser gets one button on the picker');
+  const label = (await p3.textContent('#shelf-install-btn')).trim();
+  ok(label === 'install', `the offer is framed as installing ("${label}")`);
   await p3.click('#shelf-install-btn');
   await p3.waitForFunction(() => globalThis.__prompted === true, { timeout: 3000 });
   ok(true, "the picker's button reaches the browser's own install prompt");
