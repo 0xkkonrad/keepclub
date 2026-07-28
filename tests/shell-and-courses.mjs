@@ -84,10 +84,11 @@ await p.waitForSelector('#study-all');
 ok((await p.textContent('#course-title')).trim().toLowerCase() === 'competent crew',
   'cold open resumes the last course, no shelf tap');
 
-/* ── the theme is Munin's: the device until you say otherwise, then you ── */
+/* ── the theme is Munin's: light until you say otherwise, then yours ── */
 {
-  // A device that prefers dark. Nothing is stored, so nothing is asserted over
-  // it — no data-theme attribute at all, and app.css's media query paints.
+  // A device that prefers dark, which Munin does not ask. Every assertion in
+  // this block is run on that device on purpose: "the default is light" is only
+  // a claim worth testing where something else was on offer.
   const c2 = await b.newContext({ viewport: { width: 390, height: 844 }, colorScheme: 'dark' });
   const p2 = await c2.newPage();
   await p2.goto(URL, { waitUntil: 'networkidle' });
@@ -98,20 +99,20 @@ ok((await p.textContent('#course-title')).trim().toLowerCase() === 'competent cr
     glyph: document.querySelector('#shelf-theme [data-theme-glyph]').dataset.themeGlyph,
     bg: getComputedStyle(document.documentElement).getPropertyValue('--bg').trim(),
   }));
-  ok(fresh.attr === undefined && fresh.stored === null,
-    `a fresh install claims no theme of its own (${fresh.attr}/${fresh.stored})`);
-  ok(fresh.bg === '#141519', `and follows the device into dark (${fresh.bg})`);
-  ok(fresh.glyph === 'night', `and the button says which one it is showing (${fresh.glyph})`);
+  ok(fresh.stored === null, `a fresh install has chosen nothing (${fresh.stored})`);
+  ok(fresh.bg === '#f0eee7', `and opens on paper on a dark phone anyway (${fresh.bg})`);
+  ok(fresh.attr === 'light', `the attribute says so out loud (${fresh.attr})`);
+  ok(fresh.glyph === 'day', `and the button says which one it is showing (${fresh.glyph})`);
   ok(await p2.locator('#shelf-theme').isVisible(), 'the picker carries the theme button');
 
-  // One tap on a dark device gives LIGHT: the button shows you the other one,
-  // rather than walking a cycle that starts at light whatever you are looking at.
+  // The button shows you the other one, so the first tap on an unchosen install
+  // is dark whatever the phone prefers.
   await p2.click('#shelf-theme');
   const picked = await p2.evaluate(() => localStorage.getItem('munin/theme'));
-  ok(picked === 'light', `the first tap chooses the other one (${picked})`);
+  ok(picked === 'dark', `the first tap chooses the other one (${picked})`);
   await p2.click('#shelf-theme');
   const back = await p2.evaluate(() => localStorage.getItem('munin/theme'));
-  ok(back === 'dark', `and the next tap comes back (${back})`);
+  ok(back === 'light', `and the next tap comes back (${back})`);
   // Two states and no third: tapping can never land on "follow the device".
   const seen = new Set([picked, back]);
   for (let i = 0; i < 4; i++) {
@@ -121,9 +122,8 @@ ok((await p.textContent('#course-title')).trim().toLowerCase() === 'competent cr
   ok(seen.size === 2 && seen.has('light') && seen.has('dark'),
     `six taps visit two states, not three (${[...seen].join(', ')})`);
 
-  /* Sunset, with the page open. "Follows your device" has to mean while you are
-   * looking at it, not only at the next reload — and once a choice exists the
-   * device stops having a say. Both directions, no reload in either. */
+  /* Sunset, with the page open. The device used to be consulted and is not any
+   * more — in either direction, chosen or not, with no reload. */
   {
     const c3 = await b.newContext({ viewport: { width: 390, height: 844 }, colorScheme: 'light' });
     const p3 = await c3.newPage();
@@ -131,25 +131,21 @@ ok((await p.textContent('#course-title')).trim().toLowerCase() === 'competent cr
     await p3.waitForSelector('.shelf.on');
     const bg = () => p3.evaluate(() =>
       getComputedStyle(document.documentElement).getPropertyValue('--bg').trim());
-    ok(await bg() === '#f0eee7', 'an unchosen install starts in the device\'s light');
+    ok(await bg() === '#f0eee7', 'an unchosen install is light');
     await p3.emulateMedia({ colorScheme: 'dark' });
-    ok(await bg() === '#141519', 'and follows it into dark with the page still open');
-    /* Waited for, not sampled: the colour is the media query and repaints with
-     * the emulation, but the drawing is a `change` listener and lands a tick
-     * later. Reading it straight after the colour passed alone and failed in
-     * the full run — the gap is real, it is just not one anybody can see. */
-    const glyph = await p3.waitForFunction(() =>
-      document.querySelector('#shelf-theme [data-theme-glyph]').dataset.themeGlyph === 'night',
-      null, { timeout: 4000 }).then(() => 'night', () => 'never arrived');
-    ok(glyph === 'night', `the drawing follows too (${glyph})`);
+    ok(await bg() === '#f0eee7', 'and stays light when the device goes dark under it');
+    const glyph = await p3.evaluate(() =>
+      document.querySelector('#shelf-theme [data-theme-glyph]').dataset.themeGlyph);
+    ok(glyph === 'day', `the drawing does not move either (${glyph})`);
 
-    await p3.click('#shelf-theme');           // dark showing → chooses light
+    await p3.click('#shelf-theme');           // light showing → chooses dark
     await p3.emulateMedia({ colorScheme: 'light' });
-    await p3.emulateMedia({ colorScheme: 'dark' });
-    ok(await bg() === '#f0eee7', 'once chosen, the device stops being consulted');
+    ok(await bg() === '#141519', 'and a chosen dark survives a device that turns light');
     await c3.close();
   }
 
+  await p2.click('#shelf-theme');             // land on dark for the course check
+  ok(await p2.evaluate(() => localStorage.getItem('munin/theme')) === 'dark', 'dark chosen');
   await Promise.all([p2.waitForEvent('load'), p2.click('[data-course="day-skipper"]')]);
   await p2.waitForFunction(() => document.getElementById('boot').hidden);
   const inCourse = await p2.evaluate(() => ({
@@ -269,7 +265,14 @@ const offer = (pg) => pg.evaluate(() => {
         gap: sr && pr ? Math.round(pr.top - sr.bottom) : -1,
         offCentre: sr && pr
           ? Math.round(Math.abs((sr.top + pr.bottom) / 2 - innerHeight / 2)) : -1,
+        at: performance.now(),
       };
+      // How long the screen is actually up. It used to be two to four frames
+      // on a warm load, which is why it is now held on purpose.
+      const boot = document.getElementById('boot');
+      if (boot) new MutationObserver((m, o) => {
+        if (boot.hidden) { globalThis.__gone = performance.now(); o.disconnect(); }
+      }).observe(boot, { attributes: true, attributeFilter: ['hidden'] });
     }, { once: true });
   });
 
@@ -287,17 +290,26 @@ const offer = (pg) => pg.evaluate(() => {
   ok(first.offCentre >= 0 && first.offCentre < 60,
     `and the two of them are centred as one (${first.offCentre}px off centre)`);
 
-  await Promise.all([p6.waitForEvent('load'), p6.click('[data-course="day-skipper"]')]);
-  await p6.waitForFunction(() => document.getElementById('boot').hidden);
-  const kept = await p6.evaluate(() => localStorage.getItem('munin/boot/day-skipper'));
-  ok(!!kept && JSON.parse(kept).html.includes('pathLength'),
-    "a course's loading screen is kept for the next cold open");
+  // Held long enough to be a splash rather than a flicker. A floor, not a
+  // duration: the assertion is that the screen was NOT taken away early.
+  await p6.waitForFunction(() => globalThis.__gone, null, { timeout: 8000 });
+  const up = await p6.evaluate(() => Math.round(globalThis.__gone - globalThis.__early.at));
+  ok(up >= 700, `the splash is held long enough to be seen (${up}ms)`);
 
-  await p6.goto(URL, { waitUntil: 'networkidle' });
+  // The shelf fetches the scenes of the courses on it. Without this the first
+  // tap on a tile opens onto Munin's raven: the course's own drawing is only
+  // replayed from a cache that that first open is what fills.
+  const cached = await p6.waitForFunction(
+    () => localStorage.getItem('munin/boot/day-skipper'), null, { timeout: 8000 })
+    .then((h) => h.jsonValue(), () => '');
+  ok(!!cached && JSON.parse(cached).html.includes('pathLength'),
+    'the shelf fetches the scene of a course you have never opened');
+
+  await Promise.all([p6.waitForEvent('load'), p6.click('[data-course="day-skipper"]')]);
   await p6.waitForFunction(() => document.getElementById('boot').hidden);
   const early = await p6.evaluate(() => globalThis.__early);
   ok(early.from.startsWith('day-skipper-'),
-    `the second visit paints the course's own scene before app.js (${early.from})`);
+    `so the FIRST open paints the course's own scene before app.js (${early.from})`);
   ok(early.line === 'Loading deck…', `and says what the course says (${early.line})`);
 
   /* Progress: the words on it are the course's, not the engine's. */

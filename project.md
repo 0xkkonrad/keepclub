@@ -187,6 +187,16 @@ longer touches the boot screen at all, and the gate fails if it does again.
 in `app.css`, so a course could only pick from the two names the engine happened to
 have. Fixed: `boot.css` per course, its own keyframes, gated.
 
+**It is a splash now, held on purpose (28 Jul, Konrad: "make it a splash screen — it's
+cute").** Measured against production first: the screen was up for 103ms cold and 21–39ms
+warm, two to four frames, because a cache-first service worker leaves nothing to cover —
+and a course's own scene only paints from visit two onward, every one of which is warm, so
+the boat had never been seen. `SPLASH` in munin.js: an 800ms floor, then a 220ms fade, with
+every draw-on animation (app.css and both boot.css files) cut from 1.5s to .6s so the
+drawing finishes before the fade starts. The floor is a floor — a slower boot hides the
+screen when it is ready and no later. The shelf also prefetches the scenes of the courses
+on it, so the *first* tap on a tile opens onto that course's drawing rather than the raven.
+
 **It is still a spinner, not a scene.** A course theme is meant to be felt before the
 first card. Day Skipper and Competent Crew share a sea: a horizon line that draws
 itself, then a boat drawn onto it and sailing its length, with sun, drifting cloud,
