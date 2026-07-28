@@ -169,7 +169,23 @@ button { cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-colo
 }
 /* Ten drawings have to fit inside a 320px screen without a sideways scrollbar,
    which is what sets this size rather than taste. */
-.frieze .dood { width: 22px; height: 22px; animation: bob 3.4s ease-in-out infinite; }
+/* The drawing arrives with a hop and then settles into a breath: the entrance
+   plays once, the idle plays forever, and one element carries both. Two
+   animations on one element do not blend — the later one in the list simply
+   takes `transform` when its delay is up — which is exactly the hand-off
+   wanted here, because both meet at rest.
+
+   The stagger is a custom property rather than an inline `animation-delay`:
+   with two animations, one inline delay would set both of them and the idle
+   would start before the hop had finished. */
+.frieze .dood {
+  width: 22px; height: 22px;
+  transform-origin: 50% 100%;              /* a creature with feet stays on them */
+  animation: hop-in .95s ease-out both,
+             breathe 3.6s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * .09s),
+                   calc(.95s + var(--i, 0) * .09s);
+}
 @media (min-width: 400px) { .frieze .dood { width: 26px; height: 26px; } }
 /* An empty berth: the drawings you have not earned yet are there in outline, so
    the row reads as a progress bar you happen to like looking at. The class is
@@ -178,7 +194,27 @@ button { cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-colo
 .frieze .unearned { opacity: .22; animation: none; }
 #s-home .top { padding-top: 10px; }
 
-@keyframes bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+/* The entrance. This is a hop re-cut to be played once: the version that used
+   to loop spent most of its timeline standing still, because a hop every
+   second is a twitch. As an arrival the whole 0.95s is the hop, and it opens
+   with a short fade so the drawing arrives rather than turning out to have
+   been there. Squash before the leap, stretch in the air, squash on landing —
+   the drawing is elastic or it reads as a sticker being slid about. */
+@keyframes hop-in {
+  0%   { opacity: 0; transform: translateY(4px); }
+  14%  { opacity: 1; transform: translateY(2px) scale(1.12, .88); }
+  42%  { transform: translateY(-9px) scale(.88, 1.14); }
+  70%  { transform: translateY(0) scale(1.14, .88); }
+  86%  { transform: translateY(-2px) scale(.98, 1.03); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+/* The idle. Non-uniform scale about the feet, not a float: a drawing that
+   leaves the floor is a sticker, one that swells and settles is breathing. */
+@keyframes breathe {
+  0%, 100% { transform: scale(1, 1); }
+  45%      { transform: scale(.955, 1.05); }
+  72%      { transform: scale(1.025, .982); }
+}
 
 /* ── shell ───────────────────────────────────────────────────────── */
 
@@ -577,6 +613,46 @@ button.plate:active { transform: translate(3px, 3px); box-shadow: none; }
 .figure .fill-blu { fill: var(--fig-blu); stroke: var(--stroke); }
 .figure .fill-ink { fill: var(--stroke); stroke: var(--stroke); }
 .figure .fill-pap { fill: var(--surface); stroke: var(--stroke); }
+
+/* ── the figure draws itself ─────────────────────────────────────── */
+
+/* A figure arrives being drawn, the same way the boot raven does, and for the
+   same reason: these are drawings, and a drawing that fades up was never
+   drawn by anybody.
+ *
+ * A pen is stroke-dasharray, so only some of a figure can take one. A dash
+ * already means "construction line" or "section cut"; an arc is a swept area,
+ * not a line; a flare is a filled shape, where a dash animation hides the
+ * outline and leaves the fill sitting there; and a label is glyphs, with no
+ * line to travel along. Those all fade instead, and the split is decided in
+ * drawFigureOn() — see the note there for why it is not decided in the build.
+ *
+ * Everything happens over about nine-tenths of a second. Longer was measured
+ * and rejected: a figure is under a card you are trying to read, and a drawing
+ * that is still arriving when you have finished reading the question is a
+ * drawing in the way.
+ *
+ * The classes are only ever added by drawFigureOn(), so a figure rendered by
+ * anything else — the lightbox — is simply already finished. */
+.fig-draw .pen { stroke-dasharray: 1 1; animation: fig-pen .75s ease-out both; }
+.fig-draw .soft { animation: fig-fade .28s ease-out both; animation-delay: .42s; }
+.fig-draw .lab { animation: fig-lab .3s ease-out both; animation-delay: .62s; }
+.figure text { transform-box: fill-box; transform-origin: 50% 50%; }
+
+/* pathLength="1" renormalises every path to a length of 1, so one rule draws
+   any of them — the same trick the boot raven uses. A dash of `1 1` is then
+   the whole path followed by an equal gap, which at offset 0 is a finished
+   drawing: if the animation never runs, nothing is left half-drawn. */
+@keyframes fig-pen { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+/* Both fades end on --tgt, the element's own resting opacity, measured off the
+   cascade before the animation is attached. Ending them on 1 instead would
+   un-dim every label the card is not asking about, and the dimming is what
+   lets one drawing serve six cards. */
+@keyframes fig-fade { from { opacity: 0; } to { opacity: var(--tgt, 1); } }
+@keyframes fig-lab {
+  from { opacity: 0; transform: translateY(3px); }
+  to { opacity: var(--tgt, 1); transform: none; }
+}
 
 /* ── study ───────────────────────────────────────────────────────── */
 
