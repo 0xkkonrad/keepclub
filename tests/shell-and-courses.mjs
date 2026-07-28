@@ -353,11 +353,19 @@ const offer = (pg) => pg.evaluate(() => {
     offline: document.getElementById('offline-note').textContent,
     offlineShown: !document.getElementById('offline-card').hidden,
     diagrams: new Set([...DECK.cards].filter((c) => c.m).map((c) => c.m)).size,
+    about: document.getElementById('about-copy').textContent,
+    author: document.getElementById('about-author').href,
+    source: document.getElementById('about-source').href,
   }));
   ok(said.hoard === "Ship's log", `the course names the hoard in its own world (${said.hoard})`);
   ok(said.first === 'cast off', `and names what is in it (${said.first})`);
   ok(said.notice.includes('almanac'), 'the fineprint is this course\'s caveat');
   ok(said.link.includes('tiktok.com'), 'and carries the credit it owes');
+  ok(/keep club.*open-source.*kkonrad/is.test(said.about)
+      && said.author === 'https://kkonrad.com/',
+    'About names keep club, its open source, and kkonrad');
+  ok(said.source === 'https://github.com/0xkkonrad/munin',
+    'About links to the source repository');
   ok(said.offlineShown && said.offline.includes(`${said.diagrams} diagrams`),
     `offline counts this deck's diagrams (${said.diagrams})`);
   await c6.close();
