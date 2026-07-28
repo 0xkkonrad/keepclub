@@ -1,0 +1,1658 @@
+[
+  {
+    "ds_section": "position",
+    "n": 1,
+    "front": "How is latitude defined and measured?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Latitude as measured up the side of a chart — chartwork."
+  },
+  {
+    "ds_section": "position",
+    "n": 2,
+    "front": "How is longitude defined and measured?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Navigational position-finding — chart and plotter work a crew member never does."
+  },
+  {
+    "ds_section": "position",
+    "n": 3,
+    "front": "How do you write a position, and in what order?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Navigational position-finding — chart and plotter work a crew member never does."
+  },
+  {
+    "ds_section": "position",
+    "n": 4,
+    "front": "What is a nautical mile, and how does it relate to latitude?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Nautical mile defined off the chart's latitude scale — chartwork."
+  },
+  {
+    "ds_section": "position",
+    "n": 5,
+    "front": "What is a knot?",
+    "verdict": "simplify",
+    "cc_section": "cc-seaterms",
+    "note": "CC version: a knot is one nautical mile per hour, the unit for both boat speed and wind speed — no chart-measurement chain behind it."
+  },
+  {
+    "ds_section": "position",
+    "n": 6,
+    "front": "The three quantities in every speed, time and distance sum",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Passage arithmetic — the skipper's calculation."
+  },
+  {
+    "ds_section": "position",
+    "n": 7,
+    "front": "At 5.5 knots, how long does 8.3 miles take?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Worked ETA sum — the skipper's calculation."
+  },
+  {
+    "ds_section": "position",
+    "n": 8,
+    "front": "What is a great circle and a rhumb line?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Navigational position-finding — chart and plotter work a crew member never does."
+  },
+  {
+    "ds_section": "position",
+    "n": 9,
+    "front": "Why is a Mercator projection convenient for navigation, and what is its cost?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Navigational position-finding — chart and plotter work a crew member never does."
+  },
+  {
+    "ds_section": "position",
+    "n": 10,
+    "front": "What is a true bearing, and how is it written?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Three-figure true/magnetic/compass bearing notation is chartwork."
+  },
+  {
+    "ds_section": "position",
+    "n": 11,
+    "front": "Relative bearing versus compass bearing",
+    "verdict": "simplify",
+    "cc_section": "cc-lookout",
+    "note": "CC version: how to report a sighting to the skipper relative to the boat ('ship fine on the starboard bow', clock bearings) — no conversion to compass bearings."
+  },
+  {
+    "ds_section": "position",
+    "n": 12,
+    "front": "Speed over the ground versus speed through the water",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "The difference is the tidal stream — an excluded tidal concept."
+  },
+  {
+    "ds_section": "position",
+    "n": 13,
+    "front": "Course, heading and track — what is the difference?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Leeway and tide vectors — DR/EP theory."
+  },
+  {
+    "ds_section": "position",
+    "n": 14,
+    "front": "What is the depth reading on an echo sounder measured from, and why does that matter?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Depth clearance calibration — a skipper's decision."
+  },
+  {
+    "ds_section": "position",
+    "n": 15,
+    "front": "What is 'height of eye' used for?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Navigational position-finding — chart and plotter work a crew member never does."
+  },
+  {
+    "ds_section": "position",
+    "n": 16,
+    "front": "How do you estimate distance off using a vertical sextant angle or by eye?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Sextant/distance-off estimation — navigation."
+  },
+  {
+    "ds_section": "position",
+    "n": 17,
+    "front": "Why must you check the chart datum of a GNSS position before plotting it?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chart datum and GNSS — electronic navigation, excluded."
+  },
+  {
+    "ds_section": "charts",
+    "n": 1,
+    "front": "What is the difference between a small-scale and a large-scale chart?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chart and publication use — hard exclusion (chartwork, almanac, electronic navigation)."
+  },
+  {
+    "ds_section": "charts",
+    "n": 2,
+    "front": "Which chart should you use for pilotage into a harbour?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chart and publication use — hard exclusion (chartwork, almanac, electronic navigation)."
+  },
+  {
+    "ds_section": "charts",
+    "n": 3,
+    "front": "What is Admiralty Chart 5011?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chart and publication use — hard exclusion (chartwork, almanac, electronic navigation)."
+  },
+  {
+    "ds_section": "charts",
+    "n": 4,
+    "front": "Where do you find the chart's units of depth, its scale and its datums?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chart and publication use — hard exclusion (chartwork, almanac, electronic navigation)."
+  },
+  {
+    "ds_section": "charts",
+    "n": 5,
+    "front": "How are depths and drying heights printed on a metric chart?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chart and publication use — hard exclusion (chartwork, almanac, electronic navigation)."
+  },
+  {
+    "ds_section": "charts",
+    "n": 6,
+    "front": "What do the blue and green tints on a chart mean?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chart and publication use — hard exclusion (chartwork, almanac, electronic navigation)."
+  },
+  {
+    "ds_section": "charts",
+    "n": 7,
+    "front": "What is a depth contour and how do you use it in pilotage?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chart and publication use — hard exclusion (chartwork, almanac, electronic navigation)."
+  },
+  {
+    "ds_section": "charts",
+    "n": 8,
+    "front": "What does a Notice to Mariners do, and how do you apply one?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chart and publication use — hard exclusion (chartwork, almanac, electronic navigation)."
+  },
+  {
+    "ds_section": "charts",
+    "n": 9,
+    "front": "Name the main publications a Day Skipper should have aboard.",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chart and publication use — hard exclusion (chartwork, almanac, electronic navigation)."
+  },
+  {
+    "ds_section": "charts",
+    "n": 10,
+    "front": "What does a nautical almanac contain that you use every trip?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chart and publication use — hard exclusion (chartwork, almanac, electronic navigation)."
+  },
+  {
+    "ds_section": "charts",
+    "n": 11,
+    "front": "What is a tidal stream atlas?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chart and publication use — hard exclusion (chartwork, almanac, electronic navigation)."
+  },
+  {
+    "ds_section": "charts",
+    "n": 12,
+    "front": "What are tidal diamonds?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chart and publication use — hard exclusion (chartwork, almanac, electronic navigation)."
+  },
+  {
+    "ds_section": "charts",
+    "n": 13,
+    "front": "Chart symbols: what are these seabed abbreviations — S, M, Cy, R, Wd, Sh, G, St?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chart and publication use — hard exclusion (chartwork, almanac, electronic navigation)."
+  },
+  {
+    "ds_section": "charts",
+    "n": 14,
+    "front": "How does a chart show a wreck, and what makes one count as dangerous?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chart and publication use — hard exclusion (chartwork, almanac, electronic navigation)."
+  },
+  {
+    "ds_section": "charts",
+    "n": 15,
+    "front": "What is the difference between a rock that is always covered, one that dries, and one that is above water?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chart and publication use — hard exclusion (chartwork, almanac, electronic navigation)."
+  },
+  {
+    "ds_section": "charts",
+    "n": 16,
+    "front": "What does the compass rose on a chart give you?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chart and publication use — hard exclusion (chartwork, almanac, electronic navigation)."
+  },
+  {
+    "ds_section": "charts",
+    "n": 17,
+    "front": "What are electronic charts, and what are the two main kinds?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chart and publication use — hard exclusion (chartwork, almanac, electronic navigation)."
+  },
+  {
+    "ds_section": "charts",
+    "n": 18,
+    "front": "What are the practical limitations of a chart plotter?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chart and publication use — hard exclusion (chartwork, almanac, electronic navigation)."
+  },
+  {
+    "ds_section": "charts",
+    "n": 19,
+    "front": "How often should you record a position, and where?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Navigational log-keeping as navigator, explicitly excluded; CC log entries are written as dictated."
+  },
+  {
+    "ds_section": "charts",
+    "n": 20,
+    "front": "Why keep a paper plot when the plotter is working perfectly?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Paper plot as back-up to the plotter — a navigator's practice."
+  },
+  {
+    "ds_section": "charts",
+    "n": 21,
+    "front": "How do you tell whether the chart in front of you is up to date?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chart and publication use — hard exclusion (chartwork, almanac, electronic navigation)."
+  },
+  {
+    "ds_section": "compass",
+    "n": 1,
+    "front": "What is variation?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Compass error, variation/deviation and leeway — chartwork theory, hard exclusion."
+  },
+  {
+    "ds_section": "compass",
+    "n": 2,
+    "front": "What is deviation?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Compass error, variation/deviation and leeway — chartwork theory, hard exclusion."
+  },
+  {
+    "ds_section": "compass",
+    "n": 3,
+    "front": "Give the rule for converting between true, magnetic and compass.",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Compass error, variation/deviation and leeway — chartwork theory, hard exclusion."
+  },
+  {
+    "ds_section": "compass",
+    "n": 4,
+    "front": "Chart course 145&deg;T, variation 3&deg;W, deviation 2&deg;E. What do you steer?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Compass error, variation/deviation and leeway — chartwork theory, hard exclusion."
+  },
+  {
+    "ds_section": "compass",
+    "n": 5,
+    "front": "Compass heading 210&deg;C, deviation 4&deg;W, variation 5&deg;W. What is the true heading?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Compass error, variation/deviation and leeway — chartwork theory, hard exclusion."
+  },
+  {
+    "ds_section": "compass",
+    "n": 6,
+    "front": "How do you check the deviation of a steering compass without a swing?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Compass error, variation/deviation and leeway — chartwork theory, hard exclusion."
+  },
+  {
+    "ds_section": "compass",
+    "n": 7,
+    "front": "What causes deviation to change unexpectedly?",
+    "verdict": "simplify",
+    "cc_section": "cc-helming",
+    "note": "CC version: keep phones, tools, tins and anything metal away from the steering compass because they make it read wrong — no explanation of deviation."
+  },
+  {
+    "ds_section": "compass",
+    "n": 8,
+    "front": "Where should you stand to take a hand-bearing compass reading?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Taking hand-bearing compass fixes is navigation, not a crew task."
+  },
+  {
+    "ds_section": "compass",
+    "n": 9,
+    "front": "What is leeway and how do you allow for it?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Compass error, variation/deviation and leeway — chartwork theory, hard exclusion."
+  },
+  {
+    "ds_section": "compass",
+    "n": 10,
+    "front": "How can you measure your own leeway?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Compass error, variation/deviation and leeway — chartwork theory, hard exclusion."
+  },
+  {
+    "ds_section": "compass",
+    "n": 11,
+    "front": "In what order do you apply leeway, variation and deviation?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Compass error, variation/deviation and leeway — chartwork theory, hard exclusion."
+  },
+  {
+    "ds_section": "compass",
+    "n": 12,
+    "front": "What is a fluxgate compass and what feeds off it?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Compass error, variation/deviation and leeway — chartwork theory, hard exclusion."
+  },
+  {
+    "ds_section": "compass",
+    "n": 13,
+    "front": "Why keep a magnetic steering compass when the plotter shows heading?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Backup-navigation reasoning — a skipper's concern."
+  },
+  {
+    "ds_section": "compass",
+    "n": 14,
+    "front": "Variation is 4&deg;W in 2020 with annual change 8'E. What is it in 2026?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Compass error, variation/deviation and leeway — chartwork theory, hard exclusion."
+  },
+  {
+    "ds_section": "compass",
+    "n": 15,
+    "front": "Why must a plotted bearing taken with a hand-bearing compass be converted before you draw it?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Compass error, variation/deviation and leeway — chartwork theory, hard exclusion."
+  },
+  {
+    "ds_section": "chartwork",
+    "n": 1,
+    "front": "What is a position line?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chartwork — fixes, DR/EP, course to steer. Hard exclusion."
+  },
+  {
+    "ds_section": "chartwork",
+    "n": 2,
+    "front": "What is a fix, how is it marked, and what do you write next to it?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chartwork — fixes, DR/EP, course to steer. Hard exclusion."
+  },
+  {
+    "ds_section": "chartwork",
+    "n": 3,
+    "front": "How do you take a good three-bearing fix?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chartwork — fixes, DR/EP, course to steer. Hard exclusion."
+  },
+  {
+    "ds_section": "chartwork",
+    "n": 4,
+    "front": "What is a cocked hat, and what do you do about it?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chartwork — fixes, DR/EP, course to steer. Hard exclusion."
+  },
+  {
+    "ds_section": "chartwork",
+    "n": 5,
+    "front": "What is a dead reckoning position, and how is it marked?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chartwork — fixes, DR/EP, course to steer. Hard exclusion."
+  },
+  {
+    "ds_section": "chartwork",
+    "n": 6,
+    "front": "What is an estimated position, and how is it marked?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chartwork — fixes, DR/EP, course to steer. Hard exclusion."
+  },
+  {
+    "ds_section": "chartwork",
+    "n": 7,
+    "front": "How do you construct an estimated position?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chartwork — fixes, DR/EP, course to steer. Hard exclusion."
+  },
+  {
+    "ds_section": "chartwork",
+    "n": 8,
+    "front": "What are the arrowhead conventions on a chart plot?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chartwork — fixes, DR/EP, course to steer. Hard exclusion."
+  },
+  {
+    "ds_section": "chartwork",
+    "n": 9,
+    "front": "How do you work out a course to steer?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chartwork — fixes, DR/EP, course to steer. Hard exclusion."
+  },
+  {
+    "ds_section": "chartwork",
+    "n": 10,
+    "front": "In a course-to-steer triangle, which side is the tide and which is your speed?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chartwork — fixes, DR/EP, course to steer. Hard exclusion."
+  },
+  {
+    "ds_section": "chartwork",
+    "n": 11,
+    "front": "How do you find the speed over the ground and the ETA from a course-to-steer triangle?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chartwork — fixes, DR/EP, course to steer. Hard exclusion."
+  },
+  {
+    "ds_section": "chartwork",
+    "n": 12,
+    "front": "What is a running fix and when do you use it?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chartwork — fixes, DR/EP, course to steer. Hard exclusion."
+  },
+  {
+    "ds_section": "chartwork",
+    "n": 13,
+    "front": "What is a transferred position line?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chartwork — fixes, DR/EP, course to steer. Hard exclusion."
+  },
+  {
+    "ds_section": "chartwork",
+    "n": 14,
+    "front": "Why should you never simply steer straight at a waypoint across a strong cross-tide?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chartwork — fixes, DR/EP, course to steer. Hard exclusion."
+  },
+  {
+    "ds_section": "chartwork",
+    "n": 15,
+    "front": "What is cross-track error, and what should you do with it?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chartwork — fixes, DR/EP, course to steer. Hard exclusion."
+  },
+  {
+    "ds_section": "chartwork",
+    "n": 16,
+    "front": "How do you use a depth contour as a position line?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chartwork — fixes, DR/EP, course to steer. Hard exclusion."
+  },
+  {
+    "ds_section": "chartwork",
+    "n": 17,
+    "front": "Two objects give bearings 040&deg;M and 130&deg;M. Variation is 5&deg;W. What do you plot?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chartwork — fixes, DR/EP, course to steer. Hard exclusion."
+  },
+  {
+    "ds_section": "chartwork",
+    "n": 18,
+    "front": "Why does a fix from two bearings taken 15&deg; apart deserve suspicion?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chartwork — fixes, DR/EP, course to steer. Hard exclusion."
+  },
+  {
+    "ds_section": "chartwork",
+    "n": 19,
+    "front": "What is 'the six-minute rule' and how do you use it at the chart table?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chartwork — fixes, DR/EP, course to steer. Hard exclusion."
+  },
+  {
+    "ds_section": "chartwork",
+    "n": 20,
+    "front": "You have no GNSS, no visibility and no depth information you trust. What do you do?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chartwork — fixes, DR/EP, course to steer. Hard exclusion."
+  },
+  {
+    "ds_section": "chartwork",
+    "n": 21,
+    "front": "Track required 090&deg;T, tide sets 180&deg;T at 1.5 kn, boat speed 5 kn, wind from the north giving 5&deg; leeway, variation 4&deg;W, no deviation. What do you steer?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chartwork — fixes, DR/EP, course to steer. Hard exclusion."
+  },
+  {
+    "ds_section": "chartwork",
+    "n": 22,
+    "front": "How do you lay off and read a course or bearing with a Portland (Breton) plotter?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chartwork — fixes, DR/EP, course to steer. Hard exclusion."
+  },
+  {
+    "ds_section": "chartwork",
+    "n": 23,
+    "front": "How do you plot 50&deg;38'.4 N 001&deg;33'.6 W on the chart?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chartwork — fixes, DR/EP, course to steer. Hard exclusion."
+  },
+  {
+    "ds_section": "chartwork",
+    "n": 24,
+    "front": "Your leg will take 40 minutes. What do you put in the course-to-steer triangle?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chartwork — fixes, DR/EP, course to steer. Hard exclusion."
+  },
+  {
+    "ds_section": "tides",
+    "n": 1,
+    "front": "What causes tides?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Tides and tidal heights — hard exclusion."
+  },
+  {
+    "ds_section": "tides",
+    "n": 2,
+    "front": "What are spring and neap tides, and when do they occur?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Tides and tidal heights — hard exclusion."
+  },
+  {
+    "ds_section": "tides",
+    "n": 3,
+    "front": "Define chart datum and say what UK charts use.",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Tides and tidal heights — hard exclusion."
+  },
+  {
+    "ds_section": "tides",
+    "n": 4,
+    "front": "What are MHWS, MHWN, MLWN and MLWS?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Tides and tidal heights — hard exclusion."
+  },
+  {
+    "ds_section": "tides",
+    "n": 5,
+    "front": "What is the height of tide, and what is the range?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Tides and tidal heights — hard exclusion."
+  },
+  {
+    "ds_section": "tides",
+    "n": 6,
+    "front": "What is the depth of water at a place?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Tides and tidal heights — hard exclusion."
+  },
+  {
+    "ds_section": "tides",
+    "n": 7,
+    "front": "How much water is there over a patch that dries 1.8 m when the height of tide is 4.2 m?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Tides and tidal heights — hard exclusion."
+  },
+  {
+    "ds_section": "tides",
+    "n": 8,
+    "front": "How do you work out clearance under the keel?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Tides and tidal heights — hard exclusion."
+  },
+  {
+    "ds_section": "tides",
+    "n": 9,
+    "front": "What datum are charted heights and vertical clearances measured from?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Tides and tidal heights — hard exclusion."
+  },
+  {
+    "ds_section": "tides",
+    "n": 10,
+    "front": "State the rule of twelfths.",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Tides and tidal heights — hard exclusion."
+  },
+  {
+    "ds_section": "tides",
+    "n": 11,
+    "front": "LW 1.2 m at 0600, HW 5.4 m at 1215. Estimate the height at 0900.",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Tides and tidal heights — hard exclusion."
+  },
+  {
+    "ds_section": "tides",
+    "n": 12,
+    "front": "What are the limitations of the rule of twelfths?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Tides and tidal heights — hard exclusion."
+  },
+  {
+    "ds_section": "tides",
+    "n": 13,
+    "front": "Describe how you use a standard port tidal curve to find the height at a given time.",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Tides and tidal heights — hard exclusion."
+  },
+  {
+    "ds_section": "tides",
+    "n": 14,
+    "front": "How do you use the tidal curve the other way — to find the time at which a given height occurs?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Tides and tidal heights — hard exclusion."
+  },
+  {
+    "ds_section": "tides",
+    "n": 15,
+    "front": "Which curve do you use when the range is between springs and neaps?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Tides and tidal heights — hard exclusion."
+  },
+  {
+    "ds_section": "tides",
+    "n": 16,
+    "front": "What is a standard port and what is a secondary port?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Tides and tidal heights — hard exclusion."
+  },
+  {
+    "ds_section": "tides",
+    "n": 17,
+    "front": "How do you work out HW time and height at a secondary port?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Tides and tidal heights — hard exclusion."
+  },
+  {
+    "ds_section": "tides",
+    "n": 18,
+    "front": "What does 'the tide is making' or 'the tide is taking off' mean?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Tides and tidal heights — hard exclusion."
+  },
+  {
+    "ds_section": "tides",
+    "n": 19,
+    "front": "What is the difference between a tidal gate and a tidal window?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Tides and tidal heights — hard exclusion."
+  },
+  {
+    "ds_section": "tides",
+    "n": 20,
+    "front": "What is a sill, and what must you check before entering a marina with one?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Tides and tidal heights — hard exclusion."
+  },
+  {
+    "ds_section": "tides",
+    "n": 21,
+    "front": "What effects can make the actual tide differ from the prediction?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Tides and tidal heights — hard exclusion."
+  },
+  {
+    "ds_section": "tides",
+    "n": 22,
+    "front": "Why is the ebb usually more dangerous than the flood for a small yacht?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Tidal concept plus a passage-timing decision."
+  },
+  {
+    "ds_section": "tides",
+    "n": 23,
+    "front": "Where do you find the time zone of a set of tide tables, and why does it matter?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Tides and tidal heights — hard exclusion."
+  },
+  {
+    "ds_section": "tides",
+    "n": 24,
+    "front": "Which tidal curve do you use for a secondary port?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Tides and tidal heights — hard exclusion."
+  },
+  {
+    "ds_section": "tides",
+    "n": 25,
+    "front": "You draw 1.8 m and want 1.0 m under the keel to cross a bar charted at 0.6 m. What height of tide do you need, and how do you find the window?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Tides and tidal heights — hard exclusion."
+  },
+  {
+    "ds_section": "tides",
+    "n": 26,
+    "front": "What are LAT and HAT, and where does each appear?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Tides and tidal heights — hard exclusion."
+  },
+  {
+    "ds_section": "streams",
+    "n": 1,
+    "front": "What is the difference between a tidal stream and a current?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Tidal streams — hard exclusion."
+  },
+  {
+    "ds_section": "streams",
+    "n": 2,
+    "front": "Define set and drift, and rate.",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Tidal streams — hard exclusion."
+  },
+  {
+    "ds_section": "streams",
+    "n": 3,
+    "front": "How do you read a tidal diamond table?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Tidal streams — hard exclusion."
+  },
+  {
+    "ds_section": "streams",
+    "n": 4,
+    "front": "A tidal stream atlas arrow reads 19,34. What does that mean?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Tidal streams — hard exclusion."
+  },
+  {
+    "ds_section": "streams",
+    "n": 5,
+    "front": "How do you get the actual rate when the day is neither springs nor neaps?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Tidal streams — hard exclusion."
+  },
+  {
+    "ds_section": "streams",
+    "n": 6,
+    "front": "Where do tidal streams run fastest?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Tidal streams — hard exclusion."
+  },
+  {
+    "ds_section": "streams",
+    "n": 7,
+    "front": "What is a tidal race and an overfall?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Tidal streams — hard exclusion."
+  },
+  {
+    "ds_section": "streams",
+    "n": 8,
+    "front": "What happens when wind and tide oppose one another?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Wind-against-tide is a tidal concept, excluded even though the sea state is visible to crew."
+  },
+  {
+    "ds_section": "streams",
+    "n": 9,
+    "front": "What is a lee-bow tide and why do skippers like it?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Tidal streams — hard exclusion."
+  },
+  {
+    "ds_section": "streams",
+    "n": 10,
+    "front": "What is slack water, and does it coincide with high water?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Tidal streams — hard exclusion."
+  },
+  {
+    "ds_section": "streams",
+    "n": 11,
+    "front": "Why should you plan a passage around the tidal stream and not just the wind?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Tidal streams — hard exclusion."
+  },
+  {
+    "ds_section": "streams",
+    "n": 12,
+    "front": "How do you work out the total tidal effect over a three-hour passage?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Tidal streams — hard exclusion."
+  },
+  {
+    "ds_section": "streams",
+    "n": 13,
+    "front": "What is the practical difference between working out a course to steer hour by hour and for the whole passage?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Tidal streams — hard exclusion."
+  },
+  {
+    "ds_section": "streams",
+    "n": 14,
+    "front": "Why does a strong tidal stream matter when you pick up a mooring or come alongside?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Mooring and berthing judgement as skipper."
+  },
+  {
+    "ds_section": "buoyage",
+    "n": 1,
+    "front": "What is a port hand mark in IALA Region A?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "IALA buoyage — hard exclusion."
+  },
+  {
+    "ds_section": "buoyage",
+    "n": 2,
+    "front": "What is a starboard hand mark in IALA Region A?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "IALA buoyage — hard exclusion."
+  },
+  {
+    "ds_section": "buoyage",
+    "n": 3,
+    "front": "What is the direction of buoyage?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "IALA buoyage — hard exclusion."
+  },
+  {
+    "ds_section": "buoyage",
+    "n": 4,
+    "front": "How do the lateral colours differ between IALA Region A and Region B?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "IALA buoyage — hard exclusion."
+  },
+  {
+    "ds_section": "buoyage",
+    "n": 5,
+    "front": "Describe a preferred channel to starboard mark in Region A.",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "IALA buoyage — hard exclusion."
+  },
+  {
+    "ds_section": "buoyage",
+    "n": 6,
+    "front": "Describe a preferred channel to port mark in Region A.",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "IALA buoyage — hard exclusion."
+  },
+  {
+    "ds_section": "buoyage",
+    "n": 7,
+    "front": "Describe the North cardinal mark.",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "IALA buoyage — hard exclusion."
+  },
+  {
+    "ds_section": "buoyage",
+    "n": 8,
+    "front": "Describe the East cardinal mark.",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "IALA buoyage — hard exclusion."
+  },
+  {
+    "ds_section": "buoyage",
+    "n": 9,
+    "front": "Describe the South cardinal mark.",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "IALA buoyage — hard exclusion."
+  },
+  {
+    "ds_section": "buoyage",
+    "n": 10,
+    "front": "Describe the West cardinal mark.",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "IALA buoyage — hard exclusion."
+  },
+  {
+    "ds_section": "buoyage",
+    "n": 11,
+    "front": "What is the memory aid for cardinal light rhythms?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "IALA buoyage — hard exclusion."
+  },
+  {
+    "ds_section": "buoyage",
+    "n": 12,
+    "front": "What are the cardinal quadrant boundaries?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "IALA buoyage — hard exclusion."
+  },
+  {
+    "ds_section": "buoyage",
+    "n": 13,
+    "front": "Describe an isolated danger mark.",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "IALA buoyage — hard exclusion."
+  },
+  {
+    "ds_section": "buoyage",
+    "n": 14,
+    "front": "Describe a safe water mark.",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "IALA buoyage — hard exclusion."
+  },
+  {
+    "ds_section": "buoyage",
+    "n": 15,
+    "front": "Describe a special mark.",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "IALA buoyage — hard exclusion."
+  },
+  {
+    "ds_section": "buoyage",
+    "n": 16,
+    "front": "Describe the emergency wreck marking buoy.",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "IALA buoyage — hard exclusion."
+  },
+  {
+    "ds_section": "buoyage",
+    "n": 17,
+    "front": "What is the difference between an isolated danger mark and a safe water mark in practice?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "IALA buoyage — hard exclusion."
+  },
+  {
+    "ds_section": "buoyage",
+    "n": 18,
+    "front": "What does a yellow buoy with a yellow X topmark near an outfall tell you?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "IALA buoyage — hard exclusion."
+  },
+  {
+    "ds_section": "buoyage",
+    "n": 19,
+    "front": "How is a small-craft channel or a recommended track for yachts often marked?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "IALA buoyage — hard exclusion."
+  },
+  {
+    "ds_section": "buoyage",
+    "n": 20,
+    "front": "What is a withy or a perch?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "IALA buoyage — hard exclusion."
+  },
+  {
+    "ds_section": "buoyage",
+    "n": 21,
+    "front": "How can you tell a lit buoy from an unlit one on the chart?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chart symbology plus night-arrival planning."
+  },
+  {
+    "ds_section": "buoyage",
+    "n": 22,
+    "front": "You see a buoy with a black body, a red band and two black spheres. What is it and what do you do?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "IALA buoyage — hard exclusion."
+  },
+  {
+    "ds_section": "buoyage",
+    "n": 23,
+    "front": "Which lights and marks does the IALA buoyage system NOT apply to?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "IALA buoyage — hard exclusion."
+  },
+  {
+    "ds_section": "buoyage",
+    "n": 24,
+    "front": "What is a 'new danger', and how is it marked?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "IALA buoyage — hard exclusion."
+  },
+  {
+    "ds_section": "buoyage",
+    "n": 25,
+    "front": "In Region B, what is a green buoy with a red band showing Fl(2+1) G?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "IALA buoyage — hard exclusion."
+  },
+  {
+    "ds_section": "buoyage",
+    "n": 26,
+    "front": "What are the standard buoy shapes, and when does shape tell you nothing?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "IALA buoyage — hard exclusion."
+  },
+  {
+    "ds_section": "buoyage",
+    "n": 27,
+    "front": "Apart from which side to pass, what else can a cardinal mark be telling you?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "IALA buoyage — hard exclusion."
+  },
+  {
+    "ds_section": "lightchar",
+    "n": 1,
+    "front": "What does F mean on a chart?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Light characteristics — hard exclusion."
+  },
+  {
+    "ds_section": "lightchar",
+    "n": 2,
+    "front": "What does Fl mean, and what is the pattern?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Light characteristics — hard exclusion."
+  },
+  {
+    "ds_section": "lightchar",
+    "n": 3,
+    "front": "What does Fl(3) 15s mean?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Light characteristics — hard exclusion."
+  },
+  {
+    "ds_section": "lightchar",
+    "n": 4,
+    "front": "What does LFl mean?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Light characteristics — hard exclusion."
+  },
+  {
+    "ds_section": "lightchar",
+    "n": 5,
+    "front": "What does Oc mean, and how do you recognise it?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Light characteristics — hard exclusion."
+  },
+  {
+    "ds_section": "lightchar",
+    "n": 6,
+    "front": "What does Iso mean?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Light characteristics — hard exclusion."
+  },
+  {
+    "ds_section": "lightchar",
+    "n": 7,
+    "front": "What do Q and VQ mean?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Light characteristics — hard exclusion."
+  },
+  {
+    "ds_section": "lightchar",
+    "n": 8,
+    "front": "What does Mo(A) mean, and where would you see it?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Light characteristics — hard exclusion."
+  },
+  {
+    "ds_section": "lightchar",
+    "n": 9,
+    "front": "What does Al mean?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Light characteristics — hard exclusion."
+  },
+  {
+    "ds_section": "lightchar",
+    "n": 10,
+    "front": "What is the 'period' of a light?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Light characteristics — hard exclusion."
+  },
+  {
+    "ds_section": "lightchar",
+    "n": 11,
+    "front": "Decode: Fl(2)WRG 10s 15m 11-8M.",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Light characteristics — hard exclusion."
+  },
+  {
+    "ds_section": "lightchar",
+    "n": 12,
+    "front": "Decode: Oc(2)R 7s 9m 6M.",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Light characteristics — hard exclusion."
+  },
+  {
+    "ds_section": "lightchar",
+    "n": 13,
+    "front": "Decode: Q(9) 15s.",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Light characteristics — hard exclusion."
+  },
+  {
+    "ds_section": "lightchar",
+    "n": 14,
+    "front": "Decode: Fl(2+1) R 10s.",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Light characteristics — hard exclusion."
+  },
+  {
+    "ds_section": "lightchar",
+    "n": 15,
+    "front": "If a light shows no colour letter, what colour is it?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Light characteristics — hard exclusion."
+  },
+  {
+    "ds_section": "lightchar",
+    "n": 16,
+    "front": "How do you positively identify a light at night?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Identifying a light at night — night pilotage, excluded."
+  },
+  {
+    "ds_section": "lightchar",
+    "n": 17,
+    "front": "What is a lighthouse's 'racon' marking on the chart?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Light characteristics — hard exclusion."
+  },
+  {
+    "ds_section": "lightchar",
+    "n": 18,
+    "front": "What does IQ mean?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Light characteristics — hard exclusion."
+  },
+  {
+    "ds_section": "lightchar",
+    "n": 19,
+    "front": "What does FFl mean?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Light characteristics — hard exclusion."
+  },
+  {
+    "ds_section": "lightchar",
+    "n": 20,
+    "front": "On an Admiralty chart, what is a light's elevation measured from, and what does its charted range mean?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Light characteristics — hard exclusion."
+  },
+  {
+    "ds_section": "lightchar",
+    "n": 21,
+    "front": "A light is charted 'Fl WRG 5s 12m 11-8M'. What is the range of each colour?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Light characteristics — hard exclusion."
+  },
+  {
+    "ds_section": "lightchar",
+    "n": 22,
+    "front": "For a sector light or a leading line, which way are the charted bearings measured?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Light characteristics — hard exclusion."
+  },
+  {
+    "ds_section": "meteo",
+    "n": 1,
+    "front": "What is the Beaufort scale, and what are forces 4, 6 and 8 called?",
+    "verdict": "reuse",
+    "cc_section": "cc-weather",
+    "note": "Beaufort force names and speeds are the one hard-recall CC met item; wording is plain and assumes no theory."
+  },
+  {
+    "ds_section": "meteo",
+    "n": 2,
+    "front": "What are the wind speeds for Beaufort forces 5, 7 and 9?",
+    "verdict": "reuse",
+    "cc_section": "cc-weather",
+    "note": "Same Beaufort recall set, odd forces; the severe-gale naming aside is terminology, not forecast interpretation."
+  },
+  {
+    "ds_section": "meteo",
+    "n": 3,
+    "front": "At what force do you expect to see 'many white horses' and think about the first reef?",
+    "verdict": "simplify",
+    "cc_section": "cc-weather",
+    "note": "CC version: what force 5 looks like on the water (many white horses, spray) — drop the 'think about the first reef' decision, which is the skipper's."
+  },
+  {
+    "ds_section": "meteo",
+    "n": 4,
+    "front": "What do the shipping forecast terms 'gale', 'severe gale', 'storm' and 'violent storm' mean?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Gale-warning gust bands are Shipping Forecast interpretation, above the CC bar."
+  },
+  {
+    "ds_section": "meteo",
+    "n": 5,
+    "front": "What do 'imminent', 'soon' and 'later' mean in a shipping forecast gale warning?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Shipping Forecast timing terms — interpretation, excluded."
+  },
+  {
+    "ds_section": "meteo",
+    "n": 6,
+    "front": "Define the marine visibility terms good, moderate, poor and very poor.",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Forecast visibility vocabulary — neither Beaufort nor a forecast source."
+  },
+  {
+    "ds_section": "meteo",
+    "n": 7,
+    "front": "Define the pressure-tendency terms used in the shipping forecast.",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Pressure tendency — synoptic/barometer material, excluded."
+  },
+  {
+    "ds_section": "meteo",
+    "n": 8,
+    "front": "What do 'backing' and 'veering' mean?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Backing and veering belong to frontal analysis, excluded."
+  },
+  {
+    "ds_section": "meteo",
+    "n": 9,
+    "front": "Which direction is a wind named for?",
+    "verdict": "simplify",
+    "cc_section": "cc-seaterms",
+    "note": "CC version: a wind is named for the direction it blows FROM — drop the tidal-stream contrast, which is an excluded tidal concept."
+  },
+  {
+    "ds_section": "meteo",
+    "n": 10,
+    "front": "What are the parts of the shipping forecast, in order?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Structure and sequence of the Shipping Forecast bulletin — explicitly excluded."
+  },
+  {
+    "ds_section": "meteo",
+    "n": 11,
+    "front": "Where can you get a marine forecast at sea?",
+    "verdict": "simplify",
+    "cc_section": "cc-weather",
+    "note": "CC version: just name where a forecast comes from (Coastguard VHF broadcast, marina or harbour office, radio, phone app before you leave) — no frequencies, no long-wave history."
+  },
+  {
+    "ds_section": "meteo",
+    "n": 12,
+    "front": "How does a depression behave in the northern hemisphere?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Beyond the CC met bar (Beaufort scale + naming forecast sources); synoptic or forecast-interpretation content."
+  },
+  {
+    "ds_section": "meteo",
+    "n": 13,
+    "front": "How does an anticyclone behave in the northern hemisphere?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Beyond the CC met bar (Beaufort scale + naming forecast sources); synoptic or forecast-interpretation content."
+  },
+  {
+    "ds_section": "meteo",
+    "n": 14,
+    "front": "State Buys Ballot's law.",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Beyond the CC met bar (Beaufort scale + naming forecast sources); synoptic or forecast-interpretation content."
+  },
+  {
+    "ds_section": "meteo",
+    "n": 15,
+    "front": "What is a warm front and what weather does it bring?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Beyond the CC met bar (Beaufort scale + naming forecast sources); synoptic or forecast-interpretation content."
+  },
+  {
+    "ds_section": "meteo",
+    "n": 16,
+    "front": "What is a cold front and what weather does it bring?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Beyond the CC met bar (Beaufort scale + naming forecast sources); synoptic or forecast-interpretation content."
+  },
+  {
+    "ds_section": "meteo",
+    "n": 17,
+    "front": "What is the warm sector like?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Beyond the CC met bar (Beaufort scale + naming forecast sources); synoptic or forecast-interpretation content."
+  },
+  {
+    "ds_section": "meteo",
+    "n": 18,
+    "front": "What is an occlusion?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Beyond the CC met bar (Beaufort scale + naming forecast sources); synoptic or forecast-interpretation content."
+  },
+  {
+    "ds_section": "meteo",
+    "n": 19,
+    "front": "What is the classic sequence of wind and pressure as a depression passes to your north?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Beyond the CC met bar (Beaufort scale + naming forecast sources); synoptic or forecast-interpretation content."
+  },
+  {
+    "ds_section": "meteo",
+    "n": 20,
+    "front": "What is a trough and a ridge?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Beyond the CC met bar (Beaufort scale + naming forecast sources); synoptic or forecast-interpretation content."
+  },
+  {
+    "ds_section": "meteo",
+    "n": 21,
+    "front": "What is a sea breeze, and when should you expect one?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Sea breeze is named in the exclusion list."
+  },
+  {
+    "ds_section": "meteo",
+    "n": 22,
+    "front": "What is a land breeze?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Land breeze — same exclusion as sea breeze."
+  },
+  {
+    "ds_section": "meteo",
+    "n": 23,
+    "front": "What is advection fog (sea fog) and why does it matter to a yacht?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Beyond the CC met bar (Beaufort scale + naming forecast sources); synoptic or forecast-interpretation content."
+  },
+  {
+    "ds_section": "meteo",
+    "n": 24,
+    "front": "What is radiation fog?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Beyond the CC met bar (Beaufort scale + naming forecast sources); synoptic or forecast-interpretation content."
+  },
+  {
+    "ds_section": "meteo",
+    "n": 25,
+    "front": "How does the barometer help you if you have no forecast?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Barometer as a forecasting aid is a Day Skipper item."
+  },
+  {
+    "ds_section": "meteo",
+    "n": 26,
+    "front": "What clouds warn you of a squall or thunderstorm?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Cloud reading plus a reefing decision — above the CC met bar."
+  },
+  {
+    "ds_section": "meteo",
+    "n": 27,
+    "front": "What is a katabatic wind and where might you meet one?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Beyond the CC met bar (Beaufort scale + naming forecast sources); synoptic or forecast-interpretation content."
+  },
+  {
+    "ds_section": "meteo",
+    "n": 28,
+    "front": "How does the wind behave near a headland or a cliff?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Beyond the CC met bar (Beaufort scale + naming forecast sources); synoptic or forecast-interpretation content."
+  },
+  {
+    "ds_section": "meteo",
+    "n": 29,
+    "front": "What does 'fog patches' or 'occasionally poor' mean in an inshore waters forecast?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Beyond the CC met bar (Beaufort scale + naming forecast sources); synoptic or forecast-interpretation content."
+  },
+  {
+    "ds_section": "meteo",
+    "n": 30,
+    "front": "What is the difference between the shipping forecast and the inshore waters forecast?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Choosing between forecast products is interpretation, and the card names the Day Skipper as its audience."
+  },
+  {
+    "ds_section": "meteo",
+    "n": 31,
+    "front": "What sea state terms are used, and what do they mean?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Forecast sea-state bands in metres — interpretation, distinct from Beaufort observation."
+  },
+  {
+    "ds_section": "meteo",
+    "n": 32,
+    "front": "How should the forecast affect your go / no-go decision?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "The go/no-go call is the skipper's by definition."
+  },
+  {
+    "ds_section": "meteo",
+    "n": 33,
+    "front": "What are Beaufort forces 0 to 3?",
+    "verdict": "reuse",
+    "cc_section": "cc-weather",
+    "note": "Completes the Beaufort scale at the light end; pure recall, no theory."
+  },
+  {
+    "ds_section": "meteo",
+    "n": 34,
+    "front": "What are Beaufort forces 10, 11 and 12?",
+    "verdict": "reuse",
+    "cc_section": "cc-weather",
+    "note": "Completes the Beaufort scale at the top end; pure recall, no theory."
+  },
+  {
+    "ds_section": "meteo",
+    "n": 35,
+    "front": "What does 'hurricane force' mean in a forecast, and why not just 'hurricane'?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Met Office terminology nuance, not the Beaufort recall item."
+  },
+  {
+    "ds_section": "meteo",
+    "n": 36,
+    "front": "What is a strong wind warning, and why does it matter more to you than a gale warning?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Warning-service detail plus a go/no-go threshold."
+  },
+  {
+    "ds_section": "meteo",
+    "n": 37,
+    "front": "What do 'slowly', 'steadily', 'rather quickly', 'rapidly' and 'very rapidly' mean about a pressure system?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "System-movement terms — synoptic interpretation."
+  },
+  {
+    "ds_section": "meteo",
+    "n": 38,
+    "front": "What does 'becoming cyclonic' mean in a forecast?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Beyond the CC met bar (Beaufort scale + naming forecast sources); synoptic or forecast-interpretation content."
+  },
+  {
+    "ds_section": "meteo",
+    "n": 39,
+    "front": "What is in the coastal station reports, and what are they for?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Coastal station reports — forecast interpretation."
+  },
+  {
+    "ds_section": "meteo",
+    "n": 40,
+    "front": "How much stronger than the mean wind are the gusts, and what should you plan for?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Reefing decision taken from the forecast — the skipper's call."
+  },
+  {
+    "ds_section": "meteo",
+    "n": 41,
+    "front": "How can you anticipate sea fog before you sail?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Dew point vs sea temperature — forecasting, above the CC bar."
+  }
+]

@@ -1,1 +1,7 @@
 node_modules/
+
+# Fixtures are generated: fixtures/make-*.py builds them, and a binary blob in
+# the history is a binary blob nobody can review.
+fixtures/*.apkg
+fixtures/*.db
+fixtures/*.json

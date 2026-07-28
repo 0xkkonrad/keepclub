@@ -1,0 +1,1456 @@
+[
+  {
+    "ds_section": "terms",
+    "n": 1,
+    "front": "Bow, stern, port, starboard — what does each mean?",
+    "verdict": "reuse",
+    "cc_section": "cc-seaterms",
+    "note": "The four words every order on deck depends on; already at beginner level."
+  },
+  {
+    "ds_section": "terms",
+    "n": 2,
+    "front": "Amidships",
+    "verdict": "reuse",
+    "cc_section": "cc-seaterms",
+    "note": "One-line positional vocabulary, given as an order ('fender amidships')."
+  },
+  {
+    "ds_section": "terms",
+    "n": 3,
+    "front": "Beam (two meanings)",
+    "verdict": "reuse",
+    "cc_section": "cc-seaterms",
+    "note": "Both meanings are plain vocabulary and the direction sense is needed to report a sighting."
+  },
+  {
+    "ds_section": "terms",
+    "n": 4,
+    "front": "Draught",
+    "verdict": "reuse",
+    "cc_section": "cc-seaterms",
+    "note": "Single-sentence definition, no calculation, no tide."
+  },
+  {
+    "ds_section": "terms",
+    "n": 5,
+    "front": "Air draught",
+    "verdict": "reuse",
+    "cc_section": "cc-seaterms",
+    "note": "Plain definition; a crew member hears it under bridges and needs no theory for it."
+  },
+  {
+    "ds_section": "terms",
+    "n": 6,
+    "front": "Freeboard",
+    "verdict": "reuse",
+    "cc_section": "cc-seaterms",
+    "note": "One-line hull vocabulary."
+  },
+  {
+    "ds_section": "terms",
+    "n": 7,
+    "front": "Windward and leeward",
+    "verdict": "reuse",
+    "cc_section": "cc-seaterms",
+    "note": "Core crew vocabulary; the 'leeward is the boom's side' cue is exactly the beginner's handle."
+  },
+  {
+    "ds_section": "terms",
+    "n": 8,
+    "front": "Lee shore — and why it matters",
+    "verdict": "simplify",
+    "cc_section": "cc-seaterms",
+    "note": "The danger/shelter framing is a skipper's anchorage decision. CC card: a lee shore is simply land the wind is blowing onto, a weather shore is land the wind blows off — no shelter judgement."
+  },
+  {
+    "ds_section": "terms",
+    "n": 9,
+    "front": "Ahead, astern, abeam, abaft, forward of the beam",
+    "verdict": "reuse",
+    "cc_section": "cc-seaterms",
+    "note": "The relative-direction set a crew member needs to report what they see to the skipper."
+  },
+  {
+    "ds_section": "terms",
+    "n": 10,
+    "front": "Which direction is 22.5&deg; abaft the beam, and why does the number matter?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Exists only to explain sidelight arcs and the overtaking sector — navigation lights and IRPCS, both hard exclusions."
+  },
+  {
+    "ds_section": "terms",
+    "n": 11,
+    "front": "Heel versus list",
+    "verdict": "reuse",
+    "cc_section": "cc-seaterms",
+    "note": "Two short definitions; reassuring and useful to a first-timer on their first heel."
+  },
+  {
+    "ds_section": "terms",
+    "n": 12,
+    "front": "The three rotational motions of a boat at sea",
+    "verdict": "reuse",
+    "cc_section": "cc-seaterms",
+    "note": "Roll/pitch/yaw is plain vocabulary and feeds straight into seasickness and helming."
+  },
+  {
+    "ds_section": "terms",
+    "n": 13,
+    "front": "Displacement",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Hull-speed formula; naval architecture a crew member is never given as an order."
+  },
+  {
+    "ds_section": "terms",
+    "n": 14,
+    "front": "What makes a cruising yacht stable?",
+    "verdict": "simplify",
+    "cc_section": "cc-seaterms",
+    "note": "Centre of buoyancy, righting moment and angle of vanishing stability are theory. CC card: the heavy keel keeps her upright, so heeling is normal and she will not tip over."
+  },
+  {
+    "ds_section": "terms",
+    "n": 15,
+    "front": "Reserve buoyancy",
+    "verdict": "simplify",
+    "cc_section": "cc-duties",
+    "note": "Only the practical tail matters at crew level. CC card: keep hatches and washboards shut at sea so water cannot get below."
+  },
+  {
+    "ds_section": "terms",
+    "n": 16,
+    "front": "What happens to stability if you fill the water tanks and load the anchor locker?",
+    "verdict": "simplify",
+    "cc_section": "cc-duties",
+    "note": "Free-surface effect and loading decisions are the skipper's. CC card: stow heavy gear low and aft of the bow, and never leave gear loose on deck or on the coachroof."
+  },
+  {
+    "ds_section": "terms",
+    "n": 17,
+    "front": "Name the three sides and three corners of a mainsail.",
+    "verdict": "reuse",
+    "cc_section": "cc-seaterms",
+    "note": "Pure sail vocabulary; the syllabus names luff/leech/foot/head/tack/clew explicitly."
+  },
+  {
+    "ds_section": "terms",
+    "n": 18,
+    "front": "Standing rigging versus running rigging",
+    "verdict": "reuse",
+    "cc_section": "cc-seaterms",
+    "note": "'Rigging and sails' is half the CC section-1 title; this is the naming card for it."
+  },
+  {
+    "ds_section": "terms",
+    "n": 19,
+    "front": "Halyard versus sheet",
+    "verdict": "reuse",
+    "cc_section": "cc-seaterms",
+    "note": "The single most order-driven distinction on the boat, in one line."
+  },
+  {
+    "ds_section": "terms",
+    "n": 20,
+    "front": "Kicker (boom vang) — what does it do?",
+    "verdict": "simplify",
+    "cc_section": "cc-seaterms",
+    "note": "Leech tension and sail twist are theory a first-timer does not have. CC card: the kicker holds the boom down; you will be asked to tension or ease it."
+  },
+  {
+    "ds_section": "terms",
+    "n": 21,
+    "front": "Topping lift",
+    "verdict": "reuse",
+    "cc_section": "cc-seaterms",
+    "note": "One sentence, and 'take up the topping lift' is a literal crew order when dropping the main."
+  },
+  {
+    "ds_section": "terms",
+    "n": 22,
+    "front": "Genoa versus jib",
+    "verdict": "reuse",
+    "cc_section": "cc-seaterms",
+    "note": "Headsail naming plus furling; no theory."
+  },
+  {
+    "ds_section": "terms",
+    "n": 23,
+    "front": "What is a seacock and why must you know where they all are?",
+    "verdict": "simplify",
+    "cc_section": "cc-seaterms",
+    "note": "Flooding-defence framing and softwood bungs are skipper-level. CC card: a seacock is the valve on a hole through the hull — know where the heads and sink ones are and leave them as the skipper set them."
+  },
+  {
+    "ds_section": "terms",
+    "n": 24,
+    "front": "Bilge, sole, bulkhead",
+    "verdict": "reuse",
+    "cc_section": "cc-seaterms",
+    "note": "Three below-decks words, one line each."
+  },
+  {
+    "ds_section": "terms",
+    "n": 25,
+    "front": "Pulpit, pushpit, stanchions, guardrails, jackstay",
+    "verdict": "reuse",
+    "cc_section": "cc-seaterms",
+    "note": "Deck-fitting names a crew member is told to clip to or move along."
+  },
+  {
+    "ds_section": "terms",
+    "n": 26,
+    "front": "Warp, spring, breast line",
+    "verdict": "reuse",
+    "cc_section": "cc-ropework",
+    "note": "'Handling warps' is a named CC ropework bullet; this is the naming card and requires no decision."
+  },
+  {
+    "ds_section": "terms",
+    "n": 27,
+    "front": "What is a transit?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Pilotage tool — position lines and clearing transits are a hard exclusion."
+  },
+  {
+    "ds_section": "terms",
+    "n": 28,
+    "front": "Cable (as a unit)",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "A chartwork distance unit; the second sense belongs to anchoring, which is not a CC section."
+  },
+  {
+    "ds_section": "terms",
+    "n": 29,
+    "front": "Fathom",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chart depth units — chartwork."
+  },
+  {
+    "ds_section": "terms",
+    "n": 30,
+    "front": "Fenders, fairleads, cleats and bollards",
+    "verdict": "reuse",
+    "cc_section": "cc-ropework",
+    "note": "CC ropework names cleats and single and double bollards outright; fendering is a general duty on arrival."
+  },
+  {
+    "ds_section": "terms",
+    "n": 31,
+    "front": "Keel types and what each means for you",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Drying out, directional stability and windward performance are boat-choice and skipper knowledge."
+  },
+  {
+    "ds_section": "terms",
+    "n": 32,
+    "front": "What does 'make fast', 'belay', 'surge' and 'snub' mean?",
+    "verdict": "reuse",
+    "cc_section": "cc-ropework",
+    "note": "These four words are literally orders shouted at crew; nothing here has to be decided."
+  },
+  {
+    "ds_section": "terms",
+    "n": 33,
+    "front": "Riding turn",
+    "verdict": "reuse",
+    "cc_section": "cc-sailhandling",
+    "note": "Winch handling is a named CC bullet, and the rolling-hitch fix is the 'correct use' of a CC-named knot."
+  },
+  {
+    "ds_section": "terms",
+    "n": 34,
+    "front": "Chafe — why is it the thing that actually breaks mooring lines?",
+    "verdict": "simplify",
+    "cc_section": "cc-ropework",
+    "note": "Framed as a skipper's insight about overnight failure. CC card: lines wear where they rub, so lead every warp through a fairlead and never over a sharp edge."
+  },
+
+  {
+    "ds_section": "ropework",
+    "n": 1,
+    "front": "Figure of eight — use",
+    "verdict": "reuse",
+    "cc_section": "cc-ropework",
+    "note": "Named CC knot with its correct use, in one sentence."
+  },
+  {
+    "ds_section": "ropework",
+    "n": 2,
+    "front": "Bowline — use",
+    "verdict": "reuse",
+    "cc_section": "cc-ropework",
+    "note": "Named CC knot; the uses listed are all crew jobs."
+  },
+  {
+    "ds_section": "ropework",
+    "n": 3,
+    "front": "Clove hitch — use and limitation",
+    "verdict": "reuse",
+    "cc_section": "cc-ropework",
+    "note": "Named CC knot; the fender-lanyard use and the slipping caveat are exactly what a beginner must know."
+  },
+  {
+    "ds_section": "ropework",
+    "n": 4,
+    "front": "Round turn and two half hitches — use",
+    "verdict": "reuse",
+    "cc_section": "cc-ropework",
+    "note": "Named CC knot with its correct use."
+  },
+  {
+    "ds_section": "ropework",
+    "n": 5,
+    "front": "Rolling hitch — use",
+    "verdict": "reuse",
+    "cc_section": "cc-ropework",
+    "note": "Named CC knot; the riding-turn use is the standard teaching example."
+  },
+  {
+    "ds_section": "ropework",
+    "n": 6,
+    "front": "Reef knot — correct use and the trap",
+    "verdict": "reuse",
+    "cc_section": "cc-ropework",
+    "note": "Named CC knot; the 'not for joining two ropes' trap is the point of the CC knot-use requirement."
+  },
+  {
+    "ds_section": "ropework",
+    "n": 7,
+    "front": "Sheet bend and double sheet bend",
+    "verdict": "reuse",
+    "cc_section": "cc-ropework",
+    "note": "Both named in the CC knot list, with the single/double distinction the syllabus asks for."
+  },
+  {
+    "ds_section": "ropework",
+    "n": 8,
+    "front": "Which knot for a jib sheet to the clew of a headsail?",
+    "verdict": "reuse",
+    "cc_section": "cc-ropework",
+    "note": "A knot-use recall card on a job crew are given directly."
+  },
+  {
+    "ds_section": "ropework",
+    "n": 9,
+    "front": "What are the three parts of a rope you name when tying knots?",
+    "verdict": "reuse",
+    "cc_section": "cc-ropework",
+    "note": "The vocabulary an instructor uses while teaching the knots; the bitter-end aside is one clause and harmless."
+  },
+  {
+    "ds_section": "ropework",
+    "n": 10,
+    "front": "Polyester (Terylene / Dacron) — properties and use",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Rope material properties are explicitly Day Skipper ropework, not CC."
+  },
+  {
+    "ds_section": "ropework",
+    "n": 11,
+    "front": "Nylon (polyamide) — properties and use",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Rope material properties — DS only."
+  },
+  {
+    "ds_section": "ropework",
+    "n": 12,
+    "front": "Polypropylene — properties and use",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Rope material properties — DS only."
+  },
+  {
+    "ds_section": "ropework",
+    "n": 13,
+    "front": "Aramid and HMPE (Dyneema, Spectra) — properties and use",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "High-end rope specification; well beyond a first-timer and not a CC bullet."
+  },
+  {
+    "ds_section": "ropework",
+    "n": 14,
+    "front": "Why whip or heat-seal a rope's end?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Rope maintenance; CC ropework is coiling, stowing, securing, warps and knots only."
+  },
+  {
+    "ds_section": "ropework",
+    "n": 15,
+    "front": "How much strength does a knot cost you?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Breaking-strain theory and splicing; nothing a crew member is ordered to do."
+  },
+  {
+    "ds_section": "ropework",
+    "n": 16,
+    "front": "Care of synthetic rope",
+    "verdict": "simplify",
+    "cc_section": "cc-ropework",
+    "note": "'Retire it when the core is glazed' is a condemnation decision. CC card: rinse and dry ropes, stow them coiled out of the sun, and never stand on a rope."
+  },
+  {
+    "ds_section": "ropework",
+    "n": 17,
+    "front": "How do you coil rope so it runs cleanly?",
+    "verdict": "reuse",
+    "cc_section": "cc-ropework",
+    "note": "Coiling is a named CC bullet and the laid-vs-braided distinction is a hands-on instruction, not theory."
+  },
+  {
+    "ds_section": "ropework",
+    "n": 18,
+    "front": "Which knot takes the load off a jammed, loaded sheet?",
+    "verdict": "reuse",
+    "cc_section": "cc-ropework",
+    "note": "Rolling-hitch correct-use recall; the crew is told to do exactly this."
+  },
+
+  {
+    "ds_section": "anchoring",
+    "n": 1,
+    "front": "How do you choose an anchorage?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Anchoring as skipper — a forecast-and-tide decision, hard exclusion."
+  },
+  {
+    "ds_section": "anchoring",
+    "n": 2,
+    "front": "How much scope do you let out?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Scope calculation from height of tide; anchoring and tides both excluded."
+  },
+  {
+    "ds_section": "anchoring",
+    "n": 3,
+    "front": "What depth do you use to work out scope?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Charted depth plus height of tide — tidal calculation."
+  },
+  {
+    "ds_section": "anchoring",
+    "n": 4,
+    "front": "Good and bad holding ground",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Chart seabed abbreviations; chartwork plus an anchoring decision."
+  },
+  {
+    "ds_section": "anchoring",
+    "n": 5,
+    "front": "Describe the anchoring drill.",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "The skipper's drill, including boat handling and signals."
+  },
+  {
+    "ds_section": "anchoring",
+    "n": 6,
+    "front": "Why lower the anchor rather than throw it, and why with the boat moving astern?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Anchoring technique and its rationale; not a CC section."
+  },
+  {
+    "ds_section": "anchoring",
+    "n": 7,
+    "front": "How do you check the anchor is holding?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Transits and bearings — pilotage plus an anchoring judgement."
+  },
+  {
+    "ds_section": "anchoring",
+    "n": 8,
+    "front": "Signals for a vessel at anchor",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Navigation lights and day shapes — hard exclusion."
+  },
+  {
+    "ds_section": "anchoring",
+    "n": 9,
+    "front": "Sound signal for a vessel at anchor in restricted visibility",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Sound signals — hard exclusion."
+  },
+  {
+    "ds_section": "anchoring",
+    "n": 10,
+    "front": "How do you weigh anchor?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Anchoring evolution run by the skipper; not a CC section even though crew assist."
+  },
+  {
+    "ds_section": "anchoring",
+    "n": 11,
+    "front": "The anchor is fouled and will not come up — what can you do?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Problem-solving decision under anchoring."
+  },
+  {
+    "ds_section": "anchoring",
+    "n": 12,
+    "front": "CQR or plough anchor",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Ground-tackle selection; anchoring is not a CC section."
+  },
+  {
+    "ds_section": "anchoring",
+    "n": 13,
+    "front": "Danforth or Fortress anchor",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Ground-tackle selection."
+  },
+  {
+    "ds_section": "anchoring",
+    "n": 14,
+    "front": "Bruce or claw anchor",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Ground-tackle selection."
+  },
+  {
+    "ds_section": "anchoring",
+    "n": 15,
+    "front": "Modern scoop anchors (Rocna, Spade, Vulcan, Excel)",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Ground-tackle selection."
+  },
+  {
+    "ds_section": "anchoring",
+    "n": 16,
+    "front": "Fisherman anchor",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Ground-tackle selection."
+  },
+  {
+    "ds_section": "anchoring",
+    "n": 17,
+    "front": "Why is chain better than rope for anchoring?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Catenary theory under anchoring."
+  },
+  {
+    "ds_section": "anchoring",
+    "n": 18,
+    "front": "What is a swinging circle and how big is it?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Anchoring geometry at all states of tide."
+  },
+  {
+    "ds_section": "anchoring",
+    "n": 19,
+    "front": "Anchoring in a strong tidal stream with a wind against it",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Tidal concept plus an anchoring decision."
+  },
+  {
+    "ds_section": "anchoring",
+    "n": 20,
+    "front": "Why keep an anchor watch?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Anchor watch is set and judged by the skipper; the CC watchkeeping bullet is general duties underway, not this."
+  },
+  {
+    "ds_section": "anchoring",
+    "n": 21,
+    "front": "What is a kedge anchor for?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Kedging off after grounding — squarely skipper work."
+  },
+
+  {
+    "ds_section": "safety",
+    "n": 1,
+    "front": "What safety brief should every new crew member get before you leave?",
+    "verdict": "simplify",
+    "cc_section": "cc-duties",
+    "note": "Written from the skipper's side and includes sending a VHF distress alert. CC card: what to make sure you have been shown on day one — lifejacket, clipping points, extinguishers and blanket, liferaft, heads, seacocks, MOB shout."
+  },
+  {
+    "ds_section": "safety",
+    "n": 2,
+    "front": "Lifejacket or buoyancy aid: what is the difference, and what rating do you want for cruising?",
+    "verdict": "reuse",
+    "cc_section": "cc-safetygear",
+    "note": "Lifejacket vs buoyancy aid, newtons and crotch strap are precisely the CC section-5 bar; nothing here is a decision the crew makes."
+  },
+  {
+    "ds_section": "safety",
+    "n": 3,
+    "front": "When should the crew wear lifejackets and harnesses?",
+    "verdict": "reuse",
+    "cc_section": "cc-safetygear",
+    "note": "Answer opens 'whenever the skipper says so' — the CC compliance bullet stated as an order."
+  },
+  {
+    "ds_section": "safety",
+    "n": 4,
+    "front": "What is a danbuoy for?",
+    "verdict": "reuse",
+    "cc_section": "cc-mob",
+    "note": "Throwing the danbuoy is the crew's immediate MOB action, which the syllabus says is directly reusable."
+  },
+  {
+    "ds_section": "safety",
+    "n": 5,
+    "front": "Red parachute rocket flare, red hand flare, orange smoke, white flare — what is each for?",
+    "verdict": "reuse",
+    "cc_section": "cc-emergency",
+    "note": "'Knows when they should be used' is the CC bullet verbatim; same depth in both syllabi."
+  },
+  {
+    "ds_section": "safety",
+    "n": 6,
+    "front": "How do you fire a hand flare, and how do you fire a parachute rocket?",
+    "verdict": "reuse",
+    "cc_section": "cc-emergency",
+    "note": "'Can operate distress flares' is an assessed CC skill; this is the operating instruction, not a decision."
+  },
+  {
+    "ds_section": "safety",
+    "n": 7,
+    "front": "What fire extinguishers should a cruising yacht carry, and where?",
+    "verdict": "simplify",
+    "cc_section": "cc-fire",
+    "note": "Equipping the boat and checking service dates is the owner's job. CC card: find the extinguishers and the fire blanket on your boat before you sail, and know which one is the galley blanket."
+  },
+  {
+    "ds_section": "safety",
+    "n": 8,
+    "front": "How do you fight a galley fat fire?",
+    "verdict": "reuse",
+    "cc_section": "cc-fire",
+    "note": "Galley duty plus 'action to be taken in the event of fire'; three plain instructions."
+  },
+  {
+    "ds_section": "safety",
+    "n": 9,
+    "front": "How do you fight an engine compartment fire?",
+    "verdict": "simplify",
+    "cc_section": "cc-fire",
+    "note": "Assumes access to fuel shut-off and a dedicated extinguisher port. CC card: if the engine bay is alight, do not open it — opening it feeds the fire; shout for the skipper and stay clear."
+  },
+  {
+    "ds_section": "safety",
+    "n": 10,
+    "front": "The four elements of fire prevention on a yacht",
+    "verdict": "simplify",
+    "cc_section": "cc-fire",
+    "note": "Ends in seasonal installation checks. CC card: the everyday habits — gas off at the bottle, never leave the cooker, no naked flame while fuelling, keep the bilge free of oily rags."
+  },
+  {
+    "ds_section": "safety",
+    "n": 11,
+    "front": "Why is LPG particularly dangerous on a boat, and how is the risk managed?",
+    "verdict": "simplify",
+    "cc_section": "cc-fire",
+    "note": "Locker drains, bubble testers and hose dates are installation detail. CC card: gas is heavier than air so a leak sinks into the bilge and cannot blow away — always turn the gas off at the bottle when you finish cooking."
+  },
+  {
+    "ds_section": "safety",
+    "n": 12,
+    "front": "What goes in a grab bag? Name eight items.",
+    "verdict": "reuse",
+    "cc_section": "cc-emergency",
+    "note": "A recall list, not a judgement; sits directly under the liferaft bullet."
+  },
+  {
+    "ds_section": "safety",
+    "n": 13,
+    "front": "When do you actually get into the liferaft?",
+    "verdict": "reuse",
+    "cc_section": "cc-emergency",
+    "note": "'Step up into it' is the standard CC teaching line and needs no theory."
+  },
+  {
+    "ds_section": "safety",
+    "n": 14,
+    "front": "How do you launch and board a liferaft?",
+    "verdict": "reuse",
+    "cc_section": "cc-emergency",
+    "note": "Matches the CC bullet word for word; a sequence of physical actions."
+  },
+  {
+    "ds_section": "safety",
+    "n": 15,
+    "front": "What is a radar reflector for and why does it matter in fog?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Being seen on radar in poor visibility is not in any CC bullet; it belongs with the restricted-visibility material."
+  },
+  {
+    "ds_section": "safety",
+    "n": 16,
+    "front": "EPIRB versus PLB versus SART versus AIS beacon",
+    "verdict": "simplify",
+    "cc_section": "cc-emergency",
+    "note": "A four-way comparison of kit a crew member never operates. CC card: one line — the boat carries a distress beacon that tells rescuers where you are; know where it is stowed."
+  },
+  {
+    "ds_section": "safety",
+    "n": 17,
+    "front": "What lifesaving gear should you check before every passage?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Preparation for sea as skipper — service dates, in-date flares, hydrostatic release; a hard exclusion."
+  },
+  {
+    "ds_section": "safety",
+    "n": 18,
+    "front": "How do you deal with a crew member who is seriously seasick?",
+    "verdict": "simplify",
+    "cc_section": "cc-seasickness",
+    "note": "Written as the skipper managing a casualty. CC card: what to do when you feel sick — stay on deck, low and warm, eyes on the horizon, eat something, take the helm, take tablets before you sail."
+  },
+  {
+    "ds_section": "safety",
+    "n": 19,
+    "front": "Cold water shock — what happens and what do you do?",
+    "verdict": "simplify",
+    "cc_section": "cc-mob",
+    "note": "Half the card is rescuer technique (horizontal recovery, post-immersion collapse). CC card: the casualty side only — cold water makes you gasp and lose grip, so float on your back for the first 60-90 seconds until it passes."
+  },
+  {
+    "ds_section": "safety",
+    "n": 20,
+    "front": "Hypothermia — the signs and the treatment",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "First-aid treatment of a casualty; CC's newer wording covers cold water shock only."
+  },
+  {
+    "ds_section": "safety",
+    "n": 21,
+    "front": "What is a jackstay and how should a tether be used?",
+    "verdict": "reuse",
+    "cc_section": "cc-safetygear",
+    "note": "Harness, tether and clipping-on rules are the CC bullet; every instruction here is given as an order."
+  },
+  {
+    "ds_section": "safety",
+    "n": 22,
+    "front": "Minimum first aid you should be able to do at sea",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "First aid is not a CC section, and the card ends in a PAN-PAN VHF call."
+  },
+  {
+    "ds_section": "safety",
+    "n": 23,
+    "front": "Are flares a legal requirement, and what are the modern alternatives?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Carriage law, MMSI registration and disposal — owner's problem, not the crew's."
+  },
+  {
+    "ds_section": "safety",
+    "n": 24,
+    "front": "What is a hydrostatic release unit and why does the liferaft need one?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Stowage and servicing of the raft cradle; the CC bullet stops at launching and boarding."
+  },
+
+  {
+    "ds_section": "colregs",
+    "n": 1,
+    "front": "What does IRPCS stand for, and do they apply to a small yacht?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "CC section 9 is one line about lookout; naming the regulations starts the deck down the rule-by-rule road."
+  },
+  {
+    "ds_section": "colregs",
+    "n": 2,
+    "front": "Rule 2 — the responsibility rule",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Names a rule number; IRPCS steering and sailing rules are a hard exclusion."
+  },
+  {
+    "ds_section": "colregs",
+    "n": 3,
+    "front": "Rule 5 — look-out",
+    "verdict": "simplify",
+    "cc_section": "cc-lookout",
+    "note": "Right topic, wrong register — it quotes rule text. CC card: what keeping a lookout actually means — scan all round including astern and to leeward behind the genoa, and report what you see to the skipper."
+  },
+  {
+    "ds_section": "colregs",
+    "n": 4,
+    "front": "Rule 6 — safe speed. What determines it?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "A skipper's judgement, radar included."
+  },
+  {
+    "ds_section": "colregs",
+    "n": 5,
+    "front": "Rule 7 — how do you know there is a risk of collision?",
+    "verdict": "simplify",
+    "cc_section": "cc-lookout",
+    "note": "Constant bearing is the one concept a lookout needs, but this card carries a rule number, radar and tows. CC card: if another boat's bearing stays the same as she gets closer, you are on a collision course — tell the skipper."
+  },
+  {
+    "ds_section": "colregs",
+    "n": 6,
+    "front": "Rule 8 — what must action to avoid collision be like?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Avoiding action is the skipper's decision."
+  },
+  {
+    "ds_section": "colregs",
+    "n": 7,
+    "front": "Rule 9 — narrow channels",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Rule number and a navigation decision."
+  },
+  {
+    "ds_section": "colregs",
+    "n": 8,
+    "front": "Rule 10: how do you use a traffic separation scheme, and what applies if you have to cross one?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Passage planning and TSS crossing — well beyond CC."
+  },
+  {
+    "ds_section": "colregs",
+    "n": 9,
+    "front": "Rule 12 — two sailing vessels approaching",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Give-way and stand-on between sailing vessels — explicitly excluded."
+  },
+  {
+    "ds_section": "colregs",
+    "n": 10,
+    "front": "Which side is the windward side for the purposes of Rule 12?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "A definition that exists only to apply Rule 12."
+  },
+  {
+    "ds_section": "colregs",
+    "n": 11,
+    "front": "Rule 13 — overtaking",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Steering and sailing rule with sector geometry."
+  },
+  {
+    "ds_section": "colregs",
+    "n": 12,
+    "front": "Rule 14 — head-on situation",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Steering and sailing rule."
+  },
+  {
+    "ds_section": "colregs",
+    "n": 13,
+    "front": "Rule 15 — crossing situation",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Steering and sailing rule."
+  },
+  {
+    "ds_section": "colregs",
+    "n": 14,
+    "front": "Rule 16 — the give-way vessel's duty",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Give-way duty; the crew never makes this call."
+  },
+  {
+    "ds_section": "colregs",
+    "n": 15,
+    "front": "Rule 17 — the stand-on vessel's duty",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Stand-on duty; a skipper's decision under pressure."
+  },
+  {
+    "ds_section": "colregs",
+    "n": 16,
+    "front": "Rule 18 — the order of responsibilities between vessels",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "The full hierarchy — the deepest IRPCS card in the file."
+  },
+  {
+    "ds_section": "colregs",
+    "n": 17,
+    "front": "A yacht under sail with the engine running in gear meets a motor cruiser — who gives way?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "A three-rule scenario requiring a decision."
+  },
+  {
+    "ds_section": "colregs",
+    "n": 18,
+    "front": "What day shape should a sailing vessel motor-sailing show?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Day shapes — hard exclusion."
+  },
+  {
+    "ds_section": "colregs",
+    "n": 19,
+    "front": "Rule 19: who does it apply to, and what four things does it require of you?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Restricted visibility conduct — skipper and radar."
+  },
+  {
+    "ds_section": "colregs",
+    "n": 20,
+    "front": "Rule 19 — which alterations should you avoid?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Radar-only avoiding action."
+  },
+  {
+    "ds_section": "colregs",
+    "n": 21,
+    "front": "Rule 19 — what must you do if you hear a fog signal forward of your beam?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Sound signals plus a conduct decision in fog."
+  },
+  {
+    "ds_section": "colregs",
+    "n": 22,
+    "front": "Rule 20 — when must lights be shown?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Navigation lights — hard exclusion."
+  },
+  {
+    "ds_section": "colregs",
+    "n": 23,
+    "front": "Rule 3 — what is a 'vessel not under command'?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "A Rule 18 hierarchy definition."
+  },
+  {
+    "ds_section": "colregs",
+    "n": 24,
+    "front": "Rule 3 — what is a 'vessel restricted in her ability to manoeuvre'?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "A Rule 18 hierarchy definition with a long deemed-to-include list."
+  },
+  {
+    "ds_section": "colregs",
+    "n": 25,
+    "front": "Rule 3 — what is a 'vessel engaged in fishing'?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "A Rule 18 hierarchy definition."
+  },
+  {
+    "ds_section": "colregs",
+    "n": 26,
+    "front": "Rule 3 — what is meant by 'restricted visibility'?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Definition serving Rule 19."
+  },
+  {
+    "ds_section": "colregs",
+    "n": 27,
+    "front": "Rule 3 — 'underway' versus 'making way'",
+    "verdict": "simplify",
+    "cc_section": "cc-seaterms",
+    "note": "The distinction is useful vocabulary but this card cites Rule 3 and justifies itself by lights and fog signals. CC card: underway simply means not tied up, not anchored and not aground — you can be underway and still drifting."
+  },
+  {
+    "ds_section": "colregs",
+    "n": 28,
+    "front": "A large ship is approaching in a narrow buoyed channel and you are under sail in a 10 m yacht. What do you do?",
+    "verdict": "simplify",
+    "cc_section": "cc-lookout",
+    "note": "Cites Rule 9 and asks the crew to decide. CC card: a big ship in a channel cannot stop or turn for you — if you see one from the foredeck, tell the skipper straight away."
+  },
+  {
+    "ds_section": "colregs",
+    "n": 29,
+    "front": "What does five or more short and rapid blasts mean, and what should you do on hearing them?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Sound signals plus a give-way decision — doubly excluded."
+  },
+  {
+    "ds_section": "colregs",
+    "n": 30,
+    "front": "You are the stand-on vessel and the other vessel is doing nothing. What is your legal position?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Rule 17 judgement."
+  },
+  {
+    "ds_section": "colregs",
+    "n": 31,
+    "front": "Two power-driven vessels crossing: A has B on her port bow. What must A do?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Crossing-rule geometry exercise."
+  },
+  {
+    "ds_section": "colregs",
+    "n": 32,
+    "front": "What is the difference between the international rules and local harbour rules?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Almanac and byelaw research before arrival — skipper's passage preparation."
+  },
+  {
+    "ds_section": "colregs",
+    "n": 33,
+    "front": "What does 'shall not impede' actually oblige you to do?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Rule 8(f) legal nuance."
+  },
+  {
+    "ds_section": "colregs",
+    "n": 34,
+    "front": "Rule 11 — when do Rules 12 to 18 apply at all?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Scope rule for the whole excluded block."
+  },
+  {
+    "ds_section": "colregs",
+    "n": 35,
+    "front": "You are under sail, overtaking a motor cruiser. Who keeps clear?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Rule 13 overriding Rule 18 — the most rule-lawyerly card in the section."
+  },
+
+  {
+    "ds_section": "lights",
+    "n": 1,
+    "front": "Define masthead light, sidelights, sternlight and all-round light with their arcs.",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Navigation lights — hard exclusion."
+  },
+  {
+    "ds_section": "lights",
+    "n": 2,
+    "front": "What lights does a power-driven vessel under 50 m show when underway?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Navigation lights."
+  },
+  {
+    "ds_section": "lights",
+    "n": 3,
+    "front": "What extra light does a power-driven vessel of 50 m or more show?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Navigation lights."
+  },
+  {
+    "ds_section": "lights",
+    "n": 4,
+    "front": "What lights does a sailing vessel under sail show?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Navigation lights."
+  },
+  {
+    "ds_section": "lights",
+    "n": 5,
+    "front": "Why must you not use a masthead tricolour and deck-level sidelights at the same time?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Navigation lights."
+  },
+  {
+    "ds_section": "lights",
+    "n": 6,
+    "front": "What lights may a sailing vessel under 7 m, or a vessel under oars, show?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Navigation lights; the tender link is incidental and rule-cited."
+  },
+  {
+    "ds_section": "lights",
+    "n": 7,
+    "front": "What lights does a vessel at anchor show?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Navigation lights and day shapes."
+  },
+  {
+    "ds_section": "lights",
+    "n": 8,
+    "front": "What lights and shapes does a vessel aground show?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Navigation lights and day shapes."
+  },
+  {
+    "ds_section": "lights",
+    "n": 9,
+    "front": "What lights and shapes does a vessel not under command show?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Navigation lights and day shapes."
+  },
+  {
+    "ds_section": "lights",
+    "n": 10,
+    "front": "What lights and shapes does a vessel restricted in her ability to manoeuvre show?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Navigation lights and day shapes."
+  },
+  {
+    "ds_section": "lights",
+    "n": 11,
+    "front": "What lights and shape does a vessel constrained by her draught show?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Navigation lights and day shapes."
+  },
+  {
+    "ds_section": "lights",
+    "n": 12,
+    "front": "What lights and shape does a trawler show?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Navigation lights and day shapes."
+  },
+  {
+    "ds_section": "lights",
+    "n": 13,
+    "front": "What lights does a vessel fishing other than trawling show?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Navigation lights and day shapes."
+  },
+  {
+    "ds_section": "lights",
+    "n": 14,
+    "front": "What lights does a vessel towing show, and what changes once the tow exceeds 200 m?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Navigation lights and towing — both excluded."
+  },
+  {
+    "ds_section": "lights",
+    "n": 15,
+    "front": "What lights does a pilot vessel on duty show?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Navigation lights."
+  },
+  {
+    "ds_section": "lights",
+    "n": 16,
+    "front": "What lights and shape does a vessel engaged in dredging or underwater operations show?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Navigation lights and day shapes."
+  },
+  {
+    "ds_section": "lights",
+    "n": 17,
+    "front": "What lights does a vessel engaged in minesweeping show?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Navigation lights and day shapes."
+  },
+  {
+    "ds_section": "lights",
+    "n": 18,
+    "front": "What lights does a hovercraft in non-displacement mode show?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Navigation lights."
+  },
+  {
+    "ds_section": "lights",
+    "n": 19,
+    "front": "You see a red light and a green light and a white light above and between them, all steady. What is it and what do you do?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Light recognition plus a Rule 14 decision."
+  },
+  {
+    "ds_section": "lights",
+    "n": 20,
+    "front": "You see only a green light and a white masthead light. What are you looking at?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Light recognition."
+  },
+  {
+    "ds_section": "lights",
+    "n": 21,
+    "front": "You see only a red light and a white masthead light. What are you looking at, and what must you do?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Light recognition plus a give-way decision."
+  },
+  {
+    "ds_section": "lights",
+    "n": 22,
+    "front": "You see a single white light and nothing else. Name four things it could be.",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Light recognition; night cruising is not a CC competence."
+  },
+  {
+    "ds_section": "lights",
+    "n": 23,
+    "front": "You see two white lights in a vertical line, the higher one to the right of the lower. What is it doing?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Light recognition and aspect."
+  },
+  {
+    "ds_section": "lights",
+    "n": 24,
+    "front": "Sector lights — what are they for?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Light characteristics and pilotage."
+  },
+  {
+    "ds_section": "lights",
+    "n": 25,
+    "front": "Leading lights",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Pilotage — leading lines."
+  },
+  {
+    "ds_section": "lights",
+    "n": 26,
+    "front": "A directional light",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Pilotage."
+  },
+  {
+    "ds_section": "lights",
+    "n": 27,
+    "front": "What is the difference between the range of a light and its visibility to you?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Nominal, luminous and geographical range — chartwork theory."
+  },
+  {
+    "ds_section": "lights",
+    "n": 28,
+    "front": "What is 'loom' and 'rising' or 'dipping' a light?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Dipping distance gives a position line — navigation."
+  },
+  {
+    "ds_section": "lights",
+    "n": 29,
+    "front": "How far must navigation lights be visible, by vessel length?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Rule 22 table."
+  },
+  {
+    "ds_section": "lights",
+    "n": 30,
+    "front": "What lights must a yacht show at night when motor-sailing?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Navigation lights and day shapes."
+  },
+  {
+    "ds_section": "lights",
+    "n": 31,
+    "front": "What does a small vessel engaged in diving operations show?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Navigation lights and shapes."
+  },
+  {
+    "ds_section": "lights",
+    "n": 32,
+    "front": "Which lights and shapes is a small vessel excused from showing?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Navigation lights and shapes exemptions."
+  },
+
+  {
+    "ds_section": "sound",
+    "n": 1,
+    "front": "Define a short blast and a prolonged blast.",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Sound signals — hard exclusion."
+  },
+  {
+    "ds_section": "sound",
+    "n": 2,
+    "front": "What do one, two and three short blasts mean?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Manoeuvring signals."
+  },
+  {
+    "ds_section": "sound",
+    "n": 3,
+    "front": "What do five or more short and rapid blasts mean?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Sound signals."
+  },
+  {
+    "ds_section": "sound",
+    "n": 4,
+    "front": "In a narrow channel, what signal means 'I intend to overtake you on your starboard side'?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Sound signals plus narrow channels."
+  },
+  {
+    "ds_section": "sound",
+    "n": 5,
+    "front": "What signal do you sound when approaching a bend where other vessels may be hidden?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Sound signals."
+  },
+  {
+    "ds_section": "sound",
+    "n": 6,
+    "front": "Fog signal — power-driven vessel making way through the water",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Fog signals."
+  },
+  {
+    "ds_section": "sound",
+    "n": 7,
+    "front": "Fog signal — power-driven vessel underway but stopped and making no way",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Fog signals."
+  },
+  {
+    "ds_section": "sound",
+    "n": 8,
+    "front": "Fog signal — sailing vessel underway",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Fog signals."
+  },
+  {
+    "ds_section": "sound",
+    "n": 9,
+    "front": "Fog signal — vessel at anchor",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Fog signals."
+  },
+  {
+    "ds_section": "sound",
+    "n": 10,
+    "front": "Fog signal — vessel aground",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Fog signals."
+  },
+  {
+    "ds_section": "sound",
+    "n": 11,
+    "front": "Fog signal — vessel being towed",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Fog signals and towing."
+  },
+  {
+    "ds_section": "sound",
+    "n": 12,
+    "front": "What are the sound signalling requirements for a vessel of less than 12 m?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Rule 33 carriage requirements."
+  },
+  {
+    "ds_section": "sound",
+    "n": 13,
+    "front": "Fog signal — pilot vessel on duty",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Fog signals."
+  },
+  {
+    "ds_section": "sound",
+    "n": 14,
+    "front": "Rule 36 — what may you do to attract attention?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Names a rule number; a skipper's collision-avoidance action."
+  },
+  {
+    "ds_section": "sound",
+    "n": 15,
+    "front": "What sound signal accompanies a distress situation?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Annex IV distress signals; CC emergency equipment stops at flares and the liferaft."
+  },
+  {
+    "ds_section": "sound",
+    "n": 16,
+    "front": "What sound signalling equipment must a vessel carry?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Rule 33 carriage requirements."
+  },
+  {
+    "ds_section": "sound",
+    "n": 17,
+    "front": "May manoeuvring signals be made with a light?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Rule 34(b) manoeuvring signals."
+  }
+]

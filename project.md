@@ -15,6 +15,10 @@ extracted Day Skipper engine, both courses playable, per-course state, sync stub
 until the parity gate. `web/README.md` documents the boot order and what differs from
 Day Skipper's app.js. /day-skipper is untouched and still the app of record.
 
+The `.apkg` importer (phase 3) is built on `feat/anki-importer`: drop a deck on the shelf,
+read the receipt, study it. Both Anki export formats, cloze and reversed cards, pictures
+and sound, stored in IndexedDB and never leaving the device.
+
 ---
 
 ## Where this came from
@@ -96,15 +100,117 @@ with tags/categories at the engine level.
 | T4 | Install | **One PWA.** The raven on the home screen; one service worker, one cache. Courses are screens inside. |
 | T5 | Competent Crew accent | **Harbor slate #33608D / #7FB2E8.** |
 | T6 | Competent Crew doodles | **Colour-only reskin — but physically separated.** CC ships its own doodle files that *happen* to coincide with Day Skipper's; theme files are never imported across courses. |
-| T7 | Deployment | **kkonrad.com/munin now.** /day-skipper stays untouched until Munin passes the four test suites + a state-migration check, then 301s in. |
+| T7 | Deployment | **kkonrad.com/munin now.** /day-skipper stays untouched until Munin passes the five test suites + a state-migration check, then 301s in. |
 
-A course theme is exactly: accent pair (light+dark) + doodle set + section art +
-**loading screen** (boot art, its animation, its line — Day Skipper's rocking boat and
-"Loading deck…" stay Day Skipper's; the raven default gets its own). Everything else —
-type, layout, grade flags, flag yellow, review UX — is Munin, shared by every course.
-Every course folder is self-contained: course.json (id, title, accent, boot),
-doodles.js, cards.json (Day Skipper format), optional figures.json / videos.json.
+A course theme is exactly: accent pair (light+dark) + doodle set + figure vocabulary
+(`figures.css` + `figures.noPen` — the nouns; the figure *language* of dashes, leaders,
+arcs and colour tokens stays Munin's) + section art +
+**loading screen** (its scene, how it moves, and what it says — Day Skipper's rocking
+boat and "Loading deck…" stay Day Skipper's; the raven default gets its own) + **what
+the hoard is called and what its fourteen entries are called and drawn as** + its
+`notice` (the fineprint), `credit` and `short` header title. Everything else — type,
+layout, grade flags, flag yellow, review UX, and the hoard's *rules* — is Munin, shared
+by every course. Every course folder is self-contained, and brings only what it has: course.json
+and cards.json are required, and **everything else is offered** — doodles.js,
+boot.html + boot.css, figures.json, videos.json, and every optional field in
+course.json. A course with a title and two hundred cards works and wears Munin.
 Missing doodle slot → raven fallback, never a hole.
+
+### The seam — audited and closed, 28 Jul 2026
+
+An audit of the course/Munin seam found eleven leaks. Konrad's rulings on them:
+achievement names and loading-screen text become **per-course customisation surfaces
+over Munin defaults** (not engine constants, not required of a course); **Munin's own
+theme is the default layer**, not a special case for imported decks — a course that
+brings no accent, no doodles or no scene is dressed by Munin, slot by slot; everything
+else fixed. What changed:
+
+- **One registry.** `web/courses/index.json`. It was a literal in munin.js, a second
+  in the service worker's precache and a third in refresh-courses.sh — and a course
+  missing from the second worked online and 404'd offline.
+- **The picker cannot be taken down by a course.** Per-course try/catch, a tile that
+  says which one would not load. It was a bare `Promise.all` with no catch: one
+  mistyped course.json was a blank page with no way back.
+- **The shelf reads no theme file.** `shelfPath` in course.json, written by
+  `scripts/make-boot.mjs`. It used to fetch 43 KB of each course's `doodles.js` and
+  mine one path out with a regex, on every draw.
+- **The folder name is the identity.** `course.json`'s `id` is ignored on boot and
+  gated in tests; the two could disagree, and progress is keyed on it.
+- **The hoard** (`renderAch`) keeps its fourteen rules and takes its names and
+  drawings from `course.json.hoard`. The defaults are Munin's raven vocabulary: they
+  were nautical, drawn from one course's set, so every imported deck showed fourteen
+  identical ravens under fourteen sailing captions, headed "Ship's log".
+- **Course content out of the shell**: the almanac fineprint, the Maritime Master
+  credit, "the 24 diagrams are about 2 MB" and the `RYA ` prefix strip were all in
+  Munin's own files and printed over every deck.
+- **`lib/validate.js`** — one description of what a deck is, run by app.js at boot, by
+  the importer, and by the gate over every cards.json.
+- **Per-course service-worker caches.** One shared cache meant editing one card
+  evicted the app and every other course for everyone.
+- **One copy of each constant**: `MUNIN.stateKey` / `MUNIN.lastKey`, and the raven
+  list exported from `lib/deck.js` and gated against `doodles-munin.js`.
+- **The gate points the right way.** `tests/separation.mjs` tested course → course; it
+  now also tests engine → course, which is the direction that was leaking. 69 checks.
+
+**Two follow-ups, both closed 28 Jul on Konrad's call:**
+
+- **Four more ravens.** The hoard has fourteen entries and Munin's set held ten, so an
+  imported deck showed four duplicate pairs. `prints`, `nest`, `worm` and `shell` are
+  drawn — the subjects the character notes above already called for — and each takes
+  over the entry it belongs to. The set now has a generator,
+  `design/raven-doodles/build.py`, which rebuilds the original ten byte-for-byte; it
+  had none, so redrawing one meant hand-editing the shipped file. The frieze stays ten
+  (it has to fit a 320px screen) and names its ten explicitly.
+- **The figure vocabulary is separated.** ~50 `.f-*` rules naming one syllabus's
+  rigging, sails, fenders and pontoons moved out of app.css into
+  `courses/<id>/figures.css`, and `FIG_NO_PEN` split into the engine's half and the
+  course's `figures.noPen`. Gated both ways: app.css may draw no course's nouns, and a
+  course may not redefine the shared language.
+
+### Boot screens — per-course, mechanism built 28 Jul
+
+The mechanism is in place: `courses/<id>/boot.html` + `boot.css`, swapped in by
+munin.js and **replayed out of localStorage before the first paint**, with Munin's
+raven as the markup default. What each course ships today is still the minimum —
+its own drawing, drawn on and then moving. **A real per-course boot scene is still
+wanted** — an animated drawing that belongs to the course the way its accent and
+doodles do; that is now a drawing job in one file, not a change to the engine. What
+was wrong before, and is fixed:
+
+**It drew too late** — `app.js` filled the doodle in `boot()`, *after* the `cards.json`
+fetch resolved, so the window the screen exists to cover was the window in which it was
+blank. Fixed: Munin's default scene is markup in `index.html`, and a course's own scene
+is replayed from `munin/boot/<id>` at parse time, before the first paint. app.js no
+longer touches the boot screen at all, and the gate fails if it does again.
+
+**Its animation was Munin's, not the course's** — `boot.anim` named a keyframe declared
+in `app.css`, so a course could only pick from the two names the engine happened to
+have. Fixed: `boot.css` per course, its own keyframes, gated.
+
+**It is still a spinner, not a scene.** A course theme is meant to be felt before the
+first card. Day Skipper and Competent Crew share a sea: a horizon line that draws
+itself, then a boat drawn onto it and sailing its length, with sun, drifting cloud,
+gulls, a buoy to pass. The raven default gets its own. This is the part still to do —
+and it is now `boot.html` + `boot.css` in one course folder.
+
+A prototype (*Horizon*, built and picked July 2026, since deleted) settled six things
+worth not rediscovering:
+
+- **`pathLength="1"` on every path.** It renormalises the path whatever its real
+  geometry, so *one* CSS rule — `stroke-dashoffset: 1 → 0` — draws any doodle on.
+  Without it every doodle needs its own measured length, and re-drawing a doodle
+  silently breaks its own animation.
+- **All motion in CSS, including any rotating captions.** A caption that starts moving
+  when `app.js` parses is a caption that never moves when it matters.
+- **Link the fonts, never inline them.** The app self-hosts and preloads these faces
+  already; shipping 65 KB of base64 font before first paint argues against the whole
+  point of the screen. That was the difference between 73 KB and 16 KB.
+- **A keyframe selector cannot take `calc()`.** A rotating-caption cycle has to have
+  its percentages and its caption count agree by hand — they cannot be derived.
+- **The doodle set's `flag` is a flagpole**, not a signal flag. Four hung off a halyard
+  read as flagpoles dangling in mid-air. A signal-flag hoist needs a new doodle, which
+  is a decision about the doodle set rather than about a boot screen.
+- **`prefers-reduced-motion` leaves the drawing finished**, not half-drawn.
 
 ### 4b — editing cards
 
@@ -127,6 +233,30 @@ Open: whether an edit ever resets scheduling. Default assumption is **no** — r
 history survives — with an explicit "this is a different card now, start it over" action.
 
 ---
+
+### Where a course's source lives
+
+`web/courses/<id>/` is shipped data — committed, self-contained, and all the app
+ever reads. Where the *authoring* source sits depends on whether the course has a
+repo of its own.
+
+Both courses are authored here now.
+
+- **Competent Crew** never had a repo of its own, so its source moved out of
+  `_temp` into `content/competent-crew/` on 28 July 2026.
+- **Day Skipper** followed it the same day, into `content/day-skipper/`, when its
+  standalone app was retired and kkonrad.com/day-skipper came down. Its clips
+  came with it — `web/courses/day-skipper/` had been shipping a `videos.json`
+  naming 54 files nothing had ever copied across.
+
+Both rebuilds reproduce the shipped `cards.json` byte for byte.
+
+`content/*/build/` is gitignored. Competent Crew's cards are pointers into Day
+Skipper's — `ref(section, question_text)`, resolved at build time — which used to
+mean a clone of Munin could not rebuild it. Now that both are here, it can.
+That is a maintenance dependency, not a runtime one: the shipped `cards.json`
+carries the resolved text. `scripts/refresh-courses.sh` copies build output into
+`web/courses/`.
 
 ## Shape
 
@@ -179,7 +309,7 @@ Comes across: the theme and doodle system, the review-loop UI, the lightbox, the
 renderer, the PWA/service-worker shell, the test harness.
 
 Does not: the SM-2 scheduler, the localStorage state layer, the Python card-authoring
-build (`src/cards_*.py` stays Day Skipper's own).
+build (`src/cards_*.py` now lives at `content/day-skipper/` — see *Where a course's source lives*).
 
 The end state is that **Day Skipper becomes the first Munin deck** — same engine, its own
 content and its own deployment.
@@ -191,9 +321,29 @@ into a product.
 **Phase 2 — the new screens.** H1 home, R2 flick-grading with a real distance→grade
 mapping and its desktop fallback, the M1+M3 editor and the 4b edit paths, T1 progress.
 
-**Phase 3 — `.apkg` import.** sql.js over the collection's SQLite, media unzip, note-type
-flattening onto the markdown+stamp model, ending in the I3 receipt. This is the phase that
-can eat a month; everything before it is a working app without it.
+**Phase 3 — `.apkg` import.** Built on `feat/anki-importer`, ahead of phases 1 and 2:
+the import is what makes Munin usable by anyone who is not studying for the RYA, and it
+turned out to be a week rather than the month budgeted here. `web/README.md` documents it.
+
+Two decisions worth keeping.
+
+**Not sql.js.** Every query the importer makes is "give me every row of this table",
+which is a b-tree walk against a published, stable file format. A megabyte of WebAssembly
+to run SELECT statements we do not need is the wrong trade for an app whose whole claim is
+that it works offline and starts fast. `lib/sqlite.js` is 250 lines and was written against
+databases SQLite itself wrote. Writing it caught two bugs that a library would have hidden
+— index pages have a different local-payload limit from table pages, and a WITHOUT ROWID
+record stores its primary key columns first regardless of declaration order — both of which
+are exactly the modern Anki schema.
+
+**One dependency, and it is a compression codec.** `lib/vendor/fzstd.js` (MIT, 24 KB) is
+the only third-party code in Munin. Anki has written its payloads zstd-compressed since
+2.1.50 and no browser exposes a zstd decoder; hand-rolling one would have been the one
+place in this project where writing it myself was clearly worse than not.
+
+The import does not go through the M1+M3 markdown model — that model does not exist yet.
+It renders Anki's own templates and stores the result as Munin cards. When phase 2 lands,
+re-importing is the migration path, which is the same mechanism as replacing a deck.
 
 **Phase 4 — Supabase sync.** Auth, per-user RLS, conflict policy, media to Storage.
 
