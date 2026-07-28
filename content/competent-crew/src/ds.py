@@ -13,8 +13,8 @@ question and the Competent Crew build stops until somebody looks at it. That is
 the honest behaviour, and it is the same bet `web_build.py` makes when it hashes
 the question into the card id.
 """
+import hashlib
 import os
-import subprocess
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -91,24 +91,25 @@ for _key, _title, _cards in SECTIONS:
 
 
 def commit():
-    """The Day Skipper commit this build resolved its pointers against.
+    """What this build resolved its pointers against, as a hash of the cards.
 
     Recorded in the built deck so a deck can be traced back to the exact card
     wording it inherited, which is the one thing a pointer costs you.
+
+    A hash of the three card files rather than the repo's HEAD, which is what
+    this was while Day Skipper lived in a repo of its own. Since it moved in
+    here, HEAD moves every time anything in Munin is committed — a boot-screen
+    tweak would have changed this stamp, made the shipped cards.json differ from
+    a rebuild, and had refresh-courses.sh report DIFF on a deck nobody touched.
+    The wording is what the stamp is about; hash the wording.
     """
-    try:
-        out = subprocess.run(
-            ["git", "-C", DS_ROOT, "rev-parse", "--short", "HEAD"],
-            capture_output=True, text=True, timeout=10,
-        )
-        sha = out.stdout.strip()
-        dirty = subprocess.run(
-            ["git", "-C", DS_ROOT, "status", "--porcelain", "src/"],
-            capture_output=True, text=True, timeout=10,
-        ).stdout.strip()
-        return sha + ("+dirty" if dirty else "") if sha else "unknown"
-    except Exception:
-        return "unknown"
+    h = hashlib.sha1()
+    for name in ("cards_a.py", "cards_b.py", "cards_c.py"):
+        try:
+            h.update(open(os.path.join(DS_ROOT, "src", name), "rb").read())
+        except OSError:
+            return "unknown"
+    return h.hexdigest()[:10]
 
 
 class Ref:
