@@ -242,6 +242,18 @@ ok(RAVENS.length === Object.keys(MUNIN_DOODLE).length
   && RAVENS.every((r) => !!MUNIN_DOODLE[r]),
   'lib/deck.js names exactly the drawings doodles-munin.js holds');
 
+/* Chrome is not character. The theme toggle's three states are drawn through
+ * the same pipeline and live in the same file, but putting them in the raven
+ * set would hand an imported deck a sun for an emblem and give the hoard a
+ * fifteenth default it has no entry for. Gated in both directions. */
+const MUNIN_GLYPH = doodlesIn(read('doodles-munin.js'), 'MUNIN_GLYPH');
+const glyphNames = Object.keys(MUNIN_GLYPH);
+ok(glyphNames.length === 3 && glyphNames.every((g) => path_(MUNIN_GLYPH, g)),
+  `the theme's three states are drawn (${glyphNames.join(', ')})`);
+const mixed = glyphNames.filter((g) => g in MUNIN_DOODLE);
+ok(mixed.length === 0, `no theme glyph is also a raven ${mixed.join(', ')}`);
+ok(!RAVENS.some((r) => r in MUNIN_GLYPH), 'and no raven is handed out as a theme glyph');
+
 /* Munin's default loading screen is markup, not something app.js fills in:
  * the screen exists to cover the window before app.js runs. */
 const html = read('index.html');

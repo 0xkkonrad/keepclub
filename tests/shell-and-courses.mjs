@@ -103,10 +103,12 @@ ok((await p.textContent('#course-title')).trim().toLowerCase() === 'competent cr
   await p2.waitForFunction(() => document.getElementById('boot').hidden);
   const inCourse = await p2.evaluate(() => ({
     attr: document.documentElement.dataset.theme,
-    glyph: document.getElementById('theme-glyph').textContent,
+    glyph: document.getElementById('theme-glyph').dataset.themeGlyph,
+    drawn: !!document.querySelector('#theme-glyph .dood-glyph path'),
   }));
   ok(inCourse.attr === 'dark', 'a course inherits the theme chosen on the picker');
-  ok(inCourse.glyph === '\u263E', 'the course header agrees with the picker');
+  ok(inCourse.glyph === 'night', 'the course header agrees with the picker');
+  ok(inCourse.drawn, 'and says so with a drawing, not a character');
   await c2.close();
 }
 

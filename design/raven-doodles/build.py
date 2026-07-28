@@ -70,6 +70,34 @@ SOURCE = {
     "shell": "M9.4 17.6c0 4.6 3 7.6 6.6 7.6s6.6-3 6.6-7.6 M9.4 17.6l2.2-2.4 2.2 2.4 2.2-2.4 2.2 2.4 2.2-2.4 2 2.4 M11.6 10.2c1-3.2 3-4.8 4.4-4.8s3.4 1.6 4.4 4.8 M11.6 10.2l2.2 2.2 2.2-2.2 2.2 2.2 2.2-2.2",
 }
 
+# The theme toggle's three states, drawn rather than set in Unicode (☀ ☾ ◐).
+#
+# THESE ARE NOT RAVENS, and that is why they live in their own object. The set
+# above IS the character: `lib/deck.js` names all fourteen and hands them out as
+# shelf tiles and section marks to imported decks, and the hoard's fourteen
+# defaults are those fourteen drawings. A sun in that list would come back as
+# the emblem on somebody's imported French deck. Same pipeline, same line,
+# different job — chrome, not character.
+#
+# The three states are the app's, so the names are the raven's hours rather than
+# astronomy: `dusk` is the one that follows the device.
+GLYPHS = {
+    # light — the disc is a DOTS circle so the redraw does not polygonise it
+    "day": "M16 8.2V5 M16 23.8V27 M23.8 16H27 M8.2 16H5 M21.5 10.5l2.3-2.3 M10.5 10.5 8.2 8.2 M21.5 21.5l2.3 2.3 M10.5 21.5l-2.3 2.3",
+    # dark — a bare crescent, horns to the right, and fat: at 21px the waist has
+    # to stay open or the two arcs close up into a leaf. A star was drawn beside
+    # it for one round and taken out again — 2px of cross at this size is not a
+    # star, it is a smudge on the moon's shoulder.
+    "night": "M22.5 5.5C15 7 9 11 9 16c0 5 6 9 13.5 10.5-4-4-5.3-7-5.3-10.5 0-3.5 1.3-6.5 5.3-10.5z",
+    # auto — half a sun on the horizon: "whatever hour it is" is a sunrise, and
+    # it is the state that has to survive being neither of the other two.
+    # THREE rays, not five, and long. The first cut had five short ones and at
+    # 21px they stopped being rays and became fuzz on top of a dome — the same
+    # lesson the doodle set already paid for at r2.5, arriving from the other
+    # direction: below a certain size, fewer and longer beats more and finer.
+    "dusk": "M5 23.5h22 M10 23.5c0-3.31 2.69-6 6-6s6 2.69 6 6 M16 15v-5.5 M22 17.5l3.9-3.9 M10 17.5 6.1 13.6",
+}
+
 # Round things the redraw would otherwise turn into wobbly polygons.
 DOTS = {
     "perch": [[12.2, 10, 1.0]],
@@ -85,6 +113,8 @@ DOTS = {
     # and reads as a full stop.
 
     "worm": [[23.6, 21, 1.0]],
+    # The sun's disc. Well clear of the r2.5 floor: it is the whole drawing.
+    "day": [[16, 16, 5.2]],
 }
 
 HEAD = """/* Munin's own doodles — the raven set, drawn through the same rough.py
@@ -98,6 +128,14 @@ HEAD = """/* Munin's own doodles — the raven set, drawn through the same rough
 const MUNIN_DOODLE = {
 """
 
+MID = """};
+
+/* The theme toggle's three states. Chrome, not character — kept out of
+ * MUNIN_DOODLE on purpose, because that set is what lib/deck.js hands to an
+ * imported deck as its emblem and what the hoard's fourteen defaults are. */
+const MUNIN_GLYPH = {
+"""
+
 TAIL = """};
 
 /* `const` at the top level of a classic script does not become a property of
@@ -105,12 +143,13 @@ TAIL = """};
  * this set at all. Every doodle on the importer drew as an empty path until
  * this line existed. */
 globalThis.MUNIN_DOODLE = MUNIN_DOODLE;
+globalThis.MUNIN_GLYPH = MUNIN_GLYPH;
 """
 
 
-def build():
+def build(source=SOURCE):
     out = {}
-    for name, d in SOURCE.items():
+    for name, d in source.items():
         circles = "".join('<circle cx="%s" cy="%s" r="%s"/>' % (cx, cy, r)
                           for cx, cy, r in DOTS.get(name, ()))
         drawn = rough.redraw(circles + '<path d="%s"/>' % d, rough.DOODLE, 32)
@@ -131,13 +170,17 @@ def render(paths):
 
 if __name__ == "__main__":
     paths = build()
-    js = HEAD + "".join("  %s: '%s',\n" % (n, d) for n, d in paths.items()) + TAIL
+    glyphs = build(GLYPHS)
+    both = {**paths, **glyphs}
+    line = lambda n, d: "  %s: '%s',\n" % (n, d)  # noqa: E731
+    js = (HEAD + "".join(line(n, d) for n, d in paths.items())
+          + MID + "".join(line(n, d) for n, d in glyphs.items()) + TAIL)
 
     if "--png" in sys.argv:
         html = os.path.join(HERE, "_sheet.html")
         png = os.path.join(HERE, "_sheet.png")
         with open(html, "w", encoding="utf-8") as f:
-            f.write(render(paths))
+            f.write(render({**paths, **glyphs}))
         chrome = os.path.expanduser(
             "~/.cache/ms-playwright/chromium_headless_shell-1217/"
             "chrome-headless-shell-linux64/chrome-headless-shell")
@@ -150,12 +193,13 @@ if __name__ == "__main__":
     if "--write" in sys.argv:
         with open(OUT, "w", encoding="utf-8") as f:
             f.write(js)
-        print("wrote  :", OUT, "(%d drawings)" % len(paths))
+        print("wrote  :", OUT, "(%d ravens + %d glyphs)" % (len(paths), len(glyphs)))
     else:
         with open(OUT, encoding="utf-8") as f:
             shipped = f.read()
-        same = [n for n, d in paths.items() if ("  %s: '%s',\n" % (n, d)) in shipped]
-        print("drawings:", len(paths), " already shipped byte-identical:", len(same))
-        missing = [n for n in paths if n not in same]
+        same = [n for n, d in both.items() if line(n, d) in shipped]
+        print("drawings:", len(both), "(%d ravens + %d glyphs)" % (len(paths), len(glyphs)),
+              " already shipped byte-identical:", len(same))
+        missing = [n for n in both if n not in same]
         if missing:
             print("differ or new:", ", ".join(missing))
