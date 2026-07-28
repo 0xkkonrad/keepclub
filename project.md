@@ -175,15 +175,20 @@ history survives — with an explicit "this is a different card now, start it ov
 ever reads. Where the *authoring* source sits depends on whether the course has a
 repo of its own.
 
-- **Day Skipper** keeps its `src/cards_*.py` in the Day Skipper repo. It is still
-  a separately deployed app until T7 completes.
-- **Competent Crew** has no repo of its own and never did, so its source lives
-  here, at `content/competent-crew/` (moved out of `_temp` on 28 July 2026 —
-  the rebuild there reproduces the shipped `cards.json` byte for byte).
+Both courses are authored here now.
+
+- **Competent Crew** never had a repo of its own, so its source moved out of
+  `_temp` into `content/competent-crew/` on 28 July 2026.
+- **Day Skipper** followed it the same day, into `content/day-skipper/`, when its
+  standalone app was retired and kkonrad.com/day-skipper came down. Its clips
+  came with it — `web/courses/day-skipper/` had been shipping a `videos.json`
+  naming 54 files nothing had ever copied across.
+
+Both rebuilds reproduce the shipped `cards.json` byte for byte.
 
 `content/*/build/` is gitignored. Competent Crew's cards are pointers into Day
-Skipper's — `ref(section, question_text)`, resolved at build time — so rebuilding
-needs the Day Skipper checkout present and a clone of Munin alone cannot do it.
+Skipper's — `ref(section, question_text)`, resolved at build time — which used to
+mean a clone of Munin could not rebuild it. Now that both are here, it can.
 That is a maintenance dependency, not a runtime one: the shipped `cards.json`
 carries the resolved text. `scripts/refresh-courses.sh` copies build output into
 `web/courses/`.
@@ -239,7 +244,7 @@ Comes across: the theme and doodle system, the review-loop UI, the lightbox, the
 renderer, the PWA/service-worker shell, the test harness.
 
 Does not: the SM-2 scheduler, the localStorage state layer, the Python card-authoring
-build (`src/cards_*.py` stays Day Skipper's own — see *Where a course's source lives*).
+build (`src/cards_*.py` now lives at `content/day-skipper/` — see *Where a course's source lives*).
 
 The end state is that **Day Skipper becomes the first Munin deck** — same engine, its own
 content and its own deployment.
