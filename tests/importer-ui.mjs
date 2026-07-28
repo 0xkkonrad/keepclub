@@ -70,7 +70,7 @@ ok(/question side came out empty/.test(receipt), 'and why');
 ok(/note type is missing/.test(receipt), 'including the card whose note type was absent');
 ok(/gone\.png/.test(receipt), 'it names the picture the package did not contain');
 ok(!/munin-front-side/.test(receipt) && !/[\u0000-\u0008]/.test(receipt),
-  'the example of a dropped card is the deck\u2019s words, with none of Munin\u2019s plumbing');
+  'the example of a dropped card is the deck\u2019s words, with none of keep club\u2019s plumbing');
 ok(/scheduling does not come across/.test(receipt), 'it warns that scheduling is not carried over');
 ok(/suspended/.test(receipt), 'it mentions the suspended card');
 ok((await p.textContent('.imp-h')) === 'Sailing', 'the deck is named after what its decks share');

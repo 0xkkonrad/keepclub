@@ -237,10 +237,12 @@ ok(friezeArt.length === 10, `Munin's frieze is ten drawings (found ${friezeArt.l
 ok(friezeArt.every((a) => path_(MUNIN_DOODLE, a)), 'and every one of them is in its own set');
 
 /* One raven list. It lived in four files, and the two the importer uses
- * drifting apart would give a deck a shelf tile from outside its own set. */
-ok(RAVENS.length === Object.keys(MUNIN_DOODLE).length
-  && RAVENS.every((r) => !!MUNIN_DOODLE[r]),
-  'lib/deck.js names exactly the drawings doodles-munin.js holds');
+ * drifting apart would give a deck a shelf tile from outside its own set.
+ * The tower is brand chrome, not a fifteenth raven to hand to decks. */
+const brandMarks = Object.keys(MUNIN_DOODLE).filter((n) => !RAVENS.includes(n));
+ok(RAVENS.every((r) => !!MUNIN_DOODLE[r])
+  && brandMarks.length === 1 && brandMarks[0] === 'tower',
+  'lib/deck.js names every raven while the tower stays brand chrome');
 
 /* Chrome is not character. The theme toggle's three states are drawn through
  * the same pipeline and live in the same file, but putting them in the raven
@@ -267,10 +269,10 @@ const html = read('index.html');
 ok(/id="boot-scene"/.test(html) && /pathLength="1"/.test(html),
   'index.html carries a boot scene that can paint before app.js');
 // index.html holds a copy of one drawing, because the default scene has to be
-// markup. make-boot.mjs does NOT write index.html — redrawing the raven means
-// pasting the new `perch` path into the boot scene by hand.
-ok(html.includes(MUNIN_DOODLE.perch),
-  "the boot scene is Munin's own perch drawing (paste the new path into index.html)");
+// markup. make-boot.mjs does NOT write index.html — changing the brand means
+// pasting the approved `tower` path into the boot scene by hand.
+ok(html.includes(MUNIN_DOODLE.tower),
+  "the boot scene is keep club's tower drawing (paste the new path into index.html)");
 ok(!/boot-art/.test(read('app.js')), 'app.js does not draw the loading screen it is too late for');
 
 // The shell may FETCH course files at runtime, never <script src> them statically.
