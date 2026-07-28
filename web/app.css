@@ -1181,7 +1181,7 @@ mark {
 /* ── lightbox ────────────────────────────────────────────────────── */
 
 .lightbox {
-  position: fixed; inset: 0; z-index: 60;
+  position: fixed; inset: 0; z-index: 90;
   background: #0a0a0b;
   display: flex; flex-direction: column;
 }

@@ -28,6 +28,7 @@ const MUNIN = {
    * to be written out by hand in app.js, store.js and the orphan sweep, which
    * is three chances to change one of them and not the others. */
   stateKey: (id) => 'munin/' + id + '/state/v1',
+  resetKey: (id) => 'munin/' + id + '/state/v1/reset',
   bootKey: (id) => 'munin/boot/' + id,
   registry: 'courses/index.json',
 
@@ -318,7 +319,10 @@ function safeScene(html) {
   for (const el of doc.querySelectorAll('*')) {
     for (const a of [...el.attributes]) {
       const n = a.name.toLowerCase();
-      if (n.startsWith('on') || (/^(href|xlink:href|src)$/.test(n) && !/^#/.test(a.value.trim()))) {
+      const urls = [...a.value.matchAll(/url\s*\(\s*(['"]?)(.*?)\1\s*\)/gi)];
+      const externalPaint = urls.some((m) => !m[2].trim().startsWith('#'));
+      if (n === 'style' || externalPaint || n.startsWith('on')
+          || (/^(href|xlink:href|src)$/.test(n) && !/^#/.test(a.value.trim()))) {
         el.removeAttribute(a.name);
       }
     }
@@ -347,13 +351,27 @@ function safeCss(css) {
     const t = s.trim();
     return /^(#boot|\.boot-)/.test(t) && !/[~+]|:has\b/.test(t);
   });
+  const resourcesAreLocal = (text) => {
+    if (/\b(?:image-set|src)\s*\(/i.test(text)) return false;
+    for (const m of String(text).matchAll(/url\s*\(\s*(['"]?)(.*?)\1\s*\)/gi)) {
+      if (!m[2].trim().startsWith('#')) return false;
+    }
+    return true;
+  };
   const keep = (rules) => {
     const out = [];
     for (const r of rules) {
       if (r.selectorText !== undefined) {
-        if (scoped(r.selectorText)) out.push(r.cssText);
-      } else if (r.cssRules && r.name !== undefined) {
-        out.push(r.cssText);                                  // @keyframes
+        if (scoped(r.selectorText) && resourcesAreLocal(r.cssText)) out.push(r.cssText);
+      } else if (r.cssRules && /^@(?:-webkit-)?keyframes\b/i.test(r.cssText)) {
+        // A named grouping rule is not necessarily keyframes. In particular,
+        // @layer also has a name, and copying its children verbatim let an
+        // unscoped `body` rule escape the boot screen. Animation steps have no
+        // selectors to scope; every other grouping still goes through keep().
+        const inner = [...r.cssRules]
+          .filter((step) => resourcesAreLocal(step.cssText))
+          .map((step) => step.cssText).join('\n');
+        if (inner) out.push(r.cssText.slice(0, r.cssText.indexOf('{') + 1) + inner + '}');
       } else if (r.cssRules && r.conditionText !== undefined) {
         const inner = keep(r.cssRules);                        // @media, @supports
         if (inner) out.push(r.cssText.slice(0, r.cssText.indexOf('{') + 1) + inner + '}');
@@ -415,6 +433,10 @@ function writeBootCache(id, b) {
     // A full quota is not a reason to fail to boot; the scene simply arrives
     // late next time, exactly as it does on a first visit.
   }
+}
+
+function clearBootCache(id) {
+  try { localStorage.removeItem(MUNIN.bootKey(id)); } catch (e) { /* best effort */ }
 }
 
 /** The scene the course about to open drew last time, before the first paint. */
@@ -532,11 +554,21 @@ function stamp(s) {
  */
 async function cacheBootScene(c) {
   if (isLocal(c.id)) return null;                  // an imported deck has no files
-  const [html, css] = await Promise.all([
-    fetch(c.base + 'boot.html', { cache: 'no-cache' }).then((r) => (r.ok ? r.text() : '')),
-    fetch(c.base + 'boot.css', { cache: 'no-cache' }).then((r) => (r.ok ? r.text() : '')),
-  ]);
-  if (!html) return null;
+  const get = async (name) => {
+    const r = await fetch(c.base + name, { cache: 'no-cache' });
+    if (r.status === 404) return { missing: true, text: '' };
+    if (!r.ok) throw new Error(`${name} returned ${r.status}`);
+    return { missing: false, text: await r.text() };
+  };
+  const [scene, motion] = await Promise.all([get('boot.html'), get('boot.css')]);
+  if (scene.missing || !scene.text) {
+    // A definitive absence is an update, not an offline failure. Retaining the
+    // old replay record made removed course branding permanent.
+    clearBootCache(c.id);
+    return null;
+  }
+  const html = scene.text;
+  const css = motion.missing ? '' : motion.text;
   const b = {
     html, css, line: c.boot.line, accent: c.accent,
     from: c.id + '-' + stamp(html + css),
@@ -565,7 +597,7 @@ async function startCourse(c, loadDoodles) {
   // A course that draws figures brings the stylesheet for them: its own nouns
   // — rigging, fenders, pontoons — used to be fifty rules in app.css, applied
   // over every deck including the ones about German verbs.
-  if (c.figures && !c.deck) {
+  if (!c.deck) {
     const link = document.createElement('link');
     link.rel = 'stylesheet';
     link.href = c.base + 'figures.css';
@@ -619,13 +651,50 @@ async function bootLocal(id) {
   const rec = await store.get(id);
   if (!rec) throw new Error('that deck is not here any more');
 
-  const urls = await store.mediaUrls(id);
-  if (urls.size) {
-    const swap = (html) => String(html).replace(/munin-media:(\d+)/g,
-      (whole, i) => urls.get(Number(i)) || whole);
-    for (const card of rec.deck.cards) { card.q = swap(card.q); card.a = swap(card.a); }
-    addEventListener('pagehide', () => { for (const u of urls.values()) URL.revokeObjectURL(u); });
-  }
+  // Imported media is resolved lazily by app.js when a card or Browse row is
+  // rendered. Loading every Blob here made a 100 MiB deck consume all 100 MiB
+  // before Home appeared.
+  const urls = new Map();
+  const pending = new Map();
+  let mediaClosed = false;
+  let mediaGeneration = 0;
+  const mediaUrl = async (index) => {
+    if (mediaClosed) return null;
+    if (urls.has(index)) return urls.get(index);
+    if (pending.has(index)) return pending.get(index);
+    const generation = mediaGeneration;
+    const load = store.mediaBlob(id, index).then((blob) => {
+      if (pending.get(index) === load) pending.delete(index);
+      if (!blob || mediaClosed || generation !== mediaGeneration) return null;
+      const url = URL.createObjectURL(blob);
+      urls.set(index, url);
+      return url;
+    }, (e) => {
+      if (pending.get(index) === load) pending.delete(index);
+      throw e;
+    });
+    pending.set(index, load);
+    return load;
+  };
+  addEventListener('pagehide', () => {
+    mediaClosed = true;
+    mediaGeneration++;
+    pending.clear();
+    for (const url of urls.values()) URL.revokeObjectURL(url);
+    urls.clear();
+  });
+  addEventListener('pageshow', (e) => {
+    if (!e.persisted) return;
+    mediaClosed = false;
+    // The DOM itself survived, but every blob: URL in it was revoked when the
+    // page entered the back-forward cache. Turn those elements back into lazy
+    // placeholders and let app.js hydrate only what is visible.
+    for (const el of document.querySelectorAll('[data-munin-media]')) {
+      el.removeAttribute('src');
+      delete el.dataset.muninLoaded;
+    }
+    dispatchEvent(new Event('muninmediareset'));
+  });
 
   mountReceipt(rec);
   await startCourse(withDefaults({
@@ -636,6 +705,7 @@ async function bootLocal(id) {
     sectionArt: rec.sectionArt || {},
     groupArt: rec.groupArt || {},
     deck: rec.deck,
+    mediaUrl,
   }), async () => { globalThis.DOODLE = MUNIN_DOODLE; });
 }
 
@@ -856,6 +926,7 @@ const ARM_MS = 400;
 let disarmAt = 0;
 let armedAt = 0;
 let impOpening = false;
+let shelfOpening = false;
 function disarm(root) {
   clearTimeout(disarmAt);
   armedAt = 0;
@@ -1001,9 +1072,42 @@ async function renderShelf(asOverlay, say) {
   const opener = asOverlay ? document.querySelector('.shelf-btn') : null;
   const under = asOverlay
     ? [...document.body.children].filter((n) => n !== el && !n.inert) : [];
-  const escape = (e) => { if (e.key === 'Escape') closeOverlay(); };
-  function closeOverlay() {
-    removeEventListener('keydown', escape);
+  const historyToken = asOverlay
+    ? Date.now().toString(36) + Math.random().toString(36).slice(2) : '';
+  const focusable = () => [...el.querySelectorAll(
+    'button:not([disabled]), a[href], input:not([disabled]):not([type="hidden"]),'
+      + ' [tabindex]:not([tabindex="-1"])'
+  )].filter((node) => !node.hidden && !node.inert && node.getClientRects().length);
+  const modalKeys = (e) => {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      if (!e.repeat) closeOverlay();
+      return;
+    }
+    if (e.key !== 'Tab') return;
+    const stops = focusable();
+    if (!stops.length) return;
+    const first = stops[0], last = stops[stops.length - 1];
+    if (e.shiftKey && (document.activeElement === first || !el.contains(document.activeElement))) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey
+        && (document.activeElement === last || !el.contains(document.activeElement))) {
+      e.preventDefault();
+      first.focus();
+    }
+  };
+  const pop = () => {
+    if (history.state?.muninShelf === historyToken) return;
+    closeOverlay(true);
+  };
+  function closeOverlay(fromHistory) {
+    if (!fromHistory && history.state?.muninShelf === historyToken) {
+      history.back();
+      return;
+    }
+    removeEventListener('keydown', modalKeys);
+    removeEventListener('popstate', pop);
     for (const u of under) u.inert = false;
     el.remove();
     // Back to the control that opened it, not to the top of the document.
@@ -1011,8 +1115,10 @@ async function renderShelf(asOverlay, say) {
   }
   if (asOverlay) {
     for (const u of under) u.inert = true;
-    addEventListener('keydown', escape);
-    el.querySelector('#shelf-x').addEventListener('click', closeOverlay);
+    history.pushState(Object.assign({}, history.state, { muninShelf: historyToken }), '');
+    addEventListener('popstate', pop);
+    addEventListener('keydown', modalKeys);
+    el.querySelector('#shelf-x').addEventListener('click', () => closeOverlay(false));
     el.querySelector('#shelf-x').focus();
     // Dismiss by clicking off the card, not by clicking anything that is not a
     // tile: the theme button and the remove button live up here too.
@@ -1072,7 +1178,11 @@ async function renderShelf(asOverlay, say) {
         del.textContent = '✕';
         return;
       }
-      if (localStorage.getItem(MUNIN.lastKey) === id) localStorage.removeItem(MUNIN.lastKey);
+      try {
+        if (localStorage.getItem(MUNIN.lastKey) === id) localStorage.removeItem(MUNIN.lastKey);
+      } catch (err) {
+        console.warn('deck removed, but its resume pointer could not be cleared', err);
+      }
       // If that was the deck being studied, the screen behind this overlay is
       // now a session over a deck that does not exist: answers would be written
       // to a key nothing will ever read again.
@@ -1107,7 +1217,12 @@ function mountShelfButton(c) {
   b.type = 'button';
   b.className = 'shelf-btn';
   b.innerHTML = muninDoodle('perch') + '<span>courses</span>';
-  b.addEventListener('click', () => renderShelf(true));
+  b.addEventListener('click', async () => {
+    if (shelfOpening || document.querySelector('.shelf.on[role="dialog"]')) return;
+    shelfOpening = true;
+    try { await renderShelf(true); }
+    finally { shelfOpening = false; }
+  });
   ensureShelfCss();
   // In front of the app, not after it. Appended to the end of the body it was
   // the last of thirty-three tab stops while sitting in the top-right corner:
@@ -1185,7 +1300,13 @@ function registerWorker() {
 
   if (target && known(target)) {
     (isLocal(target) ? bootLocal(target) : bootCourse(target))
-      .then(() => localStorage.setItem(MUNIN.lastKey, target))
+      // The course is already open at this point. A quota/security failure in
+      // the small resume pointer must not be reported as if the deck failed to
+      // load and cover the usable app with the shelf.
+      .then(() => {
+        try { localStorage.setItem(MUNIN.lastKey, target); }
+        catch (e) { console.warn('course opened, but could not become the resume target', e); }
+      })
       .catch((e) => {
         // A deck that was deleted, or a course that was renamed, sends you to
         // the shelf instead of to a dead screen. Only the stored pointer is

@@ -10,7 +10,7 @@
  * studying their own deck should be paying for them on every boot.
  */
 
-import { readApkg, ApkgError } from './lib/anki.js';
+import { readApkg, ApkgError, MAX_PACKAGE_BYTES } from './lib/anki.js';
 import { buildDeck, RAVENS } from './lib/deck.js';
 import * as store from './lib/store.js';
 import { receiptHtml, nothingHtml, ensureCss, doodle } from './lib/receipt.js';
@@ -56,12 +56,46 @@ export function openImporter() {
    * closed both layers at once — the importer and the panel that opened it —
    * putting the person two screens back from where they were. Whatever is on
    * top takes the key. */
-  const escape = (e) => {
-    if (e.key !== 'Escape') return;
-    e.stopPropagation();
-    close();
+  const historyToken = Date.now().toString(36) + Math.random().toString(36).slice(2);
+  const focusable = () => [...el.querySelectorAll(
+    'button:not([disabled]), a[href], input:not([disabled]):not([type="hidden"]),'
+      + ' [tabindex]:not([tabindex="-1"])'
+  )].filter((node) => !node.hidden && !node.inert && node.getClientRects().length);
+  const modalKeys = (e) => {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!e.repeat) close();
+      return;
+    }
+    if (e.key !== 'Tab') return;
+    const stops = focusable();
+    if (!stops.length) {
+      // Saving is intentionally non-dismissible: the close button is disabled
+      // and the receipt controls have gone away. Keep the keyboard inside the
+      // dialog on its live status instead of letting Tab fall through to BODY
+      // (and then browser chrome) while the IndexedDB transaction is running.
+      e.preventDefault();
+      (el.querySelector('.imp-work') || el).focus();
+      return;
+    }
+    const first = stops[0], last = stops[stops.length - 1];
+    if (e.shiftKey && (document.activeElement === first || !el.contains(document.activeElement))) {
+      e.preventDefault();
+      last.focus();
+    } else if (!e.shiftKey
+        && (document.activeElement === last || !el.contains(document.activeElement))) {
+      e.preventDefault();
+      first.focus();
+    }
   };
-  addEventListener('keydown', escape, true);
+  const pop = () => {
+    if (history.state?.muninImporter === historyToken) return;
+    close(true);
+  };
+  history.pushState(Object.assign({}, history.state, { muninImporter: historyToken }), '');
+  addEventListener('popstate', pop);
+  addEventListener('keydown', modalKeys, true);
 
   /* Everything up to "putting it away…" can be called off; that cannot. The
    * write is already going and the reload after it is not something close()
@@ -71,14 +105,19 @@ export function openImporter() {
   let saving = false;
   const x = el.querySelector('.imp-x');
 
-  const close = () => {
+  const close = (fromHistory) => {
     if (saving) return;
-    removeEventListener('keydown', escape, true);   // the phase is part of the identity
+    if (!fromHistory && history.state?.muninImporter === historyToken) {
+      history.back();
+      return;
+    }
+    removeEventListener('keydown', modalKeys, true); // the phase is part of the identity
+    removeEventListener('popstate', pop);
     for (const u of under) u.inert = false;
     el.remove();
     if (opener && opener.isConnected) opener.focus();
   };
-  x.addEventListener('click', close);
+  x.addEventListener('click', () => close(false));
   x.focus();
 
   // Dragging a file needs something to drag with. On a phone the dashed
@@ -128,9 +167,10 @@ export function openImporter() {
   });
 
   function working(line) {
-    body.innerHTML = `<div class="imp-work">${doodle('perch')}
+    body.innerHTML = `<div class="imp-work" role="status" aria-live="polite" tabindex="-1">${doodle('perch')}
       <p id="imp-say">${esc(line)}</p>
       <div class="imp-bar"><i id="imp-bar"></i></div></div>`;
+    body.querySelector('.imp-work').focus();
   }
 
   function fail(message, detail) {
@@ -148,6 +188,9 @@ export function openImporter() {
 
     let built, col;
     try {
+      if (file.size > MAX_PACKAGE_BYTES) {
+        throw new ApkgError(`that package is too large for this device (${n(file.size)} bytes).`);
+      }
       const bytes = new Uint8Array(await file.arrayBuffer());
       col = await readApkg(bytes);
       built = await buildDeck(col, {
@@ -208,7 +251,7 @@ export function openImporter() {
       return;
     }
     body.innerHTML = receiptHtml(built.receipt, existing);
-    body.querySelector('[data-cancel]').addEventListener('click', close);
+    body.querySelector('[data-cancel]').addEventListener('click', () => close(false));
     for (const b of body.querySelectorAll('[data-keep]')) {
       b.addEventListener('click', () => keep(built, b.dataset.keep === 'replace' ? existing : null));
     }
@@ -270,9 +313,33 @@ export function openImporter() {
           : e?.message || String(e));
       return;
     }
+    if (replacing && replacing.sameDeck === false) {
+      // The database transaction has committed the replacement. Only now is it
+      // safe to honour "start over": clearing first would lose progress if the
+      // replacement write rolled back.
+      try {
+        localStorage.setItem(globalThis.MUNIN.resetKey(id),
+          Date.now().toString(36) + '-' + Math.random().toString(36).slice(2));
+        localStorage.removeItem(globalThis.MUNIN.stateKey(id));
+        globalThis.MUNIN.abandonState?.(id);
+      } catch (e) {
+        saving = false;
+        x.disabled = false;
+        fail('the deck was replaced, but its old progress could not be cleared',
+          'device storage is blocked. Reload, then use Progress → erase review history before studying it.');
+        return;
+      }
+    }
     // The deck you just imported is the one you meant to study.
-    localStorage.setItem(globalThis.MUNIN.lastKey, id);
-    location.reload();
+    try {
+      localStorage.setItem(globalThis.MUNIN.lastKey, id);
+      location.reload();
+    } catch (e) {
+      // The deck itself is safely committed. Open it through the one-shot deep
+      // link so a failed convenience pointer cannot freeze this sheet and
+      // tempt a duplicate import.
+      location.assign('./?course=' + encodeURIComponent(id));
+    }
   }
 
   pick();

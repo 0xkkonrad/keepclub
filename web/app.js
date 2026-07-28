@@ -17,6 +17,8 @@
 'use strict';
 
 const KEY = MUNIN.stateKey(COURSE.id);
+const STUDY_LOCK_KEY = KEY + '/study-lock';
+const RESET_KEY = MUNIN.resetKey(COURSE.id);
 const DAY = 86400000;
 const MIN_EASE = 1.3, MAX_EASE = 2.8, MAX_IVL = 400;
 // Three lapses, not Anki's six: six never fires inside a few weeks of revision,
@@ -80,6 +82,69 @@ let groupFor = new Map();        // section key -> group key
 let state = null;
 let session = null;
 let undoStack = [];
+
+/* A review state is one JSON document, so two tabs cannot safely grade it at
+ * once: whichever whole document writes last erases the other answer. Keep one
+ * active study writer per course. The short lease recovers from a killed tab;
+ * every answer re-checks ownership, so a simultaneous start still has one
+ * winner before either state mutation. */
+const STUDY_OWNER = (crypto.randomUUID && crypto.randomUUID())
+  || Math.random().toString(36).slice(2) + Date.now().toString(36);
+const STUDY_LOCK_TTL = 15000;
+let studyHeartbeat = null;
+
+function readStudyLock() {
+  try {
+    const lock = JSON.parse(localStorage.getItem(STUDY_LOCK_KEY) || 'null');
+    return lock && typeof lock.owner === 'string' && Number.isFinite(Number(lock.at))
+      ? lock : null;
+  } catch (e) { return null; }
+}
+
+function ownsStudyLock() {
+  return readStudyLock()?.owner === STUDY_OWNER;
+}
+
+function touchStudyLock() {
+  if (!ownsStudyLock()) return false;
+  try {
+    localStorage.setItem(STUDY_LOCK_KEY, JSON.stringify({ owner: STUDY_OWNER, at: Date.now() }));
+    return ownsStudyLock();
+  } catch (e) { return false; }
+}
+
+function claimStudyLock() {
+  const held = readStudyLock();
+  const age = held ? Date.now() - Number(held.at) : Infinity;
+  if (held && held.owner !== STUDY_OWNER && age >= 0 && age < STUDY_LOCK_TTL) {
+    return false;
+  }
+  try {
+    localStorage.setItem(STUDY_LOCK_KEY, JSON.stringify({ owner: STUDY_OWNER, at: Date.now() }));
+  } catch (e) {
+    return false;
+  }
+  if (!ownsStudyLock()) return false;
+  clearInterval(studyHeartbeat);
+  studyHeartbeat = setInterval(() => {
+    if (session && !touchStudyLock()) loseStudyLock();
+  }, 4000);
+  return true;
+}
+
+function releaseStudyLock() {
+  clearInterval(studyHeartbeat);
+  studyHeartbeat = null;
+  if (!ownsStudyLock()) return;
+  try { localStorage.removeItem(STUDY_LOCK_KEY); } catch (e) { /* lease expires */ }
+}
+
+function loseStudyLock() {
+  clearInterval(studyHeartbeat);
+  studyHeartbeat = null;
+  if (session) leaveStudy(false);
+  toast('Another tab is studying this deck. This session was stopped before any progress was lost.');
+}
 
 /* ─────────────────────────── storage ─────────────────────────── */
 
@@ -205,9 +270,56 @@ function load() {
 }
 
 let saveTimer = null;
+let discardStateOnLeave = false;
+let saveBlocked = false;
+function readResetStamp() {
+  try { return localStorage.getItem(RESET_KEY); } catch (e) { return resetStamp; }
+}
+let resetStamp = null;
+resetStamp = readResetStamp();
+function liveForeignStudyLock() {
+  const held = readStudyLock();
+  if (!held || held.owner === STUDY_OWNER) return false;
+  const age = Date.now() - Number(held.at);
+  return age >= 0 && age < STUDY_LOCK_TTL;
+}
+
+function refuseForeignWrite() {
+  if (session || !liveForeignStudyLock()) return false;
+  // The active tab owns the whole review document. Throw away this idle tab's
+  // tentative mutation and re-adopt the durable copy rather than letting a
+  // settings write erase a grade—or letting the next grade erase the setting.
+  try {
+    const raw = localStorage.getItem(KEY);
+    state = sanitise(raw ? JSON.parse(raw) : null);
+    if (DECK) {
+      for (const id of Object.keys(state.recs)) if (!byId.has(id)) delete state.recs[id];
+      settingsShape = JSON.stringify(Object.assign({}, state.settings, { at: 0 }));
+      applyTheme();
+      if (current === 'home') renderHome();
+      if (current === 'stats') renderStats();
+      if (current === 'browse') renderBrowse();
+    }
+  } catch (e) { /* retain the last readable in-memory state */ }
+  toast('Another tab is studying this deck. Finish there before changing progress or settings.');
+  return true;
+}
+
+function publishStateReset() {
+  const stamp = Date.now().toString(36) + '-' + Math.random().toString(36).slice(2);
+  // The marker goes first: every other live or suspended tab must suppress its
+  // stale write before this tab removes the old whole-document account.
+  localStorage.setItem(RESET_KEY, stamp);
+  localStorage.removeItem(STUDY_LOCK_KEY);
+  localStorage.removeItem(KEY);
+  resetStamp = stamp;
+  discardStateOnLeave = false;
+}
 function save() {
   clearTimeout(saveTimer);
+  if (refuseForeignWrite()) return false;
   saveTimer = setTimeout(writeNow, 250);
+  return true;
 }
 /* Settings sync as one block, last write wins, which needs a time they were
  * last written. Stamped here rather than in each handler: there are eight
@@ -215,19 +327,63 @@ function save() {
 let settingsShape = null;
 function writeNow() {
   clearTimeout(saveTimer);
+  // A different tab may have explicitly replaced this deck and started over.
+  // Its tombstone is persistent, so even a suspended tab that missed the
+  // storage event cannot recreate the deleted account on pagehide.
+  if (discardStateOnLeave || readResetStamp() !== resetStamp) {
+    discardStateOnLeave = true;
+    return true;
+  }
+  if (refuseForeignWrite()) return false;
   const shape = JSON.stringify(Object.assign({}, state.settings, { at: 0 }));
   if (settingsShape !== null && shape !== settingsShape) state.settings.at = Date.now();
   settingsShape = shape;
+  let wrote = false;
   try {
+    const wasBlocked = saveBlocked;
     localStorage.setItem(KEY, JSON.stringify(state));
+    wrote = true;
+    saveBlocked = false;
+    if (wasBlocked) {
+      toast('Progress is saving again.');
+      if (current === 'stats') renderBackupState();
+    }
   } catch (e) {
-    toast('Could not save progress — device storage is full or blocked.');
+    saveBlocked = true;
+    toast('Progress is not saving — stop here and export a backup from Progress.', true);
+    if (current === 'stats') renderBackupState();
   }
   // Never mid-session: adopting a merged state would swap the deck out from
   // under the card on screen. The upload waits for the walk back to Progress.
   if (globalThis.DSSync && !session) DSSync.schedule(() => state);
+  return wrote;
 }
-addEventListener('pagehide', writeNow);
+function flushAndReleaseStudyLock() {
+  if (writeNow()) {
+    releaseStudyLock();
+  } else {
+    // Do not invite a second writer onto state that this tab could not commit.
+    // The short lease still recovers automatically if this page is gone.
+    clearInterval(studyHeartbeat);
+    studyHeartbeat = null;
+  }
+}
+// The importer's explicit "replace it and start over" can run over this live
+// course. Without suppressing pagehide, the old page rewrote the state key
+// immediately after the importer removed it.
+MUNIN.abandonState = (id) => {
+  if (id !== COURSE.id) return;
+  discardStateOnLeave = true;
+  clearTimeout(saveTimer);
+};
+addEventListener('pagehide', flushAndReleaseStudyLock);
+addEventListener('pageshow', (e) => {
+  // pagehide releases the lease so a page in the back-forward cache cannot
+  // block another tab while suspended. If it comes back with its in-memory
+  // session intact, reclaim when free or stop immediately when another tab
+  // took over.
+  if (e.persisted && session && !claimStudyLock()) loseStudyLock();
+});
 
 /* Coming back to the app is the other moment the other device's session is
  * most likely to be sitting there waiting. Opening it covers a cold load, but
@@ -255,6 +411,21 @@ addEventListener('online', syncOnReturn);
  * state unless we are mid-session, in which case say so rather than yanking the
  * card out from under the reader. */
 addEventListener('storage', (e) => {
+  if (e.key === STUDY_LOCK_KEY) {
+    if (session && !ownsStudyLock()) loseStudyLock();
+    return;
+  }
+  if (e.key === RESET_KEY && e.newValue !== resetStamp) {
+    // "Start over" is deck-wide, not tab-local. Stop every stale writer before
+    // it can resurrect the removed state, then reload the replacement deck.
+    resetStamp = e.newValue;
+    discardStateOnLeave = true;
+    clearTimeout(saveTimer);
+    releaseStudyLock();
+    session = null;
+    location.reload();
+    return;
+  }
   if (e.key !== KEY || !e.newValue || !DECK) return;
   let incoming;
   try { incoming = JSON.parse(e.newValue); } catch (err) { return; }
@@ -279,6 +450,15 @@ function dayKey(ts) {
 function startOfDay(ts) {
   const d = new Date(ts);
   d.setHours(0, 0, 0, 0);
+  return d.getTime();
+}
+
+/** Add local calendar days, not 24-hour blocks. The spring clock change makes
+ * one local day 23 hours; adding milliseconds at 23:30 skipped a whole date. */
+function addCalendarDays(ts, days) {
+  const d = new Date(ts);
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() + days);
   return d.getTime();
 }
 
@@ -467,12 +647,12 @@ function grade(id, g, ivl) {
   }
 
   if (rec.st === 'r') {
-    rec.due = startOfDay(Date.now() + rec.ivl * DAY);
+    rec.due = addCalendarDays(Date.now(), rec.ivl);
   } else {
     // A learning card is ordered by the session queue, not the clock — but it
     // still needs a real due date, or a session abandoned half way leaves cards
     // that are permanently "due now" and invisible to the forecast.
-    rec.due = startOfDay(Date.now() + DAY);
+    rec.due = addCalendarDays(Date.now(), 1);
   }
 
   if (isNew) state.newDone++;
@@ -1008,9 +1188,11 @@ function buildSession(sectionKey, opts) {
     done: 0,
     again: 0,
     good: 0,
+    missed: [],                  // card ids whose first pass included Again
     startedNew: fresh.length,
     revealed: false,
     reel: [],                   // clips for the cards graded Again or Hard
+    reelCards: [],              // card ids, retained until a late clip map lands
     ahead: !!opts.ahead,
   };
 }
@@ -1294,6 +1476,10 @@ function renderHome() {
 /* ── study ── */
 
 function startSession(sectionKey, opts) {
+  if (!claimStudyLock()) {
+    toast('Another tab is already studying this deck. Finish there before starting here.');
+    return;
+  }
   rollDay();
   session = buildSession(sectionKey, opts);
   undoStack = [];
@@ -1310,6 +1496,8 @@ function startSession(sectionKey, opts) {
     extra = session.queue.length > 0;
   }
   if (!session.queue.length) {
+    releaseStudyLock();
+    session = null;
     toast(sectionKey ? 'Nothing to study in that section yet.' : 'Nothing to study right now.');
     return;
   }
@@ -1324,8 +1512,11 @@ function startSession(sectionKey, opts) {
 
 function leaveStudy(fromHistory) {
   $$('#done-reel video, #card-video video').forEach((v) => v.pause());
+  flushAndReleaseStudyLock();
   session = null;
+  if (globalThis.DSSync) DSSync.schedule(() => state);
   if (current !== 'home') go('home');
+  $('#study-all').focus({ preventScroll: true });
   if (!fromHistory && stops[stops.length - 1] === 'study') history.back();
 }
 
@@ -1357,6 +1548,8 @@ function showCard() {
   // allows b/i/u/br/sub/sup, lists, and safe links — nothing else.
   $('#card-q').innerHTML = card.q;
   $('#card-a').innerHTML = card.a;
+  hydrateMedia($('#card-q'));
+  hydrateMedia($('#card-a'), false);
 
   renderCardFigure(card);
 
@@ -1456,6 +1649,7 @@ function reveal() {
   $('#grade-row').hidden = false;
   $('#grade-ask').classList.remove('away');
   $('#card-scroll').classList.add('shown');
+  hydrateMedia($('#card-a'));
   renderCardVideo(card);
   // The drawing is set going here rather than in renderCardFigure, because the
   // figure lives inside #answer-wrap and that is hidden until this moment: an
@@ -1489,6 +1683,18 @@ function reveal() {
 
 function answer(g) {
   if (!session || !session.revealed) return;
+  if (saveBlocked) {
+    toast('Progress is not saving — export a backup from Progress before answering more.', true);
+    return;
+  }
+  if (!ownsStudyLock()) {
+    loseStudyLock();
+    return;
+  }
+  touchStudyLock();
+  // A session can stay open across midnight. Daily counters and the streak
+  // must roll before this answer is snapshotted and attributed.
+  rollDay();
   const id = session.queue[0];
   if (!id) return;
   undoStack.push({
@@ -1511,6 +1717,9 @@ function answer(g) {
     s: {
       done: session.done, again: session.again, good: session.good,
       clean: session.clean, maxClean: session.maxClean,
+      missed: session.missed.slice(),
+      reel: session.reel.slice(),
+      reelCards: session.reelCards.slice(),
     },
   });
   if (undoStack.length > 25) undoStack.shift();
@@ -1518,13 +1727,16 @@ function answer(g) {
   // Again and Hard are the app's own evidence of what you have not learned —
   // exactly the cards worth two minutes of video at the end.
   if (g <= 2) {
-    for (const c of VIDEOS.cards[id] || []) {
-      if (!session.reel.includes(c)) session.reel.push(c);
-    }
+    if (!session.reelCards.includes(id)) session.reelCards.push(id);
+    addReelClips(id);
   }
   const outcome = grade(id, g, session.ivls && session.ivls[g]);
   // A clean run is consecutive cards without an Again, inside one session.
-  if (g === 1) { session.again++; session.clean = 0; } else {
+  if (g === 1) {
+    if (!session.missed.includes(id)) session.missed.push(id);
+    session.again++;
+    session.clean = 0;
+  } else {
     session.good++;
     session.clean = n(session.clean) + 1;
     session.maxClean = Math.max(n(session.maxClean), session.clean);
@@ -1560,8 +1772,8 @@ function undo() {
 }
 
 function finish() {
-  const acc = session.again + session.good
-    ? Math.round((session.good / (session.again + session.good)) * 100) : 0;
+  const acc = session.done
+    ? Math.round(((session.done - session.missed.length) / session.done) * 100) : 0;
   $('#done-stats').innerHTML = `
     <div><b>${session.done}</b><span>cards</span></div>
     <div><b>${acc}%</b><span>first try</span></div>
@@ -1590,9 +1802,14 @@ function finish() {
       .map(([dx, dy], i) => `<i class="spark" style="--dx:${dx}px;--dy:${dy}px;animation-delay:${(i * 0.07).toFixed(2)}s"></i>`)
       .join('');
 
+  lastReelCards = session.reelCards.slice();
   renderReel(session.reel.slice(0, 5));
   checkAchievements(session);
+  // The lease is the hand-off boundary between whole-document writers. Commit
+  // the final answer before another tab is allowed to start from storage.
+  flushAndReleaseStudyLock();
   session = null;
+  if (globalThis.DSSync) DSSync.schedule(() => state);
   go('done');
   $('#done-home').focus({ preventScroll: true });
 }
@@ -1603,6 +1820,24 @@ function reelClips() {
   return (lastReel || []).map((c) => VIDEOS.clips[c]).filter(Boolean);
 }
 let lastReel = [];
+let lastReelCards = [];
+
+function addReelClips(id) {
+  if (!session) return;
+  for (const clip of VIDEOS.cards[id] || []) {
+    if (!session.reel.includes(clip)) session.reel.push(clip);
+  }
+}
+
+function clipsForReelCards(ids) {
+  const clips = [];
+  for (const id of ids) {
+    for (const clip of VIDEOS.cards[id] || []) {
+      if (!clips.includes(clip)) clips.push(clip);
+    }
+  }
+  return clips;
+}
 
 function renderReel(ids) {
   lastReel = ids;
@@ -1683,15 +1918,19 @@ function plainText(html) {
 /** Index the deck once, at load. stripTags goes through the DOM, so doing this
  *  per keystroke would be three innerHTML writes per card — 1,611 of them for
  *  every letter typed. */
-function indexDeck() {
+async function indexDeck() {
   deckWords = new Set();
-  for (const c of DECK.cards) {
+  for (let i = 0; i < DECK.cards.length; i++) {
+    const c = DECK.cards[i];
     // Padded with spaces so a whole-word test is a plain includes().
     c._q = ' ' + searchable(c.q) + ' ';
     c._a = ' ' + searchable(c.a) + ' ';
     c._all = c._q + c._a;
     c._plain = plainText(c.a);   // for the snippet, punctuation and all
     for (const w of c._all.split(' ')) if (w) deckWords.add(w);
+    // Search preparation is linear but HTML-to-text work is not cheap. Let the
+    // boot drawing and browser input breathe on very large imported decks.
+    if (i && i % 500 === 0) await new Promise((r) => setTimeout(r, 0));
   }
 }
 
@@ -1882,6 +2121,8 @@ function browseRow(hit, terms, withSection) {
       <span class="b-sect">${escapeHtml(sect ? sect.t : c.s)} · ${STATE_WORDS[stateOf(c.i)]}</span></div></details>`;
   const q = li.querySelector('.b-q');
   q.innerHTML = c.q;
+  hydrateMedia(q);
+  hydrateMedia(li.querySelector('.browse-ans'), false);
   // Whether the question ended up showing the match decides whether the row
   // owes an explanation — not which tier it was ranked in. The two disagree
   // wherever the index normalised something the screen still spells its own
@@ -2175,6 +2416,10 @@ function renderBrowse() {
 function renderBackupState() {
   const el = $('#backup-state');
   if (!el) return;
+  if (saveBlocked) {
+    el.textContent = 'Progress is not saving on this device. Export a backup now; no more cards will be graded until storage works again.';
+    return;
+  }
   const withHistory = Object.keys(state.recs).length;
   el.textContent = withHistory
     ? `A backup right now would hold ${withHistory} of ${DECK.cards.length} cards, `
@@ -2290,7 +2535,8 @@ function renderStats() {
   const peak = Math.max(1, ...bins);
   const names = ['Today', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   for (let i = 1; i < 7; i++) {
-    names[i] = new Date(now + i * DAY).toLocaleDateString(undefined, { weekday: 'short' });
+    names[i] = new Date(addCalendarDays(now, i))
+      .toLocaleDateString(undefined, { weekday: 'short' });
   }
   $('#forecast').innerHTML = bins.map((n, i) => `
     <div class="fc-col">
@@ -2392,7 +2638,11 @@ function openLightbox(card) {
   // tabbable behind the overlay — and activating it fires a fragment
   // navigation, which pops a history entry the app was relying on.
   setBackgroundInert(true);
+  const openedNode = lb.node;
   const fit = () => {
+    // Image loading and requestAnimationFrame both outlive a quick close. A
+    // stale callback must not measure the cleared node—or a newer diagram.
+    if ($('#lightbox').hidden || lb.node !== openedNode || !openedNode) return;
     lb.base = lb.node.getBoundingClientRect();
     const stage = $('#lb-stage').getBoundingClientRect();
     lb.base = { x: lb.base.x - stage.x, y: lb.base.y - stage.y, w: lb.base.width, h: lb.base.height };
@@ -2429,6 +2679,7 @@ function closeLightbox(fromHistory) {
   $('#lightbox').hidden = true;
   document.body.style.overflow = '';
   setBackgroundInert(false);
+  $('#lb-img').onload = null;
   $('#lb-img').removeAttribute('src');
   $('#lb-fig').innerHTML = '';
   lb.node = null;
@@ -2452,6 +2703,10 @@ function pushStop(name) {
  * eating a Back press for a state it no longer has. */
 let strays = !!(history.state && history.state.stop);
 addEventListener('popstate', () => {
+  // The shell's picker/importer own their history entries. Their listeners
+  // were added after this one, so the dialog is still present while this
+  // callback runs; leave this Back press for the top modal to consume.
+  if (document.querySelector('.imp, .shelf.on[role="dialog"]')) return;
   const top = stops.pop();
   if (top === 'lightbox') return closeLightbox(true);
   if (top === 'study') return leaveStudy(true);
@@ -2476,6 +2731,8 @@ function setBackgroundInert(on) {
   $('#app').inert = on;
   const skip = document.querySelector('.skip');
   if (skip) skip.inert = on;
+  const shelf = document.querySelector('.shelf-btn');
+  if (shelf) shelf.inert = on;
 }
 
 function apply() {
@@ -2598,13 +2855,46 @@ function stripTags(s) {
   return decoder.value;
 }
 
+/** Resolve imported media only when its card is actually rendered. Imported
+ * decks keep `munin-media:<index>` placeholders in their HTML; turning every
+ * Blob into an object URL during boot made peak memory scale with the entire
+ * media library. */
+function hydrateMedia(root, load = true) {
+  if (!root || typeof COURSE.mediaUrl !== 'function') return;
+  for (const el of root.querySelectorAll('[src^="munin-media:"], [data-munin-media]')) {
+    const raw = el.getAttribute('src');
+    const m = /^munin-media:(\d+)$/.exec(raw || '');
+    const index = m ? Number(m[1]) : Number(el.dataset.muninMedia);
+    if (!Number.isSafeInteger(index) || index < 0) continue;
+    el.dataset.muninMedia = String(index);
+    el.removeAttribute('src');
+    if (!load || el.dataset.muninLoaded === '1') continue;
+    el.dataset.muninLoaded = '1';
+    COURSE.mediaUrl(index).then((url) => {
+      if (!url) { delete el.dataset.muninLoaded; return; }
+      if (!el.isConnected || el.dataset.muninMedia !== String(index)) return;
+      el.src = url;
+      if (el.tagName === 'AUDIO' || el.tagName === 'VIDEO') el.load();
+    }).catch(() => { delete el.dataset.muninLoaded; });
+  }
+}
+
+addEventListener('muninmediareset', () => {
+  // Imported blob URLs are generation-scoped. A BFCache restore keeps this
+  // document but needs fresh URLs for the visible question, revealed answer,
+  // and any Browse answers the reader left open.
+  hydrateMedia($('#card-q'), !!session);
+  hydrateMedia($('#card-a'), !!session?.revealed);
+  for (const row of $$('#browse-list details[open]')) hydrateMedia(row);
+});
+
 let toastTimer = null;
-function toast(msg) {
+function toast(msg, sticky = false) {
   const t = $('#toast');
   t.textContent = msg;
   t.classList.remove('away');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => { t.classList.add('away'); }, 3400);
+  if (!sticky) toastTimer = setTimeout(() => { t.classList.add('away'); }, 3400);
 }
 
 /** Is this a date a person could have meant, or a year still being typed? */
@@ -2635,6 +2925,7 @@ function applyTheme() {
 /* ─────────────────────────── wiring ─────────────────────────── */
 
 function wire() {
+  let prefetchRequest = '';
   $$('#nav button').forEach((b) => b.addEventListener('click', () => go(b.dataset.go)));
 
   $('#study-all').addEventListener('click', (e) => {
@@ -2753,6 +3044,7 @@ function wire() {
   $('#browse-list').addEventListener('toggle', (e) => {
     const d = e.target;
     if (!d.open) return;
+    hydrateMedia(d);
     const fig = d.querySelector('.b-fig');
     if (fig) drawFigureOn(fig);
   }, true);
@@ -2802,18 +3094,18 @@ function wire() {
       for (const r of Object.values(state.recs)) {
         if (r.st === 'r' && r.ivl > cap) {
           r.ivl = cap;
-          r.due = Math.min(r.due, startOfDay(Date.now() + cap * DAY));
+          r.due = Math.min(r.due, addCalendarDays(Date.now(), cap));
           moved++;
         }
       }
     }
-    writeNow();
+    const wrote = writeNow();
     $('#set-exam').value = state.settings.examDate;
     $('#home-exam').value = state.settings.examDate;
     $('#home-exam-parsed').textContent = value ? longDate(value) : '';
     if (current === 'stats') renderStats(); else renderHome();
-    if (moved) toast(`${moved} cards moved earlier so you see them before your exam.`);
-    return true;
+    if (moved && wrote) toast(`${moved} cards moved earlier so you see them before your exam.`);
+    return wrote;
   };
   $('#set-exam').addEventListener('change', (e) => setExamDate(e.target.value));
   $('#home-exam').addEventListener('change', (e) => {
@@ -2830,9 +3122,10 @@ function wire() {
   }
   $('#skip-exam').addEventListener('click', () => {
     state.settings.examSkipped = true;
-    save();
-    renderHome();
-    toast('You can add a date later in Progress.');
+    if (save()) {
+      renderHome();
+      toast('You can add a date later in Progress.');
+    }
   });
   $('#leech-row').addEventListener('click', () => {
     // The query first, so the render inside go() is not forty rows of whatever
@@ -2959,12 +3252,18 @@ function wire() {
       : '';
     if (!confirm(`Restore ${known.length} cards of history${when}?${warn}`)) return;
 
+    try {
+      publishStateReset();
+    } catch (e) {
+      toast('The backup could not be restored because device storage is blocked.', true);
+      return;
+    }
     state = incoming;
     // Drop history for cards that are no longer in the deck here rather than at
     // the next boot, so the number in the message is the truth.
     for (const id of ids) if (!byId.has(id)) delete state.recs[id];
     rollDay();
-    writeNow();
+    if (!writeNow()) return;
     applyTheme();
     renderStats();
     toast(lost
@@ -3004,7 +3303,9 @@ function wire() {
     const urls = Array.from(new Set(DECK.cards.filter((c) => c.m).map((c) => COURSE.base + 'img/' + c.m)));
     btn.disabled = true;
     btn.textContent = `Saving 0 of ${urls.length}…`;
-    reg.active.postMessage({ type: 'prefetch', urls });
+    prefetchRequest = (crypto.randomUUID && crypto.randomUUID())
+      || Date.now().toString(36) + Math.random().toString(36).slice(2);
+    reg.active.postMessage({ type: 'prefetch', urls, requestId: prefetchRequest });
   });
   // Registered once, not inside the click handler — a listener added per click
   // stacks up and every future completion fires all of them.
@@ -3012,12 +3313,14 @@ function wire() {
     navigator.serviceWorker.addEventListener('message', (ev) => {
       const d = ev.data;
       if (!d || (d.type !== 'prefetching' && d.type !== 'prefetched')) return;
+      if (!prefetchRequest || d.requestId !== prefetchRequest) return;
       const btn = $('#prefetch-btn');
       if (d.type === 'prefetching') {
         btn.textContent = `Saving ${d.done} of ${d.total}…`;
         return;
       }
       btn.disabled = false;
+      prefetchRequest = '';
       btn.textContent = d.failed
         ? `${d.total - d.failed} of ${d.total} saved — retry the rest`
         : `All ${d.total === 1 ? 'saved' : 'diagrams saved'} offline ✓`;
@@ -3026,21 +3329,51 @@ function wire() {
 
   $('#reset-btn').addEventListener('click', () => {
     if (!confirm('Erase all review history on this device? Export a backup first if you might want it back.')) return;
+    try {
+      publishStateReset();
+    } catch (e) {
+      toast('Progress could not be erased because device storage is blocked.', true);
+      return;
+    }
     state = freshState();
-    writeNow();
+    if (!writeNow()) return;
     applyTheme();
     renderStats();
     toast('Progress erased.');
   });
 
   addEventListener('keydown', (e) => {
+    const typing = /^(INPUT|SELECT|TEXTAREA)$/.test((e.target.tagName || ''))
+      || e.target.isContentEditable;
+    if (e.repeat && !typing
+        && (e.key === ' ' || e.key === 'Enter' || e.key === 'Escape'
+          || /^[1-4uU]$/.test(e.key))) {
+      e.preventDefault();
+      return;
+    }
     if (!$('#lightbox').hidden) {
       if (e.key === 'Escape') { e.preventDefault(); closeLightbox(); }
+      if (e.key === 'Tab') {
+        const box = $('#lightbox');
+        const focusable = Array.from(box.querySelectorAll(
+          'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])'
+        )).filter((el) => !el.hidden);
+        if (focusable.length) {
+          const first = focusable[0], last = focusable[focusable.length - 1];
+          if (e.shiftKey && (document.activeElement === first || !box.contains(document.activeElement))) {
+            e.preventDefault();
+            last.focus();
+          } else if (!e.shiftKey
+              && (document.activeElement === last || !box.contains(document.activeElement))) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      }
       if (e.key === '+' || e.key === '=') zoomAt(innerWidth / 2, innerHeight / 2, clamp(lb.scale * 1.25, lb.fit, 6));
       if (e.key === '-') zoomAt(innerWidth / 2, innerHeight / 2, clamp(lb.scale / 1.25, lb.fit, 6));
       return;
     }
-    const typing = /^(INPUT|SELECT|TEXTAREA)$/.test((e.target.tagName || ''));
     if (typing) return;
     if (current !== 'study') return;
     // A control that has focus gets its own key. This guard exempted form
@@ -3051,7 +3384,8 @@ function wire() {
     // control: the answer takes focus so that it is read out, and Space there
     // is still the shortcut the dock advertises.
     const control = e.target.closest
-      && e.target.closest('button, a[href], summary, [tabindex]:not([tabindex="-1"])');
+      && e.target.closest('button, a[href], summary, audio[controls], video[controls],'
+        + ' [tabindex]:not([tabindex="-1"])');
     if (control && (e.key === ' ' || e.key === 'Enter')) return;
     if (e.key === ' ' || e.key === 'Enter') {
       e.preventDefault();
@@ -3060,7 +3394,6 @@ function wire() {
     } else if (e.key >= '1' && e.key <= '4') {
       e.preventDefault();
       if (session.revealed) answer(+e.key);
-      else reveal();
     } else if (e.key === 'u' || e.key === 'U') {
       e.preventDefault();
       undo();
@@ -3246,7 +3579,7 @@ async function boot() {
   groupOf = new Map(gs.map((g) => [g.k, g]));
   groupFor = new Map();
   for (const g of gs) for (const s of g.s) groupFor.set(s, g.k);
-  indexDeck();
+  await indexDeck();
 
   // drop history for cards that no longer exist
   for (const id of Object.keys(state.recs)) if (!byId.has(id)) delete state.recs[id];
@@ -3261,7 +3594,19 @@ async function boot() {
   const hasVideo = COURSE.video === true || !!(COURSE.credit && COURSE.credit.name);
   if (!COURSE.deck && hasVideo) fetch(COURSE.base + 'videos.json', { cache: 'no-cache' })
     .then((r) => (r.ok ? r.json() : null))
-    .then((v) => { if (v && v.clips && v.cards) VIDEOS = v; })
+    .then((v) => {
+      if (v && v.clips && v.cards) {
+        VIDEOS = v;
+        for (const id of session?.reelCards || []) addReelClips(id);
+        // The optional map can be slower than the whole short session. Keep
+        // enough identity after finish() to fill the Done recap when it lands.
+        if (!session && current === 'done' && lastReelCards.length) {
+          renderReel(clipsForReelCards(lastReelCards).slice(0, 5));
+        }
+        const c = currentCard();
+        if (c && session?.revealed) renderCardVideo(c);
+      }
+    })
     .catch(() => {});
 
   // Same deal for the figures: a card with a missing drawing is a card with
