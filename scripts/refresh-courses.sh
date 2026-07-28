@@ -7,7 +7,10 @@
 #   ./scripts/refresh-courses.sh --write    # copy
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-DS="${DS:-/workspaces/sandbox/projects/rya-day-skipper/web}"
+# Day Skipper is authored in this repo too since its standalone app was retired
+# (28 July 2026). Like Competent Crew, its build/ is not committed — run
+# `python3 content/day-skipper/src/web_build.py` before this script.
+DS="${DS:-$HERE/content/day-skipper/build}"
 # Competent Crew is authored in this repo (content/competent-crew) but its build
 # is not committed — every card either points at a Day Skipper card or is checked
 # against one, so `python3 content/competent-crew/src/build.py` needs that
@@ -25,6 +28,11 @@ for f in cards.json figures.json videos.json doodles.js; do
 done
 if [ "$FLAG" = "--write" ]; then rsync -a --delete "$DS/img/" "$HERE/web/courses/day-skipper/img/";
 else rsync -an --delete --out-format='img   %n' "$DS/img/" "$HERE/web/courses/day-skipper/img/" | head -5; fi
+# The 54 clips. They were never copied across when the course was first
+# imported, so videos.json shipped naming files the app could not fetch and
+# every thumbnail was a dead request.
+if [ "$FLAG" = "--write" ]; then rsync -a --delete "$DS/video/" "$HERE/web/courses/day-skipper/video/";
+else rsync -an --delete --out-format='video %n' "$DS/video/" "$HERE/web/courses/day-skipper/video/" | head -5; fi
 
 copy "$CC/cards.json" "$HERE/web/courses/competent-crew/cards.json"
 # CC's figures are its own copy of the Day Skipper drawings (T6: separated files)

@@ -1,0 +1,704 @@
+{
+ "20250228_7476506728750697750": {
+  "matches": [
+   {
+    "card": "e633f0d73a",
+    "confidence": "high",
+    "why": "Directly describes the North cardinal mark's topmark, light, color, and safe water direction."
+   }
+  ],
+  "candidates": 14
+ },
+ "20250228_7476507101481749782": {
+  "matches": [
+   {
+    "card": "8fbe637666",
+    "confidence": "high",
+    "why": "Directly explains the appearance, topmark, light rhythm, and passage for East cardinal mark."
+   }
+  ],
+  "candidates": 14
+ },
+ "20250228_7476508123457686806": {
+  "matches": [
+   {
+    "card": "64592bfffa",
+    "confidence": "high",
+    "why": "Video directly describes the visual traits and light characteristic of a South Cardinal Mark."
+   }
+  ],
+  "candidates": 14
+ },
+ "20250228_7476508810593668375": {
+  "matches": [
+   {
+    "card": "88510fef24",
+    "confidence": "high",
+    "why": "Directly describes the West Cardinal mark's topmark, colours, light, and safe water."
+   }
+  ],
+  "candidates": 14
+ },
+ "20250315_7482035578490473750": {
+  "matches": [
+   {
+    "card": "9809d9bb64",
+    "confidence": "high",
+    "why": "Directly describes the appearance, light, and purpose of a special mark."
+   },
+   {
+    "card": "a983e1294c",
+    "confidence": "high",
+    "why": "Explains that yellow buoys indicate special marks for features like pipelines."
+   }
+  ],
+  "candidates": 14
+ },
+ "20250315_7482035691975626006": {
+  "matches": [
+   {
+    "card": "638467dbff",
+    "confidence": "high",
+    "why": "Directly describes the physical markings, topmark, light characteristic, and function of isolated danger marks."
+   },
+   {
+    "card": "6b29892e6a",
+    "confidence": "high",
+    "why": "Identifies the black and red buoy with spheres and explains the action to stay clear."
+   }
+  ],
+  "candidates": 14
+ },
+ "20250315_7482035931592019222": {
+  "matches": [
+   {
+    "card": "5c49f66cff",
+    "confidence": "high",
+    "why": "Directly explains the markings, topmark, light, and meaning of a safe water mark."
+   }
+  ],
+  "candidates": 14
+ },
+ "20250315_7482035982267813122": {
+  "matches": [
+   {
+    "card": "58cf955570",
+    "confidence": "high",
+    "why": "Directly explains the appearance, light, and purpose of the emergency wreck marking buoy."
+   },
+   {
+    "card": "84814300cd",
+    "confidence": "medium",
+    "why": "Explains what a new danger mark indicates and describes how it is marked."
+   }
+  ],
+  "candidates": 14
+ },
+ "20250318_7483146603738483990": {
+  "matches": [
+   {
+    "card": "3a4600db22",
+    "confidence": "high",
+    "why": "Explains anchor lights for vessels under 50m, over 50m, and deck illumination over 100m."
+   },
+   {
+    "card": "7f6e12b95f",
+    "confidence": "medium",
+    "why": "Covers the night light requirements for anchored vessels of different lengths."
+   }
+  ],
+  "candidates": 14
+ },
+ "20250318_7483149317268638978": {
+  "matches": [
+   {
+    "card": "0d793b8325",
+    "confidence": "high",
+    "why": "Explains the second higher masthead light required for vessels over 50 meters."
+   },
+   {
+    "card": "516298da53",
+    "confidence": "medium",
+    "why": "Teaches the 6 M and 3 M light visibility ranges for vessels over 50m."
+   }
+  ],
+  "candidates": 14
+ },
+ "20250319_7483479165237218582": {
+  "matches": [
+   {
+    "card": "75eb8556be",
+    "confidence": "high",
+    "why": "Directly explains navigation lights required for a vessel not under command."
+   }
+  ],
+  "candidates": 14
+ },
+ "20250319_7483523128749051158": {
+  "matches": [
+   {
+    "card": "fd129c621b",
+    "confidence": "high",
+    "why": "Teaches RAM lights (red-white-red) and making way lights directly."
+   }
+  ],
+  "candidates": 14
+ },
+ "20250321_7484330446248103190": {
+  "matches": [
+   {
+    "card": "947c5854ce",
+    "confidence": "high",
+    "why": "Directly explains navigation lights for a vessel engaged in trawling."
+   }
+  ],
+  "candidates": 14
+ },
+ "20250325_7485719213840010518": {
+  "matches": [
+   {
+    "card": "0c7292d5e0",
+    "confidence": "high",
+    "why": "Directly explains lights shown by vessels engaged in dredging or underwater operations."
+   }
+  ],
+  "candidates": 14
+ },
+ "20250330_7487603693819333910": {
+  "matches": [
+   {
+    "card": "3ba365d1bc",
+    "confidence": "high",
+    "why": "Directly explains COLREG Rule 14 for head-on power-driven vessels."
+   }
+  ],
+  "candidates": 14
+ },
+ "20250404_7489426660144549142": {
+  "matches": [
+   {
+    "card": "8d3eff2368",
+    "confidence": "high",
+    "why": "Directly explains what a MAYDAY call is and provides a complete spoken MAYDAY script."
+   }
+  ],
+  "candidates": 14
+ },
+ "20250407_7490533596680310038": {
+  "matches": [],
+  "candidates": 14
+ },
+ "20250407_7490613866091580694": {
+  "matches": [
+   {
+    "card": "31283efc9d",
+    "confidence": "high",
+    "why": "Explains when to use PAN-PAN and demonstrates an urgency broadcast structure."
+   }
+  ],
+  "candidates": 14
+ },
+ "20250411_7492030103619177750": {
+  "matches": [
+   {
+    "card": "4c46dfa3ab",
+    "confidence": "medium",
+    "why": "Explains how a SART functions as a radar transponder to assist search and rescue."
+   }
+  ],
+  "candidates": 14
+ },
+ "20250415_7493511535214595350": {
+  "matches": [
+   {
+    "card": "590d9bc66f",
+    "confidence": "high",
+    "why": "Directly explains what a Sécurité message is and gives matching hazard examples."
+   }
+  ],
+  "candidates": 14
+ },
+ "20250508_7501965970961976598": {
+  "matches": [
+   {
+    "card": "c8b39269a5",
+    "confidence": "high",
+    "why": "Directly explains COLREGs Rule 15 crossing situations and give-way responsibilities."
+   },
+   {
+    "card": "a783004eca",
+    "confidence": "medium",
+    "why": "Explicitly states the required action of a give-way vessel under Rule 16."
+   }
+  ],
+  "candidates": 14
+ },
+ "20250613_7515420855942384918": {
+  "matches": [
+   {
+    "card": "1e18ede9d5",
+    "confidence": "high",
+    "why": "Directly explains Rule 13, overtaking definition, and 22.5 degrees abaft the beam."
+   },
+   {
+    "card": "7dd44fc39a",
+    "confidence": "medium",
+    "why": "Explains that overtaking rules override power/sail hierarchy without exception."
+   }
+  ],
+  "candidates": 14
+ },
+ "20260228_7612065465409555734": {
+  "matches": [
+   {
+    "card": "e633f0d73a",
+    "confidence": "high",
+    "why": "Directly describes the North cardinal mark's topmark, light characteristic, and safe water direction."
+   }
+  ],
+  "candidates": 14
+ },
+ "20260302_7612786849177816342": {
+  "matches": [
+   {
+    "card": "8fbe637666",
+    "confidence": "high",
+    "why": "Directly explains the East cardinal mark's topmark, light rhythm, and passing side."
+   }
+  ],
+  "candidates": 14
+ },
+ "20260304_7613316707804876054": {
+  "matches": [
+   {
+    "card": "9809d9bb64",
+    "confidence": "high",
+    "why": "Directly describes a special mark's purpose, yellow color, light, and chart lookup."
+   },
+   {
+    "card": "a983e1294c",
+    "confidence": "high",
+    "why": "Explains special marks indicate non-hazards like pipelines/cables and require checking charts."
+   }
+  ],
+  "candidates": 14
+ },
+ "20260315_7617511432627801347": {
+  "matches": [
+   {
+    "card": "638467dbff",
+    "confidence": "high",
+    "why": "Directly explains the appearance, topmark, light, and placement of an isolated danger mark."
+   },
+   {
+    "card": "6b29892e6a",
+    "confidence": "high",
+    "why": "Identifies the buoy by its visual features and instructs to stay well clear."
+   }
+  ],
+  "candidates": 14
+ },
+ "20260315_7617511480132472087": {
+  "matches": [
+   {
+    "card": "9809d9bb64",
+    "confidence": "high",
+    "why": "Directly describes a special mark, its appearance, light, and usage."
+   },
+   {
+    "card": "a983e1294c",
+    "confidence": "medium",
+    "why": "Explains yellow special marks indicating pipelines, cables, and consulting charts."
+   }
+  ],
+  "candidates": 14
+ },
+ "20260315_7617511612349500694": {
+  "matches": [
+   {
+    "card": "5c49f66cff",
+    "confidence": "high",
+    "why": "Directly explains safe water mark colors, topmark, lights, and meaning."
+   }
+  ],
+  "candidates": 14
+ },
+ "20260315_7617511644767325462": {
+  "matches": [
+   {
+    "card": "9809d9bb64",
+    "confidence": "high",
+    "why": "Directly describes the appearance, light rhythm, and purpose of a special mark."
+   },
+   {
+    "card": "a983e1294c",
+    "confidence": "high",
+    "why": "Explains that yellow marks denote features like cables/pipelines and require checking charts."
+   }
+  ],
+  "candidates": 14
+ },
+ "20260318_7618519783184551190": {
+  "matches": [
+   {
+    "card": "0d793b8325",
+    "confidence": "high",
+    "why": "Directly explains the second higher masthead light required for power vessels over 50m."
+   }
+  ],
+  "candidates": 14
+ },
+ "20260318_7618520537022598402": {
+  "matches": [
+   {
+    "card": "3a4600db22",
+    "confidence": "high",
+    "why": "Directly explains all anchor light requirements under Rule 30 for all vessel lengths."
+   },
+   {
+    "card": "7f6e12b95f",
+    "confidence": "medium",
+    "why": "Explains the night light signals required for vessels at anchor."
+   }
+  ],
+  "candidates": 14
+ },
+ "20260319_7618867528261012758": {
+  "matches": [
+   {
+    "card": "75eb8556be",
+    "confidence": "high",
+    "why": "Directly explains navigation lights for a vessel not under command making way."
+   }
+  ],
+  "candidates": 14
+ },
+ "20260330_7623056446078471446": {
+  "matches": [
+   {
+    "card": "3ba365d1bc",
+    "confidence": "high",
+    "why": "Video directly explains Rule 14 requirements for head-on power-driven vessels."
+   }
+  ],
+  "candidates": 14
+ },
+ "20260404_7624782093339397398": {
+  "matches": [
+   {
+    "card": "8d3eff2368",
+    "confidence": "high",
+    "why": "Explains what Mayday means and demonstrates the exact spoken format for sending one."
+   }
+  ],
+  "candidates": 14
+ },
+ "20260407_7626007804033240342": {
+  "matches": [
+   {
+    "card": "31283efc9d",
+    "confidence": "high",
+    "why": "Defines Pan-Pan, its purpose for urgency/engine failure, and demonstrates the call."
+   }
+  ],
+  "candidates": 14
+ },
+ "20260411_7627419157998374166": {
+  "matches": [
+   {
+    "card": "4c46dfa3ab",
+    "confidence": "medium",
+    "why": "Explains how a SART works as a radar transponder displaying radar blips."
+   }
+  ],
+  "candidates": 14
+ },
+ "20260415_7628851795602722070": {
+  "matches": [
+   {
+    "card": "590d9bc66f",
+    "confidence": "high",
+    "why": "Directly explains what a Securité message is and provides identical hazard examples."
+   }
+  ],
+  "candidates": 14
+ },
+ "20260613_7650815215277198614": {
+  "matches": [
+   {
+    "card": "1e18ede9d5",
+    "confidence": "high",
+    "why": "Directly explains Rule 13 overtaking definition, angle, and responsibility to keep clear."
+   },
+   {
+    "card": "7dd44fc39a",
+    "confidence": "high",
+    "why": "Explains that Rule 13 overtaking overrides vessel type hierarchy including sail vs power."
+   }
+  ],
+  "candidates": 14
+ },
+ "20260702_7658033754648284438": {
+  "matches": [
+   {
+    "card": "36dd5f6a0b",
+    "confidence": "high",
+    "why": "Directly matches the scenario of a vessel crossing from the port bow."
+   },
+   {
+    "card": "c92ccaf78f",
+    "confidence": "high",
+    "why": "Explains Rule 17 stand-on duties: maintain course/speed and act if give-way fails."
+   },
+   {
+    "card": "0efb2ccab2",
+    "confidence": "medium",
+    "why": "Explains stand-on vessel options when the give-way vessel fails to keep clear."
+   }
+  ],
+  "candidates": 14
+ },
+ "20260714_7662148471243148566": {
+  "matches": [
+   {
+    "card": "5e573867ab",
+    "confidence": "high",
+    "why": "Video explicitly defines air draft from waterline to highest fixed point."
+   },
+   {
+    "card": "2fd6b45560",
+    "confidence": "high",
+    "why": "Video gives exact definition of draught from waterline to lowest point of keel."
+   }
+  ],
+  "candidates": 14
+ },
+ "20260714_7662392405559168278": {
+  "matches": [],
+  "candidates": 14
+ },
+ "20260715_7662149199210745110": {
+  "matches": [
+   {
+    "card": "5d6890ca4f",
+    "confidence": "high",
+    "why": "Explains Region A starboard hand mark colour, shape, topmark, light, and usage."
+   },
+   {
+    "card": "22753eaecd",
+    "confidence": "high",
+    "why": "Explains Region A port hand mark colour, shape, topmark, light, and usage."
+   },
+   {
+    "card": "a424982d34",
+    "confidence": "medium",
+    "why": "Explains that Region B swaps the lateral buoy colours."
+   }
+  ],
+  "candidates": 14
+ },
+ "20260715_7662710914327514390": {
+  "matches": [
+   {
+    "card": "fc6333169e",
+    "confidence": "high",
+    "why": "Explains who Rule 19 applies to and its key requirements like safe speed."
+   },
+   {
+    "card": "7793272c31",
+    "confidence": "high",
+    "why": "Directly explains course alterations to avoid when detecting contacts on radar alone."
+   },
+   {
+    "card": "1c140ebef9",
+    "confidence": "high",
+    "why": "Directly explains required actions upon hearing a fog signal forward of the beam."
+   },
+   {
+    "card": "dc2e852372",
+    "confidence": "high",
+    "why": "Explains that Rule 19 governs fog and removes stand-on status for all vessels."
+   }
+  ],
+  "candidates": 14
+ },
+ "20260716_7662150830971358487": {
+  "matches": [
+   {
+    "card": "0fc059c474",
+    "confidence": "medium",
+    "why": "Explains underkeel clearance, dynamic draft, and how squat reduces clearance margins."
+   }
+  ],
+  "candidates": 14
+ },
+ "20260716_7663095862305885462": {
+  "matches": [
+   {
+    "card": "93ac23ec28",
+    "confidence": "high",
+    "why": "Directly explains COLREGs Rule 18 hierarchy and its exceptions."
+   }
+  ],
+  "candidates": 14
+ },
+ "20260716_7663247528988642582": {
+  "matches": [
+   {
+    "card": "11c6257de7",
+    "confidence": "high",
+    "why": "Defines and contrasts standing and running rigging with examples of each."
+   },
+   {
+    "card": "0849adccc2",
+    "confidence": "high",
+    "why": "Explicitly names the three corners (head, tack, clew) and sides (luff, leech, foot)."
+   },
+   {
+    "card": "c3e8a945bb",
+    "confidence": "high",
+    "why": "Directly defines bow as front, stern as back, port as left, starboard as right."
+   }
+  ],
+  "candidates": 14
+ },
+ "20260717_7662150223283653910": {
+  "matches": [
+   {
+    "card": "5e573867ab",
+    "confidence": "high",
+    "why": "Directly defines air draft and explains its relevance to overhead clearance."
+   }
+  ],
+  "candidates": 14
+ },
+ "20260718_7662151617227083030": {
+  "matches": [],
+  "candidates": 14
+ },
+ "20260719_7662152650045082902": {
+  "matches": [
+   {
+    "card": "b7ab415fc4",
+    "confidence": "high",
+    "why": "Defines freeboard as the gap from waterline to deck line."
+   },
+   {
+    "card": "5b6b86c8df",
+    "confidence": "medium",
+    "why": "Explains how freeboard gives the vessel reserve buoyancy over waves."
+   }
+  ],
+  "candidates": 14
+ },
+ "20260719_7664284540734622998": {
+  "matches": [
+   {
+    "card": "ae34b00330",
+    "confidence": "high",
+    "why": "Explains how radar determines range and bearing and details its operational limits."
+   }
+  ],
+  "candidates": 14
+ },
+ "20260720_7662153729885408534": {
+  "matches": [
+   {
+    "card": "492392e695",
+    "confidence": "high",
+    "why": "Explains difference between heel and list clearly."
+   }
+  ],
+  "candidates": 14
+ },
+ "20260721_7662158343246499094": {
+  "matches": [
+   {
+    "card": "1418dae2bd",
+    "confidence": "medium",
+    "why": "Explains how center of gravity and outward movement of center of buoyancy create stability."
+   },
+   {
+    "card": "1383147d01",
+    "confidence": "medium",
+    "why": "Explains how high weight raises center of gravity while low weight lowers it."
+   }
+  ],
+  "candidates": 14
+ },
+ "20260722_7662158767018085654": {
+  "matches": [
+   {
+    "card": "fd129c621b",
+    "confidence": "medium",
+    "why": "Explains the ball-diamond-ball day shape for a vessel restricted in her ability to manoeuvre."
+   },
+   {
+    "card": "7b37e92249",
+    "confidence": "medium",
+    "why": "Explains that three black balls in a vertical line signal a vessel aground."
+   },
+   {
+    "card": "8b0dbca4b7",
+    "confidence": "medium",
+    "why": "Explains that a black cylinder indicates a vessel constrained by her draught."
+   },
+   {
+    "card": "75eb8556be",
+    "confidence": "medium",
+    "why": "Explains that two black balls in a vertical line mean a vessel is not under command."
+   }
+  ],
+  "candidates": 14
+ },
+ "20260723_7662159902420389142": {
+  "matches": [
+   {
+    "card": "c3e8a945bb",
+    "confidence": "medium",
+    "why": "Teaches definitions and memory tricks for port, starboard, and bow."
+   }
+  ],
+  "candidates": 14
+ },
+ "20260724_7662161761583353110": {
+  "matches": [
+   {
+    "card": "a89796ced8",
+    "confidence": "high",
+    "why": "Teaches the TVMDC ladder and the 'Error west compass best' rule directly."
+   }
+  ],
+  "candidates": 14
+ },
+ "20260725_7662162420458212630": {
+  "matches": [
+   {
+    "card": "20bbd1d00f",
+    "confidence": "high",
+    "why": "Directly explains sail trim positions for each major point of sail."
+   },
+   {
+    "card": "5556011c0d",
+    "confidence": "medium",
+    "why": "Covers the basic port-tack gives way to starboard-tack rule from Rule 12."
+   }
+  ],
+  "candidates": 14
+ },
+ "20260726_7664263375391706390": {
+  "matches": [
+   {
+    "card": "931efe719e",
+    "confidence": "high",
+    "why": "The video explicitly lists all immediate MOB actions: shout, point, throw lifebuoy, press MOB."
+   },
+   {
+    "card": "2388260f49",
+    "confidence": "medium",
+    "why": "Covers initial MOB actions and motoring the final approach into wind/sea to neutral."
+   }
+  ],
+  "candidates": 14
+ }
+}

@@ -6,7 +6,7 @@ import json
 import os
 import sys
 
-DS = "/workspaces/sandbox/projects/rya-day-skipper/src"
+DS = "/workspaces/sandbox/projects/munin/content/day-skipper/src"
 sys.path.insert(0, DS)
 import rough  # noqa: E402
 

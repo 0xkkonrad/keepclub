@@ -20,16 +20,17 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 
-# Search order, first hit wins. The env var is for CI and for anyone who keeps
-# their checkouts somewhere else. Day Skipper is a separate repo — a clone of
-# Munin alone cannot rebuild this deck, because every pointer resolves against
-# that tree. The shipped cards.json is committed, so the app never depends on it;
-# only a rebuild does.
+# Search order, first hit wins. Day Skipper's source moved into this repo on
+# 28 July 2026, alongside this one, when its standalone app was retired — so a
+# clone of Munin can now rebuild this deck on its own, which it could not before.
+# The old external checkouts stay in the list: they are harmless if absent, and
+# anyone with one lying around gets the same answer either way.
 CANDIDATES = [
     os.environ.get("DS_ROOT"),
-    # content/competent-crew → munin → projects → rya-day-skipper
+    # content/competent-crew → content → content/day-skipper
+    os.path.join(ROOT, "..", "day-skipper"),
+    # the standalone repo, wherever it was kept
     os.path.join(ROOT, "..", "..", "..", "rya-day-skipper"),
-    # and the older layouts, so an existing checkout elsewhere still resolves
     os.path.join(ROOT, "..", "..", "projects", "rya-day-skipper"),
     os.path.join(ROOT, "..", "rya-day-skipper"),
 ]

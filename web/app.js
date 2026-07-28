@@ -509,11 +509,16 @@ function fmtClock(sec) {
 }
 
 /* Poster frames come from the clip itself at t=1s rather than 54 extra image
- * files: preload="metadata" fetches a few tens of KB, not the video. */
+ * files: preload="metadata" fetches a few tens of KB, not the video.
+ *
+ * The path is COURSE.base like every other course asset. Root-relative it named
+ * a directory Munin has never had, so every thumbnail on a Day Skipper card was
+ * a dead request — inherited from the standalone app, where the course and the
+ * app root were the same folder. */
 function thumbHtml(clip, label) {
   return `<button class="vthumb" data-clip="${escapeHtml(clip.f)}"
       aria-label="Play ${escapeHtml(label || clip.t)} — ${fmtClock(clip.d)}">
-    <video src="video/${escapeHtml(clip.f)}#t=1" muted playsinline preload="metadata"></video>
+    <video src="${COURSE.base}video/${escapeHtml(clip.f)}#t=1" muted playsinline preload="metadata"></video>
     <span class="vplay" aria-hidden="true">▶</span>
     <span class="vlen">${fmtClock(clip.d)}</span>
   </button>`;
@@ -524,7 +529,7 @@ function playerHtml(clip) {
   // The credit row lives outside the black box so the box wraps the picture
   // exactly — inside, its own text was setting the player's width.
   return `<div class="vplayer">
-    <video src="video/${escapeHtml(clip.f)}" playsinline controls autoplay preload="auto"></video>
+    <video src="${COURSE.base}video/${escapeHtml(clip.f)}" playsinline controls autoplay preload="auto"></video>
   </div>
   <div class="vbar">
     <span class="vby">${escapeHtml(by)}${clip.u

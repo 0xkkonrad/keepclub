@@ -55,7 +55,7 @@ buoy shapes. `src/build.py` warns on wording from those topics.
 ## Voice
 
 Match the Day Skipper deck. Read a few cards in
-`projects/rya-day-skipper/src/cards_a.py` before you start.
+`content/day-skipper/src/cards_a.py` before you start.
 
 - Plain, concrete, direct. No throat-clearing, no "it is important to note",
   no "essentially", no triads-for-rhythm, no summarising sentence at the end.
