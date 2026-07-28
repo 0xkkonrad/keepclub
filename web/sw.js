@@ -1,12 +1,47 @@
 /* Offline support.
  *
  * The shell and the card data are precached so the app opens with no network at
- * all. The 24 diagrams are 2 MB, so they are cached as they are first seen
+ * all. Diagrams are a few megabytes, so they are cached as they are first seen
  * rather than forced down on install — with a button in Progress → Offline to
  * pull the lot deliberately before you lose signal.
+ *
+ * One cache for the shell, one per course. They used to share a single cache
+ * named after a hash of everything shipped, so editing one card in one course
+ * evicted the app and every other course for everyone. They also used to share
+ * a hand-written list of every course's files, which is the third place a new
+ * course had to be registered — and the one you find last, because forgetting
+ * it ships a course that works online and 404s offline.
+ *
+ * BUILD is stamped by scripts/deploy-to-kkonrad.sh from the content actually
+ * shipped: without that, a cache-first shell never updates.
  */
-const V = 'munin-0a1';
+const BUILD = { shell: 'dev', courses: {} };
+const SHELL_V = 'munin-shell-' + BUILD.shell;
+const courseV = (id) => 'munin-course-' + id + '-' + (BUILD.courses[id] || 'dev');
 const SCOPE = new URL('./', self.registration.scope).pathname;
+
+/* Everything a course may ship. Optional members are normal: Competent Crew
+ * has no clips, an unillustrated course has no figures. */
+const COURSE_FILES = ['course.json', 'doodles.js', 'cards.json', 'figures.json',
+  'videos.json', 'boot.html', 'boot.css'];
+
+/** Which course a same-origin path belongs to, if any. */
+function courseOf(pathname) {
+  const m = /\/courses\/([a-z0-9][a-z0-9-]*)\//.exec(pathname);
+  return m ? m[1] : null;
+}
+
+async function readCourses() {
+  try {
+    const r = await fetch('courses/index.json', { cache: 'no-cache' });
+    if (!r.ok) return [];
+    const idx = await r.json();
+    const ids = Array.isArray(idx) ? idx : idx.courses;
+    return Array.isArray(ids) ? ids.filter((s) => /^[a-z0-9][a-z0-9-]*$/.test(s)) : [];
+  } catch (e) {
+    return [];
+  }
+}
 
 /** What we expect back for a given path. A 200 is not enough: a captive portal
  *  answers every request with its own sign-in page. */
@@ -63,15 +98,8 @@ const SHELL = [
   'icon-192.png',
   'icon-512.png',
   'icon-maskable.png',
-  'courses/day-skipper/course.json',
-  'courses/day-skipper/doodles.js',
-  'courses/day-skipper/cards.json',
-  'courses/day-skipper/figures.json',
-  'courses/day-skipper/videos.json',
-  'courses/competent-crew/course.json',
-  'courses/competent-crew/doodles.js',
-  'courses/competent-crew/cards.json',
-  'courses/competent-crew/figures.json',
+  // The one list of courses. Every other place that needed it now reads it.
+  'courses/index.json',
 ];
 // './' is deliberately excluded: it reduces to the empty string, and
 // `endsWith('')` is true of every path, which turned the runtime cache into
@@ -79,23 +107,43 @@ const SHELL = [
 const SHELL_FILES = SHELL.filter((s) => s !== './');
 
 self.addEventListener('install', (e) => {
-  e.waitUntil(
-    caches.open(V).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting())
-  );
+  e.waitUntil((async () => {
+    const shell = await caches.open(SHELL_V);
+    await shell.addAll(SHELL);
+    // Each course into its own cache, and one course that will not install is
+    // not a reason for the app to have no offline shell at all.
+    for (const id of await readCourses()) {
+      const cache = await caches.open(courseV(id));
+      for (const f of COURSE_FILES) {
+        // add() rejects on a 404, and most courses ship only some of these.
+        await cache.add('courses/' + id + '/' + f).catch(() => {});
+      }
+    }
+    await self.skipWaiting();
+  })());
 });
 
 self.addEventListener('activate', (e) => {
-  e.waitUntil(
-    caches.keys()
-      .then((ks) => Promise.all(ks.filter((k) => k !== V).map((k) => caches.delete(k))))
-      .then(() => self.clients.claim())
-  );
+  e.waitUntil((async () => {
+    const live = new Set([SHELL_V].concat((await readCourses()).map(courseV)));
+    // Only Munin's own caches, and only the ones no longer current: a course
+    // whose cards changed loses its own cache and keeps everyone else's.
+    for (const k of await caches.keys()) {
+      if (/^munin-/.test(k) && !live.has(k)) await caches.delete(k);
+    }
+    await self.clients.claim();
+  })());
 });
+
+/** Where a request belongs: its course's cache, or the shell's. */
+function cacheFor(pathname) {
+  const id = courseOf(pathname);
+  return id ? courseV(id) : SHELL_V;
+}
 
 self.addEventListener('message', (e) => {
   if (e.data && e.data.type === 'prefetch' && Array.isArray(e.data.urls)) {
     e.waitUntil((async () => {
-      const cache = await caches.open(V);
       const total = e.data.urls.length;
       let done = 0, failed = 0;
       const say = async (type) => {
@@ -104,12 +152,15 @@ self.addEventListener('message', (e) => {
       };
       for (const u of e.data.urls) {
         try {
+          // A course's diagrams belong in that course's cache, so pulling one
+          // course down for a flight does not push another one out.
+          const cache = await caches.open(cacheFor(new URL(u, location.href).pathname));
           if (!(await cache.match(u))) await cache.add(u);
         } catch (err) {
           failed++;   // one missing diagram must not abort the rest
         }
         done++;
-        await say('prefetching');   // 2 MB on a weak signal needs to show movement
+        await say('prefetching');   // megabytes on a weak signal need to show movement
       }
       await say('prefetched');
     })());
@@ -133,7 +184,7 @@ self.addEventListener('fetch', (e) => {
         // being offline was the point.
         if (ok(r, 'application/json')) {
           const copy = r.clone();
-          caches.open(V).then((c) => c.put(req, copy));
+          caches.open(cacheFor(url.pathname)).then((c) => c.put(req, copy));
         }
         return r;
       }).catch(() => caches.match(req))
@@ -153,7 +204,7 @@ self.addEventListener('fetch', (e) => {
           // meant the app booted into that file for ever after, offline.
           if (isRoot && ok(r, 'text/html')) {
             const copy = r.clone();
-            caches.open(V).then((c) => c.put('./', copy));
+            caches.open(SHELL_V).then((c) => c.put('./', copy));
           }
           return r;
         })
@@ -168,21 +219,29 @@ self.addEventListener('fetch', (e) => {
   if (url.pathname.includes('/video/')) return;
 
   const isShell = SHELL_FILES.some((s) => url.pathname.endsWith('/' + s));
+  // A course's own files are matched by where they live rather than by a list
+  // naming each course, which is what made adding a course a service-worker
+  // edit — and, when it was forgotten, a course that worked online only.
+  const isCourseFile = !!courseOf(url.pathname)
+    && COURSE_FILES.some((s) => url.pathname.endsWith('/' + s));
   const isImage = url.pathname.includes('/img/') || /\/icon-[\w-]+\.png$/.test(url.pathname);
 
   // Only our own files are cached. Anything else on the origin — the rest of
   // the site this app is a subdirectory of — is left alone.
-  if (!isShell && !isImage) return;
+  if (!isShell && !isCourseFile && !isImage) return;
 
-  if (isShell) {
+  if (isShell || isCourseFile) {
     // Stale while revalidate: instant from cache, but a shipped fix to app.js
-    // lands on the next load instead of never.
+    // — or a course's redrawn loading screen — lands on the next load instead
+    // of never.
     e.respondWith(
       caches.match(req).then((hit) => {
         const net = fetch(req).then((r) => {
           // A hotel-WiFi sign-in page is a 200. Without the type check it
           // becomes the cached app.js and the app never boots again.
-          if (ok(r, typeFor(url.pathname))) caches.open(V).then((c) => c.put(req, r.clone()));
+          if (ok(r, typeFor(url.pathname))) {
+            caches.open(cacheFor(url.pathname)).then((c) => c.put(req, r.clone()));
+          }
           return r;
         }).catch(() => hit);
         return hit || net;
@@ -194,7 +253,7 @@ self.addEventListener('fetch', (e) => {
   // Diagrams: cache first, they never change without a new cache version.
   e.respondWith(
     caches.match(req).then((hit) => hit || fetch(req).then((r) => {
-      if (ok(r, 'image/png')) caches.open(V).then((c) => c.put(req, r.clone()));
+      if (ok(r, 'image/png')) caches.open(cacheFor(url.pathname)).then((c) => c.put(req, r.clone()));
       return r;
     }))
   );

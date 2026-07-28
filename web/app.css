@@ -1,7 +1,13 @@
-/* RYA Day Skipper flashcards — "Deck Doodle × Signal Flags".
+/* Munin — the app's own stylesheet, in the "Deck Doodle × Signal Flags"
+ * language it was drawn in for Day Skipper.
+ *
+ * Everything here is Munin's and shared by every course: type, layout, the
+ * grade flags, the mastery bars. A course brings its accent pair (injected by
+ * munin.js over --accent / --accent-ink / --g4), its doodle set, and its own
+ * loading screen — and nothing else.
  *
  * Mono type on flat paper, everything outlined in 2px ink with a hard offset
- * shadow, one indigo accent, and hand-drawn nautical doodles that mark progress.
+ * shadow, one accent, and hand-drawn doodles that mark progress.
  * Colour still carries information rather than decoration: the four grade
  * buttons keep the flag palette, and the mastery bars keep their three segments.
  *
@@ -736,13 +742,15 @@ button.plate:active { transform: translate(3px, 3px); box-shadow: none; }
   background: var(--surface); box-shadow: var(--sh);
   color: var(--accent); position: relative;
 }
-.done-tick .dood { width: 44px; height: 44px; animation: sail 2.6s ease-in-out infinite; }
+.done-tick .dood { width: 44px; height: 44px; animation: sway 2.6s ease-in-out infinite; }
 /* Four pen-strokes that fly off the badge when a session lands. */
 .done-tick .spark {
   position: absolute; width: 12px; height: 2px; background: var(--accent);
   border-radius: 2px; animation: spark .9s ease-out both;
 }
-@keyframes sail { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(5deg); } }
+/* Engine motion, named for what it does. It used to be called `sail`, which
+ * is one course's word sitting in the shared stylesheet. */
+@keyframes sway { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(5deg); } }
 @keyframes hop { 0%, 100% { transform: translateY(0); } 30% { transform: translateY(-3px) rotate(-3deg); } 60% { transform: translateY(0) rotate(2deg); } }
 @keyframes spark { from { opacity: 1; transform: translate(0, 0) scale(.5); } to { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(1); } }
 
@@ -1068,10 +1076,27 @@ mark {
 
 /* ── boot + toast ────────────────────────────────────────────────── */
 
+/* Munin's own loading screen. A course replaces the scene inside .boot-scene
+ * with its own markup and brings its own stylesheet for it (courses/<id>/
+ * boot.html + boot.css), so the animation vocabulary is the course's too —
+ * these rules only dress the default raven. Nothing here is filled in by
+ * JavaScript: the screen has to be painted before app.js exists, which is the
+ * whole window it covers. */
 .boot { position: fixed; inset: 0; display: grid; place-items: center; color: var(--muted); gap: 12px; }
 .boot[hidden] { display: none; }
 .boot p { font-size: .88rem; text-transform: lowercase; }
-.boot .dood { width: 46px; height: 46px; color: var(--accent); animation: var(--boot-anim, sail) 2.2s ease-in-out infinite; }
+.boot-scene { display: grid; place-items: center; }
+.boot-raven { width: 52px; height: 52px; color: var(--accent); animation: hop 2.4s ease-in-out infinite; }
+/* pathLength="1" renormalises the path whatever its real geometry, so one rule
+ * draws any drawing on — no measured length per doodle, and redrawing a doodle
+ * cannot silently break its own animation. */
+.boot-raven path { stroke-dasharray: 1; stroke-dashoffset: 1; animation: bootdraw 1.5s ease-out forwards; }
+@keyframes bootdraw { to { stroke-dashoffset: 0; } }
+/* Reduced motion leaves the drawing finished, not half-drawn. */
+@media (prefers-reduced-motion: reduce) {
+  .boot-raven { animation: none; }
+  .boot-raven path { stroke-dashoffset: 0; animation: none; }
+}
 
 .toast {
   position: fixed; left: 50%; transform: translateX(-50%);

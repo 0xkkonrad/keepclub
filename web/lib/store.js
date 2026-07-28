@@ -104,8 +104,11 @@ export async function remove(id) {
   tx.objectStore(CARDS).delete(id);
   tx.objectStore(DECKS).delete(id);
   await done(tx);
-  // The deck is gone; its study history has nothing left to describe.
-  localStorage.removeItem(`munin/${id}/state/v1`);
+  // The deck is gone; its study history has nothing left to describe. The key
+  // is asked for rather than spelled out — it used to be written by hand here,
+  // in app.js and in the shell's orphan sweep, which is three places to change
+  // and two to forget.
+  localStorage.removeItem(globalThis.MUNIN.stateKey(id));
 }
 
 /** Object URLs for one deck's media, by the index the cards refer to. */

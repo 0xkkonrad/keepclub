@@ -4,24 +4,92 @@ The shell in front of the courses. Extracted from the Day Skipper app
 (`projects/rya-day-skipper/web/`, commit 04119a6) per the locked theme & shell
 decisions in `../project.md`.
 
+## The seam
+
+**A course owns its cards and its theme. Munin owns the app.**
+
+| The course brings | Munin brings |
+|---|---|
+| cards.json, figures.json, videos.json, img/, video/ | the review engine, the scheduler, every screen |
+| its accent pair, its doodle set, its section/group/frieze art | the picker, the importer, the light/dark theme |
+| its loading screen — boot.html + boot.css + boot.line | the hoard's *rules*, and defaults for every slot below |
+| what the hoard is called and what its fourteen entries are called and drawn as | the type, the layout, the grade flags, the mastery bars |
+| its `notice` (the fineprint) and `credit`, its `short` header title | offline, backup, sync, install |
+
+Anything a course does not bring, it gets from Munin — slot by slot, in
+`withDefaults()`. **Munin's own theme is not a special case for imported
+decks; it is the default layer.** A deck someone dropped in brings none of the
+left-hand column and is dressed entirely by the right.
+
 ## Boot order
 
 `index.html` loads `doodles-munin.js` (the raven set) + `munin.js`. munin.js:
 
-1. `?course=<id>` deep-links a course and becomes the resume target.
-2. `munin/last-course` in localStorage → fetch `courses/<id>/course.json`,
-   inject the accent (4 CSS scopes), set the boot screen from `course.boot`,
-   load the course's own `doodles.js`, then `app.js`.
-3. No course → the shelf (Munin ink teal #0E3F39, perch mark). Inside a course
+1. Replays the loading screen the resume course drew last time, out of
+   localStorage, **before the first paint** (see below).
+2. `?course=<id>` deep-links a course and becomes the resume target. The id is
+   checked as a shape, not against the registry — the resume path must not wait
+   for a list to load before it can boot.
+3. `munin/last-course` → fetch `courses/<id>/course.json`, fill its empty slots
+   from Munin's defaults, inject the accent (4 CSS scopes), fetch the course's
+   boot scene, load its `doodles.js`, then `app.js`.
+4. No course → the shelf (Munin ink teal #0E3F39, perch mark). Inside a course
    the "courses" pill overlays the shelf without clearing resume state.
+
+**The folder name is the course's identity.** `course.json`'s own `id` is
+ignored on boot and gated in tests: progress is keyed on it, and the two being
+free to disagree meant a renamed folder silently forked every user's history
+into a key nothing reads again.
+
+## One registry
+
+`courses/index.json` is the list of courses. The shell reads it to draw the
+picker, the service worker reads it to decide what to precache and which
+caches are still live, and `scripts/refresh-courses.sh` loops over it. It used
+to be a literal in three of those places, and a course missing from the
+service worker's copy worked online and 404'd offline — the failure you find
+last.
+
+**One course cannot take the picker down.** Every `course.json` is fetched in
+its own try/catch; one that will not load leaves a tile saying so and the rest
+of the shelf intact.
 
 ## Courses are self-contained
 
-`courses/<id>/` = course.json (accent pair, boot art/anim/line, section/group/
-frieze art maps, fallback doodle) + doodles.js + cards.json (+ figures.json,
-videos.json, img/). **No file in one course folder ever references another
-course folder** — identical files are coincidences, per the 27 Jul ruling.
-The shelf mines each course's emblem out of that course's own doodles.js.
+`courses/<id>/` = course.json + doodles.js + cards.json + boot.html + boot.css
+(+ figures.json, videos.json, img/, video/). **No file in one course folder
+ever references another course folder** — identical files are coincidences,
+per the 27 Jul ruling. The shelf draws each course's emblem from `shelfPath`
+in its course.json, written there by `scripts/make-boot.mjs` out of that
+course's own doodle set; it used to fetch all 43 KB of `doodles.js` and mine
+one path out of it with a regular expression, on every draw.
+
+## The loading screen
+
+A course owns it: `boot.html` is the scene, `boot.css` is how it moves —
+**its own keyframes**, so the animation vocabulary is the course's and not
+whatever names app.css happened to declare — and `course.json`'s `boot.line`
+is what it says.
+
+The catch this solves: the course's scene cannot be known until course.json
+has been fetched, which is the entire window the screen exists to cover. So
+the scene the course drew last time is kept under `munin/boot/<id>` and
+replayed synchronously at parse time. First-ever open of a course gets Munin's
+raven, which is markup in index.html; every open after that gets the course's
+own. Nothing on this screen is filled in by app.js — that is by definition too
+late, and it was the bug.
+
+`pathLength="1"` on every path: it renormalises the path whatever its real
+geometry, so one CSS rule draws any drawing on. `prefers-reduced-motion`
+leaves the drawing finished, not half-drawn.
+
+## What a deck has to be
+
+`lib/validate.js` is the one description of a deck. Two things build one — the
+python that authors a course, and the .apkg importer — and nothing used to
+check either against the other. app.js runs it at boot, the importer runs it
+over what it just built, and the separation gate runs it over every cards.json
+in the repo. `format` is optional; absent means 1.
 
 ## The theme belongs to Munin
 
@@ -30,6 +98,8 @@ Light by default — the app is paper first, dark is a choice. One key,
 the shelf and every course: a course cannot hold its own, or you would change
 colour by changing deck. The button sits on the picker as well as in each
 course header, and every `[data-theme-glyph]` on the page says the same thing.
+(This is the light/dark *mode*, which is the reader's; the accent pair is the
+course's.)
 
 ## Installing
 
@@ -45,12 +115,28 @@ icon is what makes you turn up — and the verb is *install* in both places. Bot
 be told how is shown nothing; iOS, which has no install API, gets the two
 steps instead of a button.
 
+## Offline
+
+One cache for the shell (`munin-shell-<stamp>`) and one per course
+(`munin-course-<id>-<stamp>`), both stamped by the deploy script from the
+content actually shipped. They used to share a single cache named after a hash
+of *everything*, so editing one card in one course evicted the app and every
+other course for every user.
+
 ## What differs from Day Skipper's app.js
 
 - The theme moved out of `state.settings` to `munin/theme` (above).
 - `KEY` is `munin/<course>/state/v1` — per-course progress, fresh store.
   (kkonrad.com is one origin: the live /day-skipper keys stay untouched.)
+  Every storage key is spelled once, in `MUNIN.stateKey` / `MUNIN.lastKey`.
 - Art maps + fallback doodle come from `COURSE`, not consts.
+- The hoard's names and drawings come from `COURSE.hoard`; the fourteen rules
+  stay in app.js. The defaults are written in Munin's raven vocabulary — they
+  used to be nautical, drawn from one course's doodle set, so an imported deck
+  showed fourteen identical ravens under fourteen sailing captions.
+- The fineprint, the video credit and the offline note come from the course
+  and from the deck's own picture count. They were markup, and so were printed
+  over every course and every imported deck.
 - Deck/media fetches go through `COURSE.base`.
 - **Sync is off** — `munin.js` ships a DSSync stub. The live Day Skipper app
   shares this origin and its Supabase rows; Munin joins sync only at the

@@ -11,13 +11,12 @@
  */
 
 import { readApkg, ApkgError } from './lib/anki.js';
-import { buildDeck } from './lib/deck.js';
+import { buildDeck, RAVENS } from './lib/deck.js';
 import * as store from './lib/store.js';
 import { receiptHtml, ensureCss, doodle } from './lib/receipt.js';
+import { validateDeck } from './lib/validate.js';
 
 class Cancelled extends Error {}
-
-const RAVENS = ['perch', 'peek', 'flap', 'carry', 'roost', 'hoard', 'puff', 'strut', 'quill', 'bow'];
 
 const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const n = (v) => Number(v).toLocaleString('en-GB');
@@ -150,6 +149,16 @@ export function openImporter() {
       return;
     }
 
+    // The same description of a deck that app.js checks at boot. A deck that
+    // would not open is caught here, in front of the person who still has the
+    // file, rather than on the next cold start with nothing to go back to.
+    const v = validateDeck(built.deck);
+    if (!v.ok) {
+      console.error('built deck:', v.errors);
+      fail('that deck came out in a shape Munin cannot study', v.errors[0]);
+      return;
+    }
+
     // Reading the database can fail too — a locked-down or private browser
     // refuses to open it. This used to sit outside the catch above, so the
     // screen simply stopped, mid-progress, saying nothing.
@@ -221,7 +230,7 @@ export function openImporter() {
       return;
     }
     // The deck you just imported is the one you meant to study.
-    localStorage.setItem('munin/last-course', id);
+    localStorage.setItem(globalThis.MUNIN.lastKey, id);
     location.reload();
   }
 

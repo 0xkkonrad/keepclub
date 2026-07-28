@@ -1,4 +1,11 @@
-/* RYA Day Skipper flashcards.
+/* Munin — the review engine, over whichever course the shell has resolved.
+ *
+ * Everything here is Munin's and the same for every course: the scheduler, the
+ * screens, the session, the hoard's rules. What a course brings arrives on the
+ * COURSE global that munin.js sets — its deck, its art maps, its accent, its
+ * loading screen, and the names and drawings for the hoard. Nothing in this
+ * file may name a course, a subject, or a drawing from one course's set; the
+ * separation gate in tests/ fails the build if it does.
  *
  * No dependencies, no network after first load. Review history lives in
  * localStorage under one key, so it survives reloads but never leaves the device.
@@ -9,7 +16,7 @@
  */
 'use strict';
 
-const KEY = 'munin/' + COURSE.id + '/state/v1';
+const KEY = MUNIN.stateKey(COURSE.id);
 const DAY = 86400000;
 const MIN_EASE = 1.3, MAX_EASE = 2.8, MAX_IVL = 400;
 // Three lapses, not Anki's six: six never fires inside a few weeks of revision,
@@ -46,7 +53,12 @@ const $$ = (s) => Array.from(document.querySelectorAll(s));
  * <svg> that is a flex item ignores its own width and fills the slot, which put
  * ten 48px-tall boats across a 320px screen the first time this shipped. */
 function doodle(name, cls, style) {
-  const d = DOODLE[name] || DOODLE[COURSE.fallback] || Object.values(DOODLE)[0];
+  // Munin's own set is consulted before the course's fallback: a name this
+  // course does not draw but Munin does — the raven the hoard's defaults are
+  // written in — is drawn by Munin, rather than collapsing into fourteen
+  // copies of one course drawing. The two key spaces do not overlap, so this
+  // can never quietly capture a course's own name.
+  const d = DOODLE[name] || MUNIN_DOODLE[name] || DOODLE[COURSE.fallback] || Object.values(DOODLE)[0];
   return `<span class="dood ${cls || ''}"${style ? ` style="${style}"` : ''} aria-hidden="true">`
     + `<svg class="doodle" viewBox="0 0 32 32"><path d="${d}"/></svg></span>`;
 }
@@ -525,7 +537,11 @@ function thumbHtml(clip, label) {
 }
 
 function playerHtml(clip) {
-  const by = VIDEOS.credit ? VIDEOS.credit.name : 'Maritime Master';
+  // Who made the clips is the course's business — videos.json says it, and
+  // course.json says it if videos.json does not. Munin used to carry one
+  // course's video credit as a literal in the engine.
+  const by = (VIDEOS.credit && VIDEOS.credit.name)
+    || (COURSE.credit && COURSE.credit.name) || 'the course';
   // The credit row lives outside the black box so the box wraps the picture
   // exactly — inside, its own text was setting the player's width.
   return `<div class="vplayer">
@@ -632,24 +648,46 @@ function wireVideo(rootSel) {
 
 /* Fourteen things worth noticing. They are all side effects of revising rather
  * than tasks of their own — nothing here asks you to study differently, and
- * none of them can be earned by opening the app and putting it down again. */
-const ACHIEVEMENTS = [
-  { id: 'cast-off', art: 'boat', t: 'cast off', d: 'answered your first card', test: (x) => x.answers >= 1 },
-  { id: 'underway', art: 'wave', t: 'underway', d: '50 cards answered', test: (x) => x.answers >= 50 },
-  { id: 'offshore', art: 'lighthouse', t: 'offshore', d: '250 cards answered', test: (x) => x.answers >= 250 },
-  { id: 'blue-water', art: 'chart', t: 'blue water', d: '1,000 cards answered', test: (x) => x.answers >= 1000 },
-  { id: 'streak-3', art: 'gull', t: 'three days running', d: 'studied three days in a row', test: (x) => x.streak >= 3 },
-  { id: 'streak-7', art: 'anchor', t: 'a week at sea', d: 'seven days in a row', test: (x) => x.streak >= 7 },
-  { id: 'streak-14', art: 'compass', t: 'salt in the veins', d: 'fourteen days in a row', test: (x) => x.streak >= 14 },
-  { id: 'clean-run', art: 'flag', t: 'clean run', d: '20 in a row without an again', test: (x) => x.clean >= 20 },
-  { id: 'night-watch', art: 'moon', t: 'night watch', d: 'answered a card between midnight and four', test: (x) => x.hour >= 0 && x.hour < 4 },
-  { id: 'dawn-patrol', art: 'sun', t: 'dawn patrol', d: 'answered a card before six in the morning', test: (x) => x.hour >= 4 && x.hour < 6 },
-  { id: 'all-sections', art: 'wheel', t: 'round the buoys', d: 'started every section in the deck', test: (x) => x.sections > 0 && x.touched >= x.sections },
-  { id: 'section-swept', art: 'buoy', t: 'section swept', d: 'seen every card in one section', test: (x) => x.swept >= 1 },
-  { id: 'knot-untangled', art: 'knot', t: 'knot untangled', d: 'a card that kept slipping is solid again', test: (x) => x.tamed },
-  { id: 'deck-met', art: 'fish', t: 'every card met', d: 'seen every card in the deck at least once', test: (x) => x.deckSeen },
+ * none of them can be earned by opening the app and putting it down again.
+ *
+ * The RULES are Munin's: what counts as a streak is not a matter of subject.
+ * The NAMES and the DRAWINGS are the course's, because they are theme — a
+ * course names them in its own world through course.json's `hoard.items`, and
+ * what is written here is Munin's own, in the raven's vocabulary. That split
+ * is not decoration: this list used to be nautical and drawn from Day
+ * Skipper's doodle set, so every imported deck showed the same fourteen
+ * drawings of a raven under fourteen sailing captions. */
+const HOARD = [
+  { id: 'cast-off', art: 'perch', t: 'first card', d: 'answered your first card', test: (x) => x.answers >= 1 },
+  { id: 'underway', art: 'flap', t: 'fifty', d: '50 cards answered', test: (x) => x.answers >= 50 },
+  { id: 'offshore', art: 'carry', t: 'two hundred and fifty', d: '250 cards answered', test: (x) => x.answers >= 250 },
+  { id: 'blue-water', art: 'hoard', t: 'a thousand', d: '1,000 cards answered', test: (x) => x.answers >= 1000 },
+  { id: 'streak-3', art: 'peek', t: 'three days running', d: 'studied three days in a row', test: (x) => x.streak >= 3 },
+  { id: 'streak-7', art: 'roost', t: 'a week of it', d: 'seven days in a row', test: (x) => x.streak >= 7 },
+  { id: 'streak-14', art: 'strut', t: 'a fortnight', d: 'fourteen days in a row', test: (x) => x.streak >= 14 },
+  { id: 'clean-run', art: 'bow', t: 'clean run', d: '20 in a row without an again', test: (x) => x.clean >= 20 },
+  { id: 'night-watch', art: 'puff', t: 'small hours', d: 'answered a card between midnight and four', test: (x) => x.hour >= 0 && x.hour < 4 },
+  { id: 'dawn-patrol', art: 'quill', t: 'first light', d: 'answered a card before six in the morning', test: (x) => x.hour >= 4 && x.hour < 6 },
+  { id: 'all-sections', art: 'strut', t: 'every corner', d: 'started every section in the deck', test: (x) => x.sections > 0 && x.touched >= x.sections },
+  { id: 'section-swept', art: 'carry', t: 'a section swept', d: 'seen every card in one section', test: (x) => x.swept >= 1 },
+  { id: 'knot-untangled', art: 'peek', t: 'unstuck', d: 'a card that kept slipping is solid again', test: (x) => x.tamed },
+  { id: 'deck-met', art: 'hoard', t: 'every card met', d: 'seen every card in the deck at least once', test: (x) => x.deckSeen },
 ];
+
+/* A course may rename and redraw any of them, and say nothing about the rest.
+ * Only the three theme fields are taken: a course cannot supply a `test`, and
+ * an unknown id in course.json names nothing and does nothing. */
+const HOARD_ITEMS = (COURSE.hoard && COURSE.hoard.items) || {};
+const ACHIEVEMENTS = HOARD.map((a) => {
+  const o = HOARD_ITEMS[a.id] || {};
+  return Object.assign({}, a, {
+    t: typeof o.t === 'string' && o.t ? o.t : a.t,
+    d: typeof o.d === 'string' && o.d ? o.d : a.d,
+    art: typeof o.art === 'string' && o.art ? o.art : a.art,
+  });
+});
 const ACH_IDS = new Set(ACHIEVEMENTS.map((a) => a.id));
+const HOARD_TITLE = (COURSE.hoard && COURSE.hoard.title) || 'The hoard';
 
 /** Everything the tests above need, worked out once per answer. 537 cards is
  *  cheap enough to walk; keeping partial counters in state would be one more
@@ -736,6 +774,8 @@ function dismissUnlock() {
 }
 
 function renderAch() {
+  const h = $('#hoard-title');
+  if (h) h.textContent = HOARD_TITLE;
   const got = ACHIEVEMENTS.filter((a) => state.ach[a.id]).length;
   $('#ach-count').textContent = got
     ? `${got} of ${ACHIEVEMENTS.length} earned. They unlock as you revise — there is nothing to collect deliberately.`
@@ -1309,7 +1349,8 @@ function finish() {
     : nextDueLine();
   $('#done-more').hidden = left === 0;
 
-  // A boat under sail with four pen-strokes flying off it, instead of a tick.
+  // The section's own drawing with four pen-strokes flying off it, instead
+  // of a tick — whatever that course draws for the thing just finished.
   const sk = session.section || '';
   const badge = SECTION_ART[sk] || GROUP_ART[sk.slice(2)] || COURSE.fallback;
   $('#done-tick').innerHTML = doodle(badge)
@@ -2729,6 +2770,57 @@ function wire() {
   initLightbox();
 }
 
+/* What this deck is, and is not.
+ *
+ * The words are the course's — course.json's `notice`, with Munin's own plain
+ * line as the default. An almanac and an up-to-date chart are one course's
+ * caveat; printing them under an imported deck of German verbs is nonsense,
+ * and that is exactly what the engine used to do, because the sentence was
+ * markup in index.html. The video credit joins it when there is one. */
+function renderNotice() {
+  const el = $('#notice');
+  if (!el) return;
+  el.textContent = COURSE.notice || MUNIN.theme.notice;
+  const c = COURSE.credit;
+  if (!c || !c.name) return;
+  el.append(' Video clips by ');
+  if (c.href) {
+    const a = document.createElement('a');
+    a.href = c.href;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    a.textContent = c.name;
+    el.append(a);
+  } else {
+    el.append(c.name);
+  }
+  el.append(', used with a link back to each original.');
+}
+
+/* Offline, said in this deck's numbers.
+ *
+ * How many diagrams there are, and whether there are any, is a fact about the
+ * course. "The 24 diagrams are about 2 MB" was markup, so it was printed over
+ * a three-picture deck and over imported decks with no diagrams at all, above
+ * a button that then downloaded nothing. */
+function renderOffline() {
+  const card = $('#offline-card');
+  if (!card) return;
+  const shots = new Set(DECK.cards.filter((c) => c.m).map((c) => c.m));
+  if (!shots.size) {
+    // An imported deck keeps its pictures in the database with its cards;
+    // there is nothing to fetch and nothing to say.
+    card.hidden = true;
+    return;
+  }
+  card.hidden = false;
+  const many = shots.size > 1;
+  $('#offline-note').textContent = `The cards work offline as soon as you have opened the app once. `
+    + `The ${shots.size} diagram${many ? 's are' : ' is'} saved as you meet ${many ? 'them' : 'it'} — `
+    + `pull ${many ? 'them all' : 'it'} down now if you are heading somewhere without signal.`;
+  $('#prefetch-btn').textContent = many ? 'Save all diagrams offline' : 'Save the diagram offline';
+}
+
 /* ─────────────────────────── boot ─────────────────────────── */
 
 async function boot() {
@@ -2748,10 +2840,25 @@ async function boot() {
       '<p>Could not load the deck.<br>Reload the page, or check you are online for the first visit.</p>';
     return;
   }
-  $('#boot-art').innerHTML = doodle((COURSE.boot || {}).art || COURSE.fallback);
-  for (const el of document.querySelectorAll('[data-deck-size]')) {
-    el.textContent = DECK.cards.length + ' cards';
+
+  /* A deck that is the wrong shape is caught here rather than three screens
+   * later. Two things build one — the python that authors a course and the
+   * .apkg importer — and neither used to be checked against the other. The
+   * message names the first thing wrong with it, because "it did not work" is
+   * what this replaced. */
+  try {
+    const { validateDeck } = await import('./lib/validate.js');
+    const v = validateDeck(DECK);
+    if (!v.ok) {
+      console.error('deck:', v.errors);
+      $('#boot').innerHTML = `<p>This deck could not be read.<br>${escapeHtml(v.errors[0])}</p>`;
+      return;
+    }
+  } catch (e) {
+    // The validator itself failing is not a reason to refuse to study.
+    console.error(e);
   }
+
   // "537 cards is more than you can cram" is true of a syllabus and false of a
   // deck someone imported on the bus. Say the thing that is true of this deck.
   const cram = $('#ask-why');
@@ -2793,6 +2900,8 @@ async function boot() {
     .catch(() => {});
 
   $('#search').placeholder = `Search ${DECK.cards.length} cards…`;
+  renderNotice();
+  renderOffline();
   wire();
   $('#boot').hidden = true;
   $('#app').hidden = false;

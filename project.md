@@ -103,30 +103,76 @@ with tags/categories at the engine level.
 | T7 | Deployment | **kkonrad.com/munin now.** /day-skipper stays untouched until Munin passes the four test suites + a state-migration check, then 301s in. |
 
 A course theme is exactly: accent pair (light+dark) + doodle set + section art +
-**loading screen** (boot art, its animation, its line — Day Skipper's rocking boat and
-"Loading deck…" stay Day Skipper's; the raven default gets its own). Everything else —
-type, layout, grade flags, flag yellow, review UX — is Munin, shared by every course.
-Every course folder is self-contained: course.json (id, title, accent, boot),
-doodles.js, cards.json (Day Skipper format), optional figures.json / videos.json.
+**loading screen** (its scene, how it moves, and what it says — Day Skipper's rocking
+boat and "Loading deck…" stay Day Skipper's; the raven default gets its own) + **what
+the hoard is called and what its fourteen entries are called and drawn as** + its
+`notice` (the fineprint), `credit` and `short` header title. Everything else — type,
+layout, grade flags, flag yellow, review UX, and the hoard's *rules* — is Munin, shared
+by every course. Every course folder is self-contained: course.json, doodles.js,
+cards.json, boot.html + boot.css, optional figures.json / videos.json.
 Missing doodle slot → raven fallback, never a hole.
 
-### Boot screens — per-course, and currently thin
+### The seam — audited and closed, 28 Jul 2026
 
-What ships is the minimum: one 46px doodle bobbing on a loop, configured per course
-in `course.json`'s `boot` block (`art`, `anim`, `line`). **We want a real per-course
-boot scene** — an animated drawing that belongs to the course the way its accent and
-doodles do. Two things are wrong with what's there now.
+An audit of the course/Munin seam found eleven leaks. Konrad's rulings on them:
+achievement names and loading-screen text become **per-course customisation surfaces
+over Munin defaults** (not engine constants, not required of a course); **Munin's own
+theme is the default layer**, not a special case for imported decks — a course that
+brings no accent, no doodles or no scene is dressed by Munin, slot by slot; everything
+else fixed. What changed:
 
-**It draws too late.** `munin.js` sets the line and the animation before `app.js`
-loads, but the doodle itself is filled in `boot()` *after* the `cards.json` fetch
-resolves — so the window the boot screen exists to cover is the window in which it is
-blank. Anything on this screen has to be markup and CSS in `index.html`, painted on
-first load. A doodle injected from JavaScript cannot be.
+- **One registry.** `web/courses/index.json`. It was a literal in munin.js, a second
+  in the service worker's precache and a third in refresh-courses.sh — and a course
+  missing from the second worked online and 404'd offline.
+- **The picker cannot be taken down by a course.** Per-course try/catch, a tile that
+  says which one would not load. It was a bare `Promise.all` with no catch: one
+  mistyped course.json was a blank page with no way back.
+- **The shelf reads no theme file.** `shelfPath` in course.json, written by
+  `scripts/make-boot.mjs`. It used to fetch 43 KB of each course's `doodles.js` and
+  mine one path out with a regex, on every draw.
+- **The folder name is the identity.** `course.json`'s `id` is ignored on boot and
+  gated in tests; the two could disagree, and progress is keyed on it.
+- **The hoard** (`renderAch`) keeps its fourteen rules and takes its names and
+  drawings from `course.json.hoard`. The defaults are Munin's raven vocabulary: they
+  were nautical, drawn from one course's set, so every imported deck showed fourteen
+  identical ravens under fourteen sailing captions, headed "Ship's log".
+- **Course content out of the shell**: the almanac fineprint, the Maritime Master
+  credit, "the 24 diagrams are about 2 MB" and the `RYA ` prefix strip were all in
+  Munin's own files and printed over every deck.
+- **`lib/validate.js`** — one description of what a deck is, run by app.js at boot, by
+  the importer, and by the gate over every cards.json.
+- **Per-course service-worker caches.** One shared cache meant editing one card
+  evicted the app and every other course for everyone.
+- **One copy of each constant**: `MUNIN.stateKey` / `MUNIN.lastKey`, and the raven
+  list exported from `lib/deck.js` and gated against `doodles-munin.js`.
+- **The gate points the right way.** `tests/separation.mjs` tested course → course; it
+  now also tests engine → course, which is the direction that was leaking. 50 checks.
 
-**It is a spinner, not a scene.** A course theme is meant to be felt before the first
-card. Day Skipper and Competent Crew share a sea: a horizon line that draws itself,
-then a boat drawn onto it and sailing its length, with sun, drifting cloud, gulls, a
-buoy to pass. The raven default gets its own.
+### Boot screens — per-course, mechanism built 28 Jul
+
+The mechanism is in place: `courses/<id>/boot.html` + `boot.css`, swapped in by
+munin.js and **replayed out of localStorage before the first paint**, with Munin's
+raven as the markup default. What each course ships today is still the minimum —
+its own drawing, drawn on and then moving. **A real per-course boot scene is still
+wanted** — an animated drawing that belongs to the course the way its accent and
+doodles do; that is now a drawing job in one file, not a change to the engine. What
+was wrong before, and is fixed:
+
+**It drew too late** — `app.js` filled the doodle in `boot()`, *after* the `cards.json`
+fetch resolved, so the window the screen exists to cover was the window in which it was
+blank. Fixed: Munin's default scene is markup in `index.html`, and a course's own scene
+is replayed from `munin/boot/<id>` at parse time, before the first paint. app.js no
+longer touches the boot screen at all, and the gate fails if it does again.
+
+**Its animation was Munin's, not the course's** — `boot.anim` named a keyframe declared
+in `app.css`, so a course could only pick from the two names the engine happened to
+have. Fixed: `boot.css` per course, its own keyframes, gated.
+
+**It is still a spinner, not a scene.** A course theme is meant to be felt before the
+first card. Day Skipper and Competent Crew share a sea: a horizon line that draws
+itself, then a boat drawn onto it and sailing its length, with sun, drifting cloud,
+gulls, a buoy to pass. The raven default gets its own. This is the part still to do —
+and it is now `boot.html` + `boot.css` in one course folder.
 
 A prototype (*Horizon*, built and picked July 2026, since deleted) settled six things
 worth not rediscovering:

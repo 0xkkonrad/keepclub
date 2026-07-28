@@ -14,6 +14,7 @@
 
 import { render, clozeOrds } from './template.js';
 import { clean, toText, isEmpty, tagEnd } from './html.js';
+import { DECK_FORMAT } from './validate.js';
 
 const FRONT = '\u0001munin-front-side\u0001';
 const FRONT_RE = new RegExp(FRONT + '\\s*(<hr[^>]*>)?', 'g');
@@ -27,7 +28,13 @@ function sample(html) {
     .replace(/\s+/g, ' ').trim();
 }
 
-const RAVENS = ['perch', 'peek', 'flap', 'carry', 'roost', 'hoard', 'puff', 'strut', 'quill', 'bow'];
+/* Munin's own drawings, for a deck that brings none: an imported deck's
+ * sections are labelled from this set. Exported because import.js needs the
+ * same list to pick a deck's tile, and the two copies of it drifting apart
+ * would mean a deck whose shelf tile is not one of its own section drawings.
+ * The separation gate checks it against doodles-munin.js, which is where the
+ * drawings themselves live. */
+export const RAVENS = ['perch', 'peek', 'flap', 'carry', 'roost', 'hoard', 'puff', 'strut', 'quill', 'bow'];
 
 const LATEX = /\[latex\]|\[\$\$?\]|\\begin\{|\\\(/i;
 
@@ -352,6 +359,9 @@ export async function buildDeck(col, opts = {}) {
   const mediaBytes = media.reduce((n, m) => n + m.bytes.length, 0);
 
   const deck = {
+    // Which description of a deck this is. A stored deck outlives the build
+    // that made it, so it says so itself rather than being assumed.
+    format: DECK_FORMAT,
     name: title,
     sections,
     groups,

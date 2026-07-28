@@ -1,13 +1,19 @@
 /* Munin — the shell in front of the courses.
  *
- * Boot order: this file decides which course is active (localStorage), fetches
- * its course.json, injects the theme (accent vars + boot screen), then loads
- * the course's own doodles.js and finally app.js — which reads the COURSE
- * global for its deck, art maps and storage key. With no course picked it
- * renders the shelf instead and app.js never loads.
+ * Boot order: this file decides which course is active (localStorage), replays
+ * that course's cached loading screen before the first paint, fetches its
+ * course.json, injects the theme (accent vars + boot scene), then loads the
+ * course's own doodles.js and finally app.js — which reads the COURSE global
+ * for its deck, art maps and storage key. With no course picked it renders the
+ * shelf instead and app.js never loads.
  *
  * Courses never share theme files: each folder under courses/ is complete in
  * itself. Two files being identical is a coincidence, not a link.
+ *
+ * Munin's own theme is not a special case — it is the DEFAULT every course
+ * falls back into, slot by slot (MUNIN.theme below). A course that brings an
+ * accent and no frieze gets its accent and Munin's frieze; a deck someone
+ * imported brings none of it and is dressed entirely by Munin.
  *
  * Sync is deliberately OFF in this build. The live Day Skipper app at
  * /day-skipper shares this origin and its Supabase rows; Munin joining that
@@ -18,9 +24,31 @@
 
 const MUNIN = {
   lastKey: 'munin/last-course',
-  courses: ['day-skipper', 'competent-crew'],
-  accent: { light: '#0e3f39', dark: '#35917f', inkLight: '#fffdf7', inkDark: '#141519' },
+  /* Every place that names a storage slot names it here. These templates used
+   * to be written out by hand in app.js, store.js and the orphan sweep, which
+   * is three chances to change one of them and not the others. */
+  stateKey: (id) => 'munin/' + id + '/state/v1',
+  bootKey: (id) => 'munin/boot/' + id,
+  registry: 'courses/index.json',
+
+  /* A course id is a folder name and goes straight into a URL, so it is
+   * checked as a shape rather than against a list: the resume path must not
+   * have to wait for the registry to load before it can boot a course. */
+  idOk: (id) => /^[a-z0-9][a-z0-9-]{0,63}$/.test(String(id || '')),
+
+  /* Munin's own theme: the default for every slot a course leaves empty. */
+  theme: {
+    accent: { light: '#0e3f39', dark: '#35917f', inkLight: '#fffdf7', inkDark: '#141519' },
+    boot: { art: 'perch', anim: 'hop', line: 'Loading…' },
+    fallback: 'perch',
+    // The raven set itself, in file order — one list, not a copy of one.
+    friezeArt: Object.keys(MUNIN_DOODLE),
+    notice: 'Revision material. Progress is stored on this device only.',
+  },
 };
+globalThis.MUNIN = MUNIN;
+
+const isLocal = (id) => /^local-[a-z0-9]+$/.test(String(id || ''));
 
 /* app.js calls these; every one is a no-op that reports "sync off". */
 globalThis.DSSync = {
@@ -67,7 +95,7 @@ const MuninTheme = {
     // Every glyph on the page — the shelf's and the course header's — says the
     // same thing, because they are the same setting.
     for (const g of document.querySelectorAll('[data-theme-glyph]')) {
-      g.textContent = t === 'auto' ? '\u25D0' : t === 'dark' ? '\u263E' : '\u2600';
+      g.textContent = t === 'auto' ? '◐' : t === 'dark' ? '☾' : '☀';
     }
   },
 };
@@ -158,7 +186,7 @@ function renderShelfInstall() {
   btn.hidden = !MuninInstall.event;
   steps.hidden = !!MuninInstall.event;
   steps.innerHTML = MuninInstall.event ? ''
-    : '<li>tap the share button in the browser bar</li><li>choose \u201cAdd to Home Screen\u201d</li>';
+    : '<li>tap the share button in the browser bar</li><li>choose “Add to Home Screen”</li>';
 }
 
 function muninDoodle(name, cls, style) {
@@ -171,6 +199,8 @@ function muninDoodle(name, cls, style) {
 /* One <style> block per boot: the four scopes app.css declares its accent in,
  * overridden from course.json (or Munin's own ink teal on the shelf). */
 function injectAccent(a) {
+  const old = document.getElementById('course-theme');
+  if (old) old.remove();
   const s = document.createElement('style');
   s.id = 'course-theme';
   s.textContent = `
@@ -193,33 +223,148 @@ function loadScript(src) {
   });
 }
 
+/** Every slot a course left empty, filled from Munin's own theme. */
+function withDefaults(c) {
+  const t = MUNIN.theme;
+  return Object.assign({}, c, {
+    accent: Object.assign({}, t.accent, c.accent || {}),
+    boot: Object.assign({}, t.boot, c.boot || {}),
+    fallback: c.fallback || t.fallback,
+    sectionArt: c.sectionArt || {},
+    groupArt: c.groupArt || {},
+    friezeArt: (c.friezeArt && c.friezeArt.length) ? c.friezeArt : t.friezeArt,
+    notice: c.notice || t.notice,
+  });
+}
+
+/* ── the loading screen ───────────────────────────────────────────────────
+ *
+ * A course owns its loading screen: boot.html is the scene, boot.css is how it
+ * moves, boot.line is what it says. Munin's raven is in index.html as the
+ * default, so there is always a scene at first paint.
+ *
+ * The catch this solves: the course's scene cannot be known until course.json
+ * has been fetched, which is the whole window the screen exists to cover. So
+ * the scene the course drew last time is kept in localStorage and replayed
+ * synchronously, here, before anything paints. First-ever open of a course
+ * gets Munin's raven; every open after that gets the course's own.
+ */
+function applyBoot(b) {
+  const boot = document.getElementById('boot');
+  if (!boot || !b) return;
+  if (b.css) {
+    let style = document.getElementById('boot-style');
+    if (!style) {
+      style = document.createElement('style');
+      style.id = 'boot-style';
+      document.head.appendChild(style);
+    }
+    if (style.textContent !== b.css) style.textContent = b.css;
+  }
+  const scene = boot.querySelector('#boot-scene');
+  // The scene is a course's own file, and it replaces markup rather than being
+  // added to it — a second scene under the first is two loading screens.
+  if (scene && b.html && scene.dataset.from !== b.from) {
+    scene.innerHTML = b.html;
+    scene.dataset.from = b.from || 'course';
+  }
+  const line = boot.querySelector('#boot-line');
+  if (line && b.line) line.textContent = b.line;
+}
+
+function readBootCache(id) {
+  try {
+    const raw = localStorage.getItem(MUNIN.bootKey(id));
+    return raw ? JSON.parse(raw) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function writeBootCache(id, b) {
+  try {
+    localStorage.setItem(MUNIN.bootKey(id), JSON.stringify(b));
+  } catch (e) {
+    // A full quota is not a reason to fail to boot; the scene simply arrives
+    // late next time, exactly as it does on a first visit.
+  }
+}
+
+/** The scene the resume course drew last time, replayed before the first paint. */
+function replayBoot() {
+  const id = localStorage.getItem(MUNIN.lastKey);
+  if (!id || !(MUNIN.idOk(id) || isLocal(id))) return;
+  applyBoot(readBootCache(id));
+}
+
+/* Cheap content stamp, so a redrawn scene swaps in the moment it arrives
+ * instead of one visit later, and an unchanged one never re-renders. */
+function stamp(s) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return h.toString(36);
+}
+
+/** A course's own loading screen, fetched and kept for next time. */
+async function loadBootScene(c) {
+  if (isLocal(c.id)) return;                       // an imported deck has no files
+  try {
+    const [html, css] = await Promise.all([
+      fetch(c.base + 'boot.html', { cache: 'no-cache' }).then((r) => (r.ok ? r.text() : '')),
+      fetch(c.base + 'boot.css', { cache: 'no-cache' }).then((r) => (r.ok ? r.text() : '')),
+    ]);
+    if (!html) return;                             // no scene of its own: Munin's raven stays
+    const b = { html, css, line: c.boot.line, from: c.id + '-' + stamp(html + css) };
+    applyBoot(b);
+    writeBootCache(c.id, b);
+  } catch (e) {
+    // Offline, or a course that ships no scene. The default is already drawn.
+  }
+}
+
 /** Everything a course needs once its theme is in hand. */
 async function startCourse(c, loadDoodles) {
   globalThis.COURSE = c;
   injectAccent(c.accent);
-  const boot = document.getElementById('boot');
-  if (boot && c.boot) {
-    boot.querySelector('p').textContent = c.boot.line || 'Loading…';
-    boot.style.setProperty('--boot-anim', c.boot.anim || 'sail');
-  }
+  const line = document.getElementById('boot-line');
+  if (line && c.boot.line) line.textContent = c.boot.line;
   document.title = 'Munin — ' + c.title;
+  const scene = loadBootScene(c);
   await loadDoodles();
+  // A course with no scene file of its own still gets its own drawing in
+  // Munin's frame, rather than the raven belonging to another deck.
+  const holder = document.querySelector('#boot-scene[data-from="munin"] path');
+  if (holder && globalThis.DOODLE && DOODLE[c.boot.art]) holder.setAttribute('d', DOODLE[c.boot.art]);
   await loadScript('app.js');
   const h1 = document.getElementById('course-title');
   if (h1) {
-    h1.textContent = c.title.replace(/^RYA /, '');
+    // What the header calls this course is the course's own business:
+    // course.json's `short`, falling back to its full title. The shell used to
+    // strip one awarding body's prefix with a regular expression, which is a
+    // course's naming convention living in the engine.
+    h1.textContent = c.short || c.title;
     // Munin lowercases its own chrome. A deck someone imported is titled in
     // their words, not Munin's, and the shelf already shows it as written.
     h1.classList.toggle('own', !!c.deck);
   }
   mountShelfButton(c);
+  await scene;
 }
 
 async function bootCourse(id) {
   const base = 'courses/' + id + '/';
   const r = await fetch(base + 'course.json', { cache: 'no-cache' });
-  const c = await r.json();
+  if (!r.ok) throw new Error('no course at ' + base);
+  const c = withDefaults(await r.json());
   c.base = base;
+  // The folder is the identity. course.json may name an id of its own and it
+  // is ignored here: the two used to be able to disagree, and progress is
+  // keyed on this — a folder renamed without editing its json silently forked
+  // every user's history into a key nothing reads again.
+  c.id = id;
   // A course with no doodles.js gets the raven set — a slot is never a hole.
   await startCourse(c, () => loadScript(base + 'doodles.js')
     .catch(() => { globalThis.DOODLE = MUNIN_DOODLE; }));
@@ -227,9 +372,9 @@ async function bootCourse(id) {
 
 /* A deck someone imported. It has no folder and no files: the cards are in
  * IndexedDB and its pictures are blobs, so the shell hands app.js the deck
- * itself rather than a path to fetch. The theme is Munin's own — an imported
- * deck has no colours of its own, and inventing some would be a lie about
- * where it came from. */
+ * itself rather than a path to fetch. It brings no theme of its own, so
+ * withDefaults dresses it entirely in Munin's — the same fallback any course
+ * gets for the slots it leaves empty. */
 async function bootLocal(id) {
   const store = await import('./lib/store.js');
   const rec = await store.get(id);
@@ -244,22 +389,16 @@ async function bootLocal(id) {
   }
 
   mountReceipt(rec);
-  await startCourse({
+  await startCourse(withDefaults({
     id,
     title: rec.title,
     base: '',
-    accent: MUNIN.accent,
-    boot: { art: rec.art || 'perch', anim: 'hop', line: 'Loading your deck…' },
-    fallback: 'perch',
+    boot: { art: rec.art || MUNIN.theme.boot.art, line: 'Loading your deck…' },
     sectionArt: rec.sectionArt || {},
     groupArt: rec.groupArt || {},
-    friezeArt: RAVEN_FRIEZE,
     deck: rec.deck,
-  }, async () => { globalThis.DOODLE = MUNIN_DOODLE; });
+  }), async () => { globalThis.DOODLE = MUNIN_DOODLE; });
 }
-
-const RAVEN_FRIEZE = ['perch', 'peek', 'flap', 'carry', 'roost', 'hoard', 'puff', 'strut', 'quill', 'bow'];
-const isLocal = (id) => /^local-[a-z0-9]+$/.test(String(id || ''));
 
 /* The receipt again, on Progress.
  *
@@ -315,6 +454,10 @@ const SHELF_CSS = `
   .shelf-tile small { color: var(--muted); font-size: .8rem; text-transform: lowercase; }
   .shelf-tile.byo { border-style: dashed; border-left-width: var(--bw);
     box-shadow: none; color: var(--muted); justify-content: center; }
+  /* A course that would not load. It stays on the shelf, and says so, because
+   * a tile quietly missing is how you conclude your deck is gone. */
+  .shelf-tile.broken { cursor: default; border-left-color: var(--stroke); }
+  .shelf-tile.broken b { color: var(--muted); }
   /* An imported deck is the only thing here that can be got rid of, so it is
    * the only thing carrying a control. Two taps: the second one confirms. */
   .shelf-row { position: relative; display: flex; }
@@ -365,27 +508,51 @@ function ensureShelfCss() {
 const escHtml = (s) => String(s)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
-function courseTile(c) {
-  return `<button type="button" class="shelf-tile" data-course="${c.id}"
-      style="--tile-accent:${c.accent.light}">
-    <svg class="dood" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2"
-      stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${c.shelfPath}"/></svg>
-    <span><b>${escHtml(c.title)}</b><small>${escHtml(c.tagline || '')}</small></span>
-  </button>`;
+/* Which courses ship with the app. One list, read at runtime: it used to be a
+ * literal in this file, a second literal in the service worker's precache and
+ * a third in refresh-courses.sh, and a course missing from the second worked
+ * online and 404'd offline — the failure you find last. */
+async function readRegistry() {
+  const r = await fetch(MUNIN.registry, { cache: 'no-cache' });
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  const idx = await r.json();
+  const ids = Array.isArray(idx) ? idx : idx.courses;
+  if (!Array.isArray(ids)) throw new Error('the course list is not a list');
+  return ids.filter(MUNIN.idOk);
 }
 
-/* Study history for a deck that is not here any more.
+/** A course's description, or null with a reason. One course cannot take the
+ *  picker down: this is the whole app's front door, and a mistyped course.json
+ *  used to leave a blank page with no way back to anything. */
+async function courseMeta(id) {
+  try {
+    const r = await fetch('courses/' + id + '/course.json', { cache: 'no-cache' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const c = withDefaults(await r.json());
+    c.id = id;
+    if (!c.title) throw new Error('no title');
+    return c;
+  } catch (e) {
+    console.error('course ' + id + ':', e);
+    return null;
+  }
+}
+
+/* Study history, and cached loading screens, for decks that are not here.
  *
- * store.remove() deletes the key as it goes, but the deck being removed may be
- * the one open behind this overlay, and that session writes its state again on
- * the way out — so the key comes back a moment after it was deleted, owned by
- * nothing, for ever. Collecting orphans whenever the shelf draws is the only
- * point where the full list of decks is in hand anyway. */
-function sweepOrphanState(decks) {
+ * store.remove() deletes the state key as it goes, but the deck being removed
+ * may be the one open behind this overlay, and that session writes its state
+ * again on the way out — so the key comes back a moment after it was deleted,
+ * owned by nothing, for ever. Collecting orphans whenever the shelf draws is
+ * the only point where the full list of decks is in hand anyway. */
+function sweepOrphans(decks, courses) {
   const live = new Set(decks.map((d) => d.id));
+  const known = new Set(courses.concat([...live]));
   for (const k of Object.keys(localStorage)) {
-    const m = /^munin\/(local-[a-z0-9]+)\/state\/v1$/.exec(k);
-    if (m && !live.has(m[1])) localStorage.removeItem(k);
+    const s = /^munin\/(local-[a-z0-9]+)\/state\/v1$/.exec(k);
+    if (s && !live.has(s[1])) { localStorage.removeItem(k); continue; }
+    const b = /^munin\/boot\/(.+)$/.exec(k);
+    if (b && !known.has(b[1])) localStorage.removeItem(k);
   }
 }
 
@@ -394,19 +561,42 @@ function disarm(root) {
   clearTimeout(disarmAt);
   for (const b of root.querySelectorAll('[data-armed]')) {
     delete b.dataset.armed;
-    b.textContent = '\u2715';
+    b.textContent = '✕';
   }
+}
+
+/* The emblem comes out of course.json as the path itself. The shelf used to
+ * fetch the whole 43 KB doodles.js and mine one path out of it with a regular
+ * expression — two courses meant 86 KB of theme source parsed by the shell to
+ * draw two tiles, and a doodle file that ever changed quotation marks would
+ * have failed silently to a raven. */
+function tileArt(path) {
+  return `<svg class="dood" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2"
+    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${escHtml(path)}"/></svg>`;
+}
+
+function courseTile(c) {
+  return `<button type="button" class="shelf-tile" data-course="${escHtml(c.id)}"
+      style="--tile-accent:${escHtml(c.accent.light)}">
+    ${tileArt(c.shelfPath || MUNIN_DOODLE[MUNIN.theme.fallback])}
+    <span><b>${escHtml(c.title)}</b><small>${escHtml(c.tagline || '')}</small></span>
+  </button>`;
+}
+
+function brokenTile(id) {
+  return `<div class="shelf-tile broken">${muninDoodle('peek')}
+    <span><b>${escHtml(id)}</b><small>this course would not load — reload, or check you are online</small></span>
+  </div>`;
 }
 
 /* An imported deck is titled by whoever made the .apkg, so everything about it
  * on this screen is escaped. */
 function localTile(d) {
-  const art = MUNIN_DOODLE[d.art] || MUNIN_DOODLE.perch;
+  const art = MUNIN_DOODLE[d.art] || MUNIN_DOODLE[MUNIN.theme.fallback];
   return `<div class="shelf-row">
     <button type="button" class="shelf-tile" data-course="${escHtml(d.id)}"
-        style="--tile-accent:${MUNIN.accent.light}">
-      <svg class="dood" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${art}"/></svg>
+        style="--tile-accent:${escHtml(MUNIN.theme.accent.light)}">
+      ${tileArt(art)}
       <span><b>${escHtml(d.title)}</b><small>your deck · ${Number(d.cards).toLocaleString('en-GB')
       } cards · ${new Date(d.created).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</small></span>
     </button>
@@ -417,43 +607,49 @@ function localTile(d) {
 
 async function renderShelf(asOverlay) {
   if (!asOverlay) {
-    injectAccent(MUNIN.accent);
+    injectAccent(MUNIN.theme.accent);
     document.title = 'Munin';
     const boot = document.getElementById('boot');
     if (boot) boot.hidden = true;
   }
   ensureShelfCss();
 
-  const metas = await Promise.all(MUNIN.courses.map(async (id) => {
-    const c = await (await fetch('courses/' + id + '/course.json', { cache: 'no-cache' })).json();
-    // The shelf draws each course's emblem from that course's OWN doodle file —
-    // fetched as text, mined for the one path — so the shelf never links themes.
-    const js = await (await fetch('courses/' + id + '/doodles.js', { cache: 'no-cache' })).text();
-    const m = js.match(new RegExp("\\b" + c.shelfArt + ": '([^']*)'"));
-    c.shelfPath = m ? m[1] : MUNIN_DOODLE.perch;
-    return c;
-  }));
+  // Neither the registry nor any one course may stop the picker drawing. The
+  // shelf with nothing on it but "+ your own deck" is a bad day; a blank page
+  // is a broken app.
+  let ids = [];
+  try {
+    ids = await readRegistry();
+  } catch (e) {
+    console.error('course list:', e);
+  }
+  const metas = await Promise.all(ids.map(courseMeta));
 
   // Imported decks, if the browser will tell us about them. A database that
   // will not open is not a reason for the shelf to fail to draw.
   let mine = [];
   try {
     mine = await (await import('./lib/store.js')).list();
-    sweepOrphanState(mine);
+  } catch (e) {
+    console.error(e);
+  }
+  try {
+    sweepOrphans(mine, ids);
   } catch (e) {
     console.error(e);
   }
 
+  const tiles = metas.map((c, i) => (c ? courseTile(c) : brokenTile(ids[i]))).join('');
   const el = document.createElement('div');
   el.className = 'shelf on';
   el.innerHTML = `<div class="shelf-inner">
     <div class="shelf-mark">${muninDoodle('perch')}<h1>munin</h1>
       <button type="button" class="icon-btn" id="shelf-theme" aria-label="Switch colour theme"
-        title="Switch colour theme"><span aria-hidden="true" data-theme-glyph>\u2600</span></button>
+        title="Switch colour theme"><span aria-hidden="true" data-theme-glyph>☀</span></button>
     </div>
     <p class="shelf-sub">a friendly raven who remembers for you</p>
     <div class="shelf-tiles">
-      ${metas.map(courseTile).join('')}
+      ${tiles}
       ${mine.map(localTile).join('')}
       <button type="button" class="shelf-tile byo" data-byo><span>+ your own deck</span></button>
     </div>
@@ -548,7 +744,8 @@ function mountShelfButton(c) {
 
 (function main() {
   MuninTheme.apply();
-  const known = (id) => MUNIN.courses.includes(id) || isLocal(id);
+  replayBoot();
+  const known = (id) => MUNIN.idOk(id) || isLocal(id);
   // ?course=<id> deep-links a course and becomes the resume target.
   const q = new URLSearchParams(location.search).get('course');
   if (q && known(q)) localStorage.setItem(MUNIN.lastKey, q);
@@ -559,9 +756,11 @@ function mountShelfButton(c) {
       // the shelf instead of to a dead screen.
       console.error(e);
       localStorage.removeItem(MUNIN.lastKey);
-      renderShelf();
+      const boot = document.getElementById('boot');
+      if (boot) boot.hidden = true;
+      renderShelf().catch(console.error);
     });
   } else {
-    renderShelf();
+    renderShelf().catch(console.error);
   }
 })();

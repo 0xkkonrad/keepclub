@@ -163,6 +163,87 @@ const offer = (pg) => pg.evaluate(() => {
   await c2.close();
 }
 
+/* ── the picker survives a course that will not load, and reads no theme ── */
+{
+  const c5 = await b.newContext({ viewport: { width: 390, height: 844 } });
+  const p5 = await c5.newPage();
+  const themeReads = [];
+  await p5.route('**/courses/*/doodles.js', (r) => { themeReads.push(r.request().url()); r.continue(); });
+  // One course.json that answers with a server error. Every other course, and
+  // the picker itself, must be unaffected — this used to be a bare
+  // Promise.all with no catch, so one bad course was a blank page with no way
+  // back to anything.
+  await p5.route('**/courses/competent-crew/course.json',
+    (r) => r.fulfill({ status: 500, contentType: 'text/plain', body: 'nope' }));
+  await p5.goto(URL, { waitUntil: 'networkidle' });
+  await p5.waitForSelector('.shelf.on');
+  ok(await p5.locator('[data-course="day-skipper"]').isVisible(),
+    'a course that will not load does not take the picker down');
+  ok((await p5.locator('.shelf-tile.broken').count()) === 1, 'and the shelf says which one');
+  ok(await p5.locator('[data-byo]').isVisible(), 'your own deck is still reachable');
+  // The emblem comes out of course.json now; the shelf used to fetch 43 KB of
+  // each course's doodle file and mine one path out of it with a regex.
+  ok(themeReads.length === 0, 'the picker draws without reading a single course theme file');
+  await c5.close();
+}
+
+/* ── the loading screen belongs to the course, and paints before app.js ── */
+{
+  const c6 = await b.newContext({ viewport: { width: 390, height: 844 } });
+  const p6 = await c6.newPage();
+  // munin.js runs at the end of <body>, so anything it does is done before
+  // DOMContentLoaded — and long before app.js is fetched.
+  await p6.addInitScript(() => {
+    addEventListener('DOMContentLoaded', () => {
+      const s = document.getElementById('boot-scene');
+      globalThis.__early = {
+        from: s ? s.dataset.from : '',
+        paths: s ? s.querySelectorAll('path').length : 0,
+        line: (document.getElementById('boot-line') || {}).textContent || '',
+      };
+    }, { once: true });
+  });
+
+  await p6.goto(URL, { waitUntil: 'networkidle' });
+  await p6.waitForSelector('.shelf.on');
+  const first = await p6.evaluate(() => globalThis.__early);
+  ok(first.from === 'munin' && first.paths === 1,
+    `first run paints Munin's own raven (${first.from})`);
+
+  await Promise.all([p6.waitForEvent('load'), p6.click('[data-course="day-skipper"]')]);
+  await p6.waitForFunction(() => document.getElementById('boot').hidden);
+  const kept = await p6.evaluate(() => localStorage.getItem('munin/boot/day-skipper'));
+  ok(!!kept && JSON.parse(kept).html.includes('pathLength'),
+    "a course's loading screen is kept for the next cold open");
+
+  await p6.goto(URL, { waitUntil: 'networkidle' });
+  await p6.waitForFunction(() => document.getElementById('boot').hidden);
+  const early = await p6.evaluate(() => globalThis.__early);
+  ok(early.from.startsWith('day-skipper-'),
+    `the second visit paints the course's own scene before app.js (${early.from})`);
+  ok(early.line === 'Loading deck…', `and says what the course says (${early.line})`);
+
+  /* Progress: the words on it are the course's, not the engine's. */
+  await p6.click('[data-go="stats"]');
+  await p6.waitForSelector('#hoard-title');
+  const said = await p6.evaluate(() => ({
+    hoard: document.getElementById('hoard-title').textContent,
+    first: document.querySelector('#ach-list b')?.textContent || '',
+    notice: document.getElementById('notice').textContent,
+    link: document.querySelector('#notice a')?.href || '',
+    offline: document.getElementById('offline-note').textContent,
+    offlineShown: !document.getElementById('offline-card').hidden,
+    diagrams: new Set([...DECK.cards].filter((c) => c.m).map((c) => c.m)).size,
+  }));
+  ok(said.hoard === "Ship's log", `the course names the hoard in its own world (${said.hoard})`);
+  ok(said.first === 'cast off', `and names what is in it (${said.first})`);
+  ok(said.notice.includes('almanac'), 'the fineprint is this course\'s caveat');
+  ok(said.link.includes('tiktok.com'), 'and carries the credit it owes');
+  ok(said.offlineShown && said.offline.includes(`${said.diagrams} diagrams`),
+    `offline counts this deck's diagrams (${said.diagrams})`);
+  await c6.close();
+}
+
 await b.close();
 console.log(out.concat(fails).join('\n'));
 if (fails.length) { console.error(`\n${fails.length} failing`); process.exit(1); }
