@@ -25,6 +25,11 @@ else rsync -an --delete --out-format='img   %n' "$DS/img/" "$HERE/web/courses/da
 copy "$CC/cards.json" "$HERE/web/courses/competent-crew/cards.json"
 # CC's figures are its own copy of the Day Skipper drawings (T6: separated files)
 copy "$DS/figures.json" "$HERE/web/courses/competent-crew/figures.json"
-if [ "$FLAG" = "--write" ]; then rsync -a "$CC/media/" "$HERE/web/courses/competent-crew/img/"; fi
+# --delete, like the Day Skipper copy above: when a card stops using a diagram
+# the file has to go too, or the course ships images nothing references. Three
+# were left behind when Competent Crew dropped the Day Skipper sheets that
+# carried material its syllabus excludes.
+if [ "$FLAG" = "--write" ]; then rsync -a --delete "$CC/media/" "$HERE/web/courses/competent-crew/img/";
+else rsync -an --delete --out-format='img   %n' "$CC/media/" "$HERE/web/courses/competent-crew/img/" | head -5; fi
 
 echo "done. Remember: doodles.js copies may drift apart on purpose — review DIFFs, don't blind-write."
