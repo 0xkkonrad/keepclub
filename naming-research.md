@@ -16,7 +16,9 @@ So this is not a decision document. It exists for three reasons:
    **Mnemosyne** (Greek memory goddess, 2003–). The lane is open, which also means nothing
    here has been pre-cleared for trademark.
 
-Nothing below has had a domain, App Store or trademark check.
+Nothing below has had a domain, App Store or trademark check. The names that *have* — the
+public-name and domain idea maze, with prices, collisions and what is still open — are in
+[naming-domains.md](naming-domains.md).
 
 ---
 
