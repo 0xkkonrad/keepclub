@@ -270,9 +270,10 @@ export function openImporter() {
           : e?.message || String(e));
       return;
     }
-    // The deck you just imported is the one you meant to study.
-    localStorage.setItem(globalThis.MUNIN.lastKey, id);
-    location.reload();
+    // The deck you just imported is the one you meant to study. Through the
+    // shell, so that a Back press out of it lands on the picker like every
+    // other way into a course.
+    globalThis.MUNIN.enter(id);
   }
 
   pick();

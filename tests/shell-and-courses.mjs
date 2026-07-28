@@ -499,6 +499,204 @@ const offer = (pg) => pg.evaluate(() => {
   await c12.close();
 }
 
+{
+  /* (g) Back is one press per movement, and it made three of them.
+   *
+   * Entering a course is a fresh load, which used to REPLACE the picker rather
+   * than go on top of it, so the phone's Back gesture threw you out of the app
+   * from a course, from a tab, and from the courses overlay. The picker and the
+   * course share one address, so the entry each of them sits on is what says
+   * which is which — and a cold open on that same bare address still resumes. */
+  const c13 = await b.newContext({ viewport: { width: 390, height: 844 },
+    serviceWorkers: 'block' });
+  const p13 = await c13.newPage();
+  // A press, and then long enough for the reload it may cause to land.
+  const press = async () => {
+    await p13.goBack({ waitUntil: 'commit' }).catch(() => {});
+    await p13.waitForTimeout(1200);
+  };
+  const at = () => p13.evaluate(() => ({
+    shelf: !!document.querySelector('.shelf.on'),
+    overlay: !!document.querySelector('.shelf[role="dialog"]'),
+    course: globalThis.COURSE ? COURSE.id : null,
+    screen: typeof current === 'undefined' ? null : current,
+    last: localStorage.getItem('munin/last-course'),
+  }));
+  await p13.goto(URL, { waitUntil: 'networkidle' });
+  await p13.waitForSelector('.shelf.on');
+  await Promise.all([p13.waitForEvent('load'), p13.click('[data-course="day-skipper"]')]);
+  await p13.waitForFunction(() => document.getElementById('boot').hidden);
+
+  // Two tabs deep is still one press: Back comes home, not back through Browse.
+  await p13.click('[data-go="browse"]');
+  await p13.click('[data-go="stats"]');
+  await press();
+  let now = await at();
+  ok(now.course === 'day-skipper' && now.screen === 'home',
+    `Back from a tab comes home rather than out of the app (${now.screen})`);
+
+  // The overlay closes on Back, with the course still open behind it.
+  await p13.click('.shelf-btn');
+  await p13.waitForSelector('.shelf[role="dialog"]');
+  await press();
+  now = await at();
+  ok(!now.overlay && now.course === 'day-skipper',
+    'Back closes the courses overlay and leaves you in the course');
+
+  // Closing it with the ✕ has to spend that entry too, or the next Back press
+  // pops a panel that is not on screen and looks like a press that went missing.
+  await p13.click('.shelf-btn');
+  await p13.waitForSelector('.shelf[role="dialog"]');
+  await p13.click('#shelf-x');
+  await p13.waitForSelector('.shelf[role="dialog"]', { state: 'detached' });
+  await press();
+  now = await at();
+  ok(now.shelf && !now.overlay,
+    'closing the overlay with the ✕ leaves no history entry behind for Back to waste');
+  // Back on the picker, and it still works as a picker.
+  await Promise.all([p13.waitForEvent('load'), p13.click('[data-course="day-skipper"]')]);
+  await p13.waitForFunction(() => document.getElementById('boot').hidden);
+
+  // And from the course itself: the picker, with the resume pointer untouched
+  // — the bare URL means the shelf here and "carry on" on a cold open.
+  await press();
+  now = await at();
+  ok(now.shelf && !now.course, 'Back from a course home lands on the picker');
+  ok(now.last === 'day-skipper',
+    `and does not forget which course you were in (${now.last})`);
+  const tiles13 = await p13.locator('.shelf-tile').count();
+  ok(tiles13 === REGISTERED.length + 1,
+    `the picker it lands on is the real one, drawn fresh (${tiles13} tiles)`);
+
+  // From the picker, Back is the way out of the app. It is not a trap.
+  await press();
+  ok(!p13.url().startsWith('http'), `and Back off the picker leaves Munin (${p13.url()})`);
+  await c13.close();
+}
+{
+  // (h) The narrow fix for a reload mid-session still holds: the entries the
+  // session pushed are left behind with nothing recorded against them, and the
+  // press that pops one must still do something rather than be swallowed.
+  const c14 = await b.newContext({ viewport: { width: 390, height: 844 },
+    serviceWorkers: 'block' });
+  const p14 = await c14.newPage();
+  await p14.goto(URL, { waitUntil: 'networkidle' });
+  await p14.waitForSelector('.shelf.on');
+  await Promise.all([p14.waitForEvent('load'), p14.click('[data-course="day-skipper"]')]);
+  await p14.waitForFunction(() => document.getElementById('boot').hidden);
+  await p14.click('#study-all');
+  await p14.waitForSelector('#reveal-btn:visible');
+  await p14.reload({ waitUntil: 'networkidle' });
+  await p14.waitForFunction(() => document.getElementById('boot').hidden);
+  await p14.goBack({ waitUntil: 'commit' }).catch(() => {});
+  await p14.waitForTimeout(1500);
+  const after14 = await p14.evaluate(() => ({
+    shelf: !!document.querySelector('.shelf.on'),
+    url: location.href,
+  }));
+  ok(after14.shelf && after14.url.startsWith('http'),
+    'one Back press after a reload mid-session moves, and moves inside the app');
+  await c14.close();
+}
+{
+  /* (i) Practising ahead is practice: the schedule does not move.
+   *
+   * Once the day's cards are done the home button offers the ones scheduled
+   * for later. Answering one used to be recorded as a review passed on the day
+   * it was due — a card answered fifteen seconds ago grew from "tomorrow" to
+   * "in three days" — so a quiet afternoon of extra work pushed the deck out
+   * to the interval cap without a day having passed. */
+  const c15 = await b.newContext({ viewport: { width: 390, height: 844 },
+    serviceWorkers: 'block' });
+  const p15 = await c15.newPage();
+  await p15.goto(URL, { waitUntil: 'networkidle' });
+  await p15.waitForSelector('.shelf.on');
+  await Promise.all([p15.waitForEvent('load'), p15.click('[data-course="competent-crew"]')]);
+  await p15.waitForFunction(() => document.getElementById('boot').hidden);
+  // Two new cards a day, so today's plan is two cards long. Competent Crew
+  // ships no exam date, so the number asked for is the number used.
+  await p15.click('[data-go="stats"]');
+  await p15.fill('#set-new', '2');
+  await p15.dispatchEvent('#set-new', 'change');
+  await p15.click('[data-go="home"]');
+  const answer = async (g) => {
+    await p15.waitForSelector('#reveal-btn:visible');
+    await p15.click('#reveal-btn');
+    await p15.waitForSelector(`.grade[data-g="${g}"]:visible`);
+    await p15.click(`.grade[data-g="${g}"]`);
+    await p15.waitForTimeout(80);
+  };
+  await p15.click('#study-all');
+  await answer(3);
+  await answer(3);
+  await p15.waitForSelector('#done-home:visible');
+  await p15.click('#done-home');
+  await p15.evaluate(() => writeNow());
+  const KEY = 'munin/competent-crew/state/v1';
+  const before15 = await p15.evaluate((k) => localStorage.getItem(k), KEY);
+  const btn15 = (await p15.textContent('#study-all')).trim();
+  ok(/^practise/i.test(btn15), `the day's work done, the button offers practice ("${btn15}")`);
+  ok((await p15.textContent('#today-note')).includes('nothing you answer counts'),
+    'and says what it costs before you tap it: nothing counts');
+
+  await p15.click('#study-all');
+  await p15.waitForSelector('#reveal-btn:visible');
+  ok((await p15.textContent('#toast')).toLowerCase().startsWith('practice'),
+    'the session opens by saying it is practice');
+  await p15.click('#reveal-btn');
+  await p15.waitForSelector('.grade[data-g="3"]:visible');
+  const dock15 = await p15.evaluate(() => ({
+    ask: document.getElementById('grade-ask').textContent,
+    ivs: [1, 2, 3, 4].map((g) => document.getElementById('iv' + g).textContent).join(''),
+  }));
+  ok(dock15.ivs === '', 'the grade buttons promise no dates, because none will be applied');
+  ok(dock15.ask.toLowerCase().includes('practice'), `and the line above them says so ("${dock15.ask}")`);
+  await p15.click('.grade[data-g="3"]');
+  await p15.waitForTimeout(120);
+  const mid15 = await p15.evaluate(() => ({
+    left: document.getElementById('study-left').textContent,
+    done: session.done,
+  }));
+  ok(mid15.done === 1 && /1 done/.test(mid15.left),
+    `the session still counts its own cards (${mid15.left})`);
+  // Answer the whole of it, Again included, and the schedule must not have moved.
+  for (let i = 0; i < 80; i++) {
+    if (!(await p15.locator('#reveal-btn').isVisible())) break;
+    await answer(i === 0 ? 1 : 3);
+  }
+  await p15.waitForSelector('#done-home:visible');
+  await p15.evaluate(() => writeNow());
+  const after15 = await p15.evaluate((k) => localStorage.getItem(k), KEY);
+  ok(after15 === before15,
+    'a whole practice round changes not one due date, interval, streak or day count');
+  const done15 = await p15.evaluate(() => ({
+    line: document.getElementById('done-line').textContent,
+    stats: document.getElementById('done-stats').innerText.replace(/\s+/g, ' '),
+  }));
+  ok(done15.line.toLowerCase().includes('practice'),
+    `the summary says the same thing at the end ("${done15.line}")`);
+  ok(/\b0 new\b/.test(done15.stats),
+    `and claims no new cards were started, because none were (${done15.stats})`);
+  await p15.click('#done-home');
+
+  // The ordinary session it sits beside is untouched: roll the day over and the
+  // next real answer is recorded exactly as before.
+  await p15.evaluate(() => {
+    state.day = '2000-01-01';
+    state.lastDay = '2000-01-01';
+    writeNow();
+  });
+  await p15.reload({ waitUntil: 'networkidle' });
+  await p15.waitForFunction(() => document.getElementById('boot').hidden);
+  await p15.click('#study-all');
+  await answer(3);
+  await p15.evaluate(() => writeNow());
+  const real15 = await p15.evaluate((k) => JSON.parse(localStorage.getItem(k)), KEY);
+  ok(Object.keys(real15.recs).length >= 3 && real15.answers >= 3,
+    `a real session still writes to the schedule (${Object.keys(real15.recs).length} cards answered)`);
+  await c15.close();
+}
+
 await b.close();
 console.log(out.concat(fails).join('\n'));
 if (fails.length) { console.error(`\n${fails.length} failing`); process.exit(1); }

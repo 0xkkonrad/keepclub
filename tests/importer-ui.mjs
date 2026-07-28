@@ -233,6 +233,71 @@ ok(/^local-[a-z0-9]+$/.test(id), `the imported deck becomes the resume target ($
     "the live Day Skipper app's storage is never touched");
 }
 
+/* Two copies of one deck are told apart by what is on each of them.
+ *
+ * "keep both" is offered on the very screen that has just established the two
+ * files are the same deck, and it used to leave two rows identical down to the
+ * pixel: the name, the card count, the date and even the raven are all worked
+ * out from the deck. Removing the wrong one is two taps and there is no undo,
+ * and neither row said which one held the answers. */
+{
+  const rows = () => p.evaluate(() =>
+    [...document.querySelectorAll('.shelf-row .shelf-tile small')].map((s) => s.textContent));
+  await p.click('[data-byo]');
+  await p.waitForSelector('#imp-file');
+  await give(p, 'legacy.apkg');
+  await p.waitForSelector('.imp .imp-book', { timeout: 20000 });
+  await Promise.all([p.waitForEvent('load'), p.click('[data-keep="new"]')]);
+  await p.waitForFunction(() => document.getElementById('boot').hidden, null, { timeout: 20000 });
+  await p.click('.shelf-btn');
+  await p.waitForSelector('.shelf.on');
+  const one = await rows();
+  ok(one.length === 1 && /not started/.test(one[0]),
+    `a deck nobody has opened says so (${one[0]})`);
+  await p.click('#shelf-x');
+
+  await p.click('#study-all');
+  for (let i = 0; i < 2; i++) {
+    await p.waitForSelector('#reveal-btn:visible');
+    await p.click('#reveal-btn');
+    await p.waitForSelector('.grade[data-g="3"]:visible');
+    await p.click('.grade[data-g="3"]');
+  }
+  await p.evaluate(() => writeNow());
+  await p.click('#end-btn');
+  await p.waitForSelector('.shelf-btn', { state: 'visible' });
+
+  await p.click('.shelf-btn');
+  await p.waitForSelector('.shelf.on');
+  await p.click('[data-byo]');
+  await p.waitForSelector('#imp-file');
+  await give(p, 'legacy.apkg');
+  await p.waitForSelector('.imp .imp-book', { timeout: 20000 });
+  ok(await p.locator('[data-keep="new"]').isVisible(), 'the same file again offers to keep both');
+  await Promise.all([p.waitForEvent('load'), p.click('[data-keep="new"]')]);
+  await p.waitForFunction(() => document.getElementById('boot').hidden, null, { timeout: 20000 });
+  await p.click('.shelf-btn');
+  await p.waitForSelector('.shelf.on');
+  const two = await rows();
+  ok(two.length === 2, `keeping both leaves two rows (${two.length})`);
+  ok(two[0] !== two[1], `and they do not read the same (${two.join('  //  ')})`);
+  ok(two.some((t) => /2 answered/.test(t)) && two.some((t) => /not started/.test(t)),
+    'one of them holds your answers and says how many, the other says it is untouched');
+
+  // A state key that cannot be read is not a claim about anything: the row goes
+  // back to saying nothing rather than reporting "not started" over the top of
+  // work that may well be there.
+  const ids = await p.evaluate(async () =>
+    (await (await import('./lib/store.js')).list()).map((d) => d.id));
+  await p.evaluate((k) => localStorage.setItem(`munin/${k}/state/v1`, '{not json'), ids[0]);
+  await p.click('#shelf-x');
+  await p.click('.shelf-btn');
+  await p.waitForSelector('.shelf.on');
+  const junk = await rows();
+  ok(junk.some((t) => !/answered|not started/.test(t)),
+    `an unreadable state key makes the row quiet, not wrong (${junk.join('  //  ')})`);
+}
+
 ok(errors.length === 0, `no uncaught errors in the whole run (${errors.slice(0, 2).join(' | ') || 'none'})`);
 
 await b.close();
