@@ -1233,7 +1233,7 @@ async function renderShelf(asOverlay, say) {
       ${asOverlay ? `<button type="button" class="icon-btn shelf-x" id="shelf-x"
         aria-label="Close" title="Close">✕</button>` : ''}
     </div>
-    <p class="shelf-sub">spaced repetition that doesn't make you learn the app first</p>
+    <p class="shelf-sub">membership pays in memories.</p>
     <div class="shelf-tiles">
       ${say ? `<div class="shelf-tile broken">${muninDoodle('peek')}
         <span><b>${escHtml(say)}</b><small>pick one below to carry on</small></span></div>` : ''}
