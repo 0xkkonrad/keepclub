@@ -9,15 +9,17 @@ Outputs, all under build/ and all generated — nothing in here is hand-edited:
   build/STUDY-GUIDE.md    the same content as a readable document
   build/REUSE.md          what is a pointer, what is original, per section
 
-A Competent Crew card is either a tuple `(front, back[, fig])` — original
-content — or a `ref(ds_section, front)` pointing at a Day Skipper card. The
-pointer is resolved here and nowhere else; no Day Skipper wording is ever copied
-into this repo, so there is exactly one place each shared fact is authored.
+The card source is `cards/` — markdown, one file per section, parsed by
+content/mdc.py (the 28 July 2026 migration). A card is either original
+content or a `{ref=<section>}` pointer at a Day Skipper card. The pointer is
+resolved here and nowhere else; no Day Skipper wording is ever copied into
+this course's source, so there is exactly one place each shared fact is
+authored.
 
 Card ids are `sha1(question)[:10]`, the same scheme Day Skipper uses. That is
-deliberate: a pointer card and the card it points at get the *same id*, so when
-the two decks eventually share one app they share one review history for the
-facts they share. Learning what a bowline is for should not need doing twice.
+deliberate: a pointer card and the card it points at get the *same id*, so
+the two decks share one review history for the facts they share. Learning
+what a bowline is for should not need doing twice.
 """
 import hashlib
 import json
@@ -29,16 +31,16 @@ import sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
+sys.path.insert(0, os.path.dirname(ROOT))
 
 import ds                                  # noqa: E402
-from cards_cc import SECTIONS_CC           # noqa: E402
+import mdc                                 # noqa: E402
 
+CARDS = os.path.join(ROOT, "cards")
 BUILD = os.path.join(ROOT, "build")
 DECKS = os.path.join(BUILD, "decks")
 TOP = "RYA Competent Crew"
 COURSE = "competent-crew"
-
-ALLOWED_TAGS = {"b", "i", "u", "br", "sub", "sup"}
 
 # Topics the Competent Crew syllabus does not contain at any depth. A card that
 # mentions one is not automatically wrong — "the skipper will work out the
@@ -57,56 +59,6 @@ OUT_OF_SCOPE = [
     "synoptic", "waypoint", "chartplotter", "impeller", "bleeding the fuel",
     "give-way vessel", "stand-on vessel", "day shape",
 ]
-
-
-def card_id(question):
-    return hashlib.sha1(question.encode("utf-8")).hexdigest()[:10]
-
-
-def check_html(field, where, errs):
-    """Keep the tag set tiny and known — the app renders these as HTML.
-
-    Checking the tag *name* is not enough: `<b onmouseover=…>` has an allowed
-    name and an event handler. Nothing but the name and an optional slash may
-    appear between the angle brackets.
-    """
-    for m in re.finditer(r"<([^>]*)>", field):
-        inner = m.group(1).strip()
-        if not re.fullmatch(r"/?\s*([a-zA-Z][a-zA-Z0-9]*)\s*/?", inner):
-            errs.append(f"{where}: tag with attributes or junk: <{inner[:40]}>")
-            continue
-        tag = re.search(r"[a-zA-Z][a-zA-Z0-9]*", inner).group(0).lower()
-        if tag not in ALLOWED_TAGS:
-            errs.append(f"{where}: unexpected tag <{tag}>")
-    if field.count("<") != field.count(">"):
-        errs.append(f"{where}: unbalanced angle brackets")
-    for m in re.finditer(r"&(?!#?\w+;)", field):
-        errs.append(f"{where}: bare '&' at char {m.start()}")
-    if "\t" in field:
-        errs.append(f"{where}: TAB")
-    if "\n" in field:
-        errs.append(f"{where}: NEWLINE")
-    if not field.strip():
-        errs.append(f"{where}: empty")
-
-
-def parse_figure(spec, where, errs):
-    """`fig:<name>` or `fig:<name>@<label>,<label>`, validated against Day
-    Skipper's figure set — this deck draws nothing of its own yet."""
-    name, _, on = spec[4:].partition("@")
-    f = ds.FIGS.get(name)
-    if not f:
-        errs.append(f"{where}: no such figure {name!r}")
-        return None
-    entry = {"n": name}
-    if on:
-        wanted = [s.strip() for s in on.split(",") if s.strip()]
-        bad = [s for s in wanted if s not in f["l"]]
-        if bad:
-            errs.append(f"{where}: figure {name} has no label(s) {bad}")
-            return None
-        entry["on"] = wanted
-    return entry
 
 
 # Words that carry no subject matter. Left in, a pair of long answers about
@@ -137,7 +89,7 @@ def _containment(a, b):
     return len(a & b) / min(len(a), len(b))
 
 
-def duplication_pass(cards, warns):
+def duplication_pass(cards, ds_cards, warns):
     """Find a fact taught twice — against Day Skipper, and inside this deck.
 
     Comparing originals to Day Skipper is the obvious half. The half that
@@ -152,7 +104,7 @@ def duplication_pass(cards, warns):
     for c, mine in wc:
         if c.get("r"):                      # pointers are Day Skipper's own words
             continue
-        for (k, front), (_f, theirs, _i) in ds.BY_KEY.items():
+        for k, front, theirs in ds_cards:
             # 0.65, not 0.7: the closest surviving card sits at 69.8%, and a
             # threshold a known card clears by 0.3 points will not catch it
             # drifting further.
@@ -161,7 +113,7 @@ def duplication_pass(cards, warns):
                 warns.append(
                     f"{c['s']}/{c['q'][:40]!r}: {score:.0%} of the shorter answer "
                     f"is shared with Day Skipper {k}/{front[:40]!r} — point at it "
-                    f"with ref(), or make the crew-level card genuinely different"
+                    f"with {{ref=…}}, or make the crew-level card genuinely different"
                 )
                 break
 
@@ -184,69 +136,50 @@ def scope_check(front, back, where, warns):
 
 def main():
     errs, warns = [], []
-    sections, cards, seen = [], [], {}
-    stats = []
 
-    ds_fronts = {f for (_k, f) in ds.BY_KEY}
+    ds_deck = mdc.parse_course(ds.DS_CARDS)
+    deck = mdc.parse_course(CARDS)
+    mdc.resolve_refs(deck, ds_deck, "Day Skipper", errs)
 
-    for idx, (key, title, section_cards) in enumerate(SECTIONS_CC, 1):
+    ds_fronts = {q for (_k, q) in ds_deck.index()}
+    ds_stamp = ds_deck.stamp()
+
+    sections, cards, stats = [], [], []
+    for s in deck.sections:
         n_ref = n_new = 0
-        for n, card in enumerate(section_cards, 1):
-            where = f"{key}#{n}"
-
-            if isinstance(card, ds.Ref):
-                resolved = card.resolve(where, errs)
-                if not resolved:
-                    continue
-                front, back, img = resolved
-                if card.media is False:
-                    img = None                  # out of scope; see ds.Ref
-                elif isinstance(card.media, str):
-                    img = card.media            # the Competent Crew cut
-                origin = card.section
+        for c in s.cards:
+            if c.ref:
                 n_ref += 1
             else:
-                front, back = card[0], card[1]
-                img = card[2] if len(card) > 2 and card[2] else None
-                origin = None
                 n_new += 1
                 # An original card must not restate a Day Skipper card.
-                if front in ds_fronts:
+                if c.q in ds_fronts:
                     errs.append(
-                        f"{where}: this question already exists in Day Skipper "
-                        f"— use ref() so there is one copy of the answer"
+                        f"{c.where}: this question already exists in Day Skipper "
+                        f"— use {{ref=…}} so there is one copy of the answer"
                     )
-                scope_check(front, back, where, warns)
-
-            check_html(front, where + " q", errs)
-            check_html(back, where + " a", errs)
-
-            cid = card_id(front)
-            if cid in seen:
-                errs.append(f"{where}: duplicate question, same as {seen[cid]}")
-            seen[cid] = where
+                scope_check(c.q, c.a or "", c.where, warns)
 
             figure = None
-            if img and img.startswith("fig:"):
-                figure = parse_figure(img, where, errs)
+            if c.fig:
+                figure = mdc.parse_figure(c.fig, ds.FIGS, c.where, errs)
+            img = c.img
+            if img and not os.path.isfile(os.path.join(ds.DS_MEDIA, img)):
+                errs.append(f"{c.where}: missing image {img}")
                 img = None
-            elif img and not os.path.isfile(os.path.join(ds.DS_MEDIA, img)):
-                errs.append(f"{where}: missing image {img}")
 
-            entry = {"i": cid, "s": key, "q": front, "a": back}
+            entry = {"i": c.id, "s": s.key, "q": c.q, "a": c.a or ""}
             if img:
                 entry["m"] = img
-                path = os.path.join(ds.DS_MEDIA, img)
-                if os.path.isfile(path):
-                    entry["d"] = png_size(path)
+                entry["d"] = png_size(os.path.join(ds.DS_MEDIA, img))
             if figure:
                 entry["f"] = figure
-            if origin:
-                entry["r"] = origin      # provenance: which DS section it came from
+            if c.ref:
+                entry["r"] = c.ref       # provenance: which DS section it came from
             cards.append(entry)
 
-        sections.append({"k": key, "t": title, "n": len(section_cards), "o": idx})
-        stats.append((key, title, n_ref, n_new))
+        sections.append({"k": s.key, "t": s.title, "n": len(s.cards), "o": s.order})
+        stats.append((s.key, s.title, n_ref, n_new))
 
     if errs:
         print(f"{len(errs)} PROBLEMS:")
@@ -254,17 +187,20 @@ def main():
             print("  " + e)
         sys.exit(1)
 
-    duplication_pass(cards, warns)
+    ds_cards = [
+        (sec.key, c.q, c.a) for sec in ds_deck.sections for c in sec.cards
+    ]
+    duplication_pass(cards, ds_cards, warns)
 
-    write_json(sections, cards)
+    write_json(sections, cards, ds_stamp)
     used = copy_media(cards)
     write_decks(stats, cards)
     write_guide(stats, cards)
-    write_reuse(stats)
+    write_reuse(stats, ds_stamp)
 
     total_ref = sum(s[2] for s in stats)
     total_new = sum(s[3] for s in stats)
-    print(f"day skipper : {ds.DS_ROOT} @ {ds.commit()}")
+    print(f"day skipper : {ds.DS_ROOT} @ {ds_stamp}")
     print(f"sections    : {len(sections)}")
     print(f"cards       : {len(cards)}  ({total_ref} pointers, {total_new} original)")
     print(f"media       : {len(used)} copied from Day Skipper")
@@ -276,10 +212,10 @@ def main():
         print("\nvalidation clean")
 
 
-def write_json(sections, cards):
+def write_json(sections, cards, ds_stamp):
     os.makedirs(BUILD, exist_ok=True)
     body = {"name": TOP, "course": COURSE, "sections": sections, "cards": cards}
-    body["ds"] = ds.commit()
+    body["ds"] = ds_stamp
     body["build"] = hashlib.sha1(
         json.dumps(body, ensure_ascii=False, sort_keys=True).encode("utf-8")
     ).hexdigest()[:8]
@@ -386,12 +322,12 @@ def write_guide(stats, cards):
         f.write("\n".join(out) + "\n")
 
 
-def write_reuse(stats):
+def write_reuse(stats, ds_stamp):
     total_r = sum(s[2] for s in stats)
     total_n = sum(s[3] for s in stats)
     out = [
         "# What this deck reuses\n",
-        f"Resolved against Day Skipper at `{ds.commit()}`.\n",
+        f"Resolved against Day Skipper at `{ds_stamp}`.\n",
         f"**{total_r + total_n} cards: {total_r} pointers into the Day Skipper "
         f"deck, {total_n} written for Competent Crew.**\n",
         "A pointer means the answer is authored once, in Day Skipper, and this "

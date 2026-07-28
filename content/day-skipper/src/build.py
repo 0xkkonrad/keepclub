@@ -6,6 +6,9 @@ Outputs:
   decks/<nn>-<key>.tsv        one file per syllabus section, with Anki header lines
   decks/rya-day-skipper-all.tsv   everything in one file
   STUDY-GUIDE.md              the same content as a readable revision document
+
+The card source is `cards/` — markdown, parsed by content/mdc.py, the same
+parser the web build reads through, so the two outputs cannot drift apart.
 """
 import os
 import re
@@ -13,33 +16,13 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
-sys.path.insert(0, HERE)
+sys.path.insert(0, os.path.dirname(ROOT))
 
-from cards_a import SECTIONS_A          # noqa: E402
-from cards_b import SECTIONS_B          # noqa: E402
-from cards_c import SECTIONS_C          # noqa: E402
+import mdc                              # noqa: E402
 
-SECTIONS = SECTIONS_A + SECTIONS_B + SECTIONS_C
+CARDS = os.path.join(ROOT, "cards")
 DECKS = os.path.join(ROOT, "build", "decks")
 MEDIA = os.path.join(ROOT, "media")
-TOP = "RYA Day Skipper"
-
-
-def check(front, back, img, where):
-    errs = []
-    for name, field in (("front", front), ("back", back)):
-        if "\t" in field:
-            errs.append(f"{where}: TAB in {name}")
-        if "\n" in field:
-            errs.append(f"{where}: NEWLINE in {name}")
-        if not field.strip():
-            errs.append(f"{where}: empty {name}")
-        # a bare & that is not an entity breaks HTML rendering
-        for m in re.finditer(r"&(?!#?\w+;)", field):
-            errs.append(f"{where}: bare '&' in {name} at char {m.start()}")
-    if img and not os.path.isfile(os.path.join(MEDIA, img)):
-        errs.append(f"{where}: missing media file {img}")
-    return errs
 
 
 def main():
@@ -48,44 +31,42 @@ def main():
         if f.endswith(".tsv"):
             os.remove(os.path.join(DECKS, f))
 
+    deck = mdc.parse_course(CARDS)
+    top = deck.name
+
     errors, all_rows, guide, used_media = [], [], [], set()
     total = 0
 
-    for idx, (key, deck_suffix, cards) in enumerate(SECTIONS, 1):
-        deck = f"{TOP}::{deck_suffix}"
+    for s in deck.sections:
+        anki_deck = f"{top}::{s.title}"
         rows = []
-        guide.append(f"\n## {deck_suffix}\n")
-        for n, card in enumerate(cards, 1):
-            front, back = card[0], card[1]
-            # A third field starting `fig:` names a labelled drawing, which is
-            # inline SVG in the web app and has no file to ship with a deck.
-            # Anki and the study guide carry the PNG diagrams only.
-            img = card[2] if len(card) > 2 and card[2] else None
-            if img and img.startswith("fig:"):
-                img = None
-            errors += check(front, back, img, f"{key}#{n}")
-            body = back
+        guide.append(f"\n## {s.title}\n")
+        for c in s.cards:
+            # A labelled drawing is inline SVG in the web app and has no file
+            # to ship with a deck. Anki and the guide carry the PNGs only.
+            img = c.img
+            if img and not os.path.isfile(os.path.join(MEDIA, img)):
+                errors.append(f"{c.where}: missing media file {img}")
+            body = c.a
             if img:
                 used_media.add(img)
-                body = f'{back}<br><br><img src="{img}">'
-            tags = f"RYA DaySkipper {key}"
-            rows.append(f"{front}\t{body}\t{tags}")
-            all_rows.append(f"{front}\t{body}\t{tags}\t{deck}")
-            guide.append(f"**{front}**\n")
-            plain = re.sub(r"<br\s*/?>", " ", back)
-            plain = re.sub(r"</?(b|u|i|tspan[^>]*)>", "**" if False else "", plain)
-            plain = back.replace("<b>", "**").replace("</b>", "**")
+                body = f'{c.a}<br><br><img src="{img}">'
+            tags = f"RYA DaySkipper {s.key}"
+            rows.append(f"{c.q}\t{body}\t{tags}")
+            all_rows.append(f"{c.q}\t{body}\t{tags}\t{anki_deck}")
+            guide.append(f"**{c.q}**\n")
+            plain = c.a.replace("<b>", "**").replace("</b>", "**")
             plain = plain.replace("<u>", "_").replace("</u>", "_")
             plain = re.sub(r"<br\s*/?>", "  \n", plain)
             guide.append(f"{plain}\n")
             if img:
-                guide.append(f"![{key} diagram](media/{img})\n")
+                guide.append(f"![{s.key} diagram](media/{img})\n")
             total += 1
 
-        path = os.path.join(DECKS, f"{idx:02d}-{key}.tsv")
+        path = os.path.join(DECKS, f"{s.order:02d}-{s.key}.tsv")
         with open(path, "w", encoding="utf-8") as f:
             f.write("#separator:tab\n#html:true\n#notetype:Basic\n")
-            f.write(f"#deck:{deck}\n#tags column:3\n")
+            f.write(f"#deck:{anki_deck}\n#tags column:3\n")
             f.write("\n".join(rows) + "\n")
 
     with open(os.path.join(DECKS, "rya-day-skipper-all.tsv"), "w", encoding="utf-8") as f:
@@ -96,7 +77,7 @@ def main():
     header = f"""# RYA Day Skipper — study guide
 
 Companion to the Anki deck in `decks/`. {total} question-and-answer items across
-{len(SECTIONS)} sections, following the RYA Day Skipper shorebased and practical
+{len(deck.sections)} sections, following the RYA Day Skipper shorebased and practical
 syllabus. Diagrams in `media/` are original artwork generated by `src/diagrams.py`.
 
 This is revision material, not a substitute for the RYA course, the current
@@ -107,7 +88,7 @@ at sea against the official publication.
         f.write(header + "\n".join(guide) + "\n")
 
     unused = sorted(set(os.listdir(MEDIA)) - used_media)
-    print(f"sections : {len(SECTIONS)}")
+    print(f"sections : {len(deck.sections)}")
     print(f"cards    : {total}")
     print(f"images   : {len(used_media)} of {len(os.listdir(MEDIA))} referenced")
     if unused:

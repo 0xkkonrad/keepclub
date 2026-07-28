@@ -8,18 +8,19 @@ web/courses/day-skipper/. Nothing here knows about the app any more: the
 service-worker cache key this used to stamp belonged to the standalone Day
 Skipper app, which was retired on 28 July 2026, and Munin stamps its own.
 
-The card source of truth stays cards_a|b|c.py — this only re-shapes it for the
-browser and shrinks the diagrams so the whole deck is a sane mobile download.
+The card source of truth is `cards/` — markdown, one file per section, parsed
+and validated by content/mdc.py (the 28 July 2026 migration; the python card
+modules this used to import are gone). This only re-shapes it for the browser
+and shrinks the diagrams so the whole deck is a sane mobile download.
 
 Card ids are a short hash of the question text, so a card keeps its review
-history across rebuilds as long as its question is unchanged. Editing a question
-is treated as making a new card, which is the honest behaviour: if the prompt
-changed, what you remembered about it no longer applies.
+history across rebuilds as long as its question is unchanged. Editing a
+question is treated as making a new card unless the card pins its id — see
+course-source.md at the repo root.
 """
 import hashlib
 import json
 import os
-import re
 import sys
 
 from PIL import Image
@@ -27,15 +28,13 @@ from PIL import Image
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 sys.path.insert(0, HERE)
+sys.path.insert(0, os.path.dirname(ROOT))
 
 import doodles                          # noqa: E402
 import figures                          # noqa: E402
-import groups                           # noqa: E402
-from cards_a import SECTIONS_A          # noqa: E402
-from cards_b import SECTIONS_B          # noqa: E402
-from cards_c import SECTIONS_C          # noqa: E402
+import mdc                              # noqa: E402
 
-SECTIONS = SECTIONS_A + SECTIONS_B + SECTIONS_C
+CARDS = os.path.join(ROOT, "cards")
 MEDIA = os.path.join(ROOT, "media")
 WEB = os.path.join(ROOT, "build")
 IMG = os.path.join(WEB, "img")
@@ -46,33 +45,6 @@ IMG = os.path.join(WEB, "img")
 # every line and antialiased edge, which costs more in the palette than the
 # pixels save. The diagrams stay at their rendered 2x size for pinch-zoom.
 PALETTE_COLOURS = 192
-
-ALLOWED_TAGS = {"b", "i", "u", "br", "sub", "sup"}
-
-
-def card_id(question):
-    return hashlib.sha1(question.encode("utf-8")).hexdigest()[:10]
-
-
-def check_html(field, where, errs):
-    """The app renders these fields as HTML, so keep the tag set tiny and known.
-
-    Checking the tag *name* is not enough — `<b onmouseover=…>` has an allowed
-    name and an event handler. Nothing but the name and an optional slash may
-    appear inside the angle brackets.
-    """
-    for m in re.finditer(r"<([^>]*)>", field):
-        inner = m.group(1).strip()
-        if not re.fullmatch(r"/?\s*([a-zA-Z][a-zA-Z0-9]*)\s*/?", inner):
-            errs.append(f"{where}: tag with attributes or junk: <{inner[:40]}>")
-            continue
-        tag = re.search(r"[a-zA-Z][a-zA-Z0-9]*", inner).group(0).lower()
-        if tag not in ALLOWED_TAGS:
-            errs.append(f"{where}: unexpected tag <{tag}>")
-    if field.count("<") != field.count(">"):
-        errs.append(f"{where}: unbalanced angle brackets")
-    for m in re.finditer(r"&(?!#?\w+;)", field):
-        errs.append(f"{where}: bare '&' at char {m.start()}")
 
 
 def build_images():
@@ -104,65 +76,30 @@ def build_images():
     return sizes
 
 
-def parse_figure(spec, where, errs):
-    """`fig:<name>` or `fig:<name>@<label>,<label>` from a card's third field.
-
-    No `@` means every label on the drawing is lit, which is right when the
-    card asks for all of them. With an `@` list, the other labels stay dimmed
-    as context — that is how one drawing serves several cards without the
-    first one answering the rest.
-    """
-    body = spec[4:]
-    name, _, on = body.partition("@")
-    f = figures.FIGS.get(name)
-    if not f:
-        errs.append(f"{where}: no such figure {name!r}")
-        return None
-    entry = {"n": name}
-    if on:
-        wanted = [s.strip() for s in on.split(",") if s.strip()]
-        bad = [s for s in wanted if s not in f["l"]]
-        if bad:
-            errs.append(f"{where}: figure {name} has no label(s) {bad}")
-            return None
-        entry["on"] = wanted
-    return entry
-
-
 def main():
     os.makedirs(WEB, exist_ok=True)
     figures.main()
     doodles.main()
     sizes = build_images()
 
-    errs, sections, cards, seen = [], [], [], {}
-    for idx, (key, title, section_cards) in enumerate(SECTIONS, 1):
-        for n, card in enumerate(section_cards, 1):
-            q, a = card[0], card[1]
-            img = card[2] if len(card) > 2 and card[2] else None
-            where = f"{key}#{n}"
-            check_html(q, where + " q", errs)
-            check_html(a, where + " a", errs)
-            cid = card_id(q)
-            if cid in seen:
-                errs.append(f"{where}: duplicate question, same as {seen[cid]}")
-            seen[cid] = where
+    deck = mdc.parse_course(CARDS)
+
+    errs, sections, cards = [], [], []
+    for s in deck.sections:
+        for c in s.cards:
             figure = None
-            if img and img.startswith("fig:"):
-                figure = parse_figure(img, where, errs)
-                img = None
-            elif img and img not in sizes:
-                errs.append(f"{where}: missing image {img}")
-            entry = {"i": cid, "s": key, "q": q, "a": a}
-            if img:
-                entry["m"] = img
-                entry["d"] = sizes[img]
+            if c.fig:
+                figure = mdc.parse_figure(c.fig, figures.FIGS, c.where, errs)
+            elif c.img and c.img not in sizes:
+                errs.append(f"{c.where}: missing image {c.img}")
+            entry = {"i": c.id, "s": s.key, "q": c.q, "a": c.a}
+            if c.img:
+                entry["m"] = c.img
+                entry["d"] = sizes.get(c.img)
             if figure:
                 entry["f"] = figure
             cards.append(entry)
-        sections.append({"k": key, "t": title, "n": len(section_cards), "o": idx})
-
-    groups.check([s["k"] for s in sections], errs)
+        sections.append({"k": s.key, "t": s.title, "n": len(s.cards), "o": s.order})
 
     if errs:
         print(f"\n{len(errs)} PROBLEMS:")
@@ -170,8 +107,8 @@ def main():
             print("  " + e)
         sys.exit(1)
 
-    body = {"name": "RYA Day Skipper", "sections": sections,
-            "groups": groups.build(sections), "cards": cards}
+    body = {"name": deck.name, "sections": sections,
+            "groups": mdc.build_groups(deck, sections), "cards": cards}
     # A content hash, not a number someone has to remember to bump.
     body["build"] = hashlib.sha1(
         json.dumps(body, ensure_ascii=False, sort_keys=True).encode("utf-8")

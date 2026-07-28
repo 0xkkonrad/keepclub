@@ -16,18 +16,21 @@ compile into it — markdown, Anki, something else — is treated separately in
 ```
 web/courses/<id>/
   course.json      required   identity + theme hooks
-  cards.json       required   the deck
+  cards.json       required   the deck — shape gated by web/lib/validate.js
   img/             required only if any card has "m"
   doodles.js       optional   line-art set; absent → Munin's raven set
+  boot.html/.css   optional   the course's loading screen; absent → Munin's raven
   figures.json     optional   labelled drawings; absent → figure cards show no drawing
   videos.json      optional   clips per card; absent → no video UI at all
   video/           required only if videos.json names files
 ```
 
-Registration is the one step outside the folder: the shell's course list is
-hardcoded (`MUNIN.courses` in `web/munin.js`), so a new folder is invisible
-until its id is added there. `?course=<id>` in the URL selects a course and
-becomes the resume pointer (`localStorage['munin/last-course']`).
+Registration is the one step outside the folder: add the id to
+`web/courses/index.json` — the single registry the shell, the service worker
+and `scripts/refresh-courses.sh` all read (a registered course with no
+refresh rule stops that script on purpose). The folder name is the course's
+identity; progress is keyed on it. `?course=<id>` in the URL selects a course
+and becomes the resume pointer.
 
 Decks imported from `.apkg` bypass all of this — they live in IndexedDB, not in
 a folder, and the shell hands `app.js` the deck object directly with Munin's own
@@ -57,8 +60,13 @@ theme. This document is about *authored* courses.
 
 ## course.json — optional part (chrome)
 
-Every field below has a shipped fallback. A course that stops after `accent`
-is a complete, studyable course.
+Every field below has a shipped fallback — since the 28 Jul seam refactor,
+Munin's own theme is the *default layer*, filled in slot by slot, not a
+special case. A course that stops after `accent` is a complete, studyable
+course. (The loading screen is the one piece that moved out of course.json:
+a course ships `boot.html` + `boot.css` files, written as a starter by
+`scripts/make-boot.mjs` and hand-tuned from there; `boot.{art,anim,line}`
+stay as the fallback for a course without them.)
 
 | field | what it does | absent → |
 |---|---|---|
@@ -67,7 +75,11 @@ is a complete, studyable course.
 | `boot.anim` | boot doodle animation, `sail` or `hop` | `sail` |
 | `boot.art` | doodle name drawn on the boot screen | `fallback`, then first doodle |
 | `fallback` | default doodle name wherever art is looked up | first entry in the doodle set |
-| `shelfArt` | doodle name for the shelf tile | generic tile |
+| `short` | short course name for tight chrome | `title` |
+| `shelfPath` | shelf-tile emblem, an SVG path written by `scripts/make-boot.mjs` from the course's own doodles | Munin's raven |
+| `notice` | the course's fineprint line | none |
+| `credit` | `{name, href}` for licensed material (video clips) | none |
+| `hoard` | achievement names/art over Munin's fourteen rules | raven vocabulary |
 | `sectionArt` | `{sectionKey: doodleName}`, per-section badge | `{}` — no badges |
 | `groupArt` | `{groupKey: doodleName}`, done-screen badge | `{}` |
 | `friezeArt` | array of doodle names for the decorative frieze | `[]` — no frieze |
@@ -118,10 +130,13 @@ is a complete, studyable course.
 | `f` | no | labelled figure: `n` names an entry in `figures.json`, `on` lists the labels to light. Missing `on` lights all of them. |
 | `r` | no | authoring provenance: which Day Skipper section this card was pointed at (see *Identity*). Unread by the app. |
 
-`q` and `a` are injected as HTML. The builds allow exactly `<b> <i> <u> <br>
-<sub> <sup>`, no attributes on anything, entities for everything else — the
-app trusts the build, so anything writing cards.json by hand inherits that
-whitelist as an obligation, not a suggestion.
+`q` and `a` are injected as HTML. The builds allow `<b> <i> <u> <br> <sub>
+<sup>`, lists (`<ul> <ol> <li>`) and safe links (`<a>` with exactly
+`href="https…|mailto…" target="_blank" rel="noopener"` — the one tag that may
+carry attributes), entities for everything else. This is `WHITELIST` in
+`content/mdc.py`, widened from the original six tags by the 28 Jul 2026
+ruling. The app trusts the build, so anything writing cards.json by hand
+inherits that whitelist as an obligation, not a suggestion.
 
 ### Identity
 
@@ -197,17 +212,15 @@ adopted only if both `clips` and `cards` parse; otherwise — or when absent, as
 in Competent Crew — the video UI does not exist. Clips are fetched on tap and
 never precached.
 
-## Authoring pipelines, as they exist today
+## The authoring side
 
-Both shipped courses are authored as Python literals and compiled:
-
-- `content/day-skipper/src/` — `cards_*.py` + `web_build.py` → `build/`
-- `content/competent-crew/src/` — `sec_*.py` + `build.py` → `build/`, with
-  `ref()` pointers resolved against Day Skipper (see that course's README)
-- `scripts/refresh-courses.sh --write` copies `build/` → `web/courses/`
+Courses are authored in markdown under `content/<id>/cards/` — one file per
+section, parsed by `content/mdc.py`, compiled by each course's build into the
+folder documented above. `course-source.md` is the full spec: card syntax,
+inline markup, `{#id}` pins, `{ref=…}` pointer cards, media and figure lines.
+`scripts/refresh-courses.sh --write` copies `build/` → `web/courses/`.
 
 `build/` is gitignored; what ships is the committed copy under `web/courses/`.
-The builds are where validation lives — HTML whitelist, duplicate ids, missing
-images, unknown figure labels — so the app can stay trusting. Whatever
-authoring format comes next (see `schema-research.md`) replaces the left-hand
-side of this arrow only; the folder contract above is the stable interface.
+The builds are where validation lives — the HTML whitelist, duplicate ids,
+missing images, unknown figure labels — so the app can stay trusting; the one
+check the app repeats at boot is the structural one in `web/lib/validate.js`.
