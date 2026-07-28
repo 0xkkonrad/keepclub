@@ -32,6 +32,36 @@ const teal = await p.evaluate(() =>
   getComputedStyle(document.querySelector('.shelf-mark .dood')).color);
 ok(teal === 'rgb(14, 63, 57)', `shelf raven wears ink teal (${teal})`);
 
+/* ── share keep club, without leaking a course or local state ── */
+ok(await p.locator('#shelf-share').isVisible(), 'the course selector carries a share button');
+await p.evaluate(() => {
+  Object.defineProperty(navigator, 'share', {
+    configurable: true,
+    value: async (data) => { globalThis.__sharedKeepClub = data; },
+  });
+});
+await p.click('#shelf-share');
+await p.waitForFunction(() => !!globalThis.__sharedKeepClub);
+const shared = await p.evaluate(() => globalThis.__sharedKeepClub);
+ok(shared.title === 'keep club' && shared.text === 'membership pays in memories.'
+    && shared.url === new globalThis.URL('./', URL).href,
+  `the native share sheet gets the clean selector link (${shared.url})`);
+
+await p.evaluate(() => {
+  Object.defineProperty(navigator, 'share', { configurable: true, value: undefined });
+  Object.defineProperty(navigator, 'clipboard', {
+    configurable: true,
+    value: { writeText: async (value) => { globalThis.__copiedKeepClub = value; } },
+  });
+});
+await p.click('#shelf-share');
+await p.waitForFunction(() => !!globalThis.__copiedKeepClub);
+const copied = await p.evaluate(() => globalThis.__copiedKeepClub);
+ok(copied === new globalThis.URL('./', URL).href,
+  `without a share sheet, the same clean link is copied (${copied})`);
+ok((await p.textContent('#shelf-share')).trim() === 'copied',
+  'the copy fallback confirms what happened');
+
 /* ── pick Day Skipper ── */
 await Promise.all([p.waitForEvent('load'), p.click('[data-course="day-skipper"]')]);
 await p.waitForSelector('#study-all');
