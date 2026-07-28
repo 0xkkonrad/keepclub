@@ -248,8 +248,15 @@ ok(RAVENS.length === Object.keys(MUNIN_DOODLE).length
  * fifteenth default it has no entry for. Gated in both directions. */
 const MUNIN_GLYPH = doodlesIn(read('doodles-munin.js'), 'MUNIN_GLYPH');
 const glyphNames = Object.keys(MUNIN_GLYPH);
-ok(glyphNames.length === 3 && glyphNames.every((g) => path_(MUNIN_GLYPH, g)),
-  `the theme's three states are drawn (${glyphNames.join(', ')})`);
+/* Two, not three. The theme has two states and following the device is the
+ * default rather than a third one, so a `dusk` in here is a drawing nothing
+ * reaches — and an unused drawing is how the next person concludes there is a
+ * state they cannot find. */
+ok(glyphNames.length === 2 && glyphNames.every((g) => path_(MUNIN_GLYPH, g)),
+  `the theme's two states are drawn (${glyphNames.join(', ')})`);
+const drawnStates = /const name = dark \? '(\w+)' : '(\w+)';/.exec(read('munin.js'));
+ok(!!drawnStates && [drawnStates[1], drawnStates[2]].every((n) => n in MUNIN_GLYPH),
+  'and the two munin.js reaches for are the two that exist');
 const mixed = glyphNames.filter((g) => g in MUNIN_DOODLE);
 ok(mixed.length === 0, `no theme glyph is also a raven ${mixed.join(', ')}`);
 ok(!RAVENS.some((r) => r in MUNIN_GLYPH), 'and no raven is handed out as a theme glyph');

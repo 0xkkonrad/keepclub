@@ -84,20 +84,71 @@ await p.waitForSelector('#study-all');
 ok((await p.textContent('#course-title')).trim().toLowerCase() === 'competent crew',
   'cold open resumes the last course, no shelf tap');
 
-/* ── the theme is Munin's, and it is light until you say otherwise ── */
+/* ── the theme is Munin's: the device until you say otherwise, then you ── */
 {
-  // A device that prefers dark: the default still wins, because it is a choice.
+  // A device that prefers dark. Nothing is stored, so nothing is asserted over
+  // it — no data-theme attribute at all, and app.css's media query paints.
   const c2 = await b.newContext({ viewport: { width: 390, height: 844 }, colorScheme: 'dark' });
   const p2 = await c2.newPage();
   await p2.goto(URL, { waitUntil: 'networkidle' });
   await p2.waitForSelector('.shelf.on');
-  const fresh = await p2.evaluate(() => document.documentElement.dataset.theme);
-  ok(fresh === 'light', `fresh install is light even on a dark device (${fresh})`);
+  const fresh = await p2.evaluate(() => ({
+    attr: document.documentElement.dataset.theme,
+    stored: localStorage.getItem('munin/theme'),
+    glyph: document.querySelector('#shelf-theme [data-theme-glyph]').dataset.themeGlyph,
+    bg: getComputedStyle(document.documentElement).getPropertyValue('--bg').trim(),
+  }));
+  ok(fresh.attr === undefined && fresh.stored === null,
+    `a fresh install claims no theme of its own (${fresh.attr}/${fresh.stored})`);
+  ok(fresh.bg === '#141519', `and follows the device into dark (${fresh.bg})`);
+  ok(fresh.glyph === 'night', `and the button says which one it is showing (${fresh.glyph})`);
   ok(await p2.locator('#shelf-theme').isVisible(), 'the picker carries the theme button');
 
+  // One tap on a dark device gives LIGHT: the button shows you the other one,
+  // rather than walking a cycle that starts at light whatever you are looking at.
   await p2.click('#shelf-theme');
   const picked = await p2.evaluate(() => localStorage.getItem('munin/theme'));
-  ok(picked === 'dark', `the picker's button changes the theme (${picked})`);
+  ok(picked === 'light', `the first tap chooses the other one (${picked})`);
+  await p2.click('#shelf-theme');
+  const back = await p2.evaluate(() => localStorage.getItem('munin/theme'));
+  ok(back === 'dark', `and the next tap comes back (${back})`);
+  // Two states and no third: tapping can never land on "follow the device".
+  const seen = new Set([picked, back]);
+  for (let i = 0; i < 4; i++) {
+    await p2.click('#shelf-theme');
+    seen.add(await p2.evaluate(() => localStorage.getItem('munin/theme')));
+  }
+  ok(seen.size === 2 && seen.has('light') && seen.has('dark'),
+    `six taps visit two states, not three (${[...seen].join(', ')})`);
+
+  /* Sunset, with the page open. "Follows your device" has to mean while you are
+   * looking at it, not only at the next reload — and once a choice exists the
+   * device stops having a say. Both directions, no reload in either. */
+  {
+    const c3 = await b.newContext({ viewport: { width: 390, height: 844 }, colorScheme: 'light' });
+    const p3 = await c3.newPage();
+    await p3.goto(URL, { waitUntil: 'networkidle' });
+    await p3.waitForSelector('.shelf.on');
+    const bg = () => p3.evaluate(() =>
+      getComputedStyle(document.documentElement).getPropertyValue('--bg').trim());
+    ok(await bg() === '#f0eee7', 'an unchosen install starts in the device\'s light');
+    await p3.emulateMedia({ colorScheme: 'dark' });
+    ok(await bg() === '#141519', 'and follows it into dark with the page still open');
+    /* Waited for, not sampled: the colour is the media query and repaints with
+     * the emulation, but the drawing is a `change` listener and lands a tick
+     * later. Reading it straight after the colour passed alone and failed in
+     * the full run — the gap is real, it is just not one anybody can see. */
+    const glyph = await p3.waitForFunction(() =>
+      document.querySelector('#shelf-theme [data-theme-glyph]').dataset.themeGlyph === 'night',
+      null, { timeout: 4000 }).then(() => 'night', () => 'never arrived');
+    ok(glyph === 'night', `the drawing follows too (${glyph})`);
+
+    await p3.click('#shelf-theme');           // dark showing → chooses light
+    await p3.emulateMedia({ colorScheme: 'light' });
+    await p3.emulateMedia({ colorScheme: 'dark' });
+    ok(await bg() === '#f0eee7', 'once chosen, the device stops being consulted');
+    await c3.close();
+  }
 
   await Promise.all([p2.waitForEvent('load'), p2.click('[data-course="day-skipper"]')]);
   await p2.waitForFunction(() => document.getElementById('boot').hidden);

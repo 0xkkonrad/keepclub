@@ -2473,7 +2473,11 @@ function boundExamInputs() {
  * A course cannot hold its own — you would change colour by changing deck. */
 function applyTheme() {
   MuninTheme.apply();
-  $('#theme-btn').title = `Colour theme: ${MuninTheme.get()}`;
+  const chosen = MuninTheme.get();
+  // Not the same sentence: an install that has chosen nothing is following the
+  // device, and saying "Colour theme: light" would claim a choice it never made.
+  $('#theme-btn').title = chosen ? `Colour theme: ${chosen}`
+    : `Colour theme: following your device (${MuninTheme.showing()})`;
 }
 
 /* ─────────────────────────── wiring ─────────────────────────── */

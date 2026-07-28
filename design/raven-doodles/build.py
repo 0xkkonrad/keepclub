@@ -79,8 +79,12 @@ SOURCE = {
 # the emblem on somebody's imported French deck. Same pipeline, same line,
 # different job — chrome, not character.
 #
-# The three states are the app's, so the names are the raven's hours rather than
-# astronomy: `dusk` is the one that follows the device.
+# THERE WERE THREE. A `dusk` — half a sun on the horizon — was drawn for the
+# "auto" position in the cycle, and taken out on 28 Jul 2026 along with the
+# position itself: once you have chosen light or dark, a control offering to
+# un-choose asks a question you already answered. Following the device is the
+# default now, not a state you can land on, so nothing draws it. The drawing is
+# gone rather than left unused, but the lesson it cost is kept on `dusk` below.
 GLYPHS = {
     # light — the disc is a DOTS circle so the redraw does not polygonise it
     "day": "M16 8.2V5 M16 23.8V27 M23.8 16H27 M8.2 16H5 M21.5 10.5l2.3-2.3 M10.5 10.5 8.2 8.2 M21.5 21.5l2.3 2.3 M10.5 21.5l-2.3 2.3",
@@ -89,14 +93,16 @@ GLYPHS = {
     # it for one round and taken out again — 2px of cross at this size is not a
     # star, it is a smudge on the moon's shoulder.
     "night": "M22.5 5.5C15 7 9 11 9 16c0 5 6 9 13.5 10.5-4-4-5.3-7-5.3-10.5 0-3.5 1.3-6.5 5.3-10.5z",
-    # auto — half a sun on the horizon: "whatever hour it is" is a sunrise, and
-    # it is the state that has to survive being neither of the other two.
-    # THREE rays, not five, and long. The first cut had five short ones and at
-    # 21px they stopped being rays and became fuzz on top of a dome — the same
-    # lesson the doodle set already paid for at r2.5, arriving from the other
-    # direction: below a certain size, fewer and longer beats more and finer.
-    "dusk": "M5 23.5h22 M10 23.5c0-3.31 2.69-6 6-6s6 2.69 6 6 M16 15v-5.5 M22 17.5l3.9-3.9 M10 17.5 6.1 13.6",
 }
+
+# Kept because the lesson cost two rounds and the next small drawing will need
+# it. `dusk` was a sunrise: a horizon, half a disc on it, and rays. The first
+# cut had FIVE short rays, and at 21px they stopped being rays and became fuzz
+# on top of a dome; three long ones read as a sun immediately. Below a certain
+# size, fewer and longer beats more and finer — the same thing the doodle set
+# already learned at r2.5, arriving from the other direction.
+#   "dusk": "M5 23.5h22 M10 23.5c0-3.31 2.69-6 6-6s6 2.69 6 6 M16 15v-5.5"
+#           " M22 17.5l3.9-3.9 M10 17.5 6.1 13.6"
 
 # Round things the redraw would otherwise turn into wobbly polygons.
 DOTS = {
