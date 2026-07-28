@@ -3,6 +3,6 @@
   "private": true,
   "type": "module",
   "scripts": { "fixtures": "python3 fixtures/make-sqlite.py && python3 fixtures/make-apkg.py",
-    "test": "npm run fixtures && node sqlite.mjs && node import.mjs && node separation.mjs && node shell-and-courses.mjs && node importer-ui.mjs && node qa-regressions.mjs && node pwa.mjs" },
+    "test": "npm run fixtures && node sqlite.mjs && node import.mjs && node separation.mjs && node pull-to-refresh.mjs && node shell-and-courses.mjs && node importer-ui.mjs && node qa-regressions.mjs && node pwa.mjs" },
   "dependencies": { "playwright-core": "^1.49.0" }
 }
