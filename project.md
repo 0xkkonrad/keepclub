@@ -169,6 +169,25 @@ history survives — with an explicit "this is a different card now, start it ov
 
 ---
 
+### Where a course's source lives
+
+`web/courses/<id>/` is shipped data — committed, self-contained, and all the app
+ever reads. Where the *authoring* source sits depends on whether the course has a
+repo of its own.
+
+- **Day Skipper** keeps its `src/cards_*.py` in the Day Skipper repo. It is still
+  a separately deployed app until T7 completes.
+- **Competent Crew** has no repo of its own and never did, so its source lives
+  here, at `content/competent-crew/` (moved out of `_temp` on 28 July 2026 —
+  the rebuild there reproduces the shipped `cards.json` byte for byte).
+
+`content/*/build/` is gitignored. Competent Crew's cards are pointers into Day
+Skipper's — `ref(section, question_text)`, resolved at build time — so rebuilding
+needs the Day Skipper checkout present and a clone of Munin alone cannot do it.
+That is a maintenance dependency, not a runtime one: the shipped `cards.json`
+carries the resolved text. `scripts/refresh-courses.sh` copies build output into
+`web/courses/`.
+
 ## Shape
 
 Local-first PWA, Supabase behind it.
@@ -220,7 +239,7 @@ Comes across: the theme and doodle system, the review-loop UI, the lightbox, the
 renderer, the PWA/service-worker shell, the test harness.
 
 Does not: the SM-2 scheduler, the localStorage state layer, the Python card-authoring
-build (`src/cards_*.py` stays Day Skipper's own).
+build (`src/cards_*.py` stays Day Skipper's own — see *Where a course's source lives*).
 
 The end state is that **Day Skipper becomes the first Munin deck** — same engine, its own
 content and its own deployment.

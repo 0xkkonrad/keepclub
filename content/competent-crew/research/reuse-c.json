@@ -1,0 +1,1194 @@
+[
+  {
+    "ds_section": "pilotage",
+    "n": 1,
+    "front": "What is the difference between navigation and pilotage?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Pilotage is a hard exclusion for Competent Crew. Crew never distinguish navigation from pilotage."
+  },
+  {
+    "ds_section": "pilotage",
+    "n": 2,
+    "front": "What goes into a pilotage plan?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Pilotage is a hard exclusion for Competent Crew. Building the plan is the skipper's job."
+  },
+  {
+    "ds_section": "pilotage",
+    "n": 3,
+    "front": "Why is a transit better than a compass bearing?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Pilotage is a hard exclusion for Competent Crew. Transits are a pilotage tool."
+  },
+  {
+    "ds_section": "pilotage",
+    "n": 4,
+    "front": "What is a leading line?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Pilotage is a hard exclusion for Competent Crew. Leading lines are pilotage."
+  },
+  {
+    "ds_section": "pilotage",
+    "n": 5,
+    "front": "What is a clearing bearing and how do you use it?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Pilotage is a hard exclusion for Competent Crew. Clearing bearings require the chart."
+  },
+  {
+    "ds_section": "pilotage",
+    "n": 6,
+    "front": "How do you use the echo sounder as a safety line?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Pilotage is a hard exclusion for Competent Crew. Needs height of tide and a depth contour off the chart."
+  },
+  {
+    "ds_section": "pilotage",
+    "n": 7,
+    "front": "What is a head bearing, and what is it good for?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Pilotage is a hard exclusion for Competent Crew. Requires interpreting bearing drift and altering course."
+  },
+  {
+    "ds_section": "pilotage",
+    "n": 8,
+    "front": "What is the practical rule about speed in pilotage?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Pilotage is a hard exclusion for Competent Crew. A skipper's speed decision."
+  },
+  {
+    "ds_section": "pilotage",
+    "n": 9,
+    "front": "What preparation should be done on deck before entering a harbour?",
+    "verdict": "simplify",
+    "cc_section": "cc-duties",
+    "note": "CC version: what the crew does on deck before arriving - fenders hung at the right height both sides, bow and stern lines and springs led and coiled ready, boat hook to hand. Drop the anchor/engine test/pilotage plan/VHF."
+  },
+  {
+    "ds_section": "pilotage",
+    "n": 10,
+    "front": "Why brief the crew before the entrance rather than during it?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Deciding when and how to brief is the skipper's call."
+  },
+  {
+    "ds_section": "pilotage",
+    "n": 11,
+    "front": "What information do you look up before entering an unfamiliar harbour?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Pilotage is a hard exclusion for Competent Crew. Almanac, pilot book and tidal research."
+  },
+  {
+    "ds_section": "pilotage",
+    "n": 12,
+    "front": "What do port entry traffic signals typically mean?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "IPTS light signals are pilotage/port-entry detail."
+  },
+  {
+    "ds_section": "pilotage",
+    "n": 13,
+    "front": "What is 'IPTS'?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "IPTS is pilotage/almanac detail."
+  },
+  {
+    "ds_section": "pilotage",
+    "n": 14,
+    "front": "How do you handle pilotage at night?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Night pilotage; night cruising is out of CC scope."
+  },
+  {
+    "ds_section": "pilotage",
+    "n": 15,
+    "front": "Why are lit buoys so hard to spot on the approach to a lit town?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Pilotage is a hard exclusion for Competent Crew. Buoy identification against shore lights."
+  },
+  {
+    "ds_section": "pilotage",
+    "n": 16,
+    "front": "What is an abort plan and when do you decide to use it?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "An abort plan is a skipper's decision with triggers."
+  },
+  {
+    "ds_section": "pilotage",
+    "n": 17,
+    "front": "How does the tidal stream inside a harbour entrance differ from outside?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Tidal streams are a hard exclusion."
+  },
+  {
+    "ds_section": "fog",
+    "n": 1,
+    "front": "What actions do you take when fog closes in?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Restricted visibility is not a CC section; Rule 19, sound signals and radar/AIS are all hard exclusions."
+  },
+  {
+    "ds_section": "fog",
+    "n": 2,
+    "front": "Which rule governs your conduct in fog, and what is different about it?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Names IRPCS Rule 19 - explicit exclusion."
+  },
+  {
+    "ds_section": "fog",
+    "n": 3,
+    "front": "Why is it safer to be in shallow water in fog?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Restricted visibility is not a CC section; Rule 19, sound signals and radar/AIS are all hard exclusions."
+  },
+  {
+    "ds_section": "fog",
+    "n": 4,
+    "front": "Why anchor rather than keep moving in thick fog?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Restricted visibility is not a CC section; Rule 19, sound signals and radar/AIS are all hard exclusions."
+  },
+  {
+    "ds_section": "fog",
+    "n": 5,
+    "front": "What should you listen for in fog, and how reliable is it?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Restricted visibility is not a CC section; Rule 19, sound signals and radar/AIS are all hard exclusions. Listening in fog would pad the deliberately-thin cc-lookout section."
+  },
+  {
+    "ds_section": "fog",
+    "n": 6,
+    "front": "How useful is a small-craft radar reflector in practice?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Restricted visibility is not a CC section; Rule 19, sound signals and radar/AIS are all hard exclusions."
+  },
+  {
+    "ds_section": "fog",
+    "n": 7,
+    "front": "What is AIS and how does it help in poor visibility?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Restricted visibility is not a CC section; Rule 19, sound signals and radar/AIS are all hard exclusions."
+  },
+  {
+    "ds_section": "fog",
+    "n": 8,
+    "front": "What is CPA and TCPA?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Restricted visibility is not a CC section; Rule 19, sound signals and radar/AIS are all hard exclusions."
+  },
+  {
+    "ds_section": "fog",
+    "n": 9,
+    "front": "What are the fog signals you are most likely to hear from a big ship, and what do they mean?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Sound signals are a hard exclusion."
+  },
+  {
+    "ds_section": "fog",
+    "n": 10,
+    "front": "Should you use the engine in fog if you are under sail?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Restricted visibility is not a CC section; Rule 19, sound signals and radar/AIS are all hard exclusions."
+  },
+  {
+    "ds_section": "fog",
+    "n": 11,
+    "front": "What is the greatest danger to a yacht in fog in the Channel?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Restricted visibility is not a CC section; Rule 19, sound signals and radar/AIS are all hard exclusions."
+  },
+  {
+    "ds_section": "emergencies",
+    "n": 1,
+    "front": "What are the immediate actions for a man overboard?",
+    "verdict": "simplify",
+    "cc_section": "cc-mob",
+    "note": "Nearly right, but the tail - start the engine, manoeuvre back to the casualty - is the skipper's job. CC version: shout 'man overboard', throw the danbuoy and lifebuoy at once, one person points and does nothing else, press the MOB button, never lose sight of them."
+  },
+  {
+    "ds_section": "emergencies",
+    "n": 2,
+    "front": "Describe the reach-tack-reach MOB recovery under sail.",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Recovery manoeuvre under sail as skipper."
+  },
+  {
+    "ds_section": "emergencies",
+    "n": 3,
+    "front": "Describe the crash-stop (heave-to) MOB recovery.",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Recovery manoeuvre as skipper."
+  },
+  {
+    "ds_section": "emergencies",
+    "n": 4,
+    "front": "Why do you approach a man overboard from downwind, and stop with them to leeward?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Approach angle and stopping position are the skipper's manoeuvre."
+  },
+  {
+    "ds_section": "emergencies",
+    "n": 5,
+    "front": "Why should the engine be out of gear before anyone comes alongside the hull?",
+    "verdict": "reuse",
+    "cc_section": "cc-mob",
+    "note": "Pure crew safety fact, plainly worded: the propeller kills. A beginner needs exactly this and nothing less."
+  },
+  {
+    "ds_section": "emergencies",
+    "n": 6,
+    "front": "Why lift a MOB casualty horizontally if you can?",
+    "verdict": "reuse",
+    "cc_section": "cc-mob",
+    "note": "An order the crew carries out, with a one-line reason; sits directly under the newer CC bullet on cold water shock and immersion."
+  },
+  {
+    "ds_section": "emergencies",
+    "n": 7,
+    "front": "How can you get a casualty back on board a yacht?",
+    "verdict": "simplify",
+    "cc_section": "cc-mob",
+    "note": "Research says getting a casualty aboard is treated as the skipper's problem, and this is a menu of options. CC version: your part in helping someone back aboard - ladder, strop on a spare halyard, never a straight-arm haul, and how heavy a soaked adult really is."
+  },
+  {
+    "ds_section": "emergencies",
+    "n": 8,
+    "front": "When would you send a MAYDAY for a man overboard?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "MAYDAY / VHF - hard exclusion."
+  },
+  {
+    "ds_section": "emergencies",
+    "n": 9,
+    "front": "What is a MAYDAY and how do you send one?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "MAYDAY / DSC procedure - hard exclusion."
+  },
+  {
+    "ds_section": "emergencies",
+    "n": 10,
+    "front": "What is a PAN-PAN used for?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "VHF urgency procedure - hard exclusion."
+  },
+  {
+    "ds_section": "emergencies",
+    "n": 11,
+    "front": "What is a SÉCURITÉ message?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "VHF safety procedure - hard exclusion."
+  },
+  {
+    "ds_section": "emergencies",
+    "n": 12,
+    "front": "What is a MAYDAY RELAY?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "VHF procedure - hard exclusion."
+  },
+  {
+    "ds_section": "emergencies",
+    "n": 13,
+    "front": "What are SEELONCE MAYDAY and SEELONCE FEENEE?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "VHF procedure - hard exclusion."
+  },
+  {
+    "ds_section": "emergencies",
+    "n": 14,
+    "front": "What is Ch 16 for, and what is Ch 70?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "VHF channels - hard exclusion."
+  },
+  {
+    "ds_section": "emergencies",
+    "n": 15,
+    "front": "What is DSC and what does a distress alert send?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "DSC - hard exclusion."
+  },
+  {
+    "ds_section": "emergencies",
+    "n": 16,
+    "front": "What qualification do you need to operate a marine VHF, and what is an MMSI?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "SRC licensing and MMSI - hard exclusion."
+  },
+  {
+    "ds_section": "emergencies",
+    "n": 17,
+    "front": "List the recognised distress signals.",
+    "verdict": "simplify",
+    "cc_section": "cc-emergency",
+    "note": "The full Annex IV list (code flags NC, square flag and ball, SART, EPIRB) is far beyond the CC bar. CC version: the handful a crew member could see or use - red hand flare, red parachute, orange smoke, arms raised and lowered slowly, and that white is a collision warning not a distress signal."
+  },
+  {
+    "ds_section": "emergencies",
+    "n": 18,
+    "front": "What do you do if you are taking on water?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Flooding is not a CC section; the actions are skipper's decisions plus a distress call."
+  },
+  {
+    "ds_section": "emergencies",
+    "n": 19,
+    "front": "What do you do if the steering fails?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Steering failure and jury steering are skipper-level."
+  },
+  {
+    "ds_section": "emergencies",
+    "n": 20,
+    "front": "You run aground. What do you check first, and what changes depending on whether the tide is rising or falling?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Grounding turns on tidal state - hard exclusion."
+  },
+  {
+    "ds_section": "emergencies",
+    "n": 21,
+    "front": "What do you do if you are dismasted?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Dismasting is skipper-level damage control."
+  },
+  {
+    "ds_section": "emergencies",
+    "n": 22,
+    "front": "How do you take a tow?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Towing - hard exclusion."
+  },
+  {
+    "ds_section": "emergencies",
+    "n": 23,
+    "front": "What do you need to know about a helicopter rescue?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Helicopter rescue - hard exclusion."
+  },
+  {
+    "ds_section": "emergencies",
+    "n": 24,
+    "front": "What is the first thing you should do in almost any emergency?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "'Account for your crew, decide whether to call for help' is the skipper's decision, not a crew action."
+  },
+  {
+    "ds_section": "emergencies",
+    "n": 25,
+    "front": "What is the procedure for cancelling a false or resolved distress alert?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "VHF procedure - hard exclusion."
+  },
+  {
+    "ds_section": "emergencies",
+    "n": 26,
+    "front": "How do you recover a man overboard under power?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "MOB recovery manoeuvre under power as skipper."
+  },
+  {
+    "ds_section": "emergencies",
+    "n": 27,
+    "front": "You have lost sight of the man overboard. What now?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Search datum, drift and MAYDAY - skipper and navigator work."
+  },
+  {
+    "ds_section": "engine",
+    "n": 1,
+    "front": "What checks do you make before starting the engine?",
+    "verdict": "simplify",
+    "cc_section": "cc-duties",
+    "note": "Too deep - gearbox oil, belt tension, strainer. CC version: the two things a crew member is asked to check before start-up - raw-water seacock open and no lines over the side - and to report anything odd in the bilge."
+  },
+  {
+    "ds_section": "engine",
+    "n": 2,
+    "front": "What do you check immediately after starting?",
+    "verdict": "simplify",
+    "cc_section": "cc-duties",
+    "note": "CC version: after the engine starts, look over the stern and check cooling water is coming out with the exhaust; if it is not, tell the skipper immediately. Drop the oil-pressure and alternator warning lights."
+  },
+  {
+    "ds_section": "engine",
+    "n": 3,
+    "front": "What running checks do you make on passage?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Engine monitoring on passage is the skipper's routine."
+  },
+  {
+    "ds_section": "engine",
+    "n": 4,
+    "front": "What checks do you make after stopping the engine?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Engine maintenance is a hard exclusion."
+  },
+  {
+    "ds_section": "engine",
+    "n": 5,
+    "front": "How does a diesel engine's cooling system work on a yacht?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Indirect cooling system theory - Engine maintenance is a hard exclusion."
+  },
+  {
+    "ds_section": "engine",
+    "n": 6,
+    "front": "The engine overheats — what are the likely causes and what do you check first?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Fault diagnosis - Engine maintenance is a hard exclusion."
+  },
+  {
+    "ds_section": "engine",
+    "n": 7,
+    "front": "Why does the engine stop or lose power, and what do you check?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Fault diagnosis - Engine maintenance is a hard exclusion."
+  },
+  {
+    "ds_section": "engine",
+    "n": 8,
+    "front": "How do you bleed air out of a diesel fuel system?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Bleeding the fuel system - named exclusion."
+  },
+  {
+    "ds_section": "engine",
+    "n": 9,
+    "front": "Why must a diesel engine be bled, when a petrol engine need not?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Diesel injection theory - Engine maintenance is a hard exclusion."
+  },
+  {
+    "ds_section": "engine",
+    "n": 10,
+    "front": "What routine maintenance does a yacht diesel need?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Engine maintenance is a hard exclusion."
+  },
+  {
+    "ds_section": "engine",
+    "n": 11,
+    "front": "How do you adjust the tension of the alternator drive belt, and how tight is right?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Engine maintenance is a hard exclusion."
+  },
+  {
+    "ds_section": "engine",
+    "n": 12,
+    "front": "How do you estimate fuel consumption and range?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Fuel range is a passage-planning calculation."
+  },
+  {
+    "ds_section": "engine",
+    "n": 13,
+    "front": "What is prop walk (paddle-wheel effect), and which way does it push?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Prop walk is skipper's boat handling under power."
+  },
+  {
+    "ds_section": "engine",
+    "n": 14,
+    "front": "What is 'prop wash' and how do you use it?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Prop wash is skipper's boat handling under power."
+  },
+  {
+    "ds_section": "engine",
+    "n": 15,
+    "front": "Why should you check for lines in the water before starting the engine?",
+    "verdict": "reuse",
+    "cc_section": "cc-duties",
+    "note": "A crew job given as an order - check nothing is over the side before the engine starts - and worded for a beginner. Doubles as MOB-drill discipline."
+  },
+  {
+    "ds_section": "engine",
+    "n": 16,
+    "front": "What is a stern gland and why check it?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Engine maintenance is a hard exclusion."
+  },
+  {
+    "ds_section": "engine",
+    "n": 17,
+    "front": "What do black, blue and white exhaust smoke suggest?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Diagnosis - Engine maintenance is a hard exclusion."
+  },
+  {
+    "ds_section": "engine",
+    "n": 18,
+    "front": "The starter turns the engine but it will not fire — what is your sequence?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Fault-finding sequence - Engine maintenance is a hard exclusion."
+  },
+  {
+    "ds_section": "engine",
+    "n": 19,
+    "front": "You have picked up a rope round the propeller. What do you do?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Clearing a fouled prop, including going in the water - skipper's call."
+  },
+  {
+    "ds_section": "engine",
+    "n": 20,
+    "front": "How do you change a raw-water impeller, and what else must you check?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Impeller change - named exclusion."
+  },
+  {
+    "ds_section": "engine",
+    "n": 21,
+    "front": "What tools and spares should be aboard a cruising yacht?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Tools and spares are the owner's business."
+  },
+  {
+    "ds_section": "handling",
+    "n": 1,
+    "front": "What are the two things that always determine how you approach a berth, buoy or anchorage?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Wind-against-tide approach judgement is the core skipper decision."
+  },
+  {
+    "ds_section": "handling",
+    "n": 2,
+    "front": "How do you come alongside a pontoon under power?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Berthing under power as skipper - hard exclusion."
+  },
+  {
+    "ds_section": "handling",
+    "n": 3,
+    "front": "Which line do you get ashore first when coming alongside, and why?",
+    "verdict": "simplify",
+    "cc_section": "cc-ropework",
+    "note": "The midships-line rationale is a skipper's berthing decision. CC version: handing a line ashore - step off, never jump, take the line outside the guardrails, put a turn on the cleat and wait to be told, and which line the skipper wants first."
+  },
+  {
+    "ds_section": "handling",
+    "n": 4,
+    "front": "How do you leave a pontoon berth with the wind pinning you on?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Springing off is skipper's boat handling."
+  },
+  {
+    "ds_section": "handling",
+    "n": 5,
+    "front": "What is a slipped line, and why use one?",
+    "verdict": "reuse",
+    "cc_section": "cc-ropework",
+    "note": "Short, concrete, and exactly the warp-handling a crew member is ordered to rig; no theory or decision in it."
+  },
+  {
+    "ds_section": "handling",
+    "n": 6,
+    "front": "How do you pick up a mooring buoy?",
+    "verdict": "simplify",
+    "cc_section": "cc-duties",
+    "note": "The approach is a skipper decision. CC version: the foredeck crew's job on a mooring - line rove through the bow fairlead and back aboard beforehand, boat hook ready, point at the buoy and call the distance, never reach out over the bow."
+  },
+  {
+    "ds_section": "handling",
+    "n": 7,
+    "front": "How do you handle a boat going astern?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Manoeuvring astern under power as skipper."
+  },
+  {
+    "ds_section": "handling",
+    "n": 8,
+    "front": "How do you turn a yacht in a confined space under power?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Standing turn - skipper's boat handling."
+  },
+  {
+    "ds_section": "handling",
+    "n": 9,
+    "front": "Why should you never use your hands or feet to fend off?",
+    "verdict": "reuse",
+    "cc_section": "cc-duties",
+    "note": "The single most important deck-safety order for a first-timer, worded plainly with no theory."
+  },
+  {
+    "ds_section": "handling",
+    "n": 10,
+    "front": "How do you rig a headsail correctly?",
+    "verdict": "reuse",
+    "cc_section": "cc-sailhandling",
+    "note": "Bending on a headsail is CC section 2 verbatim; every term used (luff, tack, head, forestay, shrouds, fairleads) is CC section 1 vocabulary."
+  },
+  {
+    "ds_section": "handling",
+    "n": 11,
+    "front": "What is sail trim on the different points of sailing?",
+    "verdict": "reuse",
+    "cc_section": "cc-helming",
+    "note": "Trimming on all points of sailing is the CC section 13 bullet, and the ease-until-it-lifts rule is exactly the CC bar."
+  },
+  {
+    "ds_section": "handling",
+    "n": 12,
+    "front": "What are the signs you are over-canvassed and should reef?",
+    "verdict": "simplify",
+    "cc_section": "cc-sailhandling",
+    "note": "Whether to reef is the skipper's decision. CC version: what reefing does and what you will be asked to do when the skipper calls for a reef, plus the feel of an over-pressed boat you should report."
+  },
+  {
+    "ds_section": "handling",
+    "n": 13,
+    "front": "How do you put a reef in with slab reefing?",
+    "verdict": "reuse",
+    "cc_section": "cc-sailhandling",
+    "note": "Slab reefing is named in the CC section 2 bullet and this is a step-by-step order-following sequence."
+  },
+  {
+    "ds_section": "handling",
+    "n": 14,
+    "front": "How do you shake out a reef?",
+    "verdict": "reuse",
+    "cc_section": "cc-sailhandling",
+    "note": "Same as reefing in reverse - crew work under orders, CC section 2."
+  },
+  {
+    "ds_section": "handling",
+    "n": 15,
+    "front": "How do you heave to, and why would you?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Heaving to is a skipper's manoeuvre and is not in the CC syllabus."
+  },
+  {
+    "ds_section": "handling",
+    "n": 16,
+    "front": "What is weather helm and lee helm?",
+    "verdict": "reuse",
+    "cc_section": "cc-helming",
+    "note": "Weather helm is listed in the CC section 13 deck implication, and 'she pulls up into the wind, hold the tiller to windward' is precisely what a novice on the helm needs."
+  },
+  {
+    "ds_section": "handling",
+    "n": 17,
+    "front": "How does a yacht behave differently under sail when you berth or anchor?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Berthing and anchoring under sail as skipper - hard exclusion."
+  },
+  {
+    "ds_section": "handling",
+    "n": 18,
+    "front": "What are the commands for tacking and gybing?",
+    "verdict": "reuse",
+    "cc_section": "cc-seaterms",
+    "note": "Literally the CC section 1 bar: understanding the orders given concerning the sailing of the boat."
+  },
+  {
+    "ds_section": "handling",
+    "n": 19,
+    "front": "What is an accidental gybe, and how do you avoid one?",
+    "verdict": "simplify",
+    "cc_section": "cc-helming",
+    "note": "Preventers and not sailing dead downwind in a seaway are helming decisions. CC version: what a gybe is, that the boom sweeps the whole cockpit, keep your head down and never sit under the mainsheet when running."
+  },
+  {
+    "ds_section": "handling",
+    "n": 20,
+    "front": "What is a preventer and when do you rig it?",
+    "verdict": "reuse",
+    "cc_section": "cc-sailhandling",
+    "note": "A rope job the crew is told to rig, defined in one sentence; no decision beyond the point of sail CC already teaches."
+  },
+  {
+    "ds_section": "handling",
+    "n": 21,
+    "front": "How do you handle a yacht in strong wind under power?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Handling under power in strong wind as skipper."
+  },
+  {
+    "ds_section": "handling",
+    "n": 22,
+    "front": "What is the effect of waves on boat handling and crew?",
+    "verdict": "simplify",
+    "cc_section": "cc-seasickness",
+    "note": "The boat-handling half is skipper's. CC version: why motion makes you sick and tired, stay on deck in fresh air looking at the horizon, keep eating and drinking, keep warm, and tell someone early."
+  },
+  {
+    "ds_section": "handling",
+    "n": 23,
+    "front": "How do you rig for a lock?",
+    "verdict": "reuse",
+    "cc_section": "cc-ropework",
+    "note": "Entirely crew work under orders - fenders both sides, lines slipped and tended, never made fast solid - and it is warp handling, CC section 3."
+  },
+  {
+    "ds_section": "handling",
+    "n": 24,
+    "front": "How do you go bow-to or stern-to a quay with a lazy line, Mediterranean style?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Mediterranean mooring is a skipper's manoeuvre."
+  },
+  {
+    "ds_section": "handling",
+    "n": 25,
+    "front": "How do you raft up alongside another yacht?",
+    "verdict": "simplify",
+    "cc_section": "cc-manners",
+    "note": "The etiquette is CC section 8, but the approach clause is skipper's. CC version: ask before you raft, fenders high at the widest point, run your own lines ashore, cross the other boat's foredeck and never her cockpit, stagger the masts, and keep the noise down."
+  },
+  {
+    "ds_section": "handling",
+    "n": 26,
+    "front": "How do you come alongside when a tidal stream is running along the berth?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Tidal stream along a berth - hard exclusion twice over."
+  },
+  {
+    "ds_section": "handling",
+    "n": 27,
+    "front": "Preparing for sea: name five things you do below decks and five on deck.",
+    "verdict": "simplify",
+    "cc_section": "cc-duties",
+    "note": "Preparation for sea as skipper is a hard exclusion. CC version: the crew's share - stow everything below so nothing flies, gas off at the bottle, fenders and warps in and nothing trailing over the side, sail ties off and halyards clear."
+  },
+  {
+    "ds_section": "passage",
+    "n": 1,
+    "front": "What does SOLAS Chapter V require of a small craft skipper?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Passage planning is a hard exclusion. Cites SOLAS Ch V Reg 34."
+  },
+  {
+    "ds_section": "passage",
+    "n": 2,
+    "front": "List the elements of a passage plan.",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Passage planning is a hard exclusion."
+  },
+  {
+    "ds_section": "passage",
+    "n": 3,
+    "front": "What is a bolt hole and why does every leg need one?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Passage planning is a hard exclusion."
+  },
+  {
+    "ds_section": "passage",
+    "n": 4,
+    "front": "What do you leave with someone ashore?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "The skipper's shore contact arrangement."
+  },
+  {
+    "ds_section": "passage",
+    "n": 5,
+    "front": "How do you work out an ETA for a passage leg?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "An ETA calculation with tidal allowance."
+  },
+  {
+    "ds_section": "passage",
+    "n": 6,
+    "front": "How do you plan a passage around tidal gates?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Tidal gates - hard exclusion."
+  },
+  {
+    "ds_section": "passage",
+    "n": 7,
+    "front": "What are the limitations of the vessel that should shape a plan?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Passage planning is a hard exclusion."
+  },
+  {
+    "ds_section": "passage",
+    "n": 8,
+    "front": "How do you plan a watch system for a short-handed crew on a night passage?",
+    "verdict": "simplify",
+    "cc_section": "cc-duties",
+    "note": "Designing the watch system is the skipper's. CC version: what being on watch means for you - what you look for, what you must call the skipper for, and what you pass on at handover."
+  },
+  {
+    "ds_section": "passage",
+    "n": 9,
+    "front": "What should you brief the crew on before a passage?",
+    "verdict": "simplify",
+    "cc_section": "cc-duties",
+    "note": "CC version, from the receiving end: what you should be shown before you sail - your lifejacket and clipping points, where the fire extinguishers and liferaft live, how the heads and the gas work, the MOB drill, and that you may raise a concern at any time."
+  },
+  {
+    "ds_section": "passage",
+    "n": 10,
+    "front": "What is victualling, and what does a Day Skipper need to think about?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Victualling - hard exclusion."
+  },
+  {
+    "ds_section": "passage",
+    "n": 11,
+    "front": "Why make food and hot drinks before you leave harbour?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Victualling - hard exclusion."
+  },
+  {
+    "ds_section": "passage",
+    "n": 12,
+    "front": "What documents should be aboard for a cross-Channel passage?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Ship's papers and clearance are the skipper's/owner's."
+  },
+  {
+    "ds_section": "passage",
+    "n": 13,
+    "front": "Arriving in the UK from abroad: when does the Q flag go up, and how do you report?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Q flag and Border Force reporting is a customs procedure, not the ensign/burgee etiquette CC covers."
+  },
+  {
+    "ds_section": "passage",
+    "n": 14,
+    "front": "How do you decide on the day whether to go?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "The go/no-go decision is the definition of skippering."
+  },
+  {
+    "ds_section": "passage",
+    "n": 15,
+    "front": "What do you write in the deck log, and why does it matter?",
+    "verdict": "simplify",
+    "cc_section": "cc-duties",
+    "note": "CC section 14 includes log entries as dictated. CC version: filling in the hourly log line when told - time, position from the plotter, course, speed, wind - and why it matters if the electronics die."
+  },
+  {
+    "ds_section": "passage",
+    "n": 16,
+    "front": "Preparing for a night passage: what do you do about the navigation lights, your night vision, and the watch?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Night cruising is not a CC competence."
+  },
+  {
+    "ds_section": "passage",
+    "n": 17,
+    "front": "How do you register your passage details with the Coastguard?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Passage registration and SafeTrx are the skipper's."
+  },
+  {
+    "ds_section": "electronics",
+    "n": 1,
+    "front": "How does GNSS work, in one sentence?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Electronic navigation is a hard exclusion."
+  },
+  {
+    "ds_section": "electronics",
+    "n": 2,
+    "front": "What are the practical limitations of GNSS?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Electronic navigation is a hard exclusion."
+  },
+  {
+    "ds_section": "electronics",
+    "n": 3,
+    "front": "Why can a GNSS position and a paper chart disagree?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Electronic navigation is a hard exclusion."
+  },
+  {
+    "ds_section": "electronics",
+    "n": 4,
+    "front": "What is a waypoint, and how should you place them?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Electronic navigation is a hard exclusion."
+  },
+  {
+    "ds_section": "electronics",
+    "n": 5,
+    "front": "What are COG and SOG, and how do they differ from heading and log speed?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Electronic navigation is a hard exclusion."
+  },
+  {
+    "ds_section": "electronics",
+    "n": 6,
+    "front": "What is 'bearing to waypoint' versus 'course to steer'?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Electronic navigation is a hard exclusion."
+  },
+  {
+    "ds_section": "electronics",
+    "n": 7,
+    "front": "What does an echo sounder actually measure, and what can fool it?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Electronic navigation is a hard exclusion."
+  },
+  {
+    "ds_section": "electronics",
+    "n": 8,
+    "front": "What is a lead line, and why would you use one?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Lead line as a navigation instrument - hard exclusion."
+  },
+  {
+    "ds_section": "electronics",
+    "n": 9,
+    "front": "How does a log measure speed and distance, and what goes wrong?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Electronic navigation is a hard exclusion."
+  },
+  {
+    "ds_section": "electronics",
+    "n": 10,
+    "front": "What can small-craft radar do for you, and what are its limits?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Electronic navigation is a hard exclusion."
+  },
+  {
+    "ds_section": "electronics",
+    "n": 11,
+    "front": "What is AIS, and what does it not show you?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Electronic navigation is a hard exclusion."
+  },
+  {
+    "ds_section": "electronics",
+    "n": 12,
+    "front": "What is a chart plotter's biggest single danger to a navigator?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Electronic navigation is a hard exclusion."
+  },
+  {
+    "ds_section": "electronics",
+    "n": 13,
+    "front": "What is NAVTEX?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "NAVTEX belongs at most as one name in a CC 'where forecasts come from' card; a card of its own would pad the deliberately-thin cc-weather section."
+  },
+  {
+    "ds_section": "electronics",
+    "n": 14,
+    "front": "Why should you cross-check electronic position with an independent method?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Electronic navigation is a hard exclusion."
+  },
+  {
+    "ds_section": "electronics",
+    "n": 15,
+    "front": "What is the electrical failure plan on a modern yacht?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Electronic navigation is a hard exclusion."
+  },
+  {
+    "ds_section": "environment",
+    "n": 1,
+    "front": "What are the skipper's basic legal responsibilities?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "The skipper's legal responsibilities, by definition not the crew's."
+  },
+  {
+    "ds_section": "environment",
+    "n": 2,
+    "front": "What must you do if you receive a distress call?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Answering a distress call is a skipper/VHF duty."
+  },
+  {
+    "ds_section": "environment",
+    "n": 3,
+    "front": "What may you not discharge overboard?",
+    "verdict": "reuse",
+    "cc_section": "cc-manners",
+    "note": "The environment sub-bullet of CC section 8, stated as rules the crew obeys; no regulation numbers, no decisions."
+  },
+  {
+    "ds_section": "environment",
+    "n": 4,
+    "front": "What is MARPOL Annex V in practice for a yacht?",
+    "verdict": "simplify",
+    "cc_section": "cc-manners",
+    "note": "Cites MARPOL Annex V with 3/12-mile limits, comminution and placards. CC version: nothing goes over the side except food scraps well offshore; plastic never; everything else comes back to the marina bins."
+  },
+  {
+    "ds_section": "environment",
+    "n": 5,
+    "front": "What should you do with out-of-date flares?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Flare disposal is the owner's legal responsibility and a route-finding exercise; a crew member is never given this task."
+  },
+  {
+    "ds_section": "environment",
+    "n": 6,
+    "front": "How should you avoid damaging the seabed when anchoring?",
+    "verdict": "simplify",
+    "cc_section": "cc-manners",
+    "note": "Reading the chart for protected areas is the skipper's. CC version: awareness only - anchor chain scours seagrass, so eco-moorings exist and are used where they are laid."
+  },
+  {
+    "ds_section": "environment",
+    "n": 7,
+    "front": "What is your responsibility about wash and speed?",
+    "verdict": "reuse",
+    "cc_section": "cc-manners",
+    "note": "Straight courtesy-in-harbour content from the CC section 8 bullet, and it applies to a novice on the helm."
+  },
+  {
+    "ds_section": "environment",
+    "n": 8,
+    "front": "How should you behave around marine wildlife?",
+    "verdict": "reuse",
+    "cc_section": "cc-manners",
+    "note": "Awareness-level, beginner-worded, and squarely the boating-community environmental responsibility bullet."
+  },
+  {
+    "ds_section": "environment",
+    "n": 9,
+    "front": "What is antifouling and what care does it need?",
+    "verdict": "simplify",
+    "cc_section": "cc-manners",
+    "note": "The card is about applying and sanding it, which is yard work. CC version: one awareness line - the hull coating is toxic by design, so scrapings and residues never go in the water."
+  },
+  {
+    "ds_section": "environment",
+    "n": 10,
+    "front": "What insurance and registration should a cruising yacht have?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Insurance and registration are the owner's."
+  },
+  {
+    "ds_section": "environment",
+    "n": 11,
+    "front": "What is the ICC and when do you need it?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "The ICC is a skipper's qualification."
+  },
+  {
+    "ds_section": "environment",
+    "n": 12,
+    "front": "What does the RYA Day Skipper practical certificate actually say you can do?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "About the Day Skipper certificate itself."
+  },
+  {
+    "ds_section": "environment",
+    "n": 13,
+    "front": "What are the prerequisites for the RYA Day Skipper practical course?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Day Skipper course prerequisites."
+  },
+  {
+    "ds_section": "environment",
+    "n": 14,
+    "front": "What does the Day Skipper shorebased course cover and how long is it?",
+    "verdict": "cut",
+    "cc_section": null,
+    "note": "Day Skipper shorebased syllabus."
+  }
+]

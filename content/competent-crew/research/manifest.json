@@ -1,0 +1,630 @@
+{
+  "cc-seaterms": {
+    "title": "01 Sea terms, parts of the boat, rigging and sails",
+    "reuse": [
+      {
+        "ds_section": "terms",
+        "front": "Bow, stern, port, starboard — what does each mean?",
+        "note": "The four words every order on deck depends on; already at beginner level."
+      },
+      {
+        "ds_section": "terms",
+        "front": "Amidships",
+        "note": "One-line positional vocabulary, given as an order ('fender amidships')."
+      },
+      {
+        "ds_section": "terms",
+        "front": "Beam (two meanings)",
+        "note": "Both meanings are plain vocabulary and the direction sense is needed to report a sighting."
+      },
+      {
+        "ds_section": "terms",
+        "front": "Draught",
+        "note": "Single-sentence definition, no calculation, no tide."
+      },
+      {
+        "ds_section": "terms",
+        "front": "Air draught",
+        "note": "Plain definition; a crew member hears it under bridges and needs no theory for it."
+      },
+      {
+        "ds_section": "terms",
+        "front": "Freeboard",
+        "note": "One-line hull vocabulary."
+      },
+      {
+        "ds_section": "terms",
+        "front": "Windward and leeward",
+        "note": "Core crew vocabulary; the 'leeward is the boom's side' cue is exactly the beginner's handle."
+      },
+      {
+        "ds_section": "terms",
+        "front": "Ahead, astern, abeam, abaft, forward of the beam",
+        "note": "The relative-direction set a crew member needs to report what they see to the skipper."
+      },
+      {
+        "ds_section": "terms",
+        "front": "Heel versus list",
+        "note": "Two short definitions; reassuring and useful to a first-timer on their first heel."
+      },
+      {
+        "ds_section": "terms",
+        "front": "The three rotational motions of a boat at sea",
+        "note": "Roll/pitch/yaw is plain vocabulary and feeds straight into seasickness and helming."
+      },
+      {
+        "ds_section": "terms",
+        "front": "Name the three sides and three corners of a mainsail.",
+        "note": "Pure sail vocabulary; the syllabus names luff/leech/foot/head/tack/clew explicitly."
+      },
+      {
+        "ds_section": "terms",
+        "front": "Standing rigging versus running rigging",
+        "note": "'Rigging and sails' is half the CC section-1 title; this is the naming card for it."
+      },
+      {
+        "ds_section": "terms",
+        "front": "Halyard versus sheet",
+        "note": "The single most order-driven distinction on the boat, in one line."
+      },
+      {
+        "ds_section": "terms",
+        "front": "Topping lift",
+        "note": "One sentence, and 'take up the topping lift' is a literal crew order when dropping the main."
+      },
+      {
+        "ds_section": "terms",
+        "front": "Genoa versus jib",
+        "note": "Headsail naming plus furling; no theory."
+      },
+      {
+        "ds_section": "terms",
+        "front": "Bilge, sole, bulkhead",
+        "note": "Three below-decks words, one line each."
+      },
+      {
+        "ds_section": "terms",
+        "front": "Pulpit, pushpit, stanchions, guardrails, jackstay",
+        "note": "Deck-fitting names a crew member is told to clip to or move along."
+      },
+      {
+        "ds_section": "handling",
+        "front": "What are the commands for tacking and gybing?",
+        "note": "Literally the CC section 1 bar: understanding the orders given concerning the sailing of the boat."
+      }
+    ],
+    "simplify": [
+      {
+        "ds_section": "terms",
+        "front": "Lee shore — and why it matters",
+        "note": "The danger/shelter framing is a skipper's anchorage decision. CC card: a lee shore is simply land the wind is blowing onto, a weather shore is land the wind blows off — no shelter judgement."
+      },
+      {
+        "ds_section": "terms",
+        "front": "What makes a cruising yacht stable?",
+        "note": "Centre of buoyancy, righting moment and angle of vanishing stability are theory. CC card: the heavy keel keeps her upright, so heeling is normal and she will not tip over."
+      },
+      {
+        "ds_section": "terms",
+        "front": "Kicker (boom vang) — what does it do?",
+        "note": "Leech tension and sail twist are theory a first-timer does not have. CC card: the kicker holds the boom down; you will be asked to tension or ease it."
+      },
+      {
+        "ds_section": "terms",
+        "front": "What is a seacock and why must you know where they all are?",
+        "note": "Flooding-defence framing and softwood bungs are skipper-level. CC card: a seacock is the valve on a hole through the hull — know where the heads and sink ones are and leave them as the skipper set them."
+      },
+      {
+        "ds_section": "colregs",
+        "front": "Rule 3 — 'underway' versus 'making way'",
+        "note": "The distinction is useful vocabulary but this card cites Rule 3 and justifies itself by lights and fog signals. CC card: underway simply means not tied up, not anchored and not aground — you can be underway and still drifting."
+      },
+      {
+        "ds_section": "position",
+        "front": "What is a knot?",
+        "note": "CC version: a knot is one nautical mile per hour, the unit for both boat speed and wind speed — no chart-measurement chain behind it."
+      },
+      {
+        "ds_section": "meteo",
+        "front": "Which direction is a wind named for?",
+        "note": "CC version: a wind is named for the direction it blows FROM — drop the tidal-stream contrast, which is an excluded tidal concept."
+      }
+    ]
+  },
+  "cc-sailhandling": {
+    "title": "02 Sail handling",
+    "reuse": [
+      {
+        "ds_section": "terms",
+        "front": "Riding turn",
+        "note": "Winch handling is a named CC bullet, and the rolling-hitch fix is the 'correct use' of a CC-named knot."
+      },
+      {
+        "ds_section": "handling",
+        "front": "How do you rig a headsail correctly?",
+        "note": "Bending on a headsail is CC section 2 verbatim; every term used (luff, tack, head, forestay, shrouds, fairleads) is CC section 1 vocabulary."
+      },
+      {
+        "ds_section": "handling",
+        "front": "How do you put a reef in with slab reefing?",
+        "note": "Slab reefing is named in the CC section 2 bullet and this is a step-by-step order-following sequence."
+      },
+      {
+        "ds_section": "handling",
+        "front": "How do you shake out a reef?",
+        "note": "Same as reefing in reverse - crew work under orders, CC section 2."
+      },
+      {
+        "ds_section": "handling",
+        "front": "What is a preventer and when do you rig it?",
+        "note": "A rope job the crew is told to rig, defined in one sentence; no decision beyond the point of sail CC already teaches."
+      }
+    ],
+    "simplify": [
+      {
+        "ds_section": "handling",
+        "front": "What are the signs you are over-canvassed and should reef?",
+        "note": "Whether to reef is the skipper's decision. CC version: what reefing does and what you will be asked to do when the skipper calls for a reef, plus the feel of an over-pressed boat you should report."
+      }
+    ]
+  },
+  "cc-ropework": {
+    "title": "03 Ropework",
+    "reuse": [
+      {
+        "ds_section": "terms",
+        "front": "Warp, spring, breast line",
+        "note": "'Handling warps' is a named CC ropework bullet; this is the naming card and requires no decision."
+      },
+      {
+        "ds_section": "terms",
+        "front": "Fenders, fairleads, cleats and bollards",
+        "note": "CC ropework names cleats and single and double bollards outright; fendering is a general duty on arrival."
+      },
+      {
+        "ds_section": "terms",
+        "front": "What does 'make fast', 'belay', 'surge' and 'snub' mean?",
+        "note": "These four words are literally orders shouted at crew; nothing here has to be decided."
+      },
+      {
+        "ds_section": "ropework",
+        "front": "Figure of eight — use",
+        "note": "Named CC knot with its correct use, in one sentence."
+      },
+      {
+        "ds_section": "ropework",
+        "front": "Bowline — use",
+        "note": "Named CC knot; the uses listed are all crew jobs."
+      },
+      {
+        "ds_section": "ropework",
+        "front": "Clove hitch — use and limitation",
+        "note": "Named CC knot; the fender-lanyard use and the slipping caveat are exactly what a beginner must know."
+      },
+      {
+        "ds_section": "ropework",
+        "front": "Round turn and two half hitches — use",
+        "note": "Named CC knot with its correct use."
+      },
+      {
+        "ds_section": "ropework",
+        "front": "Rolling hitch — use",
+        "note": "Named CC knot; the riding-turn use is the standard teaching example."
+      },
+      {
+        "ds_section": "ropework",
+        "front": "Reef knot — correct use and the trap",
+        "note": "Named CC knot; the 'not for joining two ropes' trap is the point of the CC knot-use requirement."
+      },
+      {
+        "ds_section": "ropework",
+        "front": "Sheet bend and double sheet bend",
+        "note": "Both named in the CC knot list, with the single/double distinction the syllabus asks for."
+      },
+      {
+        "ds_section": "ropework",
+        "front": "Which knot for a jib sheet to the clew of a headsail?",
+        "note": "A knot-use recall card on a job crew are given directly."
+      },
+      {
+        "ds_section": "ropework",
+        "front": "What are the three parts of a rope you name when tying knots?",
+        "note": "The vocabulary an instructor uses while teaching the knots; the bitter-end aside is one clause and harmless."
+      },
+      {
+        "ds_section": "ropework",
+        "front": "How do you coil rope so it runs cleanly?",
+        "note": "Coiling is a named CC bullet and the laid-vs-braided distinction is a hands-on instruction, not theory."
+      },
+      {
+        "ds_section": "ropework",
+        "front": "Which knot takes the load off a jammed, loaded sheet?",
+        "note": "Rolling-hitch correct-use recall; the crew is told to do exactly this."
+      },
+      {
+        "ds_section": "handling",
+        "front": "What is a slipped line, and why use one?",
+        "note": "Short, concrete, and exactly the warp-handling a crew member is ordered to rig; no theory or decision in it."
+      },
+      {
+        "ds_section": "handling",
+        "front": "How do you rig for a lock?",
+        "note": "Entirely crew work under orders - fenders both sides, lines slipped and tended, never made fast solid - and it is warp handling, CC section 3."
+      }
+    ],
+    "simplify": [
+      {
+        "ds_section": "terms",
+        "front": "Chafe — why is it the thing that actually breaks mooring lines?",
+        "note": "Framed as a skipper's insight about overnight failure. CC card: lines wear where they rub, so lead every warp through a fairlead and never over a sharp edge."
+      },
+      {
+        "ds_section": "ropework",
+        "front": "Care of synthetic rope",
+        "note": "'Retire it when the core is glazed' is a condemnation decision. CC card: rinse and dry ropes, stow them coiled out of the sun, and never stand on a rope."
+      },
+      {
+        "ds_section": "handling",
+        "front": "Which line do you get ashore first when coming alongside, and why?",
+        "note": "The midships-line rationale is a skipper's berthing decision. CC version: handing a line ashore - step off, never jump, take the line outside the guardrails, put a turn on the cleat and wait to be told, and which line the skipper wants first."
+      }
+    ]
+  },
+  "cc-fire": {
+    "title": "04 Fire precautions and firefighting",
+    "reuse": [
+      {
+        "ds_section": "safety",
+        "front": "How do you fight a galley fat fire?",
+        "note": "Galley duty plus 'action to be taken in the event of fire'; three plain instructions."
+      }
+    ],
+    "simplify": [
+      {
+        "ds_section": "safety",
+        "front": "What fire extinguishers should a cruising yacht carry, and where?",
+        "note": "Equipping the boat and checking service dates is the owner's job. CC card: find the extinguishers and the fire blanket on your boat before you sail, and know which one is the galley blanket."
+      },
+      {
+        "ds_section": "safety",
+        "front": "How do you fight an engine compartment fire?",
+        "note": "Assumes access to fuel shut-off and a dedicated extinguisher port. CC card: if the engine bay is alight, do not open it — opening it feeds the fire; shout for the skipper and stay clear."
+      },
+      {
+        "ds_section": "safety",
+        "front": "The four elements of fire prevention on a yacht",
+        "note": "Ends in seasonal installation checks. CC card: the everyday habits — gas off at the bottle, never leave the cooker, no naked flame while fuelling, keep the bilge free of oily rags."
+      },
+      {
+        "ds_section": "safety",
+        "front": "Why is LPG particularly dangerous on a boat, and how is the risk managed?",
+        "note": "Locker drains, bubble testers and hose dates are installation detail. CC card: gas is heavier than air so a leak sinks into the bilge and cannot blow away — always turn the gas off at the bottle when you finish cooking."
+      }
+    ]
+  },
+  "cc-safetygear": {
+    "title": "05 Personal safety equipment",
+    "reuse": [
+      {
+        "ds_section": "safety",
+        "front": "Lifejacket or buoyancy aid: what is the difference, and what rating do you want for cruising?",
+        "note": "Lifejacket vs buoyancy aid, newtons and crotch strap are precisely the CC section-5 bar; nothing here is a decision the crew makes."
+      },
+      {
+        "ds_section": "safety",
+        "front": "When should the crew wear lifejackets and harnesses?",
+        "note": "Answer opens 'whenever the skipper says so' — the CC compliance bullet stated as an order."
+      },
+      {
+        "ds_section": "safety",
+        "front": "What is a jackstay and how should a tether be used?",
+        "note": "Harness, tether and clipping-on rules are the CC bullet; every instruction here is given as an order."
+      }
+    ],
+    "simplify": []
+  },
+  "cc-mob": {
+    "title": "06 Man overboard",
+    "reuse": [
+      {
+        "ds_section": "safety",
+        "front": "What is a danbuoy for?",
+        "note": "Throwing the danbuoy is the crew's immediate MOB action, which the syllabus says is directly reusable."
+      },
+      {
+        "ds_section": "emergencies",
+        "front": "Why should the engine be out of gear before anyone comes alongside the hull?",
+        "note": "Pure crew safety fact, plainly worded: the propeller kills. A beginner needs exactly this and nothing less."
+      },
+      {
+        "ds_section": "emergencies",
+        "front": "Why lift a MOB casualty horizontally if you can?",
+        "note": "An order the crew carries out, with a one-line reason; sits directly under the newer CC bullet on cold water shock and immersion."
+      }
+    ],
+    "simplify": [
+      {
+        "ds_section": "safety",
+        "front": "Cold water shock — what happens and what do you do?",
+        "note": "Half the card is rescuer technique (horizontal recovery, post-immersion collapse). CC card: the casualty side only — cold water makes you gasp and lose grip, so float on your back for the first 60-90 seconds until it passes."
+      },
+      {
+        "ds_section": "emergencies",
+        "front": "What are the immediate actions for a man overboard?",
+        "note": "Nearly right, but the tail - start the engine, manoeuvre back to the casualty - is the skipper's job. CC version: shout 'man overboard', throw the danbuoy and lifebuoy at once, one person points and does nothing else, press the MOB button, never lose sight of them."
+      },
+      {
+        "ds_section": "emergencies",
+        "front": "How can you get a casualty back on board a yacht?",
+        "note": "Research says getting a casualty aboard is treated as the skipper's problem, and this is a menu of options. CC version: your part in helping someone back aboard - ladder, strop on a spare halyard, never a straight-arm haul, and how heavy a soaked adult really is."
+      }
+    ]
+  },
+  "cc-emergency": {
+    "title": "07 Emergency equipment",
+    "reuse": [
+      {
+        "ds_section": "safety",
+        "front": "Red parachute rocket flare, red hand flare, orange smoke, white flare — what is each for?",
+        "note": "'Knows when they should be used' is the CC bullet verbatim; same depth in both syllabi."
+      },
+      {
+        "ds_section": "safety",
+        "front": "How do you fire a hand flare, and how do you fire a parachute rocket?",
+        "note": "'Can operate distress flares' is an assessed CC skill; this is the operating instruction, not a decision."
+      },
+      {
+        "ds_section": "safety",
+        "front": "What goes in a grab bag? Name eight items.",
+        "note": "A recall list, not a judgement; sits directly under the liferaft bullet."
+      },
+      {
+        "ds_section": "safety",
+        "front": "When do you actually get into the liferaft?",
+        "note": "'Step up into it' is the standard CC teaching line and needs no theory."
+      },
+      {
+        "ds_section": "safety",
+        "front": "How do you launch and board a liferaft?",
+        "note": "Matches the CC bullet word for word; a sequence of physical actions."
+      }
+    ],
+    "simplify": [
+      {
+        "ds_section": "safety",
+        "front": "EPIRB versus PLB versus SART versus AIS beacon",
+        "note": "A four-way comparison of kit a crew member never operates. CC card: one line — the boat carries a distress beacon that tells rescuers where you are; know where it is stowed."
+      },
+      {
+        "ds_section": "emergencies",
+        "front": "List the recognised distress signals.",
+        "note": "The full Annex IV list (code flags NC, square flag and ball, SART, EPIRB) is far beyond the CC bar. CC version: the handful a crew member could see or use - red hand flare, red parachute, orange smoke, arms raised and lowered slowly, and that white is a collision warning not a distress signal."
+      }
+    ]
+  },
+  "cc-manners": {
+    "title": "08 Manners and customs",
+    "reuse": [
+      {
+        "ds_section": "environment",
+        "front": "What may you not discharge overboard?",
+        "note": "The environment sub-bullet of CC section 8, stated as rules the crew obeys; no regulation numbers, no decisions."
+      },
+      {
+        "ds_section": "environment",
+        "front": "What is your responsibility about wash and speed?",
+        "note": "Straight courtesy-in-harbour content from the CC section 8 bullet, and it applies to a novice on the helm."
+      },
+      {
+        "ds_section": "environment",
+        "front": "How should you behave around marine wildlife?",
+        "note": "Awareness-level, beginner-worded, and squarely the boating-community environmental responsibility bullet."
+      }
+    ],
+    "simplify": [
+      {
+        "ds_section": "handling",
+        "front": "How do you raft up alongside another yacht?",
+        "note": "The etiquette is CC section 8, but the approach clause is skipper's. CC version: ask before you raft, fenders high at the widest point, run your own lines ashore, cross the other boat's foredeck and never her cockpit, stagger the masts, and keep the noise down."
+      },
+      {
+        "ds_section": "environment",
+        "front": "What is MARPOL Annex V in practice for a yacht?",
+        "note": "Cites MARPOL Annex V with 3/12-mile limits, comminution and placards. CC version: nothing goes over the side except food scraps well offshore; plastic never; everything else comes back to the marina bins."
+      },
+      {
+        "ds_section": "environment",
+        "front": "How should you avoid damaging the seabed when anchoring?",
+        "note": "Reading the chart for protected areas is the skipper's. CC version: awareness only - anchor chain scours seagrass, so eco-moorings exist and are used where they are laid."
+      },
+      {
+        "ds_section": "environment",
+        "front": "What is antifouling and what care does it need?",
+        "note": "The card is about applying and sanding it, which is yard work. CC version: one awareness line - the hull coating is toxic by design, so scrapings and residues never go in the water."
+      }
+    ]
+  },
+  "cc-lookout": {
+    "title": "09 Rules of the road",
+    "reuse": [],
+    "simplify": [
+      {
+        "ds_section": "colregs",
+        "front": "Rule 5 — look-out",
+        "note": "Right topic, wrong register — it quotes rule text. CC card: what keeping a lookout actually means — scan all round including astern and to leeward behind the genoa, and report what you see to the skipper."
+      },
+      {
+        "ds_section": "colregs",
+        "front": "Rule 7 — how do you know there is a risk of collision?",
+        "note": "Constant bearing is the one concept a lookout needs, but this card carries a rule number, radar and tows. CC card: if another boat's bearing stays the same as she gets closer, you are on a collision course — tell the skipper."
+      },
+      {
+        "ds_section": "colregs",
+        "front": "A large ship is approaching in a narrow buoyed channel and you are under sail in a 10 m yacht. What do you do?",
+        "note": "Cites Rule 9 and asks the crew to decide. CC card: a big ship in a channel cannot stop or turn for you — if you see one from the foredeck, tell the skipper straight away."
+      },
+      {
+        "ds_section": "position",
+        "front": "Relative bearing versus compass bearing",
+        "note": "CC version: how to report a sighting to the skipper relative to the boat ('ship fine on the starboard bow', clock bearings) — no conversion to compass bearings."
+      }
+    ]
+  },
+  "cc-tender": {
+    "title": "10 Tender usage",
+    "reuse": [],
+    "simplify": []
+  },
+  "cc-weather": {
+    "title": "11 Meteorology",
+    "reuse": [
+      {
+        "ds_section": "meteo",
+        "front": "What is the Beaufort scale, and what are forces 4, 6 and 8 called?",
+        "note": "Beaufort force names and speeds are the one hard-recall CC met item; wording is plain and assumes no theory."
+      },
+      {
+        "ds_section": "meteo",
+        "front": "What are the wind speeds for Beaufort forces 5, 7 and 9?",
+        "note": "Same Beaufort recall set, odd forces; the severe-gale naming aside is terminology, not forecast interpretation."
+      },
+      {
+        "ds_section": "meteo",
+        "front": "What are Beaufort forces 0 to 3?",
+        "note": "Completes the Beaufort scale at the light end; pure recall, no theory."
+      },
+      {
+        "ds_section": "meteo",
+        "front": "What are Beaufort forces 10, 11 and 12?",
+        "note": "Completes the Beaufort scale at the top end; pure recall, no theory."
+      }
+    ],
+    "simplify": [
+      {
+        "ds_section": "meteo",
+        "front": "At what force do you expect to see 'many white horses' and think about the first reef?",
+        "note": "CC version: what force 5 looks like on the water (many white horses, spray) — drop the 'think about the first reef' decision, which is the skipper's."
+      },
+      {
+        "ds_section": "meteo",
+        "front": "Where can you get a marine forecast at sea?",
+        "note": "CC version: just name where a forecast comes from (Coastguard VHF broadcast, marina or harbour office, radio, phone app before you leave) — no frequencies, no long-wave history."
+      }
+    ]
+  },
+  "cc-seasickness": {
+    "title": "12 Seasickness",
+    "reuse": [],
+    "simplify": [
+      {
+        "ds_section": "safety",
+        "front": "How do you deal with a crew member who is seriously seasick?",
+        "note": "Written as the skipper managing a casualty. CC card: what to do when you feel sick — stay on deck, low and warm, eyes on the horizon, eat something, take the helm, take tablets before you sail."
+      },
+      {
+        "ds_section": "handling",
+        "front": "What is the effect of waves on boat handling and crew?",
+        "note": "The boat-handling half is skipper's. CC version: why motion makes you sick and tired, stay on deck in fresh air looking at the horizon, keep eating and drinking, keep warm, and tell someone early."
+      }
+    ]
+  },
+  "cc-helming": {
+    "title": "13 Helmsmanship and sailing",
+    "reuse": [
+      {
+        "ds_section": "handling",
+        "front": "What is sail trim on the different points of sailing?",
+        "note": "Trimming on all points of sailing is the CC section 13 bullet, and the ease-until-it-lifts rule is exactly the CC bar."
+      },
+      {
+        "ds_section": "handling",
+        "front": "What is weather helm and lee helm?",
+        "note": "Weather helm is listed in the CC section 13 deck implication, and 'she pulls up into the wind, hold the tiller to windward' is precisely what a novice on the helm needs."
+      }
+    ],
+    "simplify": [
+      {
+        "ds_section": "compass",
+        "front": "What causes deviation to change unexpectedly?",
+        "note": "CC version: keep phones, tools, tins and anything metal away from the steering compass because they make it read wrong — no explanation of deviation."
+      },
+      {
+        "ds_section": "handling",
+        "front": "What is an accidental gybe, and how do you avoid one?",
+        "note": "Preventers and not sailing dead downwind in a seaway are helming decisions. CC version: what a gybe is, that the boom sweeps the whole cockpit, keep your head down and never sit under the mainsheet when running."
+      }
+    ]
+  },
+  "cc-duties": {
+    "title": "14 General duties",
+    "reuse": [
+      {
+        "ds_section": "engine",
+        "front": "Why should you check for lines in the water before starting the engine?",
+        "note": "A crew job given as an order - check nothing is over the side before the engine starts - and worded for a beginner. Doubles as MOB-drill discipline."
+      },
+      {
+        "ds_section": "handling",
+        "front": "Why should you never use your hands or feet to fend off?",
+        "note": "The single most important deck-safety order for a first-timer, worded plainly with no theory."
+      }
+    ],
+    "simplify": [
+      {
+        "ds_section": "terms",
+        "front": "Reserve buoyancy",
+        "note": "Only the practical tail matters at crew level. CC card: keep hatches and washboards shut at sea so water cannot get below."
+      },
+      {
+        "ds_section": "terms",
+        "front": "What happens to stability if you fill the water tanks and load the anchor locker?",
+        "note": "Free-surface effect and loading decisions are the skipper's. CC card: stow heavy gear low and aft of the bow, and never leave gear loose on deck or on the coachroof."
+      },
+      {
+        "ds_section": "safety",
+        "front": "What safety brief should every new crew member get before you leave?",
+        "note": "Written from the skipper's side and includes sending a VHF distress alert. CC card: what to make sure you have been shown on day one — lifejacket, clipping points, extinguishers and blanket, liferaft, heads, seacocks, MOB shout."
+      },
+      {
+        "ds_section": "pilotage",
+        "front": "What preparation should be done on deck before entering a harbour?",
+        "note": "CC version: what the crew does on deck before arriving - fenders hung at the right height both sides, bow and stern lines and springs led and coiled ready, boat hook to hand. Drop the anchor/engine test/pilotage plan/VHF."
+      },
+      {
+        "ds_section": "engine",
+        "front": "What checks do you make before starting the engine?",
+        "note": "Too deep - gearbox oil, belt tension, strainer. CC version: the two things a crew member is asked to check before start-up - raw-water seacock open and no lines over the side - and to report anything odd in the bilge."
+      },
+      {
+        "ds_section": "engine",
+        "front": "What do you check immediately after starting?",
+        "note": "CC version: after the engine starts, look over the stern and check cooling water is coming out with the exhaust; if it is not, tell the skipper immediately. Drop the oil-pressure and alternator warning lights."
+      },
+      {
+        "ds_section": "handling",
+        "front": "How do you pick up a mooring buoy?",
+        "note": "The approach is a skipper decision. CC version: the foredeck crew's job on a mooring - line rove through the bow fairlead and back aboard beforehand, boat hook ready, point at the buoy and call the distance, never reach out over the bow."
+      },
+      {
+        "ds_section": "handling",
+        "front": "Preparing for sea: name five things you do below decks and five on deck.",
+        "note": "Preparation for sea as skipper is a hard exclusion. CC version: the crew's share - stow everything below so nothing flies, gas off at the bottle, fenders and warps in and nothing trailing over the side, sail ties off and halyards clear."
+      },
+      {
+        "ds_section": "passage",
+        "front": "How do you plan a watch system for a short-handed crew on a night passage?",
+        "note": "Designing the watch system is the skipper's. CC version: what being on watch means for you - what you look for, what you must call the skipper for, and what you pass on at handover."
+      },
+      {
+        "ds_section": "passage",
+        "front": "What should you brief the crew on before a passage?",
+        "note": "CC version, from the receiving end: what you should be shown before you sail - your lifejacket and clipping points, where the fire extinguishers and liferaft live, how the heads and the gas work, the MOB drill, and that you may raise a concern at any time."
+      },
+      {
+        "ds_section": "passage",
+        "front": "What do you write in the deck log, and why does it matter?",
+        "note": "CC section 14 includes log entries as dictated. CC version: filling in the hourly log line when told - time, position from the plotter, course, speed, wind - and why it matters if the electronics die."
+      }
+    ]
+  }
+}

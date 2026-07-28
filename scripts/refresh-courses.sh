@@ -8,7 +8,11 @@
 set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DS="${DS:-/workspaces/sandbox/projects/rya-day-skipper/web}"
-CC="${CC:-/workspaces/sandbox/_temp/rya-competent-crew/build}"
+# Competent Crew is authored in this repo (content/competent-crew) but its build
+# is not committed — every card either points at a Day Skipper card or is checked
+# against one, so `python3 content/competent-crew/src/build.py` needs that
+# checkout present. Run it before this script, or there is nothing to copy.
+CC="${CC:-$HERE/content/competent-crew/build}"
 FLAG="${1:-}"
 
 copy() { # src dst
