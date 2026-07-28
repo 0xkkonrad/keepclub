@@ -236,6 +236,9 @@ def main():
             entry = {"i": cid, "s": key, "q": front, "a": back}
             if img:
                 entry["m"] = img
+                path = os.path.join(ds.DS_MEDIA, img)
+                if os.path.isfile(path):
+                    entry["d"] = png_size(path)
             if figure:
                 entry["f"] = figure
             if origin:
@@ -282,6 +285,22 @@ def write_json(sections, cards):
     ).hexdigest()[:8]
     with open(os.path.join(BUILD, "cards.json"), "w", encoding="utf-8") as f:
         json.dump(body, f, ensure_ascii=False, separators=(",", ":"))
+
+
+def png_size(path):
+    """[width, height] straight from the PNG IHDR chunk.
+
+    The app reserves the diagram's aspect ratio before the file loads, so the
+    answer text never jumps when it arrives — which only works if `d` rides
+    along with `m`. Day Skipper gets the numbers from Pillow because it is
+    already resampling; here the files are copied untouched, and eight bytes of
+    header beat a library dependency.
+    """
+    with open(path, "rb") as f:
+        head = f.read(24)
+    if head[:8] != b"\x89PNG\r\n\x1a\n" or head[12:16] != b"IHDR":
+        raise ValueError(f"{path}: not a PNG")
+    return [int.from_bytes(head[16:20], "big"), int.from_bytes(head[20:24], "big")]
 
 
 def copy_media(cards):

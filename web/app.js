@@ -1156,8 +1156,15 @@ function showCard() {
   const fig = $('#card-fig');
   if (card.m) {
     const img = $('#card-img');
-    img.width = card.d[0];
-    img.height = card.d[1];
+    // `d` is owed whenever `m` is present, but a deck that shipped without it
+    // should cost the layout reservation, not the card.
+    if (card.d) {
+      img.width = card.d[0];
+      img.height = card.d[1];
+    } else {
+      img.removeAttribute('width');
+      img.removeAttribute('height');
+    }
     img.alt = `Diagram: ${stripTags(card.q)}`;
     // Offline with an uncached diagram, this used to be a broken-image icon
     // under a caption inviting you to tap it, and the lightbox opened empty.
@@ -1597,7 +1604,7 @@ function browseRow(hit, terms, withSection) {
   li.innerHTML = `<details><summary><span class="b-head"><span class="b-where" hidden></span>`
     + `<span class="b-q"></span><span class="b-why" hidden></span></span></summary>`
     + `<div class="browse-ans"><span class="b-text">${c.a}</span>
-      ${c.m ? `<button class="plate b-plate" aria-label="Enlarge the diagram: ${escAttr(stripTags(c.q))}"><img src="${COURSE.base}img/${encodeURIComponent(c.m)}" alt="Diagram: ${escapeHtml(stripTags(c.q))}" loading="lazy" width="${n(c.d[0])}" height="${n(c.d[1])}"></button><span class="b-zoom">Tap the diagram to enlarge</span>` : ''}
+      ${c.m ? `<button class="plate b-plate" aria-label="Enlarge the diagram: ${escAttr(stripTags(c.q))}"><img src="${COURSE.base}img/${encodeURIComponent(c.m)}" alt="Diagram: ${escapeHtml(stripTags(c.q))}" loading="lazy"${c.d ? ` width="${n(c.d[0])}" height="${n(c.d[1])}"` : ''}></button><span class="b-zoom">Tap the diagram to enlarge</span>` : ''}
       ${hasFig ? `<button class="plate b-fig" aria-label="Enlarge the drawing: ${escAttr(stripTags(c.q))}">${figureSVG(c)}</button><span class="b-zoom">Tap the drawing to enlarge</span>` : ''}
       <span class="b-sect">${escapeHtml(sect ? sect.t : c.s)} · ${STATE_WORDS[stateOf(c.i)]}</span></div></details>`;
   const q = li.querySelector('.b-q');
