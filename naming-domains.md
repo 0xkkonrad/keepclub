@@ -5,8 +5,11 @@ Companion to [naming-research.md](naming-research.md), which sweeps mythology fo
 this one is about **names that can be bought and found**. The full candidate set with meanings,
 collisions and risk notes is [design/naming/candidates.json](design/naming/candidates.json).
 
-**Status: down to two.** Konrad narrowed to **keep club** and **understudy club** on 28 Jul; the
-other three are out. Nothing is bought. The app is Munin and ships at `kkonrad.com/munin`.
+**DECIDED 28 Jul 2026: the name is KEEP CLUB.** Konrad's call, after the doodle sets. Nothing is
+bought yet. The app still ships as Munin at `kkonrad.com/munin`.
+
+**Buy `keepclub.app`** — $8.75 first year, $14.93 renewal. Re-confirmed free at decision time
+(RDAP 404 against a control returning 200, and no NS records).
 
 ---
 
@@ -170,19 +173,35 @@ Shortlist of three per name: `tally` / `tower` / `acorn`, and `spikemark` / `cue
 `ghostlight`. Seven marks were redrawn after failing the 26px read — a portcullis came out a
 globe, a reef knot a bowtie, a spotlight a bell.
 
+## The buy list, now that the name is keep club
+
+| domain | status | do |
+|---|---|---|
+| **`keepclub.app`** | free, $8.75 / $14.93 | **Buy this.** `.app` is not on the abused-TLD blocklist that `.club` and `.quest` are, it is HSTS-preloaded so HTTPS is enforced, and it says *app* to an audience that is shopping for one. |
+| `thekeepclub.app` | free, $8.75 | Optional defensive companion. Never the primary — `keepclub.app` is free, so the definite article buys nothing but a word people drop when typing. |
+| `keep.club` | free, **$1,000/yr** | Not now. Parked as a someday-if-this-takes-off name. Worth noting it would *also* carry the `.club` blocklist problem, so the premium buys a worse TLD. |
+| `keepclub.com` | **taken** | Cannot be had. Held since 2002, Alibaba nameservers, NetEase mail configured, serves a "请稍等" holding page, runs to 2027. |
+| `keepclub.quest` | free, $1.54 | No. Blocked TLD with six exceptions, and *quest* is gamification vocabulary this app avoids. |
+
+**The known cost of this name, accepted going in:** there is no good `.com`. `keepclub.com` belongs
+to someone else, and the fallbacks (`getkeepclub.com`, `keepclubapp.com`) are worse than the
+`.app`. Say the name out loud and a share of listeners will type `.com` and land on a stranger's
+redirector — the *verbal leak*. It is the price of the word, and it does not go away.
+
+**Also still true and worth acting on:** `.app` sidesteps the blocklist entirely, so the
+HaGeZi exception request that a `.club` would have needed is no longer necessary.
+
 ## Where it stands
 
-1. **`understudyclub.com` at $11** is the strongest thing on the table: the recommended name, the
-   most trusted TLD, no premium, no blocklist.
-2. **`understudy.club` at $30** is the elegant version of the same name — better to say and type,
-   at the cost of blocklist exposure that is appealable.
-3. **`keep.club` at $1,000** is parked. Revisit only if the product takes off enough that the
-   name has nothing left to prove.
-4. **`munin.club` at $4.12** remains the do-nothing option, and it is not a bad one — it costs
-   nothing built and leaves only the search term unsolved.
+The name is settled. What is still open, and is still live in the picker: whether **keep club**
+replaces Munin outright or is the front door to it, what happens to the raven and the hoard, the
+App Store title, and where acquisition traffic comes from. The `the-name` card is now decided —
+option E — and the recommendation on it is superseded by Konrad's call.
 
-Still unlocked in the picker: whether the name replaces Munin or just addresses it, what happens
-to the raven, the App Store title, and where acquisition traffic comes from.
+The mark is not chosen. `tower` is mocked up in place at
+<https://claude.ai/code/artifact/0334fbdc-9688-47cc-b5ab-8bc177828a48>; the other sixteen
+candidates are in the doodle report above. `tally`, `cairn` and `acorn` remain the three that
+say *accumulation* rather than *storage*, which is the objection the Keep marks have to survive.
 
 ---
 
