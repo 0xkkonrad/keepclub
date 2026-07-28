@@ -557,12 +557,28 @@ const offer = (pg) => pg.evaluate(() => {
   await Promise.all([p13.waitForEvent('load'), p13.click('[data-course="day-skipper"]')]);
   await p13.waitForFunction(() => document.getElementById('boot').hidden);
 
+  // Changing course from an overlay opened on a tab consumes both temporary
+  // entries. Back must not reveal the old course or spend a press on a vanished
+  // panel before it reaches the picker.
+  await p13.click('[data-go="stats"]');
+  await p13.click('.shelf-btn');
+  await p13.waitForSelector('.shelf[role="dialog"]');
+  await Promise.all([
+    p13.waitForEvent('load'),
+    p13.click('[data-course="competent-crew"]'),
+  ]);
+  await p13.waitForFunction(() => document.getElementById('boot').hidden);
+  now = await at();
+  ok(now.course === 'competent-crew' && now.screen === 'home',
+    `choosing from an overlaid tab opens only the new course (${now.course}/${now.screen})`);
+
   // And from the course itself: the picker, with the resume pointer untouched
   // — the bare URL means the shelf here and "carry on" on a cold open.
   await press();
   now = await at();
-  ok(now.shelf && !now.course, 'Back from a course home lands on the picker');
-  ok(now.last === 'day-skipper',
+  ok(now.shelf && !now.course,
+    'Back from a switched course lands on the picker without an old-course stop');
+  ok(now.last === 'competent-crew',
     `and does not forget which course you were in (${now.last})`);
   const tiles13 = await p13.locator('.shelf-tile').count();
   ok(tiles13 === REGISTERED.length + 1,
