@@ -258,10 +258,17 @@ const offer = (pg) => pg.evaluate(() => {
   await p6.addInitScript(() => {
     addEventListener('DOMContentLoaded', () => {
       const s = document.getElementById('boot-scene');
+      const p = document.getElementById('boot-line');
+      // Measured while the screen is still up — app.js has not run, so this is
+      // the layout a person actually sees.
+      const sr = s && s.getBoundingClientRect(), pr = p && p.getBoundingClientRect();
       globalThis.__early = {
         from: s ? s.dataset.from : '',
         paths: s ? s.querySelectorAll('path').length : 0,
-        line: (document.getElementById('boot-line') || {}).textContent || '',
+        line: p ? p.textContent : '',
+        gap: sr && pr ? Math.round(pr.top - sr.bottom) : -1,
+        offCentre: sr && pr
+          ? Math.round(Math.abs((sr.top + pr.bottom) / 2 - innerHeight / 2)) : -1,
       };
     }, { once: true });
   });
@@ -271,6 +278,14 @@ const offer = (pg) => pg.evaluate(() => {
   const first = await p6.evaluate(() => globalThis.__early);
   ok(first.from === 'munin' && first.paths === 1,
     `first run paints Munin's own raven (${first.from})`);
+  // .boot is a grid of two children with no row template. Rows stretch by
+  // default, which put the drawing a quarter down the screen and its caption
+  // three quarters down, with the gap rendering nowhere. Both numbers, because
+  // either one alone passes while the screen still looks broken.
+  ok(first.gap >= 0 && first.gap < 40,
+    `the caption sits under the drawing, not adrift (${first.gap}px apart)`);
+  ok(first.offCentre >= 0 && first.offCentre < 60,
+    `and the two of them are centred as one (${first.offCentre}px off centre)`);
 
   await Promise.all([p6.waitForEvent('load'), p6.click('[data-course="day-skipper"]')]);
   await p6.waitForFunction(() => document.getElementById('boot').hidden);
