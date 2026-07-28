@@ -23,7 +23,7 @@ const SCOPE = new URL('./', self.registration.scope).pathname;
 /* Everything a course may ship. Optional members are normal: Competent Crew
  * has no clips, an unillustrated course has no figures. */
 const COURSE_FILES = ['course.json', 'doodles.js', 'cards.json', 'figures.json',
-  'videos.json', 'boot.html', 'boot.css'];
+  'figures.css', 'videos.json', 'boot.html', 'boot.css'];
 
 /** Which course a same-origin path belongs to, if any. */
 function courseOf(pathname) {

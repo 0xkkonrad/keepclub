@@ -102,7 +102,9 @@ with tags/categories at the engine level.
 | T6 | Competent Crew doodles | **Colour-only reskin — but physically separated.** CC ships its own doodle files that *happen* to coincide with Day Skipper's; theme files are never imported across courses. |
 | T7 | Deployment | **kkonrad.com/munin now.** /day-skipper stays untouched until Munin passes the five test suites + a state-migration check, then 301s in. |
 
-A course theme is exactly: accent pair (light+dark) + doodle set + section art +
+A course theme is exactly: accent pair (light+dark) + doodle set + figure vocabulary
+(`figures.css` + `figures.noPen` — the nouns; the figure *language* of dashes, leaders,
+arcs and colour tokens stays Munin's) + section art +
 **loading screen** (its scene, how it moves, and what it says — Day Skipper's rocking
 boat and "Loading deck…" stay Day Skipper's; the raven default gets its own) + **what
 the hoard is called and what its fourteen entries are called and drawn as** + its
@@ -148,7 +150,22 @@ else fixed. What changed:
 - **One copy of each constant**: `MUNIN.stateKey` / `MUNIN.lastKey`, and the raven
   list exported from `lib/deck.js` and gated against `doodles-munin.js`.
 - **The gate points the right way.** `tests/separation.mjs` tested course → course; it
-  now also tests engine → course, which is the direction that was leaking. 50 checks.
+  now also tests engine → course, which is the direction that was leaking. 69 checks.
+
+**Two follow-ups, both closed 28 Jul on Konrad's call:**
+
+- **Four more ravens.** The hoard has fourteen entries and Munin's set held ten, so an
+  imported deck showed four duplicate pairs. `prints`, `nest`, `worm` and `shell` are
+  drawn — the subjects the character notes above already called for — and each takes
+  over the entry it belongs to. The set now has a generator,
+  `design/raven-doodles/build.py`, which rebuilds the original ten byte-for-byte; it
+  had none, so redrawing one meant hand-editing the shipped file. The frieze stays ten
+  (it has to fit a 320px screen) and names its ten explicitly.
+- **The figure vocabulary is separated.** ~50 `.f-*` rules naming one syllabus's
+  rigging, sails, fenders and pontoons moved out of app.css into
+  `courses/<id>/figures.css`, and `FIG_NO_PEN` split into the engine's half and the
+  course's `figures.noPen`. Gated both ways: app.css may draw no course's nouns, and a
+  course may not redefine the shared language.
 
 ### Boot screens — per-course, mechanism built 28 Jul
 

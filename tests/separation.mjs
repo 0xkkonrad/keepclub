@@ -176,6 +176,41 @@ for (const f of ENGINE) {
   ok(found.length === 0, `${f} says nothing only one course would say ${[...new Set(found)].join(', ')}`);
 }
 
+/* The figure language is Munin's; a course's own nouns are the course's.
+ *
+ * app.css carried ~50 rules of one syllabus — f-sail, f-boom, f-warp,
+ * f-fender, f-pontoon, f-jack — and applied them over every deck anybody
+ * imported. The split is by meaning: what a dash is, what a leader line is,
+ * what a swept arc is, and the colour tokens, are true of any subject drawn
+ * this way. Anything naming a thing in one subject's world is not. */
+const FIGURE_LANGUAGE = new Set(['f-thin', 'f-dash', 'f-dash-acc', 'f-dash-red',
+  'f-lead', 'f-meas', 'f-cut', 'f-arc', 'f-arc-on', 'f-note', 'meas-on']);
+const figureClasses = (src) => [...src.matchAll(/\.figure\s+(?:text)?\.([\w-]+)/g)]
+  .map((m) => m[1]).filter((c) => !/^(c-|fill-|on$)/.test(c));
+
+const engineFigures = figureClasses(read('app.css'));
+const subjectInEngine = [...new Set(engineFigures)].filter((c) => !FIGURE_LANGUAGE.has(c));
+ok(subjectInEngine.length === 0,
+  `app.css draws no course's own nouns ${subjectInEngine.join(', ')}`);
+
+for (const c of COURSES) {
+  const f = path.join(WEB, 'courses', c, 'figures.css');
+  const meta = JSON.parse(read('courses', c, 'course.json'));
+  if (!fs.existsSync(f)) {
+    ok(!meta.figures, `${c}: no figures block without a figures.css to back it`);
+    continue;
+  }
+  const own = new Set(figureClasses(fs.readFileSync(f, 'utf8')));
+  ok(own.size > 0, `${c}: its figures.css declares its own classes`);
+  // Its stylesheet may not redefine the shared language out from under Munin.
+  const stolen = [...own].filter((k) => FIGURE_LANGUAGE.has(k));
+  ok(stolen.length === 0, `${c}: it does not redefine the figure language ${stolen.join(', ')}`);
+  // And every class it says cannot take a pen is one it actually draws.
+  const noPen = (meta.figures && meta.figures.noPen) || [];
+  const unknown = noPen.filter((k) => !own.has(k));
+  ok(unknown.length === 0, `${c}: every class it exempts from the pen is its own ${unknown.join(', ')}`);
+}
+
 /* The hoard's own drawings are Munin's, or the defaults are unreachable.
  * Read out of the HOARD literal by name and tolerant of how it is formatted —
  * a version of this that insisted on one line shape failed the build with
@@ -187,6 +222,19 @@ const hoardArts = hoardSrc
 ok(hoardArts.length >= 10, `the hoard is a list of entries (found ${hoardArts.length})`);
 const strayArt = hoardArts.filter((a) => !path_(MUNIN_DOODLE, a));
 ok(strayArt.length === 0, `every hoard default is drawn in Munin's own set ${strayArt.join(', ')}`);
+/* And each of them is a DIFFERENT drawing. The set held ten for a while and the
+ * hoard has fourteen entries, so four of them doubled up — which on an imported
+ * deck, where Munin's defaults are all you get, is four visible duplicate pairs
+ * down the Progress screen. */
+ok(new Set(hoardArts).size === hoardArts.length,
+  `no two hoard defaults are the same drawing (${hoardArts.length - new Set(hoardArts).size} repeated)`);
+
+/* The frieze is ten and no more — it has to fit a 320px screen without a
+ * sideways scrollbar — and every one of them is a drawing Munin holds. */
+const frieze = /friezeArt: \[([^\]]*)\]/.exec(read('munin.js'));
+const friezeArt = frieze ? [...frieze[1].matchAll(/'([\w-]+)'/g)].map((m) => m[1]) : [];
+ok(friezeArt.length === 10, `Munin's frieze is ten drawings (found ${friezeArt.length})`);
+ok(friezeArt.every((a) => path_(MUNIN_DOODLE, a)), 'and every one of them is in its own set');
 
 /* One raven list. It lived in four files, and the two the importer uses
  * drifting apart would give a deck a shelf tile from outside its own set. */

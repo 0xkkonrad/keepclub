@@ -34,7 +34,8 @@ function sample(html) {
  * would mean a deck whose shelf tile is not one of its own section drawings.
  * The separation gate checks it against doodles-munin.js, which is where the
  * drawings themselves live. */
-export const RAVENS = ['perch', 'peek', 'flap', 'carry', 'roost', 'hoard', 'puff', 'strut', 'quill', 'bow'];
+export const RAVENS = ['perch', 'peek', 'flap', 'carry', 'roost', 'hoard', 'puff',
+  'strut', 'quill', 'bow', 'prints', 'nest', 'worm', 'shell'];
 
 const LATEX = /\[latex\]|\[\$\$?\]|\\begin\{|\\\(/i;
 

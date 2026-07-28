@@ -45,6 +45,14 @@
   "compass"
  ],
  "notice": "Revision material, not a substitute for the course or for time on the water. Progress is stored on this device only.",
+ "figures": {
+  "noPen": [
+   "f-sail",
+   "f-fender",
+   "f-jack",
+   "f-wash"
+  ]
+ },
  "hoard": {
   "title": "Ship's log",
   "items": {

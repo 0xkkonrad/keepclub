@@ -43,8 +43,12 @@ const MUNIN = {
     accent: { light: '#0e3f39', dark: '#35917f', inkLight: '#fffdf7', inkDark: '#141519' },
     boot: { art: 'perch', line: 'Loading…' },
     fallback: 'perch',
-    // The raven set itself, in file order — one list, not a copy of one.
-    friezeArt: Object.keys(MUNIN_DOODLE),
+    /* Ten of them, named. The frieze is ten drawings and no more — that is
+     * what fits a 320px screen without a sideways scrollbar — so it cannot be
+     * "whatever MUNIN_DOODLE holds": the set grew to fourteen the day the
+     * hoard needed fourteen distinct drawings. The gate keeps this a subset. */
+    friezeArt: ['perch', 'peek', 'flap', 'carry', 'roost',
+      'hoard', 'puff', 'strut', 'quill', 'bow'],
     notice: 'Revision material. Progress is stored on this device only.',
   },
 };
@@ -377,6 +381,15 @@ async function startCourse(c, loadDoodles) {
   const line = document.getElementById('boot-line');
   if (line && c.boot.line) line.textContent = c.boot.line;
   document.title = 'Munin — ' + c.title;
+  // A course that draws figures brings the stylesheet for them: its own nouns
+  // — rigging, fenders, pontoons — used to be fifty rules in app.css, applied
+  // over every deck including the ones about German verbs.
+  if (c.figures && !c.deck) {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = c.base + 'figures.css';
+    document.head.appendChild(link);
+  }
   const scene = loadBootScene(c);
   await loadDoodles();
   // A course with no scene file of its own still gets its own drawing in

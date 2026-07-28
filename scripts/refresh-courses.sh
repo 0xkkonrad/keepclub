@@ -57,7 +57,9 @@ for id in $IDS; do
     competent-crew)
       copy "$CC/cards.json" "$DEST/cards.json"
       # CC's figures are its own copy of the Day Skipper drawings (T6: the
-      # files are separated, and being identical is a coincidence).
+      # files are separated, and being identical is a coincidence). Its
+      # figures.css is hand-authored and not copied — that one is the course's
+      # own vocabulary, and the two courses' copies may drift apart on purpose.
       copy "$DS/figures.json" "$DEST/figures.json"
       sync_dir 'img  ' "$CC/media/" "$DEST/img/"
       ;;

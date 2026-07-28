@@ -253,6 +253,41 @@ const offer = (pg) => pg.evaluate(() => {
   await c6.close();
 }
 
+/* ── a course's figure vocabulary is the course's ─────────────────────────
+ *
+ * ~50 rules naming one syllabus's rigging, sails and pontoons used to be in
+ * app.css, applied over every deck anybody imported. They are the course's
+ * now — which is only true if its stylesheet actually arrives and still wins. */
+{
+  const cf = await b.newContext({ viewport: { width: 390, height: 844 },
+    serviceWorkers: 'block' });
+  const pf = await cf.newPage();
+  await pf.goto(URL + '?course=day-skipper', { waitUntil: 'networkidle' });
+  await pf.waitForFunction(() => document.getElementById('boot').hidden);
+  const css = await pf.evaluate(() => [...document.styleSheets]
+    .some((s) => (s.href || '').endsWith('figures.css') && s.cssRules.length > 0));
+  ok(css, "the course's own figure stylesheet is loaded");
+
+  await pf.click('[data-go="browse"]');
+  await pf.fill('#search', 'sail');
+  await pf.waitForTimeout(600);
+  const drawn = await pf.evaluate(async () => {
+    const btn = document.querySelector('#browse-open');
+    if (btn && !btn.hidden) btn.click();
+    await new Promise((r) => setTimeout(r, 500));
+    const el = document.querySelector('.figure .f-sail');
+    if (!el) return null;
+    return { fill: getComputedStyle(el).fill, cls: el.getAttribute('class') };
+  });
+  ok(drawn && drawn.fill === 'rgb(230, 227, 218)',
+    `its own class still fills its own shape (${drawn && drawn.fill})`);
+  // The pen exemption comes from course.json's figures.noPen now, not from a
+  // list of one course's nouns in the engine.
+  ok(drawn && /\bsoft\b/.test(drawn.cls),
+    `and the course's noPen list decides the pen (${drawn && drawn.cls})`);
+  await cf.close();
+}
+
 /* ── nothing is deleted from a list we could not read ──────────────────────
  *
  * Every one of these was a real defect, and every one of them destroyed

@@ -562,35 +562,26 @@ button.plate:active { transform: translate(3px, 3px); box-shadow: none; }
    or the one card that needs to read a position off the grid loses the grid. */
 .figure text.f-note[data-l]:not(.on) { opacity: 0; }
 
+/* What follows is the figure LANGUAGE, and it is Munin's: what a dash means,
+   what a leader line is, what a swept arc is. It is true of any subject drawn
+   this way. A course's own nouns — its rigging, its fenders, its pontoons —
+   live in courses/<id>/figures.css, because they are that course's drawings
+   and not the app's. Fifty of them used to be in this file, applied over every
+   deck anybody imported. */
 .figure .f-thin { stroke: var(--muted); stroke-width: 1.4; }
 /* Exception 1 of 2: a dash still means "construction line", "section cut" or
-   "not really there" — the waterline is dashed because it is a level, not a
-   part of the boat. Seven figures would lose that if the dashes went solid. */
+   "not really there" — a waterline is dashed because it is a level, not a part
+   of the thing. Figures across both courses would lose that if dashes went
+   solid. */
 .figure .f-dash { stroke: var(--muted); stroke-width: 1.4; stroke-dasharray: 6 6; }
 .figure .f-dash-acc { stroke-dasharray: 5 5; stroke-width: 1.4; }
 .figure .f-lead { stroke-width: 1.4; }
 .figure .f-meas { stroke: var(--muted); stroke-width: 1.4; }
-.figure .f-rig { stroke-width: 1.4; }
-.figure .f-side { stroke-width: 1.4; }
-.figure .f-edge { stroke-width: 1.4; }
 .figure .f-cut { stroke-width: 1.4; stroke-dasharray: 7 5; }
 /* Exception 2 of 2: the two arcs are a swept area rather than a line, and a
    swept area at hairline is a scratch. They keep a weight, at low opacity. */
 .figure .f-arc { stroke-width: 4; opacity: .35; }
 .figure .f-arc-on { stroke-width: 5; opacity: .6; }
-.figure .f-wind { stroke: var(--fig-blu); stroke-width: 1.4; }
-.figure .f-brace { stroke-width: 1.4; }
-.figure .f-shore { stroke-width: 1.4; }
-.figure .f-boom { stroke-width: 1.4; }
-.figure .f-tie { stroke: var(--muted); stroke-width: 1.4; }
-.figure .f-arm { stroke-width: 1.4; }
-.figure .f-sail { fill: var(--surface-2); }
-.figure .f-pontoon { stroke-width: 1.4; }
-.figure .f-warp { stroke-width: 1.4; }
-.figure .f-fender { stroke: var(--muted); stroke-width: 1.4; fill: var(--surface-2); }
-.figure .f-jack { stroke-width: 1.4; stroke-dasharray: 10 5; }
-.figure .f-walk { stroke-width: 1.4; }
-.figure .f-wash { stroke-width: 1.4; stroke-dasharray: 9 5; }
 .figure .f-dash-red { stroke-dasharray: 6 5; stroke-width: 1.4; }
 .figure .fill-amb { fill: var(--g2); stroke: var(--stroke); }
 /* The accent used to mean "this is the bit the card is asking about". The

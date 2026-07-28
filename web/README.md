@@ -15,6 +15,7 @@ decisions in `../project.md`.
 | its loading screen — boot.html + boot.css + boot.line | the hoard's *rules*, and defaults for every slot below |
 | what the hoard is called and what its fourteen entries are called and drawn as | the type, the layout, the grade flags, the mastery bars |
 | its `notice` (the fineprint) and `credit`, its `short` header title | offline, backup, sync, install |
+| its figure vocabulary — `figures.css` + `figures.noPen` | the figure *language*: dashes, leaders, arcs, colour tokens |
 
 Anything a course does not bring, it gets from Munin — slot by slot, in
 `withDefaults()`. **Munin's own theme is not a special case for imported
@@ -60,10 +61,11 @@ of the shelf intact.
 `cards.json`. That is the whole list.
 
 **Offered:** `doodles.js`, `boot.html` + `boot.css`, `figures.json`,
-`videos.json`, `img/`, `video/`, and every optional field in course.json —
+`figures.css`, `videos.json`, `img/`, `video/`, and every optional field in
+course.json —
 `accent`, `short`, `tagline`, `boot.line`, `boot.art`, `shelfArt`,
 `shelfPath`, `fallback`, `sectionArt`, `groupArt`, `friezeArt`, `examDate`,
-`notice`, `credit`, `hoard`. Anything absent comes from Munin. A course with
+`notice`, `credit`, `hoard`, `figures`. Anything absent comes from Munin. A course with
 a title and two hundred cards works, looks like Munin, and is not a
 second-class citizen — that is the ruling, and `tests/separation.mjs` requires
 exactly the two files above and no more.
@@ -102,6 +104,21 @@ leaves the drawing finished, not half-drawn.
 **What ships is still a spinner, not a scene** — each course's boot.html holds
 one of its own drawings, drawn on and then moving. The mechanism is finished;
 the drawing is not. See project.md, "Boot screens", for what it should be.
+
+## Figures: the language is Munin's, the nouns are the course's
+
+`app.css` says what a dash means, what a leader line is, what a swept arc is,
+and holds the colour tokens — true of any subject drawn this way. A course's
+own nouns live in `courses/<id>/figures.css`: its rigging, its sails, its
+pontoons. About fifty rules of one syllabus used to be in app.css, applied over
+every deck anybody imported, and `FIG_NO_PEN` in app.js named two of them by
+hand. The pen exemption is now the engine's half (dashes, cuts, arcs, fills)
+plus whatever the course lists in `course.json`'s `figures.noPen` — the class
+list and the stylesheet that styles it are the same course's business, and they
+used to be able to disagree.
+
+The shell links `figures.css` when course.json has a `figures` block, so a
+course that draws nothing asks for nothing.
 
 ## What a deck has to be
 
