@@ -1148,7 +1148,14 @@ mark {
   border: 1px solid var(--stroke); padding: 4px 8px; text-align: left;
 }
 .question pre, .answer pre { white-space: pre-wrap; overflow-x: auto; font-size: .9em; }
-.question ul, .question ol, .answer ul, .answer ol { margin: 6px 0; padding-left: 22px; text-align: left; }
+/* Lists and links are also part of the authored-course vocabulary since the
+ * 28 July 2026 schema ruling (course-source.md), so these two rules serve
+ * Browse rows as well as the study card. */
+.question ul, .question ol, .answer ul, .answer ol,
+.b-text ul, .b-text ol { margin: 6px 0; padding-left: 22px; text-align: left; }
+.question a, .answer a, .b-text a {
+  color: var(--accent); text-underline-offset: 3px;
+}
 .question blockquote, .answer blockquote {
   margin: 8px 0; padding-left: 12px; border-left: 3px solid var(--stroke); color: var(--muted);
 }

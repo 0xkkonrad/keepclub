@@ -20,14 +20,17 @@ built, a parallel session was committing to that repo.
 **One fact, one author.** Competent Crew and Day Skipper share a lot — a bowline
 is a bowline. A shared card is a **pointer**, not a copy:
 
-```python
-("cc-ropework", "03 Ropework", [
-    ref("ropework", "Bowline — what is it for?"),      # Day Skipper's wording
-    ("Why do we coil a halyard tail?", "So it runs …"),  # written here
-]),
+```markdown
+# 03 Ropework
+
+## Bowline — what is it for? {ref=ropework}
+
+## Why do we coil a halyard tail?
+
+So it runs …
 ```
 
-`ref(section, front)` names a Day Skipper card by its section key and its exact
+`{ref=<section>}` names a Day Skipper card by its section key and its exact
 question text. `build.py` resolves it and copies the answer into the built deck
 only. No Day Skipper wording is ever stored in this repo, so a fix to a shared
 card happens once, in Day Skipper, and both decks get it.
@@ -69,11 +72,13 @@ Day Skipper — see `duplication_pass()` in `src/build.py`.
 
 ```
 SECTIONS.md            the 14 sections, the triage rule, the hard exclusions
+AUTHORING.md           how to write a section — the author-facing rules
 research/syllabus.md   the syllabus research, every claim tagged with the URL it came from
 research/reuse-*.json  the card-by-card triage of all 537 Day Skipper cards
-src/ds.py              read-only view of the Day Skipper card source; ref()
-src/cards_cc.py        the deck — the only file with content in it
-src/build.py           resolves pointers, validates, emits build/
+cards/NN-cc-*.md       the deck — markdown, one file per section (course-source.md)
+cards/deck.md          the deck's name
+src/ds.py              finds the Day Skipper tree, read-only, and its figure set
+src/build.py           parses via content/mdc.py, resolves pointers, emits build/
 build/                 generated, gitignored; cards.json, decks/*.tsv, STUDY-GUIDE.md, REUSE.md
 ```
 
@@ -84,10 +89,10 @@ python3 content/competent-crew/src/build.py   # writes content/competent-crew/bu
 ./scripts/refresh-courses.sh --write          # copies it into web/courses/
 ```
 
-`build/` is **not committed** — every card either points at a Day Skipper card or
-is checked against one, so a rebuild needs that checkout and a clone of Munin
-alone cannot do it. What ships is the copy under `web/courses/competent-crew/`,
-which is committed, so the app never depends on Day Skipper being present.
+`build/` is **not committed**. Day Skipper's source lives in this repo
+(`content/day-skipper/`), so a clone of Munin rebuilds both decks on its own.
+What ships is the copy under `web/courses/competent-crew/`, which is committed,
+so the app never depends on the build having run.
 
 It fails on: an unresolvable pointer, a duplicate question, an HTML tag outside
 the tiny allowed set, a figure or label that does not exist, a missing image,

@@ -11,8 +11,8 @@ so both courses now rebuild from a clone of Munin alone — which they could not
 while this was somewhere else.
 
 ```
-src/cards_a|b|c.py     the cards — the source of truth, and the only one
-src/groups.py          the 24 sections gathered into 7 themes
+cards/NN-<key>.md      the cards — the source of truth, and the only one
+cards/deck.md          the deck's name, and the 24 sections gathered into 7 themes
 src/diagrams.py        generates media/*.png, the 24 full-page diagrams
 src/figures.py         the 14 labelled drawings -> build/figures.json
 src/doodles.py         the 28 chrome doodles -> build/doodles.js
@@ -38,6 +38,12 @@ python3 content/day-skipper/src/build.py       # decks/*.tsv and STUDY-GUIDE.md
 `build/` is gitignored. Two builds of the same source are byte identical — the
 hand-drawing pass is seeded — so a diff means somebody changed a card or a
 drawing.
+
+The cards were authored as python literals until 28 July 2026, when the whole
+repo moved to the markdown course source format (`course-source.md` at the
+repo root; parsed by `content/mdc.py`). The migration was byte-faithful:
+`cards/` compiles to exactly the cards.json the python emitted, so no card id
+— and no one's review history — moved.
 
 ## The video clips
 
