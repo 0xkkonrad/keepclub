@@ -35,7 +35,9 @@ copy() { # src dst
 sync_dir() { # label src dst
   if [ ! -d "$2" ]; then echo "MISS  $2"; return; fi
   if [ "$FLAG" = "--write" ]; then rsync -a --delete "$2" "$3";
-  else rsync -an --delete --out-format="$1 %n" "$2" "$3" | head -5; fi
+  # Checksums avoid a page of false drift from mtimes, and the complete list is
+  # intentional: truncating at five hid the real changed file farther down.
+  else rsync -rnc --delete --itemize-changes --out-format="$1 %i %n" "$2" "$3"; fi
 }
 
 MISSING_RULE=0

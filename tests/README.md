@@ -16,7 +16,21 @@ Also the sanitiser, against a package written to attack the app.
 `importer-ui.mjs` — the importer as a person meets it: the tile, a real file,
 the receipt, keeping it, studying it, the pictures and sound coming off the
 device, re-importing over the top with progress kept, the refusals, and
-removing the deck again.
+removing the deck again. It also covers unrelated same-title replacement,
+lazy media and BFCache restoration, native audio controls, modal history/focus
+containment, recoverable storage failures, and stale-tab safety after reset or
+deck removal.
+
+`qa-regressions.mjs` — cross-surface browser regressions from the deep QA pass:
+single-writer study tabs, midnight and DST scheduling, held keys, session
+summary/Undo state, settings conflicts, modal Back/focus behavior, lightbox
+containment, removed optional assets, late video metadata, cached-scene
+sanitization, and chunked large-deck indexing.
+
+`pwa.mjs` — a disposable local server that changes deploy generations under a
+real service worker: transactional page/code and course updates, partial-cache
+cleanup, captive-portal and wrong-MIME rejection, closed-client completion, and
+per-request/per-tab diagram prefetch progress.
 
 `separation.mjs` — the T6 ruling as a gate: every course folder is
 self-contained (no cross-course references, own course.json/doodles/cards,
@@ -29,7 +43,8 @@ two cards answered → per-course storage asserted (and `rya-ds/v1`, the live
 Day Skipper app's key, asserted UNTOUCHED) → cold open resumes the course.
 
 Run: serve the sandbox on :8765 (`bash /workspaces/sandbox/.preview-serve.sh`),
-`npm install` once, `npm test` — which builds the fixtures first. The fixtures
+`npm install` once, `npm test` — which builds the fixtures first and runs all
+seven suites. The fixtures
 are generated and gitignored: a binary blob in the history is a binary blob
 nobody can review. `MUNIN_URL` overrides the target (e.g. the
 live site). Gotchas encoded in the test, learned the hard way: app chrome is

@@ -196,7 +196,7 @@ answer "none of them exist".
 ## Deploy
 
 kkonrad.com/munin (locked) — LIVE since 27 July 2026. /day-skipper 301s here
-only at parity: the five suites green + a state-migration check.
+only at parity: the full local suite green + a state-migration check.
 
 ## Importing an Anki deck
 
