@@ -1,5 +1,13 @@
 # Course source format — Anki-compatible or markdown-first?
 
+> **Ruled, 28 Jul 2026 (Konrad, via the schema picker).** Markdown-first,
+> Anki at the edges. Identity: sha1 default with an optional `{#id}` pin.
+> Markdown subset: **wider than the old whitelist — lists and links are in**
+> (open decision 3's recommendation was overruled). Migration: **both shipped
+> courses move to the new format now** (open decision 4's recommendation was
+> overruled). The format itself is specified in `course-source.md`; the
+> analysis below is the record of why.
+
 **Question.** More courses need to exist than the two we hand-built, some
 authored here, some imported. What format should a course's *source* be — and
 specifically, should it be Anki-compatible, or optimised for authoring (plain
