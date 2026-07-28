@@ -8,8 +8,18 @@ collisions and risk notes is [design/naming/candidates.json](design/naming/candi
 **DECIDED 28 Jul 2026: the name is KEEP CLUB.** Konrad's call, after the doodle sets. Nothing is
 bought yet. The app still ships as Munin at `kkonrad.com/munin`.
 
-**Buy `keepclub.app`** — $8.75 first year, $14.93 renewal. Re-confirmed free at decision time
-(RDAP 404 against a control returning 200, and no NS records).
+**`keepclub.app` is bought and LIVE** (28 Jul). DNS at Namecheap BasicDNS: four A + four AAAA on
+the apex to GitHub Pages, `www` CNAME to `0xkkonrad.github.io.`, both parking records removed.
+The site is its own repo — **[0xkkonrad/keepclub](https://github.com/0xkkonrad/keepclub)** — with
+Pages on `main`/root, `CNAME` = `keepclub.app`, Let's Encrypt cert covering apex and `www`, and
+HTTPS enforced. Deployed by [scripts/deploy-to-keepclub.sh](scripts/deploy-to-keepclub.sh);
+85/85 of the shell suite green against the live domain.
+
+`kkonrad.com/munin` is untouched and still serves. The two deploys are independent on purpose.
+
+**The app is still branded Munin.** Only the *name* and the *mark* are decided — whether Keep Club
+replaces Munin or fronts it (`rename-or-address`) and what happens to the raven (`raven-fate`) are
+still open in the picker, so nothing in the UI was rebranded.
 
 ---
 
@@ -198,10 +208,9 @@ replaces Munin outright or is the front door to it, what happens to the raven an
 App Store title, and where acquisition traffic comes from. The `the-name` card is now decided —
 option E — and the recommendation on it is superseded by Konrad's call.
 
-The mark is not chosen. `tower` is mocked up in place at
-<https://claude.ai/code/artifact/0334fbdc-9688-47cc-b5ab-8bc177828a48>; the other sixteen
-candidates are in the doodle report above. `tally`, `cairn` and `acorn` remain the three that
-say *accumulation* rather than *storage*, which is the objection the Keep marks have to survive.
+**The mark is `tower`** (locked 28 Jul). Mocked up in place at
+<https://claude.ai/code/artifact/0334fbdc-9688-47cc-b5ab-8bc177828a48>; the other sixteen candidates
+stay in the doodle report above if it is ever revisited.
 
 ---
 

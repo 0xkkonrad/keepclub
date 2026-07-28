@@ -36,6 +36,12 @@ left-hand column and is dressed entirely by the right.
    boot scene, load its `doodles.js`, then `app.js`.
 4. No course → the shelf (Munin ink teal #0E3F39, perch mark). Inside a course
    the "courses" pill overlays the shelf without clearing resume state.
+5. Which of those two the bare URL means is read off `history.state`: entering
+   a course is a fresh load, so the picker and the course are two entries over
+   one address. `{munin:'shelf'}` is the picker, `{munin:'course'}` is the
+   resume target, and a cold open (no state at all) resumes. That is what lets
+   Back out of a course land on the picker instead of re-opening the course.
+   The screens inside a course stack on top of these — `stops` in app.js.
 
 **The folder name is the course's identity.** `course.json`'s own `id` is
 ignored on boot and gated in tests: progress is keyed on it, and the two being
