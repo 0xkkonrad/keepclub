@@ -110,6 +110,43 @@ Every course folder is self-contained: course.json (id, title, accent, boot),
 doodles.js, cards.json (Day Skipper format), optional figures.json / videos.json.
 Missing doodle slot → raven fallback, never a hole.
 
+### Boot screens — per-course, and currently thin
+
+What ships is the minimum: one 46px doodle bobbing on a loop, configured per course
+in `course.json`'s `boot` block (`art`, `anim`, `line`). **We want a real per-course
+boot scene** — an animated drawing that belongs to the course the way its accent and
+doodles do. Two things are wrong with what's there now.
+
+**It draws too late.** `munin.js` sets the line and the animation before `app.js`
+loads, but the doodle itself is filled in `boot()` *after* the `cards.json` fetch
+resolves — so the window the boot screen exists to cover is the window in which it is
+blank. Anything on this screen has to be markup and CSS in `index.html`, painted on
+first load. A doodle injected from JavaScript cannot be.
+
+**It is a spinner, not a scene.** A course theme is meant to be felt before the first
+card. Day Skipper and Competent Crew share a sea: a horizon line that draws itself,
+then a boat drawn onto it and sailing its length, with sun, drifting cloud, gulls, a
+buoy to pass. The raven default gets its own.
+
+A prototype (*Horizon*, built and picked July 2026, since deleted) settled six things
+worth not rediscovering:
+
+- **`pathLength="1"` on every path.** It renormalises the path whatever its real
+  geometry, so *one* CSS rule — `stroke-dashoffset: 1 → 0` — draws any doodle on.
+  Without it every doodle needs its own measured length, and re-drawing a doodle
+  silently breaks its own animation.
+- **All motion in CSS, including any rotating captions.** A caption that starts moving
+  when `app.js` parses is a caption that never moves when it matters.
+- **Link the fonts, never inline them.** The app self-hosts and preloads these faces
+  already; shipping 65 KB of base64 font before first paint argues against the whole
+  point of the screen. That was the difference between 73 KB and 16 KB.
+- **A keyframe selector cannot take `calc()`.** A rotating-caption cycle has to have
+  its percentages and its caption count agree by hand — they cannot be derived.
+- **The doodle set's `flag` is a flagpole**, not a signal flag. Four hung off a halyard
+  read as flagpoles dangling in mid-air. A signal-flag hoist needs a new doodle, which
+  is a decision about the doodle set rather than about a boot screen.
+- **`prefers-reduced-motion` leaves the drawing finished**, not half-drawn.
+
 ### 4b — editing cards
 
 Anki's browser is a spreadsheet with a query language attached, which is why nobody edits
