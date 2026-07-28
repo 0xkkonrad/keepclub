@@ -173,6 +173,27 @@ function readMediaMap(raw) {
   return out;
 }
 
+/* "not a zip file" was the whole account given to a half-downloaded deck, a
+ * 0-byte file and a photograph alike: a fact about a container format the
+ * reader has never heard of, and for the commonest of the three it is not even
+ * true — a stopped download leaves a file that *is* a zip, just one with no end
+ * on it. The first four bytes say which of the three this is, and only one of
+ * them has a fix a person can act on. */
+const LOCAL_HEADER = [0x50, 0x4b, 0x03, 0x04];      // "PK\3\4", the first member
+
+function whyUnreadable(bytes, e) {
+  if (!bytes.length) return 'that file is empty — 0 bytes. The download may never have started.';
+  if (LOCAL_HEADER.every((v, i) => bytes[i] === v)) {
+    return 'this .apkg stops part-way through — the end of it is missing. A download that '
+      + 'was interrupted does this; downloading it again usually fixes it.';
+  }
+  // The rest is a fact about the container: true, and no use to anybody who is
+  // not debugging. It goes where the collection-level one goes.
+  console.error('zip unreadable:', e.message);
+  return 'this file is not a readable .apkg. An .apkg is what Anki writes from '
+    + 'File → Export; anything else renamed to .apkg reads like this.';
+}
+
 /**
  * Open a .apkg.
  * @param {Uint8Array} bytes
@@ -183,7 +204,7 @@ export async function readApkg(bytes) {
   try {
     zip = readZip(bytes);
   } catch (e) {
-    if (e instanceof ZipError) throw new ApkgError(`this file is not a readable .apkg — ${e.message}`);
+    if (e instanceof ZipError) throw new ApkgError(whyUnreadable(bytes, e));
     throw e;
   }
 

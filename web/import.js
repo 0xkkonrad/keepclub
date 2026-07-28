@@ -13,7 +13,7 @@
 import { readApkg, ApkgError } from './lib/anki.js';
 import { buildDeck, RAVENS } from './lib/deck.js';
 import * as store from './lib/store.js';
-import { receiptHtml, ensureCss, doodle } from './lib/receipt.js';
+import { receiptHtml, nothingHtml, ensureCss, doodle } from './lib/receipt.js';
 import { validateDeck } from './lib/validate.js';
 
 class Cancelled extends Error {}
@@ -39,20 +39,47 @@ export function openImporter() {
   document.body.appendChild(el);
   const body = el.querySelector('.imp-body');
 
-  // The screen underneath is fully covered, so it should also be out of reach:
-  // without this, two Tabs from the importer land on the shelf behind it.
-  const under = [document.getElementById('app'), document.querySelector('.shelf')].filter(Boolean);
+  /* The screen underneath is fully covered, so it should also be out of reach:
+   * without this, two Tabs from the importer land on the shelf behind it. Only
+   * what this sheet made inert is given back — the courses overlay inerts the
+   * page in its turn, and an importer opened from inside it used to hand the
+   * shelf back to the Tab key on the way out, which is this very bug one layer
+   * up. Naming #app and .shelf also missed anything else on the page. */
+  const under = [...document.body.children].filter((n) => n !== el && !n.inert);
+  // And on the way out, focus goes back to the tile that opened it rather than
+  // to the top of the document.
+  const opener = document.activeElement && document.activeElement !== document.body
+    ? document.activeElement : document.querySelector('[data-byo]');
   for (const u of under) u.inert = true;
-  const escape = (e) => { if (e.key === 'Escape') close(); };
-  addEventListener('keydown', escape);
+  /* Taken in the capture phase and stopped there. The courses overlay listens
+   * for Escape on the window as well, and it registered first, so one press
+   * closed both layers at once — the importer and the panel that opened it —
+   * putting the person two screens back from where they were. Whatever is on
+   * top takes the key. */
+  const escape = (e) => {
+    if (e.key !== 'Escape') return;
+    e.stopPropagation();
+    close();
+  };
+  addEventListener('keydown', escape, true);
+
+  /* Everything up to "putting it away…" can be called off; that cannot. The
+   * write is already going and the reload after it is not something close()
+   * can reach, so a sheet that vanished on Escape and then reloaded itself
+   * into the deck seconds later was telling the person the opposite of what
+   * had happened. The escape is refused for the second it takes instead. */
+  let saving = false;
+  const x = el.querySelector('.imp-x');
 
   const close = () => {
-    removeEventListener('keydown', escape);
+    if (saving) return;
+    removeEventListener('keydown', escape, true);   // the phase is part of the identity
     for (const u of under) u.inert = false;
     el.remove();
+    if (opener && opener.isConnected) opener.focus();
   };
-  el.querySelector('.imp-x').addEventListener('click', close);
-  el.querySelector('.imp-x').focus();
+  x.addEventListener('click', close);
+  x.focus();
 
   // Dragging a file needs something to drag with. On a phone the dashed
   // rectangle is decoration in front of the only control that works.
@@ -143,9 +170,12 @@ export function openImporter() {
       return;
     }
 
+    // Not fail(): the receipt is already built and holds the reasons and the
+    // examples. Throwing it away here threw it away in the one case where it is
+    // the whole of what the person came for.
     if (!built.deck.cards.length) {
-      fail('nothing to study in that package',
-        'every card in it came out empty. If it is a shared deck, it may use a note type whose templates are not in the file.');
+      body.innerHTML = nothingHtml(built.receipt);
+      body.querySelector('[data-again]').addEventListener('click', pick);
       return;
     }
 
@@ -201,6 +231,8 @@ export function openImporter() {
   }
 
   async function keep(built, replacing) {
+    saving = true;
+    x.disabled = true;
     working('putting it away…');
     let id = replacing ? replacing.id : newId();
     if (!replacing) {
@@ -229,6 +261,9 @@ export function openImporter() {
       }, built.media);
     } catch (e) {
       console.error(e);
+      // Nothing is in flight any more, so the sheet can be left again.
+      saving = false;
+      x.disabled = false;
       fail('the deck could not be saved',
         /quota|space/i.test(e?.name + e?.message)
           ? 'the browser is out of space for this site. Removing a deck you no longer study will free it.'

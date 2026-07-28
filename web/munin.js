@@ -311,7 +311,10 @@ function safeScene(html) {
   const doc = new DOMParser().parseFromString(
     '<svg xmlns="http://www.w3.org/2000/svg">' + String(html) + '</svg>', 'image/svg+xml');
   if (doc.querySelector('parsererror')) return '';
-  for (const el of doc.querySelectorAll('script, foreignObject, iframe, image, use')) el.remove();
+  // `style` is on this list for the same reason the stylesheet beside it is
+  // parsed: a scene is a drawing, and a drawing that brings rules of its own is
+  // a way to dress the whole page from inside sanitised markup.
+  for (const el of doc.querySelectorAll('script, foreignObject, iframe, image, use, style')) el.remove();
   for (const el of doc.querySelectorAll('*')) {
     for (const a of [...el.attributes]) {
       const n = a.name.toLowerCase();
@@ -323,21 +326,64 @@ function safeScene(html) {
   return doc.documentElement.innerHTML;
 }
 
+/* The same distrust, for how the scene moves. A cached record is a stranger's
+ * CSS if anything else on this origin ever wrote it, and CSS runs no script but
+ * it can lay a full-viewport overlay over the app, pull in a whole stylesheet
+ * with `@import`, or beacon what is on the page through attribute selectors —
+ * and `#boot-style` is never removed. Parsed rather than pattern-matched, and
+ * kept only where every selector stays inside the loading screen: a course
+ * styles `#boot…` and its own `.boot-<course>` and nothing else. `~` and `+`
+ * are refused because a sibling of the boot screen is the app.
+ * (`replaceSync` drops `@import` itself — that one is the parser's doing.) */
+function safeCss(css) {
+  let sheet;
+  try {
+    sheet = new CSSStyleSheet();
+    sheet.replaceSync(String(css));
+  } catch (e) {
+    return '';                    // no parser to trust here, so no stylesheet
+  }
+  const scoped = (sel) => String(sel).split(',').every((s) => {
+    const t = s.trim();
+    return /^(#boot|\.boot-)/.test(t) && !/[~+]|:has\b/.test(t);
+  });
+  const keep = (rules) => {
+    const out = [];
+    for (const r of rules) {
+      if (r.selectorText !== undefined) {
+        if (scoped(r.selectorText)) out.push(r.cssText);
+      } else if (r.cssRules && r.name !== undefined) {
+        out.push(r.cssText);                                  // @keyframes
+      } else if (r.cssRules && r.conditionText !== undefined) {
+        const inner = keep(r.cssRules);                        // @media, @supports
+        if (inner) out.push(r.cssText.slice(0, r.cssText.indexOf('{') + 1) + inner + '}');
+      }
+    }
+    return out.join('\n');
+  };
+  return keep(sheet.cssRules);
+}
+
 function applyBoot(b) {
   const boot = document.getElementById('boot');
   if (!boot || !b) return;
   // The colour comes with the scene. Without it the replayed screen paints in
   // whatever the stylesheet's default accent happens to be until course.json
   // arrives — which is the whole window this screen exists to cover.
-  if (b.accent) injectAccent(b.accent);
+  // Through colours(), because an accent is interpolated straight into a
+  // stylesheet and a cached record is no more trustworthy than a course file.
+  if (b.accent) injectAccent(colours(b.accent));
   if (b.css) {
-    let style = document.getElementById('boot-style');
-    if (!style) {
-      style = document.createElement('style');
-      style.id = 'boot-style';
-      document.head.appendChild(style);
+    const css = safeCss(b.css);
+    if (css) {
+      let style = document.getElementById('boot-style');
+      if (!style) {
+        style = document.createElement('style');
+        style.id = 'boot-style';
+        document.head.appendChild(style);
+      }
+      if (style.textContent !== css) style.textContent = css;
     }
-    if (style.textContent !== b.css) style.textContent = b.css;
   }
   const scene = boot.querySelector('#boot-scene');
   // The scene is a course's own file, and it replaces markup rather than being
@@ -391,7 +437,7 @@ function replayBoot(id) {
  * ready and no later. DRAW (in app.css and in each course's boot.css) is under
  * HOLD so the drawing finishes drawing itself before anything fades.
  */
-const SPLASH = { at: performance.now(), hold: 800, fade: 220 };
+const SPLASH = { at: performance.now(), hold: 800, fade: 220, patience: 8000 };
 
 /** Resolves once the screen has been up long enough to have been seen. */
 function splashHeld() {
@@ -404,7 +450,9 @@ function splashHeld() {
  * Whatever replaces it must already be on the page when this is called — the
  * fade reveals what is behind, and behind a splash that goes first is nothing.
  */
+let bootDone = false;
 async function dismissBoot() {
+  bootDone = true;
   const boot = document.getElementById('boot');
   if (!boot || boot.hidden) return;
   await splashHeld();
@@ -414,6 +462,41 @@ async function dismissBoot() {
   boot.classList.remove('going');   // the shelf overlay can raise it again
 }
 globalThis.MuninBoot = { dismiss: dismissBoot, splash: SPLASH };
+
+/* Nothing may hold this screen for ever.
+ *
+ * Everything that takes the splash down runs inside app.js, and app.js is a
+ * script that can fail to arrive or throw on the way in — a precached shell
+ * against a redeployed index.html did exactly that, and the app was the word
+ * "loading" for ever: opaque, ranked above the `courses` pill, no message, no
+ * button, nothing to do but know to reload. This is the last resort, not a
+ * timeout on the boot: whatever is still loading goes on loading behind it, and
+ * a dismiss that arrives late still takes the screen down normally.
+ *
+ * SPLASH.patience is ten times the hold and longer than the picker's own
+ * 8s fetch ceiling, so the honest answer at this point really is "something has
+ * gone wrong", not "the network is slow today". */
+function watchBoot() {
+  setTimeout(() => {
+    const boot = document.getElementById('boot');
+    if (bootDone || !boot || boot.hidden || document.getElementById('boot-retry')) return;
+    // app.js gets there first on the paths it knows about — a deck that will
+    // not load or will not validate is already said in its own words, with its
+    // own way off the screen. Two messages and two buttons is worse than one.
+    const back = document.getElementById('boot-back');
+    if (back && !back.hidden) return;
+    const line = document.getElementById('boot-line');
+    if (line) line.textContent = 'This is taking longer than it should have.';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'ghost';
+    btn.id = 'boot-retry';
+    btn.textContent = 'Reload';
+    btn.addEventListener('click', () => location.reload());
+    boot.appendChild(btn);
+    btn.focus({ preventScroll: true });
+  }, SPLASH.patience);
+}
 
 /* The scenes of the courses sitting on the shelf, fetched once the shelf is up
  * and drawn on nobody's critical path. Without this the FIRST tap on a tile
@@ -598,6 +681,8 @@ const SHELF_CSS = `
   .shelf-mark h1 { font-size: 1.3rem; font-weight: 500; letter-spacing: -.02em;
     margin: 0; text-transform: lowercase; }
   .shelf-mark .icon-btn { margin-left: auto; }
+  /* The overlay's way out sits beside the theme button, not away from it. */
+  .shelf-mark .shelf-x { margin-left: 0; }
   .shelf-sub { color: var(--muted); font-size: .84rem; margin: 0 0 22px; }
   .shelf-tiles { display: flex; flex-direction: column; gap: 14px; }
   .shelf-tile { display: flex; align-items: center; gap: 12px; text-align: left;
@@ -606,8 +691,18 @@ const SHELF_CSS = `
     border-left-color: var(--tile-accent, var(--stroke));
     border-radius: var(--r); box-shadow: var(--sh); padding: 14px 16px; min-height: var(--tap); }
   .shelf-tile .dood { width: 34px; height: 34px; flex: none; color: var(--tile-accent, var(--text)); }
-  .shelf-tile b { display: block; font-weight: 500; font-size: .98rem; }
-  .shelf-tile small { color: var(--muted); font-size: .8rem; text-transform: lowercase; }
+  /* A flex item will not shrink below its contents unless it is told it may,
+   * and a title with no spaces in it is one very long word. */
+  .shelf-tile > span { min-width: 0; overflow-wrap: anywhere; }
+  /* A deck is titled by whoever made the .apkg, and the importer only started
+   * capping that in July 2026 — a deck imported before it still holds the whole
+   * string, and a twelve-thousand-character name grew this row until the ✕ and
+   * "+ your own deck" were off the bottom of the screen. Two lines, whatever
+   * arrives: the shelf is a list you choose from, not the place to read a name. */
+  .shelf-tile b { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden; font-weight: 500; font-size: .98rem; }
+  .shelf-tile small { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden; color: var(--muted); font-size: .8rem; text-transform: lowercase; }
   .shelf-tile.byo { border-style: dashed; border-left-width: var(--bw);
     box-shadow: none; color: var(--muted); justify-content: center; }
   /* A course that would not load. It stays on the shelf, and says so, because
@@ -646,7 +741,10 @@ const SHELF_CSS = `
     z-index: 80; display: inline-flex; align-items: center; gap: 6px;
     background: var(--surface); color: var(--text); font: inherit; font-size: .78rem;
     text-transform: lowercase; cursor: pointer; border: var(--bw) solid var(--stroke);
-    border-radius: 99px; box-shadow: var(--sh-sm); padding: 5px 12px; }
+    border-radius: 99px; box-shadow: var(--sh-sm); padding: 5px 12px;
+    /* The one control that changes course, pinned where a phone's own chrome
+     * crowds it, held to the same 48px as every other target in the app. */
+    min-height: var(--tap); }
   .shelf-btn .dood { width: 16px; height: 16px; }
   /* Mid-session the pill would sit on the study header; a session is not the
    * moment to change course anyway. Home, Browse and Progress keep it. */
@@ -748,12 +846,26 @@ function sweepOrphans(decks, courses) {
   }
 }
 
+/* A double-tap is one gesture, and one gesture must not be able to complete
+ * both halves of a two-tap confirmation: the deck, its progress and the resume
+ * pointer went, with "remove?" on screen for the ~50ms between the two clicks
+ * and no undo anywhere. A confirm that arrives this soon after the arm is the
+ * tail of the tap that armed it, and it is ignored — the button stays armed,
+ * so the deliberate second tap that follows still works. */
+const ARM_MS = 400;
 let disarmAt = 0;
+let armedAt = 0;
+let impOpening = false;
 function disarm(root) {
   clearTimeout(disarmAt);
+  armedAt = 0;
   for (const b of root.querySelectorAll('[data-armed]')) {
     delete b.dataset.armed;
     b.textContent = '✕';
+    // The label is the whole safety mechanism for anyone not looking at the
+    // screen: aria-label wins over contents, so a static one meant the button
+    // said exactly the same thing armed as it did at rest.
+    b.setAttribute('aria-label', 'Remove ' + b.dataset.name);
   }
 }
 
@@ -793,11 +905,13 @@ function localTile(d) {
       } cards · ${new Date(d.created).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</small></span>
     </button>
     <button type="button" class="shelf-del" data-del="${escHtml(d.id)}"
-      aria-label="Remove ${escHtml(d.title)}">✕</button>
+      data-name="${escHtml(d.title)}" aria-label="Remove ${escHtml(d.title)}">✕</button>
   </div>`;
 }
 
-async function renderShelf(asOverlay) {
+/** The picker. `asOverlay` puts it in front of an open course; `say` is what
+ *  went wrong on the way here, drawn where the tiles are. */
+async function renderShelf(asOverlay, say) {
   if (!asOverlay) {
     injectAccent(MUNIN.theme.accent);
     document.title = 'Munin';
@@ -836,13 +950,25 @@ async function renderShelf(asOverlay) {
     .concat(bad.map(brokenTile)).join('');
   const el = document.createElement('div');
   el.className = 'shelf on';
+  if (asOverlay) {
+    // A panel that covers everything is a dialog, and the importer next door
+    // already spells out what that means: named, modal, and the only thing on
+    // the page you can reach while it is up.
+    el.setAttribute('role', 'dialog');
+    el.setAttribute('aria-modal', 'true');
+    el.setAttribute('aria-label', 'Courses');
+  }
   el.innerHTML = `<div class="shelf-inner">
     <div class="shelf-mark">${muninDoodle('perch')}<h1>munin</h1>
       <button type="button" class="icon-btn" id="shelf-theme" aria-label="Switch colour theme"
         title="Switch colour theme"><span aria-hidden="true" data-theme-glyph></span></button>
+      ${asOverlay ? `<button type="button" class="icon-btn shelf-x" id="shelf-x"
+        aria-label="Close" title="Close">✕</button>` : ''}
     </div>
     <p class="shelf-sub">a friendly raven who remembers for you</p>
     <div class="shelf-tiles">
+      ${say ? `<div class="shelf-tile broken">${muninDoodle('peek')}
+        <span><b>${escHtml(say)}</b><small>pick one below to carry on</small></span></div>` : ''}
       ${tiles}
       ${(mine || []).map(localTile).join('')}
       ${lost ? `<div class="shelf-tile broken">${muninDoodle('peek')}
@@ -856,22 +982,55 @@ async function renderShelf(asOverlay) {
       <ol class="shelf-install-steps"></ol>
       <button type="button" id="shelf-install-btn" hidden>install</button>
     </div>
-    <p class="shelf-note">${asOverlay ? 'tap outside a tile to go back' : 'pick a course — it opens straight here next time'}</p>
+    <p class="shelf-note">${asOverlay ? 'tap the ✕ to go back to your course'
+    : 'pick a course — it opens straight here next time'}</p>
   </div>`;
   document.body.appendChild(el);
   el.querySelector('#shelf-theme').addEventListener('click', () => MuninTheme.cycle());
   el.querySelector('#shelf-install-btn').addEventListener('click', () => MuninInstall.prompt());
   MuninTheme.apply();
   renderShelfInstall();
-  // Dismiss by clicking off the card, not by clicking anything that is not a
-  // tile: the theme button and the remove button live up here too.
-  if (asOverlay) el.addEventListener('click', (e) => {
-    if (!e.target.closest('.shelf-inner')) el.remove();
-  });
+
+  /* Getting out of it. There was one way — tapping the 20px strip down either
+   * edge — the note named a gesture that does nothing (the gap between two
+   * tiles is inside the card), Escape did nothing, and focus stayed on the pill
+   * the panel had just covered. Everything underneath is inert while it is up,
+   * or four Tabs put the focus ring on a control nobody can see. Only what this
+   * overlay made inert is given back: an importer opened on top of it inerts
+   * this panel in turn, and neither may undo the other's work. */
+  const opener = asOverlay ? document.querySelector('.shelf-btn') : null;
+  const under = asOverlay
+    ? [...document.body.children].filter((n) => n !== el && !n.inert) : [];
+  const escape = (e) => { if (e.key === 'Escape') closeOverlay(); };
+  function closeOverlay() {
+    removeEventListener('keydown', escape);
+    for (const u of under) u.inert = false;
+    el.remove();
+    // Back to the control that opened it, not to the top of the document.
+    if (opener && opener.isConnected) opener.focus();
+  }
+  if (asOverlay) {
+    for (const u of under) u.inert = true;
+    addEventListener('keydown', escape);
+    el.querySelector('#shelf-x').addEventListener('click', closeOverlay);
+    el.querySelector('#shelf-x').focus();
+    // Dismiss by clicking off the card, not by clicking anything that is not a
+    // tile: the theme button and the remove button live up here too.
+    el.addEventListener('click', (e) => {
+      if (!e.target.closest('.shelf-inner')) closeOverlay();
+    });
+  }
 
   el.addEventListener('click', async (e) => {
     const byo = e.target.closest('[data-byo]');
     if (byo) {
+      // One importer. The module is fetched on the first tap and the second tap
+      // of an ordinary double-tap lands inside that fetch, so the flag covers
+      // the wait and the dialog itself covers everything after it: two stacked
+      // importers are identical and opaque, and closing one reads as a ✕ that
+      // does nothing while it hands the shelf behind back to the Tab key.
+      if (impOpening || document.querySelector('.imp')) return;
+      impOpening = true;
       const note = el.querySelector('.shelf-note');
       note.textContent = 'reading it here on your device — nothing is uploaded';
       try {
@@ -880,6 +1039,8 @@ async function renderShelf(asOverlay) {
       } catch (err) {
         console.error(err);
         note.textContent = 'the importer could not load — try again once you are online';
+      } finally {
+        impOpening = false;
       }
       return;
     }
@@ -894,10 +1055,14 @@ async function renderShelf(asOverlay) {
         disarm(el);
         del.dataset.armed = '1';
         del.textContent = 'remove?';
+        del.setAttribute('aria-label', 'Remove ' + del.dataset.name + ' — press again to confirm');
+        armedAt = Date.now();
         clearTimeout(disarmAt);
         disarmAt = setTimeout(() => disarm(el), 5000);
         return;
       }
+      // Still the same gesture. The arm stands, and so does its five seconds.
+      if (Date.now() - armedAt < ARM_MS) return;
       const id = del.dataset.del;
       del.textContent = '…';
       try {
@@ -919,7 +1084,7 @@ async function renderShelf(asOverlay) {
     const tile = e.target.closest('[data-course]');
     if (!tile) return;
     if (asOverlay && tile.dataset.course === localStorage.getItem(MUNIN.lastKey)) {
-      el.remove();
+      closeOverlay();
       return;
     }
     localStorage.setItem(MUNIN.lastKey, tile.dataset.course);
@@ -944,7 +1109,12 @@ function mountShelfButton(c) {
   b.innerHTML = muninDoodle('perch') + '<span>courses</span>';
   b.addEventListener('click', () => renderShelf(true));
   ensureShelfCss();
-  document.body.appendChild(b);
+  // In front of the app, not after it. Appended to the end of the body it was
+  // the last of thirty-three tab stops while sitting in the top-right corner:
+  // the only route to another course, thirty-three presses away. The skip link
+  // stays first — this goes between it and the screens.
+  const app = document.getElementById('app');
+  if (app) app.before(b); else document.body.appendChild(b);
 }
 
 /* Offline is the product, so the worker is registered by the shell rather
@@ -953,12 +1123,30 @@ function mountShelfButton(c) {
  * nothing at all, including the "install" offer's own reason for existing. */
 function registerWorker() {
   if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
+  /* A new worker skipWaiting()s and claims this page the moment it installs, so
+   * from that instant a page that is still running is serving one generation's
+   * scripts out of the next generation's cache — the mismatch the worker's
+   * read-through only fixes for a load that starts after the change. One
+   * reload, and it starts after it.
+   *
+   * NOT ON THE FIRST-EVER CLAIM. There was no controller when this page loaded,
+   * so nothing it is running came from a worker and nothing it holds is stale:
+   * reloading there is a visible flicker on every new visitor, for nothing.
+   * The flag is what stops a claim during the reload from starting another. */
+  const wasControlled = !!navigator.serviceWorker.controller;
+  let reloading = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!wasControlled || reloading) return;
+    reloading = true;
+    location.reload();
+  });
   navigator.serviceWorker.register('sw.js').catch(() => {});
 }
 
 (function main() {
   MuninTheme.apply();
   registerWorker();
+  watchBoot();
   const known = (id) => MUNIN.idOk(id) || isLocal(id);
   // ?course=<id> deep-links a course, and becomes the resume target once it
   // has actually opened. Written eagerly, a stale or mistyped shared link
@@ -968,10 +1156,32 @@ function registerWorker() {
   const stored = localStorage.getItem(MUNIN.lastKey);
   const target = q && known(q) ? q : stored;
 
+  /* ONE SHOT, and this is where it is spent. Entering a course is a reload,
+   * which keeps the query string, so a parameter left in the address bar beat
+   * the picker on every boot after the first: you tapped Competent Crew, the
+   * page reloaded, and the deep-linked course opened again — and a deck you
+   * imported under such a URL sat on the shelf and could never be opened,
+   * which reads as "my import vanished". Consumed here, whether it was any
+   * good or not, so that from now on the picker is what says where you go. */
+  if (q !== null) {
+    const u = new URL(location.href);
+    u.searchParams.delete('course');
+    history.replaceState(history.state, '', u.pathname + u.search + u.hash);
+  }
+
   // The scene is replayed for whatever is actually about to open — the query
   // is read first for that reason, or a deep link paints the course you were
   // in last for as long as the new one takes to arrive.
   replayBoot(target);
+
+  /* A course that is not here used to drop you on the ordinary first-run shelf,
+   * so a stale link somebody sent you was indistinguishable from a first visit
+   * — and `?course=Day-Skipper`, which is the right course with a capital in
+   * it, from a name nobody has ever heard of. The shelf says it, the way it
+   * already says a registry would not answer. */
+  const missing = (id) => (isLocal(id)
+    ? 'that deck is not on this device any more'
+    : 'that course is not here');
 
   if (target && known(target)) {
     (isLocal(target) ? bootLocal(target) : bootCourse(target))
@@ -982,9 +1192,9 @@ function registerWorker() {
         // forgotten, and only if it is the thing that failed.
         console.error(e);
         if (stored === target) localStorage.removeItem(MUNIN.lastKey);
-        renderShelf().catch(console.error);
+        renderShelf(false, missing(target)).catch(console.error);
       });
   } else {
-    renderShelf().catch(console.error);
+    renderShelf(false, q ? missing(q) : '').catch(console.error);
   }
 })();

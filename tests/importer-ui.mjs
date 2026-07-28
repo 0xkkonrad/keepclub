@@ -11,6 +11,9 @@ const FIX = (n) => new URL(`./fixtures/${n}`, import.meta.url);
 
 const out = [], fails = [];
 const ok = (c, m) => (c ? out : fails).push((c ? 'PASS  ' : 'FAIL  ') + m);
+/* Kept in step with ARM_MS in munin.js: how long an armed delete refuses a
+ * confirm, so that one double-tap cannot be both taps. */
+const ARM_MS = 400;
 
 const b = await chromium.launch({ executablePath: EXE });
 const ctx = await b.newContext({ viewport: { width: 390, height: 844 } });
@@ -196,6 +199,17 @@ ok(/^local-[a-z0-9]+$/.test(id), `the imported deck becomes the resume target ($
   ok((await p.textContent('[data-del]')).trim() === '\u2715',
     'touching anything else puts the armed delete away');
   await p.click('[data-del]');
+  // A double-tap is one gesture, not two decisions. The confirm that lands
+  // inside the guard is refused, and the deck is still there to prove it —
+  // otherwise the whole arm/confirm dance is theatre a phone taps straight
+  // through, and the progress goes with the deck.
+  await p.click('[data-del]');
+  ok((await p.evaluate(async () =>
+    (await (await import('./lib/store.js')).list()).length)) === 1,
+  'a second tap inside the guard leaves the deck alone');
+  ok((await p.textContent('[data-del]')).trim() === 'remove?',
+    'and it stays armed, waiting for a deliberate second tap');
+  await p.waitForTimeout(ARM_MS + 50);
   // Removing the deck you are currently inside reloads: the session behind the
   // overlay is otherwise still running over a deck that no longer exists.
   await Promise.all([p.waitForEvent('load'), p.click('[data-del]')]);

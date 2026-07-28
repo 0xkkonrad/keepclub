@@ -338,6 +338,10 @@ function newRec() {
  * 60% of the way to the date, leaving the rest of the run for review. */
 function newBudget() {
   const manual = state.settings.newPerDay;
+  // Zero is an instruction, not a floor to negotiate up from. `Math.max` below
+  // meant that a course shipping an exam date carried on introducing twenty a
+  // day however firmly the reader had switched new cards off.
+  if (manual <= 0) return 0;
   const d = daysToExam();
   if (d === null || d <= 0) return manual;
   const unseen = DECK ? DECK.cards.filter((c) => !state.recs[c.i]).length : 0;
@@ -398,8 +402,29 @@ function preview(rec, g) {
   return lim(Math.max(rec.ivl + 2, Math.round(rec.ivl * ea * 1.3)));
 }
 
-/** Apply a grade. Returns 'stay' if the card should come back this session. */
-function grade(id, g) {
+/** The interval a grade will really schedule — the jitter rolled in, once.
+ *
+ * preview() is the number before the fuzz, and grade() used to fuzz it again
+ * after reveal() had already printed it on the button: sixteen labels in twenty
+ * were wrong, and good and easy often showed the same day with nothing to
+ * choose between them. Rolled here, so the number promised and the number
+ * applied are the same number. */
+function scheduled(rec, g) {
+  const out = preview(rec, g);
+  // 0 is "again this session", which is not a date and does not get jittered.
+  if (out <= 0) return 0;
+  // Hard means "leave the gap where it is". Fuzzing an unchanged interval turns
+  // that into a random walk that drifts over repeated presses; the jitter is
+  // only there to break up clumps of cards scheduled together.
+  const jitter = !(rec && rec.st === 'r' && g === 2);
+  return Math.min(ceiling(), MAX_IVL, Math.max(1, jitter ? fuzz(out) : out));
+}
+
+/** Apply a grade. Returns 'stay' if the card should come back this session.
+ *
+ * `ivl` is the figure reveal() printed on the button that was pressed. Rolled
+ * once there and passed in here, because a second roll is a second answer. */
+function grade(id, g, ivl) {
   const rec = state.recs[id] || newRec();
   const isNew = !state.recs[id];
   const wasReview = rec.st === 'r';
@@ -412,10 +437,11 @@ function grade(id, g) {
   }
 
   let outcome = 'done';
-  let jitter = true;
+  // Worked out before anything below moves the ease, or the card is scheduled
+  // off a number the button never showed.
+  const out = Number.isFinite(ivl) ? ivl : scheduled(rec, g);
 
   if (rec.st === 'l') {
-    const out = preview(rec, g);
     if (g === 1) { rec.step = 0; outcome = 'stay'; }
     else if (g === 2 && rec.step < 2) { rec.step++; outcome = 'stay'; }
     else { rec.st = 'r'; rec.ivl = out; rec.pv = 0; }
@@ -434,18 +460,13 @@ function grade(id, g) {
       // The interval is computed from the ease the button was *labelled* with,
       // then the ease moves. Bumping first made Easy schedule a day further out
       // than the button had just promised.
-      rec.ivl = preview(rec, g);
-      // Hard means "leave the gap where it is". Fuzzing an unchanged interval
-      // turns that into a random walk that drifts over repeated presses; the
-      // jitter is only there to break up clumps of cards scheduled together.
-      if (g === 2) jitter = false;
+      rec.ivl = out;
       if (g === 2) rec.ea = Math.max(MIN_EASE, rec.ea - 0.15);
       if (g === 4) rec.ea = Math.min(MAX_EASE, rec.ea + 0.15);
     }
   }
 
   if (rec.st === 'r') {
-    rec.ivl = Math.min(ceiling(), MAX_IVL, Math.max(1, jitter ? fuzz(rec.ivl) : rec.ivl));
     rec.due = startOfDay(Date.now() + rec.ivl * DAY);
   } else {
     // A learning card is ordered by the session queue, not the clock — but it
@@ -822,11 +843,23 @@ function queueUnlocks(list) {
   if (!unlockTimer) showNextUnlock();
 }
 
+/* Emptied on the way out, rather than hidden. It is a live region: whatever is
+ * in it is in the accessibility tree whether or not it is on screen, and it
+ * cannot be taken out of the tree instead — a region that is display:none at
+ * the moment its text changes is announced unreliably (see .toast.away). */
+function stowUnlock() {
+  $('#unlock').classList.add('away');
+  $('#unlock-key').textContent = '';
+  $('#unlock-title').textContent = '';
+  $('#unlock-sub').textContent = '';
+}
+
 function showNextUnlock() {
   const el = $('#unlock');
   const a = unlockQueue.shift();
-  if (!a) { unlockTimer = null; el.classList.add('away'); return; }
+  if (!a) { unlockTimer = null; stowUnlock(); return; }
   $('#unlock-art').innerHTML = doodle(a.art);
+  $('#unlock-key').textContent = 'unlocked';
   $('#unlock-title').textContent = a.t;
   $('#unlock-sub').textContent = a.d;
   el.classList.remove('away');
@@ -835,7 +868,7 @@ function showNextUnlock() {
   void el.offsetWidth;
   el.style.animation = '';
   unlockTimer = setTimeout(() => {
-    el.classList.add('away');
+    stowUnlock();
     unlockTimer = setTimeout(showNextUnlock, 280);
   }, 3200);
 }
@@ -843,7 +876,7 @@ function showNextUnlock() {
 function dismissUnlock() {
   clearTimeout(unlockTimer);
   unlockTimer = null;
-  $('#unlock').classList.add('away');
+  stowUnlock();
   if (unlockQueue.length) unlockTimer = setTimeout(showNextUnlock, 220);
 }
 
@@ -937,7 +970,9 @@ function buildSession(sectionKey, opts) {
       .sort((a, b) => state.recs[a.i].due - state.recs[b.i].due)
       .slice(0, AHEAD_BATCH);
     reviews = reviews.concat(notYet);
-    fresh = fresh.slice(0, AHEAD_BATCH);
+    // Studying ahead is the app's own suggestion, so it honours the daily new
+    // number: at zero it pulls reviews forward and introduces nothing.
+    fresh = newBudget() > 0 ? fresh.slice(0, AHEAD_BATCH) : [];
   } else {
     // `slice(0, revRoom)` and not `revRoom || reviews.length`: a spent budget is
     // 0, which is falsy, and the fallback then served the entire backlog — the
@@ -978,6 +1013,25 @@ function buildSession(sectionKey, opts) {
     reel: [],                   // clips for the cards graded Again or Hard
     ahead: !!opts.ahead,
   };
+}
+
+/** How many cards a study-ahead session will really serve.
+ *
+ * The same arithmetic as the ahead branch above, counted rather than built:
+ * the home button used to be sized from the unseen cards alone, and said
+ * twenty over a session of forty. */
+function aheadSize(sectionKey) {
+  const now = Date.now();
+  let learning = 0, due = 0, notYet = 0, fresh = 0;
+  for (const c of DECK.cards.filter(scopeTest(sectionKey))) {
+    const r = state.recs[c.i];
+    if (!r) { fresh++; continue; }
+    if (r.st === 'l') learning++;
+    else if (r.due <= now) due++;
+    else notYet++;
+  }
+  return learning + due + Math.min(AHEAD_BATCH, notYet)
+    + (newBudget() > 0 ? Math.min(AHEAD_BATCH, fresh) : 0);
 }
 
 function shuffle(a) {
@@ -1166,12 +1220,18 @@ function renderHome() {
           plural(daysToSeeAll(c.fresh), 'day')}.`
         : `New cards are switched off, so ${c.fresh} of ${DECK.cards.length} will stay unseen. Raise the daily number in Progress.`;
   } else {
-    const batch = Math.min(AHEAD_BATCH, c.fresh || AHEAD_BATCH);
-    btn.textContent = c.fresh ? `Do ${batch} more now` : 'Study ahead';
+    // The size of the session that this button actually starts. Sized from the
+    // unseen cards alone it promised twenty and handed over forty, because the
+    // ahead branch adds a batch of not-yet-due reviews on top of them.
+    const batch = aheadSize(null);
+    const pace = newBudget();
+    btn.textContent = c.fresh && batch ? `Do ${batch} more now` : 'Study ahead';
     btn.dataset.mode = 'ahead';
-    $('#today-note').textContent = c.fresh
-      ? `Today's ${newBudget()} are done and nothing is due. You can do ${batch} more now. ${c.fresh} cards left to see.`
-      : 'Nothing is due. Studying ahead pulls forward the cards scheduled soonest — worth it the week before the exam, not before.';
+    $('#today-note').textContent = pace === 0 && c.fresh
+      ? `New cards are switched off, so ${c.fresh} of ${DECK.cards.length} will stay unseen. Raise the daily number in Progress.`
+      : c.fresh
+        ? `Today's ${pace} are done and nothing is due. You can do ${batch} more now. ${c.fresh} cards left to see.`
+        : 'Nothing is due. Studying ahead pulls forward the cards scheduled soonest — worth it the week before the exam, not before.';
   }
 
   const today = countStudiedToday();
@@ -1243,14 +1303,18 @@ function startSession(sectionKey, opts) {
     // otherwise the home screen reads "0 new today" and tapping a section
     // silently hands over twenty more, which looks like one of them is lying.
     const c = counts(sectionKey);
-    session = buildSession(sectionKey, c.fresh > 0 ? { allNew: true } : { ahead: true });
+    // Unseen cards are only the answer while the reader is still taking new
+    // ones: at zero a day, handing over twenty is the setting being overruled.
+    session = buildSession(sectionKey,
+      c.fresh > 0 && newBudget() > 0 ? { allNew: true } : { ahead: true });
     extra = session.queue.length > 0;
   }
   if (!session.queue.length) {
-    toast('Nothing to study in that section yet.');
+    toast(sectionKey ? 'Nothing to study in that section yet.' : 'Nothing to study right now.');
     return;
   }
   if (extra) toast('These are extra cards, on top of today’s plan.');
+  settleDock(false);
   go('study');
   // "Keep going" from the summary starts a new session inside the same visit;
   // pushing a second stop would make leaving take two Back presses.
@@ -1333,7 +1397,7 @@ function showCard() {
   $('#card-video').innerHTML = '';
   $('#reveal-btn').hidden = false;
   $('#grade-row').hidden = true;
-  $('#grade-ask').hidden = true;
+  $('#grade-ask').classList.add('away');
   $('#card-scroll').classList.remove('shown');
   $('#undo-btn').disabled = undoStack.length === 0;
   $('#card-scroll').scrollTop = 0;
@@ -1346,6 +1410,42 @@ function showCard() {
   $('#reveal-btn').focus({ preventScroll: true });
 }
 
+/** Bring the answer on screen, which revealing it used to leave to luck.
+ *
+ * Nothing scrolled: on a phone held sideways not one pixel of the answer was
+ * visible after "show answer", and on a long card — the ordinary shape of an
+ * imported note — it was the whole answer, at every size. Scrolled by the
+ * smaller of the two moves that would do it, so a short answer sitting just
+ * under its question rises only as far as it has to and keeps the question in
+ * view, while a long one comes up to the top of the card region. */
+function showAnswerRegion() {
+  const sc = $('#card-scroll');
+  const box = sc.getBoundingClientRect();
+  const ans = $('#answer-wrap').getBoundingClientRect();
+  const move = Math.min(ans.top - box.top, ans.bottom - box.bottom);
+  if (move > 0) sc.scrollTop += move;
+}
+
+/* The reveal button and the four grades are the same rectangle in the dock, one
+ * after the other, and the second tap of a double-tap landed on whatever had
+ * replaced what was tapped: tap-tap on "show answer" graded the card *good*
+ * with the answer never read, and tap-tap on a grade opened the next card's
+ * answer before its question had been. Whatever arrives in that rectangle is
+ * deaf for a beat. Pointers only — 1-4, Space and Enter are different keys in
+ * different places and cannot be pressed by mistake for one another. */
+const DOCK_SETTLE = 450;
+let settleTimer = null;
+/** Deaf for a beat — or, with `false`, plainly awake. A session opening is not
+ *  a transition inside the dock, and a beat left running by the last card it
+ *  showed must not eat the first tap of the new one. */
+function settleDock(on) {
+  const d = $('#dock');
+  clearTimeout(settleTimer);
+  if (on === false) { d.classList.remove('settling'); return; }
+  d.classList.add('settling');
+  settleTimer = setTimeout(() => d.classList.remove('settling'), DOCK_SETTLE);
+}
+
 function reveal() {
   if (!session || session.revealed) return;
   const card = currentCard();
@@ -1354,7 +1454,7 @@ function reveal() {
   $('#answer-wrap').hidden = false;
   $('#reveal-btn').hidden = true;
   $('#grade-row').hidden = false;
-  $('#grade-ask').hidden = false;
+  $('#grade-ask').classList.remove('away');
   $('#card-scroll').classList.add('shown');
   renderCardVideo(card);
   // The drawing is set going here rather than in renderCardFigure, because the
@@ -1363,13 +1463,18 @@ function reveal() {
   // also simply the better place — the drawing draws itself as the answer
   // arrives, which is when you are looking at it.
   drawFigureOn($('#figure-plate'));
+  showAnswerRegion();
   // The reveal button was the focused element and has just been hidden, which
   // drops focus to <body>. Put it on the answer so it is read out and so Tab
   // continues from the right place.
   $('#card-a').focus({ preventScroll: true });
   const rec = state.recs[card.i];
+  // Rolled once, here: these are the intervals the buttons promise *and* the
+  // ones the card gets, so answer() hands the pressed one back to grade().
+  session.ivls = {};
   for (let g = 1; g <= 4; g++) {
-    const d = preview(rec, g);
+    const d = scheduled(rec, g);
+    session.ivls[g] = d;
     // "(max)" explains why two buttons can show the same number: the exam date
     // is holding both down, not a bug.
     const capped = d > 0 && d === ceiling() && daysToExam() !== null;
@@ -1379,6 +1484,7 @@ function reveal() {
     btn.setAttribute('aria-label',
       `${['', 'Again', 'Hard', 'Good', 'Easy'][g]} — see it again ${d === 0 ? 'later in this session' : 'in ' + label}`);
   }
+  settleDock();
 }
 
 function answer(g) {
@@ -1386,7 +1492,21 @@ function answer(g) {
   const id = session.queue[0];
   if (!id) return;
   undoStack.push({
-    snap: JSON.stringify(state),
+    // What a grade touches, and nothing else. This used to be
+    // JSON.stringify(state) — every record in the deck, serialised on the tap
+    // that grades a card and kept twenty-five deep: 2 MB and 13 ms a time on an
+    // imported 20,000-card deck, on the app's most-used interaction.
+    id,
+    rec: state.recs[id] ? Object.assign({}, state.recs[id]) : null,
+    st: {
+      newDone: state.newDone, revDone: state.revDone,
+      revTotal: state.revTotal, revGood: state.revGood,
+      answers: state.answers, streak: state.streak, lastDay: state.lastDay,
+      // Copies, not references: noteAnswered() writes into both, and the day
+      // history is pruned in place once it is long enough.
+      days: Object.assign({}, state.days),
+      ach: Object.assign({}, state.ach),
+    },
     queue: session.queue.slice(),
     s: {
       done: session.done, again: session.again, good: session.good,
@@ -1402,7 +1522,7 @@ function answer(g) {
       if (!session.reel.includes(c)) session.reel.push(c);
     }
   }
-  const outcome = grade(id, g);
+  const outcome = grade(id, g, session.ivls && session.ivls[g]);
   // A clean run is consecutive cards without an Again, inside one session.
   if (g === 1) { session.again++; session.clean = 0; } else {
     session.good++;
@@ -1420,6 +1540,8 @@ function answer(g) {
   }
   const sess = session;
   showCard();
+  // The reveal button is back in the rectangle the grades just vacated.
+  settleDock();
   // After the next card is on screen, so the unlock lands on top of the new
   // question rather than the one just answered.
   checkAchievements(sess);
@@ -1428,7 +1550,8 @@ function answer(g) {
 function undo() {
   const u = undoStack.pop();
   if (!u) return;
-  state = JSON.parse(u.snap);
+  if (u.rec) state.recs[u.id] = u.rec; else delete state.recs[u.id];
+  Object.assign(state, u.st);
   session.queue = u.queue;
   Object.assign(session, u.s);
   save();
@@ -2222,6 +2345,10 @@ function renderStats() {
     : '';
   $('#build-line').textContent = `Deck build ${DECK.build} · ${DECK.cards.length} cards`;
   renderAch();
+  // Re-asked on every visit rather than once at boot: on a first load the
+  // registration is still being made when the app finishes starting, and the
+  // answer this card gives depends on it.
+  renderOffline();
   renderInstall();
   renderBackupState();
   renderSyncState();
@@ -2229,7 +2356,11 @@ function renderStats() {
 
 /* ─────────────────────────── lightbox ─────────────────────────── */
 
-const lb = { scale: 1, tx: 0, ty: 0, base: null, pointers: new Map(), lastTap: 0, pinch: null, opener: null, node: null };
+// `fit` is the scale at which the whole thing is on screen — 1 for anything
+// that already fits, less than 1 for anything that does not. It is the floor
+// for every zoom here, because a picture you cannot see all of is not the
+// bottom of the range.
+const lb = { scale: 1, fit: 1, tx: 0, ty: 0, base: null, pointers: new Map(), lastTap: 0, pinch: null, opener: null, node: null };
 
 function openLightbox(card) {
   const img = $('#lb-img');
@@ -2273,8 +2404,13 @@ function openLightbox(card) {
     const natural = isFig
       ? Number(FIGURES[card.f.n].vb.split(/\s+/)[2]) || lb.base.w
       : img.naturalWidth / 2;
-    const wanted = isFig ? lb.base.w : Math.min(1000, natural);
-    lb.scale = clamp(wanted / Math.max(1, lb.base.w), 1, 4);
+    // Fitting means both axes. Sized on width alone, a tall figure opened half
+    // a screen below the stage on a phone held sideways — and the fit control,
+    // which only knew about zooming out from a scale of 1, zoomed further in.
+    lb.fit = Math.min(1, stage.width / Math.max(1, lb.base.w),
+      stage.height / Math.max(1, lb.base.h));
+    const wanted = isFig ? lb.base.w * lb.fit : Math.min(1000, natural);
+    lb.scale = clamp(wanted / Math.max(1, lb.base.w), lb.fit, 4);
     // Open at the top-left corner, not the middle: every diagram puts its title
     // and first panel there, so that is where reading starts.
     lb.tx = -lb.base.x;
@@ -2310,6 +2446,11 @@ function pushStop(name) {
   stops.push(name);
   history.pushState({ stop: name }, '');
 }
+/* A reload mid-session leaves the entries this pushed behind: the page comes
+ * back sitting on top of one with `stops` empty. The press that pops it then
+ * found nothing recorded and nothing open and did nothing at all — the app
+ * eating a Back press for a state it no longer has. */
+let strays = !!(history.state && history.state.stop);
 addEventListener('popstate', () => {
   const top = stops.pop();
   if (top === 'lightbox') return closeLightbox(true);
@@ -2320,6 +2461,13 @@ addEventListener('popstate', () => {
   // press that the app swallowed.
   if (!$('#lightbox').hidden) return closeLightbox(true);
   if (current === 'study' || current === 'done') return leaveStudy(true);
+  // Nothing of ours is open, so this was one of those leftovers. Step past it —
+  // and past any others under it, which `history.state` names — so that one
+  // press still means one thing.
+  if (strays) {
+    strays = !!(history.state && history.state.stop);
+    history.back();
+  }
 });
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
@@ -2334,11 +2482,15 @@ function apply() {
   if (lb.node) lb.node.style.transform = `translate(${lb.tx}px,${lb.ty}px) scale(${lb.scale})`;
   // The hint has to follow the zoom, or it tells you to double-tap to fit while
   // you are already looking at the whole diagram.
-  const zoomed = lb.scale > 1.05;
+  const zoomed = lb.scale > lb.fit * 1.05;
   $('#lb-hint').textContent = zoomed
     ? 'Drag to pan · double-tap to fit the whole diagram · pinch to zoom'
     : 'Double-tap or pinch to zoom in · drag to pan';
   $('#lb-title').dataset.zoom = zoomed ? 'in' : 'fit';
+  // Here rather than in the fit button's own handler, which only ran after the
+  // first press: a figure opens fitted, and until you pressed it the control
+  // offered to fit something that was already fitted.
+  $('#lb-fit').setAttribute('aria-label', zoomed ? 'Fit the whole diagram on screen' : 'Zoom in');
 }
 
 function clampPan() {
@@ -2382,7 +2534,7 @@ function initLightbox() {
     if (lb.pointers.size === 2 && lb.pinch) {
       const [a, b] = Array.from(lb.pointers.values());
       const d = dist(a, b);
-      const next = clamp(lb.pinch.s * (d / lb.pinch.d), 1, 6);
+      const next = clamp(lb.pinch.s * (d / lb.pinch.d), lb.fit, 6);
       zoomAt((a.x + b.x) / 2, (a.y + b.y) / 2, next);
     } else if (lb.pointers.size === 1) {
       lb.tx += e.clientX - prev.x;
@@ -2402,7 +2554,7 @@ function initLightbox() {
   stage.addEventListener('click', (e) => {
     const now = Date.now();
     if (now - lb.lastTap < 320) {
-      const next = lb.scale > 1.2 ? 1 : 2.6;
+      const next = lb.scale > lb.fit * 1.2 ? lb.fit : 2.6;
       zoomAt(e.clientX, e.clientY, next);
       lb.lastTap = 0;
     } else {
@@ -2412,7 +2564,7 @@ function initLightbox() {
 
   stage.addEventListener('wheel', (e) => {
     e.preventDefault();
-    zoomAt(e.clientX, e.clientY, clamp(lb.scale * (e.deltaY < 0 ? 1.15 : 0.87), 1, 6));
+    zoomAt(e.clientX, e.clientY, clamp(lb.scale * (e.deltaY < 0 ? 1.15 : 0.87), lb.fit, 6));
   }, { passive: false });
 
   $('#lb-close').addEventListener('click', () => closeLightbox());
@@ -2421,9 +2573,11 @@ function initLightbox() {
   // looks broken until you know it is deliberate.
   $('#lb-fit').addEventListener('click', () => {
     const st = $('#lb-stage').getBoundingClientRect();
-    zoomAt(st.x + st.width / 2, st.y + st.height / 2, lb.scale > 1.05 ? 1 : 2.6);
-    $('#lb-fit').setAttribute('aria-label',
-      lb.scale > 1.05 ? 'Fit the whole diagram on screen' : 'Zoom in');
+    // `lb.fit`, not 1: fitting a figure that is taller than the stage means
+    // going below 1, and this used to hand it 2.6 — twice as far off screen as
+    // it already was, from the control that offered to fit it.
+    zoomAt(st.x + st.width / 2, st.y + st.height / 2,
+      lb.scale > lb.fit * 1.05 ? lb.fit : 2.6);
   });
 }
 
@@ -2832,8 +2986,18 @@ function wire() {
       toast('This browser cannot store the diagrams offline.');
       return;
     }
-    const reg = await navigator.serviceWorker.ready.catch(() => null);
-    if (!reg || !reg.active) {
+    // workerReg(), not `serviceWorker.ready`: with nothing registered — a
+    // private window, a failed registration, a browser that refused — `ready`
+    // never settles at all, so this handler stopped here for ever and the
+    // button did nothing, said nothing, and stayed enabled.
+    const reg = await workerReg();
+    if (!reg) {
+      // And say so where the offer was made, not only in a toast that leaves.
+      renderOffline();
+      toast('This browser has not stored the app, so there is nowhere to save them.');
+      return;
+    }
+    if (!reg.active) {
       toast('Offline storage is still starting up — try again in a moment.');
       return;
     }
@@ -2872,13 +3036,23 @@ function wire() {
   addEventListener('keydown', (e) => {
     if (!$('#lightbox').hidden) {
       if (e.key === 'Escape') { e.preventDefault(); closeLightbox(); }
-      if (e.key === '+' || e.key === '=') zoomAt(innerWidth / 2, innerHeight / 2, clamp(lb.scale * 1.25, 1, 6));
-      if (e.key === '-') zoomAt(innerWidth / 2, innerHeight / 2, clamp(lb.scale / 1.25, 1, 6));
+      if (e.key === '+' || e.key === '=') zoomAt(innerWidth / 2, innerHeight / 2, clamp(lb.scale * 1.25, lb.fit, 6));
+      if (e.key === '-') zoomAt(innerWidth / 2, innerHeight / 2, clamp(lb.scale / 1.25, lb.fit, 6));
       return;
     }
     const typing = /^(INPUT|SELECT|TEXTAREA)$/.test((e.target.tagName || ''));
     if (typing) return;
     if (current !== 'study') return;
+    // A control that has focus gets its own key. This guard exempted form
+    // fields and nothing else, so Space or Enter on the *again* button was
+    // taken by the document and recorded as good — the button's own click never
+    // fired — and end session, undo, the back arrow, the diagram, the clips and
+    // the skip link were all swallowed the same way. `tabindex="-1"` is not a
+    // control: the answer takes focus so that it is read out, and Space there
+    // is still the shortcut the dock advertises.
+    const control = e.target.closest
+      && e.target.closest('button, a[href], summary, [tabindex]:not([tabindex="-1"])');
+    if (control && (e.key === ' ' || e.key === 'Enter')) return;
     if (e.key === ' ' || e.key === 'Enter') {
       e.preventDefault();
       if (!session.revealed) reveal();
@@ -2930,12 +3104,22 @@ function renderNotice() {
   el.append(', used with a link back to each original.');
 }
 
-/* Offline, said in this deck's numbers.
+/** The worker's registration, or null — and it settles either way.
+ *
+ * `navigator.serviceWorker.ready` does not: with nothing registered it never
+ * resolves at all, so everything waiting on it waited for ever. */
+function workerReg() {
+  if (!('serviceWorker' in navigator)) return Promise.resolve(null);
+  return navigator.serviceWorker.getRegistration().then((r) => r || null).catch(() => null);
+}
+
+/* Offline, said in this deck's numbers — and in this browser's.
  *
  * How many diagrams there are, and whether there are any, is a fact about the
  * course. "The 24 diagrams are about 2 MB" was markup, so it was printed over
  * a three-picture deck and over imported decks with no diagrams at all, above
- * a button that then downloaded nothing. */
+ * a button that then downloaded nothing. Whether any of it is stored at all is
+ * a fact about the browser, and was assumed. */
 function renderOffline() {
   const card = $('#offline-card');
   if (!card) return;
@@ -2948,10 +3132,28 @@ function renderOffline() {
   }
   card.hidden = false;
   const many = shots.size > 1;
-  $('#offline-note').textContent = `The cards work offline as soon as you have opened the app once. `
-    + `The ${shots.size} diagram${many ? 's are' : ' is'} saved as you meet ${many ? 'them' : 'it'} — `
-    + `pull ${many ? 'them all' : 'it'} down now if you are heading somewhere without signal.`;
-  $('#prefetch-btn').textContent = many ? 'Save all diagrams offline' : 'Save the diagram offline';
+  // What is true in this browser, not what is true when everything worked. A
+  // browser that has stored nothing — a private window, a refused or failed
+  // registration — was told the cards already worked offline, above a button
+  // that could not save a thing.
+  const say = (worker) => {
+    $('#offline-note').textContent = worker
+      ? `The cards work offline as soon as you have opened the app once. `
+        + `The ${shots.size} diagram${many ? 's are' : ' is'} saved as you meet ${many ? 'them' : 'it'} — `
+        + `pull ${many ? 'them all' : 'it'} down now if you are heading somewhere without signal.`
+      : `This browser has not stored the app, so the cards and the ${many ? 'diagrams' : 'diagram'} `
+        + `need a signal. Open it once more with one — a private window will never keep it. `
+        + `Your progress is on the device either way.`;
+    const btn = $('#prefetch-btn');
+    btn.disabled = !worker;
+    btn.textContent = !worker
+      ? 'Nothing to save into yet'
+      : many ? 'Save all diagrams offline' : 'Save the diagram offline';
+  };
+  // Said as it has always been said, then said again when the browser answers:
+  // this screen is drawn in one go and the answer is a promise.
+  say(true);
+  workerReg().then((reg) => say(!!reg));
 }
 
 /** Whatever went wrong, said on the loading screen the course is already
@@ -2960,6 +3162,26 @@ function bootSays(line) {
   const el = $('#boot-line');
   if (el) el.textContent = line;
   else $('#boot').textContent = line;
+}
+
+/** …and the way off it.
+ *
+ * The loading screen is opaque, covers the window and ranks above the `courses`
+ * pill, so a deck that would not load or would not validate was the end of the
+ * app: the screen never came down, the stored course still pointed at the
+ * broken one, and a reload landed straight back on it — with the other course,
+ * which opens perfectly well, unreachable. */
+function bootEscape() {
+  const btn = $('#boot-back');
+  if (!btn) return;
+  btn.hidden = false;
+  btn.addEventListener('click', () => {
+    // Forget the broken course, or the shelf sends you back into it.
+    try { localStorage.removeItem(MUNIN.lastKey); } catch (e) { /* storage blocked */ }
+    // Without the query too: `?course=` is the other way back into this screen.
+    location.replace(location.pathname);
+  });
+  btn.focus({ preventScroll: true });
 }
 
 /* ─────────────────────────── boot ─────────────────────────── */
@@ -2982,6 +3204,7 @@ async function boot() {
     // at the one moment it is doing something useful.
     bootSays('Could not load the deck. Reload the page, or check you are online '
       + 'for the first visit.');
+    bootEscape();
     return;
   }
 
@@ -2996,6 +3219,7 @@ async function boot() {
     if (!v.ok) {
       console.error('deck:', v.errors);
       bootSays('This deck could not be read. ' + v.errors[0]);
+      bootEscape();
       return;
     }
   } catch (e) {
@@ -3031,7 +3255,11 @@ async function boot() {
   // stale one, must never stop the cards loading.
   // An imported deck brings no clips and no drawings; asking for them would be
   // two guaranteed 404s on every boot.
-  if (!COURSE.deck) fetch(COURSE.base + 'videos.json', { cache: 'no-cache' })
+  // Asked for only where there is one to ask for: a course with no clips got a
+  // red 404 in the console on every single boot. A course that ships video says
+  // so — with `video: true`, or with the credit that clips are used under.
+  const hasVideo = COURSE.video === true || !!(COURSE.credit && COURSE.credit.name);
+  if (!COURSE.deck && hasVideo) fetch(COURSE.base + 'videos.json', { cache: 'no-cache' })
     .then((r) => (r.ok ? r.json() : null))
     .then((v) => { if (v && v.clips && v.cards) VIDEOS = v; })
     .catch(() => {});

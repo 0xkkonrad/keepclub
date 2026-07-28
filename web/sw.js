@@ -127,7 +127,21 @@ const SHELL_FILES = SHELL.filter((s) => s !== './');
 self.addEventListener('install', (e) => {
   e.waitUntil((async () => {
     const shell = await caches.open(SHELL_V);
-    await shell.addAll(SHELL);
+    // One file at a time, because addAll is all-or-nothing over two dozen of
+    // them: a single 404 — a partial rsync, a CDN that has not caught up — used
+    // to reject the whole install, so skipWaiting() never ran and a first-ever
+    // registration was thrown away. The app then had no offline at all, and no
+    // way to say so, while Progress went on promising the cards work offline
+    // once you have opened it. A missing font is not a reason to have no shell,
+    // exactly as one bad course is not a reason to have no app (below).
+    await Promise.all(SHELL.map((f) => shell.add(f)
+      .catch((e) => console.warn('munin: shell ' + f + ' not cached', e))));
+    // caches.open() made the cache before a byte was fetched. If nothing at all
+    // landed — installed with no network, or a deploy that is simply not there
+    // — an empty cache under the CURRENT name is a shell that answers nothing
+    // and that activate will never sweep, because current is exactly what it
+    // keeps. Drop it and let the next install start from nothing instead.
+    if (!(await shell.keys()).length) await caches.delete(SHELL_V);
     // Each course into its own cache, and one course that will not install is
     // not a reason for the app to have no offline shell at all.
     for (const id of (await readCourses()) || []) {
@@ -195,6 +209,59 @@ self.addEventListener('message', (e) => {
   }
 });
 
+/* A page and the code it names have to come from the same deploy.
+ *
+ * The page is network-first and app.js/app.css are cache-first, so a deploy
+ * that renamed one element id in index.html AND in app.js — an ordinary
+ * refactor — handed the new page the old code: app.js threw on an element that
+ * was no longer there, dismissBoot() was never reached, and the held splash sat
+ * saying "loading deck…" with no button and no message. The next load recovered,
+ * which is no comfort to whoever met the first one.
+ *
+ * So when the page off the network is not the page we hold, the code cached
+ * beside it is a deploy behind by definition, and for the rest of that load the
+ * shell's scripts and stylesheets ask the network before the cache. The
+ * strategy is unchanged — they are still cached, still revalidated, and a
+ * network that will not answer still falls back to the copy we have, which is
+ * exactly what it did before. This only declines to serve one page two
+ * generations of itself while it still has the choice.
+ *
+ * The cached page doubles as the mark for which generation the cached CODE is,
+ * which is why it is only moved once the code has actually been caught up (see
+ * the navigation branch). Moving it on its own moved the dead load from the
+ * first refresh after a deploy to the second, which is not a fix. */
+const CODE = /\.(js|css)$/;
+let mixedShell = false;
+
+/** Is the page off the network a different page from the one we hold? */
+async function pageChanged(res) {
+  try {
+    const had = await (await caches.open(SHELL_V)).match('./');
+    if (!had) return false;            // nothing yet to be out of step with
+    return (await had.text()) !== (await res.text());
+  } catch (e) { return false; }        // a page we cannot compare is not evidence
+}
+
+/** Pull the shell's scripts and stylesheets down again, and say so only if
+ *  every one of them is now what the network is serving. Anything less and the
+ *  old page stays cached, so the next load treats the code as stale again —
+ *  which is the right answer rather than a failure. */
+async function catchCodeUp() {
+  try {
+    const c = await caches.open(SHELL_V);
+    const stale = (await c.keys()).filter((k) => CODE.test(new URL(k.url).pathname));
+    const got = await Promise.all(stale.map(async (k) => {
+      // 'reload' because the browser's own HTTP cache is just as capable of
+      // handing back the copy we are trying to get away from.
+      const r = await fetch(k.url, { cache: 'reload' }).catch(() => null);
+      if (!ok(r, typeFor(new URL(k.url).pathname))) return false;
+      await c.put(k, r);
+      return true;
+    }));
+    return got.every(Boolean);
+  } catch (e) { return false; }
+}
+
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   if (req.method !== 'GET') return;
@@ -226,13 +293,23 @@ self.addEventListener('fetch', (e) => {
     const isRoot = url.pathname === SCOPE || url.pathname === SCOPE + 'index.html';
     e.respondWith(
       fetch(req)
-        .then((r) => {
+        .then(async (r) => {
           // Only the app's own page may be stored as the shell. This used to
           // cache *any* navigation in scope, so opening a sibling file once
           // meant the app booted into that file for ever after, offline.
           if (isRoot && ok(r, 'text/html')) {
             const copy = r.clone();
-            caches.open(SHELL_V).then((c) => c.put('./', copy));
+            // Awaited, because the answer has to be known before the browser
+            // parses this page and asks for the scripts it names.
+            const changed = await pageChanged(r.clone());
+            mixedShell = changed;
+            const adopt = (async () => {
+              if (changed && !(await catchCodeUp())) return;
+              await (await caches.open(SHELL_V)).put('./', copy);
+            })();
+            // Kept alive past this response, because a worker shut down halfway
+            // leaves the page cached against code that never arrived.
+            try { e.waitUntil(adopt); } catch (err) { /* already past waiting */ }
           }
           return r;
         })
@@ -261,7 +338,9 @@ self.addEventListener('fetch', (e) => {
   if (isShell || isCourseFile) {
     // Stale while revalidate: instant from cache, but a shipped fix to app.js
     // — or a course's redrawn loading screen — lands on the next load instead
-    // of never.
+    // of never. Except for the shell's own code on a load whose page did not
+    // match the one we had cached: see pageChanged.
+    const skewed = mixedShell && isShell && CODE.test(url.pathname);
     e.respondWith(
       caches.match(req).then((hit) => {
         const net = fetch(req).then((r) => {
@@ -272,7 +351,7 @@ self.addEventListener('fetch', (e) => {
           }
           return r;
         }).catch(() => hit);
-        return hit || net;
+        return skewed ? net : (hit || net);
       })
     );
     return;

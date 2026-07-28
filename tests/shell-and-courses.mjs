@@ -448,6 +448,56 @@ const offer = (pg) => pg.evaluate(() => {
   ok(resume === 'day-skipper', `a dead deep link leaves the resume target alone (${resume})`);
   await c10.close();
 }
+{
+  // (e) The dock's shortcuts must not eat the keys belonging to the control
+  // under the reader's finger. A window handler that grades on Space whatever
+  // has focus turns the Again button into the Good button and says nothing:
+  // the schedule is corrupted by someone reading the label and believing it.
+  const c11 = await b.newContext({ viewport: { width: 390, height: 844 },
+    serviceWorkers: 'block' });
+  const p11 = await c11.newPage();
+  await p11.goto(URL, { waitUntil: 'networkidle' });
+  await p11.waitForSelector('.shelf.on');
+  await Promise.all([p11.waitForEvent('load'), p11.click('[data-course="day-skipper"]')]);
+  await p11.waitForFunction(() => document.getElementById('boot').hidden);
+  await p11.click('#study-all');
+  await p11.click('#reveal-btn');
+  await p11.waitForSelector('#grade-row:not([hidden])');
+  await p11.focus('[data-g="1"]');
+  await p11.keyboard.press(' ');
+  await p11.evaluate(() => writeNow());
+  const graded = await p11.evaluate(() => {
+    const recs = JSON.parse(localStorage.getItem('munin/day-skipper/state/v1')).recs;
+    const ids = Object.keys(recs);
+    return { n: ids.length, st: ids.length === 1 ? recs[ids[0]].st : null };
+  });
+  ok(graded.n === 1, `Space on a grade button answers exactly one card (${graded.n})`);
+  // "l" is learning, where Again puts it. "r" is review, where Good does.
+  ok(graded.st === 'l',
+    `and answers the button it was pressed on, not Good (st=${graded.st})`);
+  await c11.close();
+}
+{
+  // (f) A deep link is a way in, not a lock. Entering a course is a reload,
+  // which carries the query string with it, so a ?course= that keeps winning
+  // makes the picker decorative — and an imported deck unopenable, which reads
+  // as the import having vanished.
+  const c12 = await b.newContext({ viewport: { width: 390, height: 844 },
+    serviceWorkers: 'block' });
+  const p12 = await c12.newPage();
+  await p12.goto(URL + '?course=day-skipper', { waitUntil: 'networkidle' });
+  await p12.waitForFunction(() => document.getElementById('boot').hidden);
+  ok((await p12.textContent('#course-title')).trim().toLowerCase() === 'day skipper',
+    'a deep link opens the course it names');
+  ok(!p12.url().includes('course='), `and spends itself doing it (${p12.url()})`);
+  await p12.click('.shelf-btn');
+  await p12.waitForSelector('.shelf.on');
+  await Promise.all([p12.waitForEvent('load'), p12.click('[data-course="competent-crew"]')]);
+  await p12.waitForFunction(() => document.getElementById('boot').hidden);
+  ok((await p12.textContent('#course-title')).trim().toLowerCase() === 'competent crew',
+    'after which the picker, not the address, decides where you go');
+  await c12.close();
+}
 
 await b.close();
 console.log(out.concat(fails).join('\n'));
