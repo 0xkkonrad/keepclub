@@ -52,13 +52,21 @@ const $$ = (s) => Array.from(document.querySelectorAll(s));
 /* The drawing goes inside a sized wrapper rather than being sized itself: an
  * <svg> that is a flex item ignores its own width and fills the slot, which put
  * ten 48px-tall boats across a 320px screen the first time this shipped. */
+/* A drawing is a string, and only a string. `DOODLE[name]` is an index into a
+ * plain object, so a course naming a drawing "constructor" or "toString" got a
+ * truthy non-path back and short-circuited every fallback below it — a blank
+ * drawing, no warning, and the gate could not see it because the gate looked
+ * the same way. */
+const pathOf = (set, name) => (typeof set[name] === 'string' ? set[name] : null);
+
 function doodle(name, cls, style) {
   // Munin's own set is consulted before the course's fallback: a name this
   // course does not draw but Munin does — the raven the hoard's defaults are
   // written in — is drawn by Munin, rather than collapsing into fourteen
-  // copies of one course drawing. The two key spaces do not overlap, so this
-  // can never quietly capture a course's own name.
-  const d = DOODLE[name] || MUNIN_DOODLE[name] || DOODLE[COURSE.fallback] || Object.values(DOODLE)[0];
+  // copies of one course drawing. The two key spaces do not overlap (the
+  // separation gate holds them apart), so this cannot capture a course's name.
+  const d = pathOf(DOODLE, name) || pathOf(MUNIN_DOODLE, name)
+    || pathOf(DOODLE, COURSE.fallback) || Object.values(DOODLE).find((v) => typeof v === 'string');
   return `<span class="dood ${cls || ''}"${style ? ` style="${style}"` : ''} aria-hidden="true">`
     + `<svg class="doodle" viewBox="0 0 32 32"><path d="${d}"/></svg></span>`;
 }
@@ -87,7 +95,7 @@ function freshState() {
     days: {},                    // dayKey -> answers, for the streak
     revTotal: 0,
     revGood: 0,
-    answers: 0,                  // every grade ever, for the ship's log
+    answers: 0,                  // every grade ever, for the hoard
     ach: {},                     // achievement id -> unlocked timestamp
     // Light by default rather than following the system: the paper, the ink
     // outlines and the hard shadows are the design, and the derived dark set is
@@ -162,7 +170,7 @@ function sanitise(raw) {
   s.revGood = Math.round(num(s.revGood, 0, s.revTotal, 0));
 
   // An older save has no lifetime counter. Sum the day history rather than
-  // starting at zero, or upgrading resets the ship's log for everyone.
+  // starting at zero, or upgrading resets the hoard for everyone.
   s.answers = Math.round(num(
     raw.answers,
     0, 1e9,
@@ -540,8 +548,8 @@ function playerHtml(clip) {
   // Who made the clips is the course's business — videos.json says it, and
   // course.json says it if videos.json does not. Munin used to carry one
   // course's video credit as a literal in the engine.
-  const by = (VIDEOS.credit && VIDEOS.credit.name)
-    || (COURSE.credit && COURSE.credit.name) || 'the course';
+  const by = str(VIDEOS.credit && VIDEOS.credit.name,
+    str(COURSE.credit && COURSE.credit.name, 'the course'));
   // The credit row lives outside the black box so the box wraps the picture
   // exactly — inside, its own text was setting the player's width.
   return `<div class="vplayer">
@@ -693,7 +701,13 @@ function wireVideo(rootSel) {
   });
 }
 
-/* ─────────────────────── the ship's log ─────────────────────── */
+/* ─────────────────────── the hoard ─────────────────────── */
+
+/* Every word below is a course's where a course cares and Munin's where it
+ * does not, so every one is taken only when it is the kind of thing it is
+ * supposed to be. A `notice` of `42` used to replace the whole fineprint with
+ * "42" rather than falling back to the line it exists to fall back to. */
+const str = (v, fallback) => (typeof v === 'string' && v ? v : fallback);
 
 /* Fourteen things worth noticing. They are all side effects of revising rather
  * than tasks of their own — nothing here asks you to study differently, and
@@ -729,14 +743,10 @@ const HOARD = [
 const HOARD_ITEMS = (COURSE.hoard && COURSE.hoard.items) || {};
 const ACHIEVEMENTS = HOARD.map((a) => {
   const o = HOARD_ITEMS[a.id] || {};
-  return Object.assign({}, a, {
-    t: typeof o.t === 'string' && o.t ? o.t : a.t,
-    d: typeof o.d === 'string' && o.d ? o.d : a.d,
-    art: typeof o.art === 'string' && o.art ? o.art : a.art,
-  });
+  return Object.assign({}, a, { t: str(o.t, a.t), d: str(o.d, a.d), art: str(o.art, a.art) });
 });
 const ACH_IDS = new Set(ACHIEVEMENTS.map((a) => a.id));
-const HOARD_TITLE = (COURSE.hoard && COURSE.hoard.title) || 'The hoard';
+const HOARD_TITLE = str(COURSE.hoard && COURSE.hoard.title, 'The hoard');
 
 /** Everything the tests above need, worked out once per answer. 537 cards is
  *  cheap enough to walk; keeping partial counters in state would be one more
@@ -2803,7 +2813,7 @@ function wire() {
       btn.disabled = false;
       btn.textContent = d.failed
         ? `${d.total - d.failed} of ${d.total} saved — retry the rest`
-        : 'All diagrams saved offline ✓';
+        : `All ${d.total === 1 ? 'saved' : 'diagrams saved'} offline ✓`;
     });
   }
 
@@ -2855,19 +2865,24 @@ function wire() {
 function renderNotice() {
   const el = $('#notice');
   if (!el) return;
-  el.textContent = COURSE.notice || MUNIN.theme.notice;
-  const c = COURSE.credit;
-  if (!c || !c.name) return;
+  el.textContent = str(COURSE.notice, MUNIN.theme.notice);
+  const c = COURSE.credit || {};
+  const name = str(c.name, '');
+  if (!name) return;
   el.append(' Video clips by ');
-  if (c.href) {
+  // http(s) or nothing. rel="noopener" already makes a javascript: URL here
+  // inert, but a credit line is a link to a person's work, and "the browser
+  // happens to defuse it" is not the reason it is safe.
+  const href = str(c.href, '');
+  if (/^https?:\/\//i.test(href)) {
     const a = document.createElement('a');
-    a.href = c.href;
+    a.href = href;
     a.target = '_blank';
     a.rel = 'noopener noreferrer';
-    a.textContent = c.name;
+    a.textContent = name;
     el.append(a);
   } else {
-    el.append(c.name);
+    el.append(name);
   }
   el.append(', used with a link back to each original.');
 }
@@ -2896,6 +2911,14 @@ function renderOffline() {
   $('#prefetch-btn').textContent = many ? 'Save all diagrams offline' : 'Save the diagram offline';
 }
 
+/** Whatever went wrong, said on the loading screen the course is already
+ *  drawing. Text, not markup: a deck's own words end up in here. */
+function bootSays(line) {
+  const el = $('#boot-line');
+  if (el) el.textContent = line;
+  else $('#boot').textContent = line;
+}
+
 /* ─────────────────────────── boot ─────────────────────────── */
 
 async function boot() {
@@ -2911,8 +2934,11 @@ async function boot() {
       DECK = await res.json();
     }
   } catch (e) {
-    $('#boot').innerHTML =
-      '<p>Could not load the deck.<br>Reload the page, or check you are online for the first visit.</p>';
+    // The line, not the whole screen: the scene the course drew is what
+    // says which deck this is, and replacing it with a paragraph loses that
+    // at the one moment it is doing something useful.
+    bootSays('Could not load the deck. Reload the page, or check you are online '
+      + 'for the first visit.');
     return;
   }
 
@@ -2926,7 +2952,7 @@ async function boot() {
     const v = validateDeck(DECK);
     if (!v.ok) {
       console.error('deck:', v.errors);
-      $('#boot').innerHTML = `<p>This deck could not be read.<br>${escapeHtml(v.errors[0])}</p>`;
+      bootSays('This deck could not be read. ' + v.errors[0]);
       return;
     }
   } catch (e) {
@@ -2998,9 +3024,6 @@ async function boot() {
     if (DSSync.enabled()) runSync();
   }
 
-  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
-  }
 }
 
 boot();

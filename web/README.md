@@ -54,15 +54,31 @@ last.
 its own try/catch; one that will not load leaves a tile saying so and the rest
 of the shelf intact.
 
-## Courses are self-contained
+## Courses are self-contained, and bring only what they have
 
-`courses/<id>/` = course.json + doodles.js + cards.json + boot.html + boot.css
-(+ figures.json, videos.json, img/, video/). **No file in one course folder
-ever references another course folder** — identical files are coincidences,
-per the 27 Jul ruling. The shelf draws each course's emblem from `shelfPath`
-in its course.json, written there by `scripts/make-boot.mjs` out of that
-course's own doodle set; it used to fetch all 43 KB of `doodles.js` and mine
-one path out of it with a regular expression, on every draw.
+**Required:** `course.json` (a title, and whatever else it wants to say) and
+`cards.json`. That is the whole list.
+
+**Offered:** `doodles.js`, `boot.html` + `boot.css`, `figures.json`,
+`videos.json`, `img/`, `video/`, and every optional field in course.json —
+`accent`, `short`, `tagline`, `boot.line`, `boot.art`, `shelfArt`,
+`shelfPath`, `fallback`, `sectionArt`, `groupArt`, `friezeArt`, `examDate`,
+`notice`, `credit`, `hoard`. Anything absent comes from Munin. A course with
+a title and two hundred cards works, looks like Munin, and is not a
+second-class citizen — that is the ruling, and `tests/separation.mjs` requires
+exactly the two files above and no more.
+
+Add one: drop the folder in, add its id to `courses/index.json`, and — if it
+has an upstream build to copy from — add a rule to `scripts/refresh-courses.sh`
+(that script is the one place a new course still needs a per-course edit, and
+only if it is generated rather than authored in place).
+
+**No file in one course folder ever references another course folder** —
+identical files are coincidences, per the 27 Jul ruling. The shelf draws each
+course's emblem from `shelfPath` in its course.json, written there by
+`scripts/make-boot.mjs` out of that course's own doodle set; it used to fetch
+all 43 KB of `doodles.js` and mine one path out of it with a regular
+expression, on every draw.
 
 ## The loading screen
 
@@ -82,6 +98,10 @@ late, and it was the bug.
 `pathLength="1"` on every path: it renormalises the path whatever its real
 geometry, so one CSS rule draws any drawing on. `prefers-reduced-motion`
 leaves the drawing finished, not half-drawn.
+
+**What ships is still a spinner, not a scene** — each course's boot.html holds
+one of its own drawings, drawn on and then moving. The mechanism is finished;
+the drawing is not. See project.md, "Boot screens", for what it should be.
 
 ## What a deck has to be
 
@@ -123,6 +143,19 @@ content actually shipped. They used to share a single cache named after a hash
 of *everything*, so editing one card in one course evicted the app and every
 other course for every user.
 
+The worker is registered by `munin.js`, not from inside a course: it used to be
+`app.js`, which never runs on the picker, so a visitor who landed on the shelf
+installed nothing at all.
+
+**Nothing is ever deleted from a list we could not read.** `readCourses()`
+returns `null` rather than `[]` when the registry will not load, and the
+activate sweep skips every course cache when it is `null`; the same rule holds
+in `munin.js`, where `sweepOrphans` is given `null` rather than `[]` when
+IndexedDB will not open. Both of these deleted real things — the megabytes of
+diagrams somebody saved for a flight, and every imported deck's study history
+in a private window — because an unanswerable question was being read as the
+answer "none of them exist".
+
 ## What differs from Day Skipper's app.js
 
 - The theme moved out of `state.settings` to `munin/theme` (above).
@@ -145,8 +178,8 @@ other course for every user.
 
 ## Deploy
 
-kkonrad.com/munin (locked). /day-skipper 301s here only at parity: four green
-test suites + a state-migration check. Not deployed yet if this line survives.
+kkonrad.com/munin (locked) — LIVE since 27 July 2026. /day-skipper 301s here
+only at parity: the five suites green + a state-migration check.
 
 ## Importing an Anki deck
 

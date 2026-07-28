@@ -2,6 +2,9 @@
  * a study session → resume on the next cold open.
  * usage: serve the sandbox on :8765, then  node shell-and-courses.mjs
  */
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright-core';
 
 const EXE = process.env.HOME + '/.cache/ms-playwright/chromium_headless_shell-1217/chrome-headless-shell-linux64/chrome-headless-shell';
@@ -18,7 +21,13 @@ const p = await ctx.newPage();
 await p.goto(URL, { waitUntil: 'networkidle' });
 await p.waitForSelector('.shelf.on');
 ok(true, 'fresh profile lands on the shelf');
-ok((await p.locator('.shelf-tile').count()) === 3, 'two courses + your-own-deck tile');
+// Not `new URL(...)`: URL is shadowed by the app's address, three lines up.
+const HERE = dirname(fileURLToPath(import.meta.url));
+const REGISTERED = JSON.parse(
+  readFileSync(join(HERE, '../web/courses/index.json'), 'utf8')).courses;
+const tiles = await p.locator('.shelf-tile').count();
+ok(tiles === REGISTERED.length + 1,
+  `a tile per registered course, plus your-own-deck (${tiles} for ${REGISTERED.length})`);
 const teal = await p.evaluate(() =>
   getComputedStyle(document.querySelector('.shelf-mark .dood')).color);
 ok(teal === 'rgb(14, 63, 57)', `shelf raven wears ink teal (${teal})`);
@@ -242,6 +251,87 @@ const offer = (pg) => pg.evaluate(() => {
   ok(said.offlineShown && said.offline.includes(`${said.diagrams} diagrams`),
     `offline counts this deck's diagrams (${said.diagrams})`);
   await c6.close();
+}
+
+/* ── nothing is deleted from a list we could not read ──────────────────────
+ *
+ * Every one of these was a real defect, and every one of them destroyed
+ * something the person had: an unanswerable question was being taken as the
+ * answer "none of them exist". */
+{
+  const c7 = await b.newContext({ viewport: { width: 390, height: 844 },
+    serviceWorkers: 'block' });   // the page's own behaviour, not the worker's
+  const p7 = await c7.newPage();
+  await p7.goto(URL, { waitUntil: 'networkidle' });
+  await p7.waitForSelector('.shelf.on');
+
+  // (a) A database that will not open must not be read as "you have no decks".
+  await p7.evaluate(() => {
+    localStorage.setItem('munin/local-abc123/state/v1', '{"answers":41}');
+    localStorage.setItem('munin/local-def456/state/v1', '{"answers":7}');
+  });
+  await p7.addInitScript(() => {
+    Object.defineProperty(indexedDB, 'open', { value: () => { throw new Error('blocked'); } });
+  });
+  await p7.reload({ waitUntil: 'networkidle' });
+  await p7.waitForSelector('.shelf.on');
+  const kept = await p7.evaluate(() => Object.keys(localStorage).filter((k) => k.includes('local-')));
+  ok(kept.length === 2, `a database that will not open loses no progress (${kept.length} of 2 kept)`);
+  await c7.close();
+}
+{
+  const c8 = await b.newContext({ viewport: { width: 390, height: 844 },
+    serviceWorkers: 'block' });   // the page's own behaviour, not the worker's
+  const p8 = await c8.newPage();
+  await p8.goto(URL, { waitUntil: 'networkidle' });
+  await p8.waitForSelector('.shelf.on');
+  await p8.evaluate(() => {
+    localStorage.setItem('munin/boot/day-skipper', JSON.stringify({ html: '<svg/>', from: 'x' }));
+    localStorage.setItem('munin/boot/competent-crew', JSON.stringify({ html: '<svg/>', from: 'y' }));
+  });
+
+  // (b) A registry that will not load must not be read as "there are no
+  // courses" — and must say something, because a course quietly missing from
+  // the shelf is how you conclude your deck is gone.
+  await p8.route('**/courses/index.json',
+    (r) => r.fulfill({ status: 503, contentType: 'text/plain', body: 'nope' }));
+  await p8.reload({ waitUntil: 'networkidle' });
+  await p8.waitForSelector('.shelf.on');
+  const after = await p8.evaluate(() => ({
+    boots: Object.keys(localStorage).filter((k) => k.startsWith('munin/boot/')).length,
+    said: document.body.innerText.toLowerCase(),
+  }));
+  ok(after.boots === 2, `an unreadable course list loses no cached scenes (${after.boots} of 2)`);
+  ok(after.said.includes('not answering'), 'and the shelf says the courses are not answering');
+  await c8.close();
+}
+{
+  // (c) A request that never answers is not a request that failed. The shelf
+  // has to arrive anyway, and the loading screen has to stay up until it does
+  // rather than being cleared for a blank page.
+  const c9 = await b.newContext({ viewport: { width: 390, height: 844 },
+    serviceWorkers: 'block' });   // the page's own behaviour, not the worker's
+  const p9 = await c9.newPage();
+  await p9.route('**/courses/day-skipper/course.json', () => { /* never answers */ });
+  await p9.goto(URL, { waitUntil: 'commit' });
+  const drawn = await p9.waitForSelector('.shelf.on', { timeout: 20000 }).then(() => true, () => false);
+  ok(drawn, 'a course.json that never answers still lets the picker draw');
+  await c9.close();
+}
+{
+  // (d) A stale shared link must not cost you the course you were in.
+  const c10 = await b.newContext({ viewport: { width: 390, height: 844 },
+    serviceWorkers: 'block' });   // the page's own behaviour, not the worker's
+  const p10 = await c10.newPage();
+  await p10.goto(URL, { waitUntil: 'networkidle' });
+  await p10.waitForSelector('.shelf.on');
+  await Promise.all([p10.waitForEvent('load'), p10.click('[data-course="day-skipper"]')]);
+  await p10.waitForFunction(() => document.getElementById('boot').hidden);
+  await p10.goto(URL + '?course=no-such-course', { waitUntil: 'networkidle' });
+  await p10.waitForSelector('.shelf.on');
+  const resume = await p10.evaluate(() => localStorage.getItem('munin/last-course'));
+  ok(resume === 'day-skipper', `a dead deep link leaves the resume target alone (${resume})`);
+  await c10.close();
 }
 
 await b.close();

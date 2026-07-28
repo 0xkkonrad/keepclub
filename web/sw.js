@@ -31,16 +31,29 @@ function courseOf(pathname) {
   return m ? m[1] : null;
 }
 
+/* The course list, or NULL if it could not be read.
+ *
+ * The difference matters more here than anywhere else in the app: this list
+ * decides which caches are still wanted, and `[]` from a failed read used to
+ * mean "no course exists", so one unparseable response — a half-written
+ * deploy, a proxy error page served as JSON — deleted every course's cache,
+ * including the megabytes of diagrams somebody deliberately saved for a
+ * flight. The cached copy is tried when the network will not answer. */
 async function readCourses() {
+  const parse = async (r) => {
+    const idx = await r.json();
+    if (!idx || !Array.isArray(idx.courses)) throw new Error('no course list');
+    return idx.courses.filter((s) => typeof s === 'string' && /^[a-z0-9][a-z0-9-]{0,63}$/.test(s));
+  };
   try {
     const r = await fetch('courses/index.json', { cache: 'no-cache' });
-    if (!r.ok) return [];
-    const idx = await r.json();
-    const ids = Array.isArray(idx) ? idx : idx.courses;
-    return Array.isArray(ids) ? ids.filter((s) => /^[a-z0-9][a-z0-9-]*$/.test(s)) : [];
-  } catch (e) {
-    return [];
-  }
+    if (r.ok) return await parse(r);
+  } catch (e) { /* offline, or the fetch itself failed */ }
+  try {
+    const hit = await caches.match('courses/index.json');
+    if (hit) return await parse(hit);
+  } catch (e) { /* a cached copy that is not the registry either */ }
+  return null;
 }
 
 /** What we expect back for a given path. A 200 is not enough: a captive portal
@@ -89,6 +102,11 @@ const SHELL = [
   'lib/store.js',
   'lib/template.js',
   'lib/unzip.js',
+  // Imported by import.js AND by lib/deck.js. Missing here, the whole
+  // importer module graph failed to resolve offline — which is the one place
+  // it is most obviously supposed to work — and app.js's boot-time deck check
+  // silently stopped running, because its import is a caught dynamic one.
+  'lib/validate.js',
   'lib/vendor/fzstd.js',
   'manifest.webmanifest',
   'fonts/dm-mono-400.woff2',
@@ -112,11 +130,15 @@ self.addEventListener('install', (e) => {
     await shell.addAll(SHELL);
     // Each course into its own cache, and one course that will not install is
     // not a reason for the app to have no offline shell at all.
-    for (const id of await readCourses()) {
+    for (const id of (await readCourses()) || []) {
       const cache = await caches.open(courseV(id));
       for (const f of COURSE_FILES) {
         // add() rejects on a 404, and most courses ship only some of these.
-        await cache.add('courses/' + id + '/' + f).catch(() => {});
+        // Optional files are meant to be missing; anything else is worth
+        // saying, because a course cached without its cards is a course that
+        // opens offline to nothing and gives no clue why.
+        await cache.add('courses/' + id + '/' + f)
+          .catch((e) => console.warn('munin: ' + id + '/' + f + ' not cached', e));
       }
     }
     await self.skipWaiting();
@@ -125,11 +147,17 @@ self.addEventListener('install', (e) => {
 
 self.addEventListener('activate', (e) => {
   e.waitUntil((async () => {
-    const live = new Set([SHELL_V].concat((await readCourses()).map(courseV)));
-    // Only Munin's own caches, and only the ones no longer current: a course
-    // whose cards changed loses its own cache and keeps everyone else's.
+    const ids = await readCourses();
+    const live = new Set([SHELL_V].concat((ids || []).map(courseV)));
     for (const k of await caches.keys()) {
-      if (/^munin-/.test(k) && !live.has(k)) await caches.delete(k);
+      if (!/^munin-/.test(k) || live.has(k)) continue;
+      // Only Munin's own caches, and only the ones no longer current: a course
+      // whose cards changed loses its own cache and keeps everyone else's.
+      // WITHOUT A LIST, NOTHING BELONGING TO A COURSE IS TOUCHED — an
+      // unreadable registry is not evidence that every course was removed,
+      // and treating it as such threw away saved diagrams by the megabyte.
+      if (ids === null && /^munin-course-/.test(k)) continue;
+      await caches.delete(k);
     }
     await self.clients.claim();
   })());

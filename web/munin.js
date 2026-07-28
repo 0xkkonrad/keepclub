@@ -33,13 +33,15 @@ const MUNIN = {
 
   /* A course id is a folder name and goes straight into a URL, so it is
    * checked as a shape rather than against a list: the resume path must not
-   * have to wait for the registry to load before it can boot a course. */
-  idOk: (id) => /^[a-z0-9][a-z0-9-]{0,63}$/.test(String(id || '')),
+   * have to wait for the registry to load before it can boot a course.
+   * A string, and not something that merely stringifies into one — `["x"]`
+   * used to pass and fetch a course called x. */
+  idOk: (id) => typeof id === 'string' && /^[a-z0-9][a-z0-9-]{0,63}$/.test(id),
 
   /* Munin's own theme: the default for every slot a course leaves empty. */
   theme: {
     accent: { light: '#0e3f39', dark: '#35917f', inkLight: '#fffdf7', inkDark: '#141519' },
-    boot: { art: 'perch', anim: 'hop', line: 'Loading…' },
+    boot: { art: 'perch', line: 'Loading…' },
     fallback: 'perch',
     // The raven set itself, in file order — one list, not a copy of one.
     friezeArt: Object.keys(MUNIN_DOODLE),
@@ -223,11 +225,22 @@ function loadScript(src) {
   });
 }
 
+/* An accent goes into a style attribute and into a stylesheet, where a `;` or
+ * a `}` is a way out of the declaration it was supposed to be. A colour that
+ * is not a colour is a mistake in a course file, and it gets Munin's. */
+const COLOUR = /^#[0-9a-f]{3,8}$/i;
+function colours(a) {
+  const t = MUNIN.theme.accent;
+  const out = Object.assign({}, t);
+  for (const k of Object.keys(t)) if (COLOUR.test(a && a[k])) out[k] = a[k];
+  return out;
+}
+
 /** Every slot a course left empty, filled from Munin's own theme. */
 function withDefaults(c) {
   const t = MUNIN.theme;
   return Object.assign({}, c, {
-    accent: Object.assign({}, t.accent, c.accent || {}),
+    accent: colours(c.accent),
     boot: Object.assign({}, t.boot, c.boot || {}),
     fallback: c.fallback || t.fallback,
     sectionArt: c.sectionArt || {},
@@ -249,9 +262,36 @@ function withDefaults(c) {
  * synchronously, here, before anything paints. First-ever open of a course
  * gets Munin's raven; every open after that gets the course's own.
  */
+/* A cached scene is markup that goes into innerHTML, and localStorage is not
+ * a trustworthy place to keep markup. `<script>` never runs through innerHTML,
+ * but `onerror` and `onbegin` do, at parse time, before anything else on the
+ * page — so a one-shot injection anywhere else on this origin (kkonrad.com
+ * carries a whole site besides this app) would become code that runs inside
+ * Munin on every visit, for ever, offline included. Parsed, stripped and
+ * re-serialised: the same rule the importer applies to a stranger's cards. */
+function safeScene(html) {
+  const doc = new DOMParser().parseFromString(
+    '<svg xmlns="http://www.w3.org/2000/svg">' + String(html) + '</svg>', 'image/svg+xml');
+  if (doc.querySelector('parsererror')) return '';
+  for (const el of doc.querySelectorAll('script, foreignObject, iframe, image, use')) el.remove();
+  for (const el of doc.querySelectorAll('*')) {
+    for (const a of [...el.attributes]) {
+      const n = a.name.toLowerCase();
+      if (n.startsWith('on') || (/^(href|xlink:href|src)$/.test(n) && !/^#/.test(a.value.trim()))) {
+        el.removeAttribute(a.name);
+      }
+    }
+  }
+  return doc.documentElement.innerHTML;
+}
+
 function applyBoot(b) {
   const boot = document.getElementById('boot');
   if (!boot || !b) return;
+  // The colour comes with the scene. Without it the replayed screen paints in
+  // whatever the stylesheet's default accent happens to be until course.json
+  // arrives — which is the whole window this screen exists to cover.
+  if (b.accent) injectAccent(b.accent);
   if (b.css) {
     let style = document.getElementById('boot-style');
     if (!style) {
@@ -265,8 +305,11 @@ function applyBoot(b) {
   // The scene is a course's own file, and it replaces markup rather than being
   // added to it — a second scene under the first is two loading screens.
   if (scene && b.html && scene.dataset.from !== b.from) {
-    scene.innerHTML = b.html;
-    scene.dataset.from = b.from || 'course';
+    const clean = safeScene(b.html);
+    if (clean) {
+      scene.innerHTML = clean;
+      scene.dataset.from = b.from || 'course';
+    }
   }
   const line = boot.querySelector('#boot-line');
   if (line && b.line) line.textContent = b.line;
@@ -290,9 +333,8 @@ function writeBootCache(id, b) {
   }
 }
 
-/** The scene the resume course drew last time, replayed before the first paint. */
-function replayBoot() {
-  const id = localStorage.getItem(MUNIN.lastKey);
+/** The scene the course about to open drew last time, before the first paint. */
+function replayBoot(id) {
   if (!id || !(MUNIN.idOk(id) || isLocal(id))) return;
   applyBoot(readBootCache(id));
 }
@@ -317,7 +359,10 @@ async function loadBootScene(c) {
       fetch(c.base + 'boot.css', { cache: 'no-cache' }).then((r) => (r.ok ? r.text() : '')),
     ]);
     if (!html) return;                             // no scene of its own: Munin's raven stays
-    const b = { html, css, line: c.boot.line, from: c.id + '-' + stamp(html + css) };
+    const b = {
+      html, css, line: c.boot.line, accent: c.accent,
+      from: c.id + '-' + stamp(html + css),
+    };
     applyBoot(b);
     writeBootCache(c.id, b);
   } catch (e) {
@@ -511,14 +556,37 @@ const escHtml = (s) => String(s)
 /* Which courses ship with the app. One list, read at runtime: it used to be a
  * literal in this file, a second literal in the service worker's precache and
  * a third in refresh-courses.sh, and a course missing from the second worked
- * online and 404'd offline — the failure you find last. */
+ * online and 404'd offline — the failure you find last.
+ *
+ * One shape: `{ "courses": [...] }`. This used to also accept a bare array,
+ * which none of the three scripts that read the same file accept — tolerance
+ * two readers out of five honour is a way to write a file that half the
+ * toolchain rejects. */
 async function readRegistry() {
-  const r = await fetch(MUNIN.registry, { cache: 'no-cache' });
+  const r = await fetchWithTimeout(MUNIN.registry);
   if (!r.ok) throw new Error('HTTP ' + r.status);
   const idx = await r.json();
-  const ids = Array.isArray(idx) ? idx : idx.courses;
-  if (!Array.isArray(ids)) throw new Error('the course list is not a list');
-  return ids.filter(MUNIN.idOk);
+  if (!idx || !Array.isArray(idx.courses)) throw new Error('no course list in ' + MUNIN.registry);
+  // A registered id that is not a usable id is a mistake in the one file that
+  // says which courses exist — almost always a typo or a capital. It gets a
+  // tile that says so rather than vanishing: a course quietly missing from the
+  // shelf is how you conclude your deck is gone.
+  const good = [], bad = [];
+  for (const id of idx.courses) (MUNIN.idOk(id) ? good : bad).push(id);
+  if (bad.length) console.error('not usable course ids in ' + MUNIN.registry + ':', bad);
+  return { ids: good, bad: bad.map((b) => String(b).slice(0, 40)) };
+}
+
+/* Nothing the picker waits for may wait for ever. A request that hangs is not
+ * a request that failed: the error paths here were all covered and a lie-fi
+ * connection that never answers still left the shelf blank with no way back,
+ * which is the exact failure the per-course try/catch was meant to end. */
+const FETCH_MS = 8000;
+function fetchWithTimeout(url, ms) {
+  const stop = new AbortController();
+  const t = setTimeout(() => stop.abort(), ms || FETCH_MS);
+  return fetch(url, { cache: 'no-cache', signal: stop.signal })
+    .finally(() => clearTimeout(t));
 }
 
 /** A course's description, or null with a reason. One course cannot take the
@@ -526,7 +594,7 @@ async function readRegistry() {
  *  used to leave a blank page with no way back to anything. */
 async function courseMeta(id) {
   try {
-    const r = await fetch('courses/' + id + '/course.json', { cache: 'no-cache' });
+    const r = await fetchWithTimeout('courses/' + id + '/course.json');
     if (!r.ok) throw new Error('HTTP ' + r.status);
     const c = withDefaults(await r.json());
     c.id = id;
@@ -544,15 +612,28 @@ async function courseMeta(id) {
  * may be the one open behind this overlay, and that session writes its state
  * again on the way out — so the key comes back a moment after it was deleted,
  * owned by nothing, for ever. Collecting orphans whenever the shelf draws is
- * the only point where the full list of decks is in hand anyway. */
+ * the only point where the full list of decks is in hand anyway.
+ *
+ * DELETING IS ONLY EVER DONE FROM A LIST WE ACTUALLY HAVE. `null` means the
+ * question could not be answered — a database that would not open, a registry
+ * that would not load — and an unanswered question is not the answer "none of
+ * them exist". Getting this wrong deletes a person's study history: an empty
+ * deck list in a private window swept every imported deck's progress, and an
+ * unreachable registry swept every course's cached loading screen. */
 function sweepOrphans(decks, courses) {
-  const live = new Set(decks.map((d) => d.id));
-  const known = new Set(courses.concat([...live]));
-  for (const k of Object.keys(localStorage)) {
-    const s = /^munin\/(local-[a-z0-9]+)\/state\/v1$/.exec(k);
-    if (s && !live.has(s[1])) { localStorage.removeItem(k); continue; }
-    const b = /^munin\/boot\/(.+)$/.exec(k);
-    if (b && !known.has(b[1])) localStorage.removeItem(k);
+  if (decks) {
+    const live = new Set(decks.map((d) => d.id));
+    for (const k of Object.keys(localStorage)) {
+      const s = /^munin\/(local-[a-z0-9]+)\/state\/v1$/.exec(k);
+      if (s && !live.has(s[1])) localStorage.removeItem(k);
+    }
+  }
+  if (decks && courses) {
+    const known = new Set(courses.concat(decks.map((d) => d.id)));
+    for (const k of Object.keys(localStorage)) {
+      const b = /^munin\/boot\/(.+)$/.exec(k);
+      if (b && !known.has(b[1])) localStorage.removeItem(k);
+    }
   }
 }
 
@@ -609,37 +690,39 @@ async function renderShelf(asOverlay) {
   if (!asOverlay) {
     injectAccent(MUNIN.theme.accent);
     document.title = 'Munin';
-    const boot = document.getElementById('boot');
-    if (boot) boot.hidden = true;
   }
   ensureShelfCss();
 
   // Neither the registry nor any one course may stop the picker drawing. The
   // shelf with nothing on it but "+ your own deck" is a bad day; a blank page
   // is a broken app.
-  let ids = [];
+  let ids = [], bad = [], lost = false;
   try {
-    ids = await readRegistry();
+    ({ ids, bad } = await readRegistry());
   } catch (e) {
     console.error('course list:', e);
+    lost = true;
   }
   const metas = await Promise.all(ids.map(courseMeta));
 
   // Imported decks, if the browser will tell us about them. A database that
-  // will not open is not a reason for the shelf to fail to draw.
-  let mine = [];
+  // will not open is not a reason for the shelf to fail to draw — and `null`
+  // rather than `[]`, because "we could not ask" must never be swept as "you
+  // have none".
+  let mine = null;
   try {
     mine = await (await import('./lib/store.js')).list();
   } catch (e) {
     console.error(e);
   }
   try {
-    sweepOrphans(mine, ids);
+    sweepOrphans(mine, lost ? null : ids);
   } catch (e) {
     console.error(e);
   }
 
-  const tiles = metas.map((c, i) => (c ? courseTile(c) : brokenTile(ids[i]))).join('');
+  const tiles = metas.map((c, i) => (c ? courseTile(c) : brokenTile(ids[i])))
+    .concat(bad.map(brokenTile)).join('');
   const el = document.createElement('div');
   el.className = 'shelf on';
   el.innerHTML = `<div class="shelf-inner">
@@ -650,7 +733,10 @@ async function renderShelf(asOverlay) {
     <p class="shelf-sub">a friendly raven who remembers for you</p>
     <div class="shelf-tiles">
       ${tiles}
-      ${mine.map(localTile).join('')}
+      ${(mine || []).map(localTile).join('')}
+      ${lost ? `<div class="shelf-tile broken">${muninDoodle('peek')}
+        <span><b>the courses are not answering</b><small>reload, or check you are
+        online — your own decks are unaffected</small></span></div>` : ''}
       <button type="button" class="shelf-tile byo" data-byo><span>+ your own deck</span></button>
     </div>
     <div class="shelf-install" id="shelf-install" hidden>
@@ -662,6 +748,14 @@ async function renderShelf(asOverlay) {
     <p class="shelf-note">${asOverlay ? 'tap outside a tile to go back' : 'pick a course — it opens straight here next time'}</p>
   </div>`;
   document.body.appendChild(el);
+  // The loading screen goes when there is something to replace it with, not
+  // when we start looking. Hidden first, a registry that hangs left a blank
+  // white page for as long as the request took — which is for ever, on the
+  // kind of connection that hangs rather than fails.
+  if (!asOverlay) {
+    const boot = document.getElementById('boot');
+    if (boot) boot.hidden = true;
+  }
   el.querySelector('#shelf-theme').addEventListener('click', () => MuninTheme.cycle());
   el.querySelector('#shelf-install-btn').addEventListener('click', () => MuninInstall.prompt());
   MuninTheme.apply();
@@ -742,24 +836,43 @@ function mountShelfButton(c) {
   document.body.appendChild(b);
 }
 
+/* Offline is the product, so the worker is registered by the shell rather
+ * than from inside a course: it used to be app.js, which never runs on the
+ * picker — a visitor who landed on the shelf, read it and left had installed
+ * nothing at all, including the "install" offer's own reason for existing. */
+function registerWorker() {
+  if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+
 (function main() {
   MuninTheme.apply();
-  replayBoot();
+  registerWorker();
   const known = (id) => MUNIN.idOk(id) || isLocal(id);
-  // ?course=<id> deep-links a course and becomes the resume target.
+  // ?course=<id> deep-links a course, and becomes the resume target once it
+  // has actually opened. Written eagerly, a stale or mistyped shared link
+  // overwrote the resume pointer and the failure handler then deleted it, so
+  // one tap on a dead link cost you the course you were in the middle of.
   const q = new URLSearchParams(location.search).get('course');
-  if (q && known(q)) localStorage.setItem(MUNIN.lastKey, q);
-  const last = localStorage.getItem(MUNIN.lastKey);
-  if (last && known(last)) {
-    (isLocal(last) ? bootLocal(last) : bootCourse(last)).catch((e) => {
-      // A deck that was deleted, or a course that was renamed, sends you to
-      // the shelf instead of to a dead screen.
-      console.error(e);
-      localStorage.removeItem(MUNIN.lastKey);
-      const boot = document.getElementById('boot');
-      if (boot) boot.hidden = true;
-      renderShelf().catch(console.error);
-    });
+  const stored = localStorage.getItem(MUNIN.lastKey);
+  const target = q && known(q) ? q : stored;
+
+  // The scene is replayed for whatever is actually about to open — the query
+  // is read first for that reason, or a deep link paints the course you were
+  // in last for as long as the new one takes to arrive.
+  replayBoot(target);
+
+  if (target && known(target)) {
+    (isLocal(target) ? bootLocal(target) : bootCourse(target))
+      .then(() => localStorage.setItem(MUNIN.lastKey, target))
+      .catch((e) => {
+        // A deck that was deleted, or a course that was renamed, sends you to
+        // the shelf instead of to a dead screen. Only the stored pointer is
+        // forgotten, and only if it is the thing that failed.
+        console.error(e);
+        if (stored === target) localStorage.removeItem(MUNIN.lastKey);
+        renderShelf().catch(console.error);
+      });
   } else {
     renderShelf().catch(console.error);
   }

@@ -38,6 +38,7 @@ sync_dir() { # label src dst
   else rsync -an --delete --out-format="$1 %n" "$2" "$3" | head -5; fi
 }
 
+MISSING_RULE=0
 IDS=$(python3 -c "import json;print(' '.join(json.load(open('$HERE/web/courses/index.json'))['courses']))")
 
 for id in $IDS; do
@@ -61,7 +62,12 @@ for id in $IDS; do
       sync_dir 'img  ' "$CC/media/" "$DEST/img/"
       ;;
     *)
-      echo "no refresh rule for '$id' — add one here, or unregister it"; exit 1
+      # Not fatal: a course authored somewhere else — an .apkg-derived deck
+      # committed by hand, say — is a legitimate course that this script has
+      # nothing to say about. Dying here also skipped make-boot.mjs below, so
+      # one such course stopped every other course being refreshed.
+      echo "no refresh rule — left alone (add one here if it has an upstream build)"
+      MISSING_RULE=1
       ;;
   esac
 done
@@ -70,5 +76,9 @@ done
 # rather than hand-copied: the shelf emblem's path into course.json, and a
 # starter loading screen for a course that has none.
 if [ "$FLAG" = "--write" ]; then node "$HERE/scripts/make-boot.mjs"; fi
+
+if [ "$MISSING_RULE" = "1" ]; then
+  echo "note: one or more registered courses have no refresh rule (see above)"
+fi
 
 echo "done. Remember: doodles.js copies may drift apart on purpose — review DIFFs, don't blind-write."

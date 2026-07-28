@@ -100,7 +100,7 @@ with tags/categories at the engine level.
 | T4 | Install | **One PWA.** The raven on the home screen; one service worker, one cache. Courses are screens inside. |
 | T5 | Competent Crew accent | **Harbor slate #33608D / #7FB2E8.** |
 | T6 | Competent Crew doodles | **Colour-only reskin — but physically separated.** CC ships its own doodle files that *happen* to coincide with Day Skipper's; theme files are never imported across courses. |
-| T7 | Deployment | **kkonrad.com/munin now.** /day-skipper stays untouched until Munin passes the four test suites + a state-migration check, then 301s in. |
+| T7 | Deployment | **kkonrad.com/munin now.** /day-skipper stays untouched until Munin passes the five test suites + a state-migration check, then 301s in. |
 
 A course theme is exactly: accent pair (light+dark) + doodle set + section art +
 **loading screen** (its scene, how it moves, and what it says — Day Skipper's rocking
@@ -108,8 +108,10 @@ boat and "Loading deck…" stay Day Skipper's; the raven default gets its own) +
 the hoard is called and what its fourteen entries are called and drawn as** + its
 `notice` (the fineprint), `credit` and `short` header title. Everything else — type,
 layout, grade flags, flag yellow, review UX, and the hoard's *rules* — is Munin, shared
-by every course. Every course folder is self-contained: course.json, doodles.js,
-cards.json, boot.html + boot.css, optional figures.json / videos.json.
+by every course. Every course folder is self-contained, and brings only what it has: course.json
+and cards.json are required, and **everything else is offered** — doodles.js,
+boot.html + boot.css, figures.json, videos.json, and every optional field in
+course.json. A course with a title and two hundred cards works and wears Munin.
 Missing doodle slot → raven fallback, never a hole.
 
 ### The seam — audited and closed, 28 Jul 2026

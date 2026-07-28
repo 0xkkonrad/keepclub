@@ -36,6 +36,8 @@ const MUNIN_DOODLE = doodlesIn(read('doodles-munin.js'), 'MUNIN_DOODLE');
 
 const registry = JSON.parse(read('courses', 'index.json'));
 const COURSES = registry.courses;
+/** A drawing is a string. `doodles[name]` alone is truthy for "constructor". */
+const path_ = (set, name) => (typeof set[name] === 'string' ? set[name] : null);
 const folders = fs.readdirSync(path.join(WEB, 'courses'))
   .filter((f) => fs.statSync(path.join(WEB, 'courses', f)).isDirectory());
 
@@ -69,53 +71,79 @@ for (const c of COURSES) {
   }
   ok(crossRefs.length === 0, `${c} references no other course ${crossRefs.join(', ')}`);
 
-  for (const req of ['course.json', 'doodles.js', 'cards.json', 'boot.html', 'boot.css']) {
-    ok(fs.existsSync(path.join(dir, req)), `${c} ships its own ${req}`);
+  /* REQUIRED is the short list, and deliberately so: a course brings its cards
+   * and whatever theme it has, and Munin dresses every slot it leaves empty.
+   * This gate used to demand doodles.js, boot.html, boot.css, an accent pair
+   * and a boot line — which is the engine saying "bring what you like" and the
+   * build saying "bring all of it or die". */
+  const has = (f) => fs.existsSync(path.join(dir, f));
+  for (const req of ['course.json', 'cards.json']) {
+    ok(has(req), `${c} ships its own ${req}`);
   }
+  if (!has('course.json') || !has('cards.json')) continue;   // nothing else can be said
 
   const meta = JSON.parse(fs.readFileSync(path.join(dir, 'course.json'), 'utf8'));
-  const doodles = doodlesIn(fs.readFileSync(path.join(dir, 'doodles.js'), 'utf8'), 'DOODLE');
-
-  ok(meta.accent?.light && meta.accent?.dark, `${c} owns an accent pair`);
-  ok(!!meta.boot?.art && !!meta.boot?.line, `${c} owns its loading screen`);
   // The folder is the identity. These used to be free to disagree, and
   // progress is keyed on it — a rename forked everyone's history in silence.
   ok(meta.id === undefined || meta.id === c, `${c}: course.json id matches its folder`);
 
-  // The shelf reads this instead of parsing 43 KB of the course's doodle file
-  // with a regular expression on every draw.
-  ok(meta.shelfPath === doodles[meta.shelfArt],
-    `${c}: shelfPath is its own ${meta.shelfArt} drawing (run scripts/make-boot.mjs)`);
-
-  /* Every drawing a course asks for, it has. A name its set does not hold is
-   * not an error at runtime — it falls back — but the fallback is what made
-   * fourteen achievements draw the same picture. */
-  const wanted = new Set([meta.boot.art, meta.shelfArt, meta.fallback]
-    .concat(Object.values(meta.sectionArt || {}))
-    .concat(Object.values(meta.groupArt || {}))
-    .concat(meta.friezeArt || [])
-    .concat(Object.values(meta.hoard?.items || {}).map((i) => i.art))
-    .filter(Boolean));
-  const missing = [...wanted].filter((n) => !doodles[n]);
-  ok(missing.length === 0, `${c}: every drawing it asks for is in its own set ${missing.join(', ')}`);
+  // Brought or not; if brought, it has to be a colour — an accent reaches a
+  // style attribute and a stylesheet, where a `;` is a way out of it.
+  const colour = (v) => v === undefined || /^#[0-9a-f]{3,8}$/i.test(v);
+  ok(['light', 'dark', 'inkLight', 'inkDark'].every((k) => colour(meta.accent?.[k])),
+    `${c}: what it calls an accent is a colour`);
 
   // The hoard's rules are Munin's; a course may only rename and redraw them.
   const items = meta.hoard?.items || {};
-  const banned = Object.values(items).filter((i) => 'test' in i);
-  ok(banned.length === 0, `${c}: its hoard supplies no rules, only names and drawings`);
+  ok(Object.values(items).every((i) => !('test' in i)),
+    `${c}: its hoard supplies no rules, only names and drawings`);
+
+  if (has('doodles.js')) {
+    const doodles = doodlesIn(fs.readFileSync(path.join(dir, 'doodles.js'), 'utf8'), 'DOODLE');
+    // The shelf reads this instead of parsing 43 KB of the course's doodle
+    // file with a regular expression on every draw.
+    ok(meta.shelfPath === undefined || meta.shelfPath === path_(doodles, meta.shelfArt),
+      `${c}: shelfPath is its own ${meta.shelfArt} drawing (run scripts/make-boot.mjs ${c})`);
+
+    /* Every drawing a course asks for, it has. A name its set does not hold is
+     * not an error at runtime — it falls back — but the fallback is what made
+     * fourteen achievements draw the same picture. */
+    const wanted = new Set([meta.boot?.art, meta.shelfArt, meta.fallback]
+      .concat(Object.values(meta.sectionArt || {}))
+      .concat(Object.values(meta.groupArt || {}))
+      .concat(meta.friezeArt || [])
+      .concat(Object.values(items).map((i) => i.art))
+      .filter((n) => typeof n === 'string'));
+    const missing = [...wanted].filter((n) => !path_(doodles, n));
+    ok(missing.length === 0, `${c}: every drawing it asks for is in its own set ${missing.join(', ')}`);
+
+    /* Munin's own drawings are the fallback for a name a course does not hold,
+     * so the two sets must not collide: a course drawing its own `perch` would
+     * silently win inside Munin's default hoard and nothing would fail. */
+    const clash = Object.keys(MUNIN_DOODLE).filter((k) => k in doodles);
+    ok(clash.length === 0, `${c}: its drawings do not collide with Munin's own ${clash.join(', ')}`);
+  }
 
   /* A course's loading screen moves in its own keyframes. They used to be
    * named in app.css, so "the course owns its loading screen" meant picking
    * from the two the engine happened to declare. */
-  const bootCss = fs.readFileSync(path.join(dir, 'boot.css'), 'utf8');
-  const bootHtml = fs.readFileSync(path.join(dir, 'boot.html'), 'utf8');
-  const declared = new Set([...bootCss.matchAll(/@keyframes\s+([\w-]+)/g)].map((m) => m[1]));
-  const used = [...bootCss.matchAll(/animation:\s*([\w-]+)/g)].map((m) => m[1])
-    .filter((n) => n !== 'none');
-  const borrowed = used.filter((n) => !declared.has(n));
-  ok(borrowed.length === 0, `${c}: its boot animation is its own ${borrowed.join(', ')}`);
-  // pathLength="1" renormalises any path, so one rule draws any drawing on.
-  ok(/pathLength="1"/.test(bootHtml), `${c}: its boot scene is drawable (pathLength="1")`);
+  if (has('boot.html')) {
+    const bootHtml = fs.readFileSync(path.join(dir, 'boot.html'), 'utf8');
+    // pathLength="1" renormalises any path, so one rule draws any drawing on.
+    ok(/pathLength="1"/.test(bootHtml), `${c}: its boot scene is drawable (pathLength="1")`);
+    // It is injected as markup and cached in localStorage. munin.js strips
+    // these on the way back out; a course should not be shipping them at all.
+    ok(!/<script|\son[a-z]+\s*=/i.test(bootHtml), `${c}: its boot scene carries no script`);
+    ok(has('boot.css'), `${c}: a boot scene brings the stylesheet that moves it`);
+  }
+  if (has('boot.css')) {
+    const bootCss = fs.readFileSync(path.join(dir, 'boot.css'), 'utf8');
+    const declared = new Set([...bootCss.matchAll(/@keyframes\s+([\w-]+)/g)].map((m) => m[1]));
+    const used = [...bootCss.matchAll(/animation(?:-name)?:\s*([\w-]+)/g)].map((m) => m[1])
+      .filter((n) => n !== 'none');
+    const borrowed = used.filter((n) => !declared.has(n));
+    ok(borrowed.length === 0, `${c}: its boot animation is its own ${borrowed.join(', ')}`);
+  }
 
   /* The deck itself, against the one description of what a deck is. */
   const deck = JSON.parse(fs.readFileSync(path.join(dir, 'cards.json'), 'utf8'));
@@ -125,25 +153,39 @@ for (const c of COURSES) {
 
 /* ── engine → course ────────────────────────────────────────────────────── */
 
-const ENGINE = ['app.js', 'app.css', 'index.html', 'munin.js', 'sw.js', 'import.js'];
+const ENGINE = ['app.js', 'app.css', 'index.html', 'munin.js', 'sw.js', 'import.js',
+  'doodles-munin.js'].concat(
+  fs.readdirSync(path.join(WEB, 'lib')).filter((f) => f.endsWith('.js')).map((f) => 'lib/' + f));
 
 /* Words that belong to a course and were found in Munin's own files. The list
  * is what has actually leaked, not a guess: each of these shipped over every
- * course and every imported deck before the seam was cleaned up. */
+ * course and every imported deck before the seam was cleaned up. Matched
+ * without case, because `rya` and `TikTok` are the same leak as `RYA`. */
 const COURSE_WORDS = [
-  'Day Skipper', 'day-skipper', 'Competent Crew', 'competent-crew', 'RYA',
-  'almanac', 'Maritime Master', 'tiktok', "Ship's log",
+  'day skipper', 'day-skipper', 'competent crew', 'competent-crew', 'rya',
+  'almanac', 'maritime master', 'tiktok', "ship's log",
 ];
 
 for (const f of ENGINE) {
-  const found = COURSE_WORDS.filter((w) => codeOf(read(f)).includes(w));
-  ok(found.length === 0, `${f} says nothing only one course would say ${found.join(', ')}`);
+  const code = codeOf(read(f)).toLowerCase();
+  const found = COURSE_WORDS.filter((w) => code.includes(w))
+    // Every registered course's own id, too: a blocklist of what leaked once
+    // says nothing about the next course to be added, and `if (COURSE.id ===
+    // 'spanish')` in app.js used to pass this gate clean.
+    .concat(COURSES.filter((id) => code.includes(id.toLowerCase())));
+  ok(found.length === 0, `${f} says nothing only one course would say ${[...new Set(found)].join(', ')}`);
 }
 
-/* The hoard's own drawings are Munin's, or the defaults are unreachable. */
-const hoardArts = [...read('app.js').matchAll(/\{ id: '[\w-]+', art: '([\w-]+)'/g)].map((m) => m[1]);
-ok(hoardArts.length === 14, `the hoard has fourteen entries (found ${hoardArts.length})`);
-const strayArt = hoardArts.filter((a) => !MUNIN_DOODLE[a]);
+/* The hoard's own drawings are Munin's, or the defaults are unreachable.
+ * Read out of the HOARD literal by name and tolerant of how it is formatted —
+ * a version of this that insisted on one line shape failed the build with
+ * "found 0" the first time the array was reflowed. */
+const hoardSrc = /const HOARD = \[([\s\S]*?)\n\];/.exec(read('app.js'));
+ok(!!hoardSrc, 'the hoard can be found in app.js');
+const hoardArts = hoardSrc
+  ? [...hoardSrc[1].matchAll(/\bart:\s*'([\w-]+)'/g)].map((m) => m[1]) : [];
+ok(hoardArts.length >= 10, `the hoard is a list of entries (found ${hoardArts.length})`);
+const strayArt = hoardArts.filter((a) => !path_(MUNIN_DOODLE, a));
 ok(strayArt.length === 0, `every hoard default is drawn in Munin's own set ${strayArt.join(', ')}`);
 
 /* One raven list. It lived in four files, and the two the importer uses
@@ -157,8 +199,11 @@ ok(RAVENS.length === Object.keys(MUNIN_DOODLE).length
 const html = read('index.html');
 ok(/id="boot-scene"/.test(html) && /pathLength="1"/.test(html),
   'index.html carries a boot scene that can paint before app.js');
+// index.html holds a copy of one drawing, because the default scene has to be
+// markup. make-boot.mjs does NOT write index.html — redrawing the raven means
+// pasting the new `perch` path into the boot scene by hand.
 ok(html.includes(MUNIN_DOODLE.perch),
-  'the boot scene is Munin\'s own perch drawing (re-run scripts/make-boot.mjs after redrawing it)');
+  "the boot scene is Munin's own perch drawing (paste the new path into index.html)");
 ok(!/boot-art/.test(read('app.js')), 'app.js does not draw the loading screen it is too late for');
 
 // The shell may FETCH course files at runtime, never <script src> them statically.

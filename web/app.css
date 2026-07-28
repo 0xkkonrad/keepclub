@@ -51,13 +51,18 @@
   --stroke: #121214;              /* every outline and every hard shadow */
   --text: #121214;
   --muted: #55555e;
-  --accent: #3a30d8;
+  /* Munin's own ink teal. The engine's default accent used to be one
+     course's indigo, so every OTHER course painted its loading screen in a
+     rival course's brand colour until course.json arrived — precisely the
+     window the screen exists to cover. munin.js overrides these four
+     variables per course; what is left here is Munin's own. */
+  --accent: #0e3f39;
   --accent-ink: #fffdf7;
   --flag: #ffd54a;                /* the one non-accent colour: chips and marks */
   --g1: #b8371f;
   --g2: #8f5a10;
   --g3: #276e46;
-  --g4: #3a30d8;
+  --g4: #0e3f39;
   --warn: #a4581a;
   --r: 14px;
   --r-sm: 10px;
@@ -81,13 +86,13 @@
     --stroke: #f1efe8;
     --text: #f1efe8;
     --muted: #a6a7b2;
-    --accent: #9d95ff;
+    --accent: #35917f;
     --accent-ink: #141519;
     --flag: #ffd54a;
     --g1: #ff8a75;
     --g2: #f0b64a;
     --g3: #5ed49a;
-    --g4: #9d95ff;
+    --g4: #35917f;
     --warn: #f0b64a; --fig-blu: #6fb2ff;
     color-scheme: dark;
   }
@@ -97,16 +102,16 @@
 :root[data-theme="light"] {
   --bg: #f0eee7; --surface: #fffdf7; --surface-2: #e6e3da;
   --line: #d5d1c6; --line-strong: #121214; --stroke: #121214;
-  --text: #121214; --muted: #55555e; --accent: #3a30d8; --accent-ink: #fffdf7;
-  --g1: #b8371f; --g2: #8f5a10; --g3: #276e46; --g4: #3a30d8; --warn: #a4581a;
+  --text: #121214; --muted: #55555e; --accent: #0e3f39; --accent-ink: #fffdf7;
+  --g1: #b8371f; --g2: #8f5a10; --g3: #276e46; --g4: #0e3f39; --warn: #a4581a;
   --fig-blu: #1f5fa8;
   color-scheme: light;
 }
 :root[data-theme="dark"] {
   --bg: #141519; --surface: #1c1e25; --surface-2: #272a33;
   --line: #343742; --line-strong: #f1efe8; --stroke: #f1efe8;
-  --text: #f1efe8; --muted: #a6a7b2; --accent: #9d95ff; --accent-ink: #141519;
-  --g1: #ff8a75; --g2: #f0b64a; --g3: #5ed49a; --g4: #9d95ff; --warn: #f0b64a;
+  --text: #f1efe8; --muted: #a6a7b2; --accent: #35917f; --accent-ink: #141519;
+  --g1: #ff8a75; --g2: #f0b64a; --g3: #5ed49a; --g4: #35917f; --warn: #f0b64a;
   --fig-blu: #6fb2ff;
   color-scheme: dark;
 }

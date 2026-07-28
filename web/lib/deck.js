@@ -268,6 +268,61 @@ export async function buildDeck(col, opts = {}) {
     byDeck.get(deckName).push(card);
   }
 
+  /* ── the media that survived ── */
+  say(0, acc.list.length, 'unpacking media');
+  const media = [];
+  const damaged = [];
+  const lost = new Set();
+  for (let i = 0; i < acc.list.length; i++) {
+    const name = acc.list[i];
+    let bytes = null;
+    try {
+      bytes = await col.mediaBytes(name);
+    } catch (e) {
+      // Half a downloaded package is still a deck. One unreadable picture used
+      // to throw out every card in the file with it.
+      damaged.push(name);
+    }
+    // SVG is a script container; store.js refuses to serve it as an image, so
+    // counting it as a picture that landed would be a lie on the receipt.
+    if (bytes && /\.svgz?$/i.test(name)) { damaged.push(name); bytes = null; }
+    if (!bytes) {
+      if (!damaged.includes(name)) acc.missing.add(name);
+      lost.add(i);
+      continue;
+    }
+    media.push({ i, name, kind: acc.sounds.has(i) ? 'snd' : 'img', bytes });
+    if (i % 20 === 0) say(i, acc.list.length, 'unpacking media');
+  }
+  /* A reference with no file behind it would render as a broken image for
+   * ever. This happens BEFORE the sections are built, because a card can lose
+   * its last content here: a front that was nothing but a picture, when that
+   * picture is an SVG (which Munin will not serve) or did not survive the
+   * zip, is left with no question at all. Such a card used to be kept, blank
+   * — and once app.js started checking the shape of a deck at boot, one of
+   * them refused the entire import. It is a dropped card like any other, and
+   * it goes on the receipt with a reason instead. */
+  if (lost.size) {
+    const dead = new RegExp(`<(?:img|audio)[^>]*munin-media:(?:${[...lost].join('|')})"[^>]*>`, 'g');
+    for (const [name, list] of byDeck) {
+      const kept = [];
+      for (const c of list) {
+        c.q = c.q.replace(dead, '');
+        c.a = c.a.replace(dead, '');
+        if (isEmpty(c.q) || isEmpty(c.a)) {
+          drop('the picture was the whole card, and it could not be read',
+            sample(c.q) || sample(c.a));
+          continue;
+        }
+        kept.push(c);
+      }
+      if (kept.length) byDeck.set(name, kept);
+      else byDeck.delete(name);       // a deck of nothing but those is no deck
+    }
+    for (const i of lost) { acc.images.delete(i); acc.sounds.delete(i); }
+  }
+  const mediaBytes = media.reduce((n, m) => n + m.bytes.length, 0);
+
   /* ── sections, from the deck names ── */
   const names = [...byDeck.keys()].sort((a, b) => a.localeCompare(b));
   const paths = names.map((n) => n.split('::'));
@@ -321,42 +376,6 @@ export async function buildDeck(col, opts = {}) {
   const groupArt = {};
   groups.forEach((g, i) => { groupArt[g.k] = RAVENS[(i + 3) % RAVENS.length]; });
 
-  /* ── the media that survived ── */
-  say(0, acc.list.length, 'unpacking media');
-  const media = [];
-  const damaged = [];
-  const lost = new Set();
-  for (let i = 0; i < acc.list.length; i++) {
-    const name = acc.list[i];
-    let bytes = null;
-    try {
-      bytes = await col.mediaBytes(name);
-    } catch (e) {
-      // Half a downloaded package is still a deck. One unreadable picture used
-      // to throw out every card in the file with it.
-      damaged.push(name);
-    }
-    // SVG is a script container; store.js refuses to serve it as an image, so
-    // counting it as a picture that landed would be a lie on the receipt.
-    if (bytes && /\.svgz?$/i.test(name)) { damaged.push(name); bytes = null; }
-    if (!bytes) {
-      if (!damaged.includes(name)) acc.missing.add(name);
-      lost.add(i);
-      continue;
-    }
-    media.push({ i, name, kind: acc.sounds.has(i) ? 'snd' : 'img', bytes });
-    if (i % 20 === 0) say(i, acc.list.length, 'unpacking media');
-  }
-  // A reference with no file behind it would render as a broken image for ever.
-  if (lost.size) {
-    const dead = new RegExp(`<(?:img|audio)[^>]*munin-media:(?:${[...lost].join('|')})"[^>]*>`, 'g');
-    for (const c of cards) {
-      c.q = c.q.replace(dead, '');
-      c.a = c.a.replace(dead, '');
-    }
-    for (const i of lost) { acc.images.delete(i); acc.sounds.delete(i); }
-  }
-  const mediaBytes = media.reduce((n, m) => n + m.bytes.length, 0);
 
   const deck = {
     // Which description of a deck this is. A stored deck outlives the build

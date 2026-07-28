@@ -34,6 +34,14 @@ function doodlesOf(dir) {
 for (const id of ids) {
   const dir = path.join(WEB, 'courses', id);
   const metaPath = path.join(dir, 'course.json');
+  // Both of these are optional for a course, so both are optional here. This
+  // threw for EVERY course, including the ones that were fine, the moment one
+  // course without a doodle set was registered.
+  if (!fs.existsSync(metaPath)) { console.log(`${id}: no course.json, skipped`); continue; }
+  if (!fs.existsSync(path.join(dir, 'doodles.js'))) {
+    console.log(`${id}: no doodle set of its own — Munin dresses it, nothing to derive`);
+    continue;
+  }
   const meta = JSON.parse(fs.readFileSync(metaPath, 'utf8'));
   const doodles = doodlesOf(dir);
 

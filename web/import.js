@@ -152,7 +152,13 @@ export function openImporter() {
     // The same description of a deck that app.js checks at boot. A deck that
     // would not open is caught here, in front of the person who still has the
     // file, rather than on the next cold start with nothing to go back to.
-    const v = validateDeck(built.deck);
+    let v;
+    try {
+      v = validateDeck(built.deck);
+    } catch (e) {
+      console.error(e);
+      v = { ok: false, errors: [e?.message || String(e)] };
+    }
     if (!v.ok) {
       console.error('built deck:', v.errors);
       fail('that deck came out in a shape Munin cannot study', v.errors[0]);

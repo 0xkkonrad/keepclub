@@ -32,7 +32,11 @@ export function validateDeck(deck) {
   }
   const format = deck.format === undefined ? DECK_FORMAT : deck.format;
   if (format !== DECK_FORMAT) {
-    fail(`deck format ${JSON.stringify(deck.format)} — this build reads format ${DECK_FORMAT}`);
+    // Said, not stringified: this is the one description everything else leans
+    // on, and a validator that throws on a hostile value is a validator that
+    // takes the caller down with it. JSON.stringify throws on a cycle.
+    fail(`deck format ${typeof deck.format === 'number' || typeof deck.format === 'string'
+      ? JSON.stringify(deck.format) : typeof deck.format} — this build reads format ${DECK_FORMAT}`);
   }
 
   if (!Array.isArray(deck.sections) || !deck.sections.length) fail('no sections');
@@ -52,6 +56,7 @@ export function validateDeck(deck) {
   }
 
   const ids = new Set();
+  const perSection = new Map();
   let counted = 0;
   for (const c of deck.cards) {
     if (!c || typeof c !== 'object') { fail('a card is not an object'); continue; }
@@ -65,9 +70,21 @@ export function validateDeck(deck) {
     if (!isStr(c.a)) fail(`card "${c.i}" has no answer`);
     if (!isStr(c.s)) fail(`card "${c.i}" is in no section`);
     else if (!sectionKeys.has(c.s)) fail(`card "${c.i}" is in section "${c.s}", which does not exist`);
+    else perSection.set(c.s, (perSection.get(c.s) || 0) + 1);
     counted++;
   }
   if (!counted) fail('every card in the deck was unreadable');
+
+  /* And `n` against the cards that are actually there. Checking only that it
+   * was a number is what the comment above claimed to prevent and did not: a
+   * section saying 0 renders "NaN% solid" on Progress, gives infinite bar
+   * widths, and makes "seen every card in one section" either unreachable or
+   * true on the first answer. */
+  for (const s of deck.sections) {
+    if (!isStr(s.k) || !isNum(s.n)) continue;
+    const real = perSection.get(s.k) || 0;
+    if (s.n !== real) fail(`section "${s.k}" says it has ${s.n} cards and has ${real}`);
+  }
 
   if (deck.groups !== undefined) {
     if (!Array.isArray(deck.groups)) fail('groups is not a list');
@@ -76,11 +93,14 @@ export function validateDeck(deck) {
       for (const g of deck.groups) {
         if (!g || typeof g !== 'object' || !isStr(g.k)) { fail('a group has no key'); continue; }
         if (!Array.isArray(g.s)) { fail(`group "${g.k}" lists no sections`); continue; }
+        let held = 0;
         for (const k of g.s) {
           if (!sectionKeys.has(k)) fail(`group "${g.k}" holds section "${k}", which does not exist`);
           if (grouped.has(k)) fail(`section "${k}" is in two groups`);
           grouped.add(k);
+          held += perSection.get(k) || 0;
         }
+        if (isNum(g.n) && g.n !== held) fail(`group "${g.k}" says it has ${g.n} cards and has ${held}`);
       }
       // Browse only ever reaches a section through its group, so a partial
       // grouping hides the sections it left out. All of them or none.
