@@ -204,6 +204,14 @@ HOSTILE = [
      '', [(0, 0, 0)]),
 ]
 
+# Same visible deck, no card identity in common. The importer uses this to
+# exercise the explicit "replace it and start over" path rather than the
+# ordinary same-deck refresh that preserves review history.
+REPLACEMENT = [
+    (nid + 100000, mid, did, fields, tags, cards)
+    for nid, mid, did, fields, tags, cards in NOTES
+]
+
 
 def unicase(a, b):
     a, b = a.lower(), b.lower()
@@ -249,7 +257,10 @@ def fill(con, schema18, notes, decks=DECKS, notetypes=NOTETYPES):
     con.execute('insert into col values (1,0,0,0,?,0,0,0,?,?,?,?,?)',
                 (18 if schema18 else 11, '{}', models, decks_json, '{}', '{}'))
 
-    cid = 5000000
+    # Keep the ordinary legacy/modern pair byte-identical, while allowing a
+    # fixture whose notes deliberately represent an unrelated same-title deck
+    # to carry unrelated card identities too.
+    cid = 6000000 if notes and notes[0][0] >= 2100000 else 5000000
     for nid, mid, did, flds, tags, cards in notes:
         con.execute('insert into notes values (?,?,?,?,?,?,?,?,?,?,?)',
                     (nid, f'g{nid}', mid, 0, 0, f' {tags} ' if tags else '',
@@ -433,6 +444,7 @@ def build_junk():
 if __name__ == '__main__':
     print('apkg fixtures:')
     for f in [build_legacy('legacy.apkg', NOTES),
+              build_legacy('replacement.apkg', REPLACEMENT),
               build_modern('modern.apkg', NOTES),
               build_legacy('hostile.apkg', HOSTILE, media={}),
               build_caps('caps.apkg'),

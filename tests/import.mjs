@@ -2,9 +2,12 @@
  * usage:  python3 fixtures/make-apkg.py && node import.mjs
  */
 import { readFileSync } from 'node:fs';
+import { deflateRawSync } from 'node:zlib';
 import { readApkg, ApkgError } from '../web/lib/anki.js';
 import { buildDeck } from '../web/lib/deck.js';
 import { clean, toText } from '../web/lib/html.js';
+import { readZip, ZipError } from '../web/lib/unzip.js';
+import { cloze, clozeOrds } from '../web/lib/template.js';
 
 const out = [], fails = [];
 const ok = (c, m) => (c ? out : fails).push((c ? 'PASS  ' : 'FAIL  ') + m);
@@ -14,6 +17,34 @@ const run = async (n, fileName) => {
   const col = await readApkg(load(n));
   return { col, ...(await buildDeck(col, { fileName: fileName || n })) };
 };
+
+/** One-member ZIP, just enough structure to exercise the browser reader. */
+function zipOne(member, plain) {
+  const name = Buffer.from(member);
+  const packed = deflateRawSync(plain);
+  const local = Buffer.alloc(30 + name.length);
+  local.writeUInt32LE(0x04034b50, 0);
+  local.writeUInt16LE(8, 8);
+  local.writeUInt32LE(0, 14); // CRC is not part of Munin's structural parser
+  local.writeUInt32LE(packed.length, 18);
+  local.writeUInt32LE(plain.length, 22);
+  local.writeUInt16LE(name.length, 26);
+  name.copy(local, 30);
+  const central = Buffer.alloc(46 + name.length);
+  central.writeUInt32LE(0x02014b50, 0);
+  central.writeUInt16LE(8, 10);
+  central.writeUInt32LE(packed.length, 20);
+  central.writeUInt32LE(plain.length, 24);
+  central.writeUInt16LE(name.length, 28);
+  name.copy(central, 46);
+  const end = Buffer.alloc(22);
+  end.writeUInt32LE(0x06054b50, 0);
+  end.writeUInt16LE(1, 8);
+  end.writeUInt16LE(1, 10);
+  end.writeUInt32LE(central.length, 12);
+  end.writeUInt32LE(local.length + packed.length, 16);
+  return new Uint8Array(Buffer.concat([local, packed, central, end]));
+}
 
 /* ── the legacy package: what a person actually gets ── */
 const legacy = await run('legacy.apkg');
@@ -249,6 +280,55 @@ const legacy = await run('legacy.apkg');
     ok(err instanceof ApkgError && hint.test(err.message),
       `${file} is refused with a reason (${err?.message?.slice(0, 60)})`);
   }
+}
+
+/* ── bounded hostile inputs ── */
+{
+  // Honest metadata is enough to refuse this before inflation: two megabytes
+  // of zeroes pack to a few kilobytes and used to expand with no ratio ceiling.
+  const bomb = readZip(zipOne('collection.anki2', Buffer.alloc(2 * 1024 * 1024)));
+  let bombErr = null;
+  try { await bomb.read('collection.anki2'); } catch (e) { bombErr = e; }
+  ok(bombErr instanceof ZipError && /large|expand|ratio/i.test(bombErr.message),
+    `a disproportionate ZIP member is refused before it expands (${bombErr?.message || 'accepted'})`);
+
+  // The directory can lie. Claiming the same stream expands to one byte must
+  // still stop while chunks arrive, rather than after a full allocation.
+  const dishonestBytes = zipOne('collection.anki2', Buffer.alloc(2 * 1024 * 1024));
+  const dishonestView = new DataView(dishonestBytes.buffer,
+    dishonestBytes.byteOffset, dishonestBytes.byteLength);
+  let central = -1;
+  for (let i = 0; i + 46 <= dishonestBytes.length; i++) {
+    if (dishonestView.getUint32(i, true) === 0x02014b50) { central = i; break; }
+  }
+  dishonestView.setUint32(central + 24, 1, true);
+  let dishonestErr = null;
+  try { await readZip(dishonestBytes).read('collection.anki2'); } catch (e) { dishonestErr = e; }
+  ok(dishonestErr instanceof ZipError && /large|expand|ratio/i.test(dishonestErr.message),
+    `a lying ZIP header is stopped by the streaming ceiling (${dishonestErr?.message || 'accepted'})`);
+
+  // Single-segment zstd header declaring 512 MiB. The block body is
+  // intentionally absent: the size must be refused before decoding reaches it.
+  const zstdHuge = Buffer.alloc(13);
+  Buffer.from([0x28, 0xb5, 0x2f, 0xfd, 0xe0]).copy(zstdHuge);
+  zstdHuge.writeBigUInt64LE(512n * 1024n * 1024n, 5);
+  let zstdErr = null;
+  try {
+    await readApkg(zipOne('collection.anki21b', zstdHuge));
+  } catch (e) { zstdErr = e; }
+  ok(zstdErr instanceof ApkgError && /limit|large|expand/i.test(zstdErr.message),
+    `an oversized zstd frame is refused from its header (${zstdErr?.message || 'accepted'})`);
+
+  // The same scanner renders and discovers cloze ordinals. Unterminated
+  // openings used to make both operations rescan the whole remaining suffix.
+  const malformed = '{{c1::'.repeat(16000);
+  const t0 = process.hrtime.bigint();
+  const rendered = cloze(malformed, 0, false);
+  const ords = clozeOrds(malformed);
+  const ms = Number(process.hrtime.bigint() - t0) / 1e6;
+  ok(rendered === malformed && ords.size === 0,
+    'unterminated cloze openings stay literal and create no phantom cards');
+  ok(ms < 120, `unterminated cloze syntax is linear work (${Math.round(ms)}ms)`);
 }
 
 console.log(out.concat(fails).join('\n'));
