@@ -5,7 +5,8 @@ Companion to [naming-research.md](naming-research.md), which sweeps mythology fo
 this one is about **names that can be bought and found**. The full candidate set with meanings,
 collisions and risk notes is [design/naming/candidates.json](design/naming/candidates.json).
 
-**Status: undecided.** Nothing is bought. The app is Munin and ships at `kkonrad.com/munin`.
+**Status: down to two.** Konrad narrowed to **keep club** and **understudy club** on 28 Jul; the
+other three are out. Nothing is bought. The app is Munin and ships at `kkonrad.com/munin`.
 
 ---
 
@@ -147,6 +148,27 @@ a lidded box for shoebox, a coil for ropes, a bulb for flashbulb, a crenellated 
 Two were redrawn after failing the small-size read: a spotlight read as a bell at 34px, and a
 knot read as a squiggle. Nothing there ships; they exist so a name can be judged with a drawing
 beside it.
+
+### Doodles for the two finalists
+
+Seventeen marks each, same seeded `rough.py`, shown at 64px, 22px and as a 26px filled icon:
+<https://claude.ai/code/artifact/3f53d749-ae26-4c1d-81b0-56e9496775a8>
+Geometry in [design/naming/marks2.py](design/naming/marks2.py).
+
+**Keep**: tower · portcullis · cairn · key · padlock · jar · tin · tally · chest · acorn · locket ·
+pocket · anchor · lighthouse · hive · strongbox · binder.
+**Understudy**: curtain · spikemark · ghostlight · cuecard · sides · stagedoor · mask · chair ·
+hanger · footlights · proscenium · star · dogeared · playbill · mirrorbulbs · promptbook · wings.
+
+**What the drawings show that the words did not:** Keep keeps producing *containers* — tin, chest,
+jar, pocket, strongbox — and a container says **stored**, which is the failure mode of every
+flashcard app. The Keep marks that work are about **accumulation** (tally, cairn, acorn), not
+enclosure. Understudy produces **readiness**: a mark on the floor, a card held up, a light left
+burning. Same asymmetry the naming analysis found in words, arriving again in pictures.
+
+Shortlist of three per name: `tally` / `tower` / `acorn`, and `spikemark` / `cuecard` /
+`ghostlight`. Seven marks were redrawn after failing the 26px read — a portcullis came out a
+globe, a reef knot a bowtie, a spotlight a bell.
 
 ## Where it stands
 
