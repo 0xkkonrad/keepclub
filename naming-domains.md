@@ -134,6 +134,20 @@ for them.
 
 ---
 
+## Branding mockups
+
+Twenty-five of them — five treatments for each of the five names, drawn through the same seeded
+`rough.py` as the ravens, set in the app's own DM Mono and Architects Daughter, on the app's
+palette: <https://claude.ai/code/artifact/d50adef5-8ba6-4d66-9e1e-f7a5a0e05435>
+
+The treatments are identical across names so they compare down the column as well as across:
+**the raven renamed** · **its own mark** · **both** · **wordmark on the frieze** · **the app icon**.
+Mark geometry is in [design/naming/marks.py](design/naming/marks.py) — a curtain for understudy,
+a lidded box for shoebox, a coil for ropes, a bulb for flashbulb, a crenellated tower for keep.
+Two were redrawn after failing the small-size read: a spotlight read as a bell at 34px, and a
+knot read as a squiggle. Nothing there ships; they exist so a name can be judged with a drawing
+beside it.
+
 ## Where it stands
 
 1. **`understudyclub.com` at $11** is the strongest thing on the table: the recommended name, the
