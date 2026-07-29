@@ -112,29 +112,27 @@ ${group.entries.map(({ code, meaning }) => `          <div id="${anchor(code)}">
     <main id="content">
       <p class="eyebrow">Reference · stable API</p>
       <h1>Diagnostic codes</h1>
-      <p class="lede">Codes do not change meaning. Wording may become clearer,
-        but tools can depend on the code, severity, data path, correction, and
-        documentation URL.</p>
+      <p class="lede">Tools can rely on each code, its severity, data path,
+        correction, and documentation URL. The wording may be clarified, but
+        a code will not be reused for a different problem.</p>
       <div class="callout">
-        <p><strong>Errors are atomic.</strong> They block the course rather than
-          dropping part of it. Quality warnings may proceed through an explicit
-          preview.</p>
+        <p><strong>An error stops the whole import.</strong> keep club will not
+          import only part of a course. You can continue past quality warnings
+          after reviewing them.</p>
       </div>
 ${sections}
       <section id="legacy-compatibility">
         <h2>Legacy compatibility</h2>
         <div class="callout warning">
-          <p><strong>This is not a public authoring format.</strong> Legacy
-            diagnostics come from the internal reader that keeps bundled
-            courses and existing Anki imports working. Do not edit compact
-            legacy fields to make a course.</p>
+          <p><strong>This is not a public authoring format.</strong> These
+            diagnostics come from the internal reader used for bundled courses
+            and existing Anki imports. New courses should use format 2.</p>
         </div>
-        <p>Use the diagnostic’s own code, path, message, and correction as the
-          specific account of what failed. For an Anki import, export a fresh
-          <code>.apkg</code> or <code>.colpkg</code> from a current Anki version
-          and try again. For a bundled course or a deck that used to open,
-          reload once; if it still fails, report the code and path because the
-          shipped/cache copy or stored import may be damaged.</p>
+        <p>Check the diagnostic’s code, path, message, and suggested fix. For an
+          Anki import, export a new <code>.apkg</code> or <code>.colpkg</code>
+          from a current Anki version and try again. If a bundled course or
+          previously working deck fails, reload once. If it still fails, report
+          the code and path; the cached or stored copy may be damaged.</p>
         <p>Course creators should use the documented
           <a href="../../#quick-start">format-2 <code>.keep.yml</code> and
           <code>.keep</code> contract</a>.</p>

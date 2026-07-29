@@ -394,12 +394,12 @@ const offer = (pg) => pg.evaluate(() => {
   ok(said.first === 'cast off', `and names what is in it (${said.first})`);
   ok(said.notice.includes('almanac'), 'the fineprint is this course\'s caveat');
   ok(said.link.includes('tiktok.com'), 'and carries the credit it owes');
-  ok(/keep club.*open-source.*kkonrad/is.test(said.about)
+  ok(/keep club.*open-source.*flashcard app.*kkonrad/is.test(said.about)
       && said.author === 'https://kkonrad.com/',
     'About names keep club, its open source, and kkonrad');
   ok(said.source === 'https://github.com/0xkkonrad/keepclub',
     'About links to the source repository');
-  ok(/desktop shortcuts.*space reveals.*1–4 grades.*u undoes/is.test(said.shortcuts),
+  ok(/keyboard.*space shows the answer.*1–4.*u undoes/is.test(said.shortcuts),
     'About documents the desktop study shortcuts');
   ok(said.offlineShown && said.offline.includes(`${said.diagrams} diagrams`),
     `offline counts this deck's diagrams (${said.diagrams})`);
