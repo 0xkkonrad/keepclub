@@ -17,7 +17,7 @@
     },
     {
       "reason": "Released imported-media migration index; retained for existing IndexedDB records, not course data.",
-      "fingerprints": "2bf9e89714fec4c94bbe:1,3021a8c53c98bd04b6c4:1,9c9981eaf310a9ebd8aa:1"
+      "fingerprints": "03f522b8fdf29c16657a:1,3021a8c53c98bd04b6c4:1"
     },
     {
       "reason": "Undo snapshot property for session state; never course data.",
