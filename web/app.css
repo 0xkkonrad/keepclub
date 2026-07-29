@@ -795,6 +795,23 @@ button.plate:active { transform: translate(3px, 3px); box-shadow: none; }
   background: var(--surface); border: 2px dashed var(--line-strong);
 }
 
+.side-media[hidden] { display: none; }
+.side-media-item { margin: 14px 0 0; }
+.side-media-image {
+  display: block; width: 100%; padding: 6px;
+  background: #fff; border: var(--bw) solid var(--stroke); border-radius: var(--r-sm);
+  box-shadow: var(--sh-sm); cursor: zoom-in;
+}
+.side-media-image:active { transform: translate(3px, 3px); box-shadow: none; }
+.side-media-image img { display: block; width: 100%; height: auto; }
+.side-media-item audio, .side-media-item video {
+  display: block; width: 100%; max-height: min(56vh, 440px);
+}
+.side-media-item figcaption {
+  margin-top: 8px; font-family: var(--hand); font-size: .82rem;
+  color: var(--muted); text-align: center;
+}
+
 .dock {
   flex: 0 0 auto;
   padding: 14px 20px calc(12px + env(safe-area-inset-bottom));
@@ -1032,6 +1049,21 @@ button.plate:active { transform: translate(3px, 3px); box-shadow: none; }
   padding: 14px 2px; min-height: var(--tap);
   display: flex; align-items: center; gap: 12px;
   cursor: pointer; list-style: none; font-weight: 500; font-size: .92rem;
+}
+.browse-static, .browse-prompt {
+  padding: 14px 2px; min-height: var(--tap);
+  font-weight: 500; font-size: .92rem;
+}
+.browse-static:focus { outline: 3px solid var(--accent); outline-offset: 3px; }
+.browse-static .b-sect {
+  display: block; margin-top: 10px; font-size: .72rem; color: var(--muted);
+  font-weight: 400;
+}
+.b-front-media { padding: 0 0 14px; }
+.browse-prompt + .b-front-media { padding-top: 0; }
+.b-answer-toggle {
+  padding-top: 8px !important; padding-bottom: 8px !important;
+  font-size: .78rem !important; color: var(--muted);
 }
 .b-head { flex: 1; min-width: 0; }
 /* Why this card is in the list, when the word you searched for is in the answer
