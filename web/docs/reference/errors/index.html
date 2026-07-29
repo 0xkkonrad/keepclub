@@ -58,6 +58,10 @@
             <dt><code>document.invalid_yaml</code></dt>
             <dd>YAML 1.2 cannot be parsed; fix the syntax at the reported location.</dd>
           </div>
+          <div id="document-unsupported-file-type">
+            <dt><code>document.unsupported_file_type</code></dt>
+            <dd>The selected file is not <code>.keep.yml</code>, <code>.keep</code>, or an existing supported import format; choose a canonical course artifact.</dd>
+          </div>
           <div id="document-multiple-documents">
             <dt><code>document.multiple_documents</code></dt>
             <dd>More than one YAML document was supplied; keep exactly one.</dd>
@@ -267,6 +271,10 @@
           <div id="package-expansion-ratio">
             <dt><code>package.expansion_ratio</code></dt>
             <dd>A file/archive expands over 100:1; rebuild without dangerous compression behavior.</dd>
+          </div>
+          <div id="package-unsupported-feature">
+            <dt><code>package.unsupported_feature</code></dt>
+            <dd>A member is encrypted or uses an unsupported ZIP method; rebuild with unencrypted stored/deflate entries.</dd>
           </div>
           <div id="publication-license-required">
             <dt><code>publication.license_required</code></dt>
