@@ -13,9 +13,8 @@ import {
 const ROOT = new URL('../', import.meta.url).pathname.replace(/\/$/, '');
 const WEB = path.join(ROOT, 'web');
 const FIXTURES = path.join(ROOT, 'schema', 'fixtures');
-const EXE = process.env.HOME
-  + '/.cache/ms-playwright/chromium_headless_shell-1217/'
-  + 'chrome-headless-shell-linux64/chrome-headless-shell';
+const EXE = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
+  || chromium.executablePath();
 const out = [], failures = [];
 const ok = (condition, message) => {
   (condition ? out : failures).push(`${condition ? 'PASS' : 'FAIL'}  ${message}`);

@@ -7,8 +7,8 @@ import { extname, resolve } from 'node:path';
 import { chromium } from 'playwright-core';
 
 const ROOT = new URL('../web/', import.meta.url).pathname.replace(/\/$/, '');
-const EXE = process.env.HOME
-  + '/.cache/ms-playwright/chromium_headless_shell-1217/chrome-headless-shell-linux64/chrome-headless-shell';
+const EXE = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
+  || chromium.executablePath();
 const out = [], fails = [];
 const ok = (c, m) => (c ? out : fails).push((c ? 'PASS  ' : 'FAIL  ') + m);
 const state = {

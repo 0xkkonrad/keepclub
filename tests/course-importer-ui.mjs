@@ -2,9 +2,8 @@
 import { chromium } from 'playwright-core';
 
 const URL_ = process.env.MUNIN_URL || 'http://127.0.0.1:8777/keepclub/web/';
-const EXE = process.env.HOME
-  + '/.cache/ms-playwright/chromium_headless_shell-1217/'
-  + 'chrome-headless-shell-linux64/chrome-headless-shell';
+const EXE = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
+  || chromium.executablePath();
 const passed = [];
 const failed = [];
 const ok = (condition, message) =>

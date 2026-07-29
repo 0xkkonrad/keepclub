@@ -11,9 +11,8 @@ import {
 
 const ROOT = new URL('../', import.meta.url).pathname.replace(/\/$/, '');
 const WEB = path.join(ROOT, 'web');
-const EXE = process.env.HOME
-  + '/.cache/ms-playwright/chromium_headless_shell-1217/'
-  + 'chrome-headless-shell-linux64/chrome-headless-shell';
+const EXE = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
+  || chromium.executablePath();
 const fixture = JSON.parse(fs.readFileSync(
   path.join(ROOT, 'schema', 'fixtures', 'markdown.json'), 'utf8'));
 const out = [], failures = [];
