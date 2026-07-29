@@ -1,0 +1,7 @@
+{
+  "expectedDiagnostics": [
+    "document.multiple_documents",
+    "document.disallowed_tag",
+    "document.disallowed_anchor"
+  ]
+}

@@ -44,6 +44,8 @@ if [ "$MODE" = "--commit" ]; then
   [ -z "$(git -C "$HERE" status --porcelain)" ] \
     || { echo "source repo has uncommitted work; commit it before deploying"; exit 1; }
 fi
+node "$HERE/scripts/build-docs.mjs" --check \
+  || { echo "docs reference is stale; run node scripts/build-docs.mjs --write"; exit 1; }
 
 # Everything that can refuse to deploy refuses BEFORE anything is copied: rsync
 # overwrites the stamped sw.js, so a failure between copy and stamp would leave

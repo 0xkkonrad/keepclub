@@ -7,13 +7,13 @@ import { extname, resolve } from 'node:path';
 import { chromium } from 'playwright-core';
 
 const ROOT = new URL('../web/', import.meta.url).pathname.replace(/\/$/, '');
-const EXE = process.env.HOME
-  + '/.cache/ms-playwright/chromium_headless_shell-1217/chrome-headless-shell-linux64/chrome-headless-shell';
+const EXE = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
+  || chromium.executablePath();
 const out = [], fails = [];
 const ok = (c, m) => (c ? out : fails).push((c ? 'PASS  ' : 'FAIL  ') + m);
 const state = {
   gen: 'one', pageTag: 'base', delayImages: 0,
-  fail: new Set(), spoof: new Set(), requests: [],
+  fail: new Set(), spoof: new Set(), requests: [], v2Cards: false,
 };
 const mime = {
   '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css',
@@ -40,6 +40,30 @@ const server = http.createServer(async (req, res) => {
     const path = resolve(ROOT, rel);
     if (!path.startsWith(ROOT + '/')) throw new Error('outside');
     let body = await readFile(path);
+    if (state.v2Cards && rel === 'courses/day-skipper/cards.json') {
+      body = Buffer.from(JSON.stringify({
+        schemaVersion: 2,
+        courseId: 'day-skipper',
+        cards: [{
+          cardId: 'media-card',
+          front: '**Which diagram is this?**',
+          media: [
+            {
+              side: 'front',
+              mediaType: 'image',
+              source: 'img/ds-other-marks.png',
+              alternativeText: 'A chart symbol prompt',
+            },
+            {
+              side: 'back',
+              mediaType: 'image',
+              source: 'img/ds-tidal-datums.png',
+              alternativeText: 'The answer diagram',
+            },
+          ],
+        }],
+      }));
+    }
     if (rel === 'index.html') {
       body = Buffer.from(String(body).replace('</head>',
         `<meta name="qa-page" content="${state.pageTag}"></head>`));
@@ -96,6 +120,93 @@ async function cachesAt(page) {
   await controlled(page);
   await page.reload({ waitUntil: 'load' });
   await page.waitForFunction(() => document.getElementById('boot').hidden);
+  const mediaRuntime = await page.evaluate(async () => {
+    const module = await import('./lib/course-media.js');
+    const sandbox = document.createElement('div');
+    const front = document.createElement('div');
+    const back = document.createElement('div');
+    sandbox.append(front, back);
+    document.body.append(sandbox);
+    const card = {
+      media: [
+        {
+          side: 'front', mediaType: 'image', source: 'img/prompt.png',
+          alternativeText: 'Prompt diagram', width: 20, height: 10,
+        },
+        {
+          side: 'back', mediaType: 'video', source: 'video/answer.webm',
+          posterImage: 'img/poster.png',
+          transcript: '<p>Transcript</p>',
+          captionTracks: [{ source: 'captions/en.vtt', language: 'en' }],
+        },
+        {
+          side: 'back', mediaType: 'audio', source: 'audio/answer.mp3',
+          transcript: '<p>Spoken answer</p>',
+        },
+      ],
+    };
+    module.renderCourseMediaSide(front, card, 'front', {
+      base: 'courses/day-skipper/',
+    });
+    module.renderCourseMediaSide(back, card, 'back', {
+      base: 'courses/day-skipper/',
+    });
+    await new Promise((done) => setTimeout(done, 20));
+    const image = sandbox.querySelector('img');
+    const video = sandbox.querySelector('video');
+    const audio = sandbox.querySelector('audio');
+    const remote = await module.resolveCourseMediaSource('asset.png', {
+      resolveMediaSource: async () => 'https://evil.example/asset.png',
+    });
+    const result = {
+      imageAlt: image?.alt,
+      imageWidth: image?.getAttribute('width'),
+      imageSameOrigin: image?.src.startsWith(location.origin + '/courses/day-skipper/'),
+      controls: video?.controls,
+      autoplay: video?.autoplay,
+      audioControls: audio?.controls,
+      audioAutoplay: audio?.autoplay,
+      audioSameOrigin: audio?.src.startsWith(location.origin + '/courses/day-skipper/'),
+      videoSameOrigin: video?.src.startsWith(location.origin + '/courses/day-skipper/'),
+      posterSameOrigin: video?.poster.startsWith(location.origin + '/courses/day-skipper/'),
+      trackSameOrigin: video?.querySelector('track')?.src.startsWith(
+        location.origin + '/courses/day-skipper/',
+      ),
+      transcript: !!sandbox.querySelector('.course-media-transcript'),
+      remote,
+    };
+    sandbox.remove();
+    return result;
+  });
+  ok(mediaRuntime.imageAlt === 'Prompt diagram'
+      && mediaRuntime.imageWidth === '20'
+      && mediaRuntime.imageSameOrigin
+      && mediaRuntime.controls
+      && mediaRuntime.autoplay === false
+      && mediaRuntime.audioControls
+      && mediaRuntime.audioAutoplay === false
+      && mediaRuntime.audioSameOrigin
+      && mediaRuntime.videoSameOrigin
+      && mediaRuntime.posterSameOrigin
+      && mediaRuntime.trackSameOrigin
+      && mediaRuntime.transcript
+      && mediaRuntime.remote === null,
+  `descriptive image/video media renders safe controls and refuses remote origins (${
+    JSON.stringify(mediaRuntime)})`);
+  const cachedReader = await cachesAt(page);
+  const shellPaths = cachedReader['munin-shell-qa-one'] || [];
+  const readerPaths = [
+    '/lib/course.js',
+    '/lib/legacy-course.js',
+    '/lib/course-runtime.js',
+    '/lib/course-markdown.js',
+    '/lib/course-media.js',
+    '/lib/course-yaml.js',
+    '/lib/vendor/commonmark-parser-0.31.2.min.js',
+    '/lib/vendor/yaml-2.9.0.min.js',
+  ];
+  ok(readerPaths.every((path) => shellPaths.includes(path)),
+    'the complete format-2 JSON/YAML, Markdown, and media reader graph is offline');
   state.gen = 'two';
   state.fail.add('app.js');
   await page.evaluate(() => navigator.serviceWorker.getRegistration().then((r) => r.update()))
@@ -197,6 +308,41 @@ async function cachesAt(page) {
   await ctx.close();
 }
 
+/* The actual app boot seam admits v2 and renders both card sides. */
+{
+  state.gen = 'live-v2';
+  state.v2Cards = true;
+  const ctx = await b.newContext();
+  const page = await ctx.newPage();
+  await page.goto(BASE + '?course=day-skipper', { waitUntil: 'networkidle' });
+  await page.waitForFunction(() => document.getElementById('boot').hidden);
+  await page.click('#study-all');
+  await page.waitForSelector(
+    '#card-q + .course-media-side[data-media-side="front"] img',
+  );
+  const front = await page.evaluate(() => ({
+    text: document.getElementById('card-q').innerHTML,
+    src: document.querySelector(
+      '#card-q + .course-media-side[data-media-side="front"] img',
+    )?.src,
+    legacyPlate: !document.getElementById('card-fig').hidden,
+  }));
+  await page.click('#reveal-btn');
+  await page.waitForSelector(
+    '#card-a + .course-media-side[data-media-side="back"] img',
+  );
+  const back = await page.getAttribute(
+    '#card-a + .course-media-side[data-media-side="back"] img', 'src',
+  );
+  ok(front.text.includes('<strong>Which diagram is this?</strong>')
+      && front.src?.includes('/courses/day-skipper/img/ds-other-marks.png')
+      && front.legacyPlate === false
+      && back?.includes('/courses/day-skipper/img/ds-tidal-datums.png'),
+  'live app boot validates v2, renders descriptive front/back media, and avoids the legacy plate');
+  await ctx.close();
+  state.v2Cards = false;
+}
+
 /* A bad course response in a partial deploy falls back to the complete cache. */
 {
   state.gen = 'course-one';
@@ -270,8 +416,8 @@ async function cachesAt(page) {
   await observer.goto(BASE + '?course=competent-crew', { waitUntil: 'load' });
   await observer.waitForFunction(() => document.getElementById('boot').hidden);
   const urls = await source.evaluate(() =>
-    Array.from(new Set(DECK.cards.filter((c) => c.m)
-      .map((c) => new URL(COURSE.base + 'img/' + c.m, location.href).href))).slice(0, 3));
+    Array.from(new Set(DECK.cards.map(backImage).filter(Boolean)
+      .map((item) => new URL(courseMediaUrl(item), location.href).href))).slice(0, 3));
   state.delayImages = 120;
   await source.evaluate((batch) => navigator.serviceWorker.controller.postMessage({
     type: 'prefetch', urls: batch, requestId: 'closing-client',

@@ -1,0 +1,6 @@
+schemaVersion: 2
+courseId: duplicate-key
+courseId: must-not-win
+cards:
+  - cardId: one
+    front: Duplicate mapping keys are parser errors.

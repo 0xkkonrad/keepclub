@@ -4,8 +4,8 @@
  */
 import { chromium } from 'playwright-core';
 
-const EXE = process.env.HOME
-  + '/.cache/ms-playwright/chromium_headless_shell-1217/chrome-headless-shell-linux64/chrome-headless-shell';
+const EXE = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
+  || chromium.executablePath();
 const URL = process.env.MUNIN_URL || 'http://127.0.0.1:8777/projects/keepclub/web/';
 const VIDEO_FILE = new globalThis.URL('../web/courses/day-skipper/videos.json', import.meta.url).pathname;
 const out = [], fails = [];
@@ -146,6 +146,65 @@ async function coursePage(options = {}, id = 'day-skipper') {
   await ctx.close();
 }
 
+/* Reload keeps the active queue and reveal position in this tab, while leaving
+ * durable progress in the unchanged per-course localStorage record. */
+{
+  const { ctx, page, errors } = await coursePage({}, 'competent-crew');
+  await page.click('#study-all');
+  await page.click('#reveal-btn');
+  await page.click('.grade[data-g="3"]');
+  await page.waitForSelector('#reveal-btn:visible');
+  await page.click('#reveal-btn');
+  const before = await page.evaluate(() => ({
+    cardId: session.queue[0],
+    queue: session.queue.slice(),
+    done: session.done,
+    revealed: session.revealed,
+    answers: state.answers,
+    progressKey: KEY,
+    activeKey: ACTIVE_STUDY_KEY,
+  }));
+
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.waitForFunction(() => document.getElementById('boot').hidden);
+  const restored = await page.evaluate(() => ({
+    current,
+    cardId: session?.queue[0],
+    queue: session?.queue.slice(),
+    done: session?.done,
+    revealed: session?.revealed,
+    answers: state.answers,
+    progress: localStorage.getItem(KEY),
+    active: sessionStorage.getItem(ACTIVE_STUDY_KEY),
+  }));
+  ok(restored.current === 'study' && restored.cardId === before.cardId
+      && JSON.stringify(restored.queue) === JSON.stringify(before.queue)
+      && restored.done === before.done && restored.revealed && before.revealed,
+  'refresh restores the exact active queue, current card, count, and revealed answer');
+  ok(restored.answers === before.answers && !!restored.progress && !!restored.active,
+    'refresh resume keeps durable progress and transient session state separate');
+
+  await page.keyboard.press('4');
+  await page.waitForFunction((answers) => state.answers === answers + 1, before.answers);
+  ok(await page.evaluate(() => state.answers) === before.answers + 1,
+    'the restored session can grade its current card exactly once');
+
+  await page.click('#study-back');
+  await page.waitForFunction(() => current === 'home' && !session);
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.waitForFunction(() => document.getElementById('boot').hidden);
+  const left = await page.evaluate(() => ({
+    current,
+    session: !!session,
+    active: sessionStorage.getItem(ACTIVE_STUDY_KEY),
+  }));
+  ok(left.current === 'home' && !left.session && left.active === null,
+    'ending a session clears refresh-resume state instead of resurrecting it');
+  ok(errors.length === 0,
+    `refresh-resume raises no page errors (${errors.join(' | ') || 'none'})`);
+  await ctx.close();
+}
+
 /* The async course picker is one history-aware, focus-contained dialog. */
 {
   const { ctx, page } = await coursePage();
@@ -199,7 +258,8 @@ async function coursePage(options = {}, id = 'day-skipper') {
   await a.waitForFunction(() => document.getElementById('boot').hidden);
   await c.goto(URL, { waitUntil: 'networkidle' });
   await c.waitForFunction(() => document.getElementById('boot').hidden);
-  const sections = await a.evaluate(() => DECK.sections.slice(0, 2).map((s) => s.k));
+  const sections = await a.evaluate(() =>
+    DECK.sections.slice(0, 2).map((s) => s.sectionId));
   await a.evaluate((sk) => startSession(sk, {}), sections[0]);
   await c.evaluate((sk) => startSession(sk, {}), sections[1]);
   await c.waitForTimeout(100);
@@ -416,7 +476,7 @@ async function coursePage(options = {}, id = 'day-skipper') {
   await page.goto(URL + '?course=competent-crew', { waitUntil: 'networkidle' });
   await page.waitForFunction(() => document.getElementById('boot').hidden);
   const due = await page.evaluate(() => {
-    const id = DECK.cards[0].i;
+    const id = DECK.cards[0].cardId;
     grade(id, 3, 1);
     return { from: dayKey(Date.now()), due: dayKey(state.recs[id].due) };
   });
@@ -449,7 +509,7 @@ async function coursePage(options = {}, id = 'day-skipper') {
   await page.evaluate(() => {
     const id = Object.keys(VIDEOS.cards)[0];
     const c = byId.get(id);
-    startSession(c.s, { allNew: true });
+    startSession(c.sectionId, { allNew: true });
     session.queue = [id];
     session.total = 1;
     showCard();
@@ -468,8 +528,13 @@ async function coursePage(options = {}, id = 'day-skipper') {
 {
   const { ctx, page } = await coursePage();
   await page.waitForFunction(() => !!FIGURES);
+  const encodedMediaUrl = await page.evaluate(() =>
+    courseMediaUrl({ source: 'img/100% #?.png' }));
+  ok(encodedMediaUrl.endsWith('img/100%25%20%23%3F.png'),
+    `diagram URL encoding preserves path separators and quotes unsafe filename bytes (${encodedMediaUrl})`);
   await page.evaluate(() => {
-    const c = DECK.cards.find((x) => x.m || (x.f && FIGURES[x.f.n]));
+    const c = DECK.cards.find((x) =>
+      backImage(x) || (x.figure && FIGURES[x.figure.figureId]));
     document.querySelector('[data-go="browse"]').focus();
     openLightbox(c);
   });
@@ -502,7 +567,7 @@ async function coursePage(options = {}, id = 'day-skipper') {
   await page.goto(URL + '?course=day-skipper', { waitUntil: 'load' });
   await page.waitForFunction(() => document.getElementById('boot').hidden);
   await page.evaluate(async () => {
-    openLightbox(DECK.cards.find((c) => c.m));
+    openLightbox(DECK.cards.find((c) => backImage(c)));
     const lateLoad = $('#lb-img').onload;
     closeLightbox(true);
     // Model the load event already queued by the browser at the moment close()
@@ -573,7 +638,7 @@ async function coursePage(options = {}, id = 'day-skipper') {
   const target = 'e633f0d73a';
   await page.evaluate((id) => {
     const c = byId.get(id);
-    startSession(c.s, { allNew: true });
+    startSession(c.sectionId, { allNew: true });
     session.queue = [id];
     session.total = 1;
     showCard();
@@ -604,7 +669,7 @@ async function coursePage(options = {}, id = 'day-skipper') {
   const target = 'e633f0d73a';
   await page.evaluate((id) => {
     const c = byId.get(id);
-    startSession(c.s, { allNew: true });
+    startSession(c.sectionId, { allNew: true });
     session.queue = [id];
     session.total = 1;
     showCard();
@@ -637,7 +702,7 @@ async function coursePage(options = {}, id = 'day-skipper') {
       return real(fn, ms, ...args);
     };
     DECK = { cards: Array.from({ length: 1201 }, (_, i) => ({
-      i: String(i), q: `Question ${i}`, a: `Answer ${i}`,
+      cardId: String(i), front: `Question ${i}`, back: `Answer ${i}`,
     })) };
     await Promise.resolve(indexDeck());
     DECK = original;

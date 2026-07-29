@@ -1,0 +1,12 @@
+{
+  "description": "A course must have at least one card.",
+  "schemaValid": false,
+  "expectedDiagnostics": [
+    "course.cards_required"
+  ],
+  "course": {
+    "schemaVersion": 2,
+    "courseId": "empty-course",
+    "cards": []
+  }
+}

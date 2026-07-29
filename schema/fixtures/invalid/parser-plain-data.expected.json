@@ -1,0 +1,6 @@
+{
+  "expectedDiagnostics": [
+    "document.unsupported_yaml_version",
+    "document.non_plain_value"
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "note": "Temporary format-1 production accesses; this ledger may shrink but must never grow.",
+  "remaining": "",
+  "allowedPrivateShapes": [
+    {
+      "reason": "Private video clip filename/title/duration metadata; never course records.",
+      "fingerprints": "096cbab12c791fc3c172:1,27d2ad3bef260436b4df:1,71827bb389dd6cb7f753:1,9b43497432f21ea230a0:1,a92f995bd78109c30306:1,aa034ea64941fae00689:1,e54a600abd8ec270e4dd:1,e67d975ca242b673b5a4:1,f7a0370c07821643da7d:1"
+    },
+    {
+      "reason": "Private achievement title/description presentation fields; never course records.",
+      "fingerprints": "06c7dfcbafcbba9b7a8d:1,0e9f3453cbe890172618:2,112aaa3c5f7ad49550b4:1,133873ae3e5bff214c8e:1,154db489fa63d76e7ff5:1,26cf4d1a4a6d34be259f:1,2ec1396ab9d7eb2e7c0b:1,4694e8e2716cf4cf9bcb:1,4b386d152464cc588b65:1,5799827b35d9a518011e:1,5da4b0bc9f7e9aaa7a06:1,6248a2995134f37851ea:1,664aaea6215f057c6313:1,66d2d75df752f4ae875c:1,6a3bdf8299f8db8be641:1,6cfb14cdc59ab88269a1:1,747c90f569f26b58276b:1,880b27182f3face0021e:1,89448efea507d44297a3:1,8b1256d5f3fdc0b62d14:1,8f99fc29b22b202e71a7:1,93faa0475393d2ea35a0:1,ac83d4931f0ed3c7e4ff:1,b60cc2e5b9d0193cea7b:1,b7776c69cb0b31752eba:2,c0271a612806c3cdcc99:1,c1f42e42e2b23f946222:1,c456fcefd2cc821e0fa7:1,c4a0ed903affac977784:1,c773b1c85d40c7f15bf5:1,d0b220432dc0e7160c90:1,d215db8aa9fc7e48217a:1,df9be2b017ec5376ab00:1,e08fd40cad59dea3ecd3:1,e7eaaf549a795c317892:1,ffa3857afe9e38cd3213:1"
+    },
+    {
+      "reason": "Stored Anki receipt kind count; receipt accounting, not course data.",
+      "fingerprints": "d1c4dc15f72365cc0431:1"
+    },
+    {
+      "reason": "Released imported-media migration index; retained for existing IndexedDB records, not course data.",
+      "fingerprints": "2bf9e89714fec4c94bbe:1,3021a8c53c98bd04b6c4:1,9c9981eaf310a9ebd8aa:1"
+    },
+    {
+      "reason": "Undo snapshot property for session state; never course data.",
+      "fingerprints": "bd091239729cb41ec7ba:1,e3ed7d1c06564dcedc0c:1"
+    },
+    {
+      "reason": "Private normalized search-term token; never course data.",
+      "fingerprints": "0c491af9ab003c66cbbf:1,579fafabfb4afaaae70a:2,68bd0093f8a1e6925913:1,6b6163362bcbdc1c7408:2,7dd0e1c6b63fa0270d46:2,9c61c8c7af87e432dbb5:2,9d45ff8f8fbccdbdd044:2,b675aac1a3c15745b341:1,ddc1acec10c3158a587b:2,e5d07284b1b7698453a4:1,efd7997c2bec615e8155:1"
+    },
+    {
+      "reason": "Private lightbox pinch distance/scale state; never course data.",
+      "fingerprints": "2caf1bb114852b5d8b8b:1,5cbc723accfbb60112f8:1,d47359c40554ec983312:1,dc97fd2cbb8e58dca8fd:1"
+    },
+    {
+      "reason": "Private HTML tokenizer and sanitizer tokens; never course records.",
+      "fingerprints": "05f24fca1897edddcdb5:1,08e0fc782e9d8aab648a:1,2d9f80019daa5ecee32f:1,588f38a24f9f56321035:1,604a94ffc1dbd2e69fe2:1,c9e136105c4707b8ddd4:1,d870372da3c4aafe0b2d:1,e3260ee0e44d7e235520:1,e78f34888cf742ed9047:1"
+    },
+    {
+      "reason": "Private Anki template parser tokens; never course records.",
+      "fingerprints": "491e23f6bcc91aaedff8:1,5e6cd0ace17ebabd9bf3:1,64c655576e46c3a2f12d:1,7fa5c1a25443f79d647e:1,80143ad8b10eb4520d82:1,94c1458fe20e830c0914:1,9ecff6b7bec9de906fad:1,a3406e89eb5b17ff1520:2,ae9fb4557a0b2127bc6a:1,c45140c580c6bdd2ccc3:1,d05fb9fdb3e296fed1cf:1,f5a756070294c2a3a45f:1"
+    }
+  ]
+}

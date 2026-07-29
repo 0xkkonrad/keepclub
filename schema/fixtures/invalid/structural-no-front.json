@@ -1,0 +1,27 @@
+{
+  "description": "A card needs front text or at least one front-side media object.",
+  "schemaValid": false,
+  "expectedDiagnostics": [
+    "card.front_empty"
+  ],
+  "course": {
+    "schemaVersion": 2,
+    "courseId": "answer-only",
+    "cards": [
+      {
+        "cardId": "answer-without-prompt",
+        "back": "There is no front."
+      },
+      {
+        "cardId": "back-media-only",
+        "media": [
+          {
+            "side": "back",
+            "mediaType": "image",
+            "source": "media/answer.png"
+          }
+        ]
+      }
+    ]
+  }
+}

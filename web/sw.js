@@ -121,6 +121,17 @@ const SHELL = [
   'lib/anki.js',
   'lib/deck.js',
   'lib/html.js',
+  // Public format-2 reader. These are dynamic imports at course boot; keeping
+  // the exact graph in the shell makes an already-opened app able to restart
+  // and read JSON or YAML-authored courses with no network.
+  'lib/course.js',
+  'lib/legacy-course.js',
+  'lib/course-runtime.js',
+  'lib/course-markdown.js',
+  'lib/course-media.js',
+  'lib/course-yaml.js',
+  'lib/vendor/commonmark-parser-0.31.2.min.js',
+  'lib/vendor/yaml-2.9.0.min.js',
   'lib/receipt.js',
   'lib/sqlite.js',
   'lib/store.js',
@@ -407,6 +418,12 @@ self.addEventListener('fetch', (e) => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin !== location.origin) return;
+
+  // Public creator docs share the deployment but are not the app shell. Leave
+  // them to the browser/network; an offline docs request must not unexpectedly
+  // open the study app from cached index.html.
+  if (url.pathname === SCOPE + 'docs'
+      || url.pathname.startsWith(SCOPE + 'docs/')) return;
 
   // Card data and the clip map: network first so a rebuilt deck or a newly
   // attached clip arrives, cache as the fallback.

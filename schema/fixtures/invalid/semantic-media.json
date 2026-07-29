@@ -1,0 +1,34 @@
+{
+  "description": "Schema-valid media still requires package, byte, codec, and publication checks.",
+  "schemaValid": true,
+  "expectedDiagnostics": [
+    "media.missing",
+    "media.type_mismatch",
+    "media.unsupported",
+    "publication.image_alt_required",
+    "publication.image_dimensions_required",
+    "publication.video_text_alternative_required"
+  ],
+  "course": {
+    "schemaVersion": 2,
+    "courseId": "broken-media",
+    "cards": [
+      {
+        "cardId": "picture",
+        "front": "What is pictured?",
+        "media": [
+          {
+            "side": "front",
+            "mediaType": "image",
+            "source": "media/not-really-a-picture.png"
+          },
+          {
+            "side": "back",
+            "mediaType": "video",
+            "source": "media/missing-video.mp4"
+          }
+        ]
+      }
+    ]
+  }
+}

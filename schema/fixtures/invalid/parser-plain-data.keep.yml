@@ -1,0 +1,11 @@
+%YAML 1.1
+---
+schemaVersion: 2
+courseId: unsafe-values
+cards:
+  - cardId: impossible-number
+    front: .nan
+  - cardId: unsafe-integer
+    front: 9007199254740993
+? [complex, key]
+: mappings need string keys

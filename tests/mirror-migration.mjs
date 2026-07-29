@@ -9,8 +9,8 @@ import { readFile } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
 import { chromium } from 'playwright-core';
 
-const EXE = process.env.HOME
-  + '/.cache/ms-playwright/chromium_headless_shell-1217/chrome-headless-shell-linux64/chrome-headless-shell';
+const EXE = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
+  || chromium.executablePath();
 const LEGACY_URL = 'http://127.0.0.1:8766/static/munin/index.html';
 
 const types = {

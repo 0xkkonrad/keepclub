@@ -7,7 +7,8 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright-core';
 
-const EXE = process.env.HOME + '/.cache/ms-playwright/chromium_headless_shell-1217/chrome-headless-shell-linux64/chrome-headless-shell';
+const EXE = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
+  || chromium.executablePath();
 const URL = process.env.MUNIN_URL || 'http://127.0.0.1:8777/projects/keepclub/web/';
 
 const out = [], fails = [];
@@ -108,11 +109,15 @@ ok(!!st.state && Object.keys(JSON.parse(st.state).recs || {}).length >= 2, 'two 
 ok(st.last === 'competent-crew', 'resume target follows the entered course');
 ok(st.dsState === null, "the live Day Skipper app's storage key is never touched");
 
-/* ── cold open resumes the last course ── */
+/* ── reopening resumes the last course and its active session ── */
 await p.goto(URL, { waitUntil: 'networkidle' });
-await p.waitForSelector('#study-all');
+await p.waitForSelector('#reveal-btn:visible');
 ok((await p.textContent('#course-title')).trim().toLowerCase() === 'competent crew',
   'cold open resumes the last course, no shelf tap');
+ok(await p.evaluate(() => current === 'study' && session.done === 2),
+  'the same tab also resumes its active study queue');
+await p.click('#study-back');
+await p.waitForSelector('#study-all:visible');
 
 /* ── the theme is Munin's: light until you say otherwise, then yours ── */
 {
@@ -356,6 +361,17 @@ const offer = (pg) => pg.evaluate(() => {
   ok(early.from.startsWith('day-skipper-'),
     `so the FIRST open paints the course's own scene before app.js (${early.from})`);
   ok(early.line === 'Loading deck…', `and says what the course says (${early.line})`);
+  const runtimeCourse = await p6.evaluate(() => ({
+    schemaVersion: DECK.schemaVersion,
+    courseId: DECK.courseId,
+    descriptiveCard: Object.hasOwn(DECK.cards[0], 'cardId')
+      && Object.hasOwn(DECK.cards[0], 'front'),
+    compactCard: Object.hasOwn(DECK.cards[0], 'i')
+      || Object.hasOwn(DECK.cards[0], 'q'),
+  }));
+  ok(runtimeCourse.schemaVersion === 2 && runtimeCourse.courseId === 'day-skipper'
+      && runtimeCourse.descriptiveCard && !runtimeCourse.compactCard,
+    'a fetched legacy course is normalized before entering shared runtime state');
 
   /* Progress: the words on it are the course's, not the engine's. */
   await p6.click('[data-go="stats"]');
@@ -367,8 +383,10 @@ const offer = (pg) => pg.evaluate(() => {
     link: document.querySelector('#notice a')?.href || '',
     offline: document.getElementById('offline-note').textContent,
     offlineShown: !document.getElementById('offline-card').hidden,
-    diagrams: new Set([...DECK.cards].filter((c) => c.m).map((c) => c.m)).size,
+    diagrams: new Set([...DECK.cards].map(backImage).filter(Boolean)
+      .map((item) => item.source)).size,
     about: document.getElementById('about-copy').textContent,
+    shortcuts: document.getElementById('about-shortcuts').textContent,
     author: document.getElementById('about-author').href,
     source: document.getElementById('about-source').href,
   }));
@@ -376,11 +394,13 @@ const offer = (pg) => pg.evaluate(() => {
   ok(said.first === 'cast off', `and names what is in it (${said.first})`);
   ok(said.notice.includes('almanac'), 'the fineprint is this course\'s caveat');
   ok(said.link.includes('tiktok.com'), 'and carries the credit it owes');
-  ok(/keep club.*open-source.*kkonrad/is.test(said.about)
+  ok(/keep club.*open-source.*flashcard app.*kkonrad/is.test(said.about)
       && said.author === 'https://kkonrad.com/',
     'About names keep club, its open source, and kkonrad');
   ok(said.source === 'https://github.com/0xkkonrad/keepclub',
     'About links to the source repository');
+  ok(/keyboard.*space shows the answer.*1–4.*u undoes/is.test(said.shortcuts),
+    'About documents the desktop study shortcuts');
   ok(said.offlineShown && said.offline.includes(`${said.diagrams} diagrams`),
     `offline counts this deck's diagrams (${said.diagrams})`);
   ok((await p6.textContent('#how')).replace(/\s+/g, ' ')
@@ -721,9 +741,9 @@ const offer = (pg) => pg.evaluate(() => {
   await c13.close();
 }
 {
-  // (h) The narrow fix for a reload mid-session still holds: the entries the
-  // session pushed are left behind with nothing recorded against them, and the
-  // press that pops one must still do something rather than be swallowed.
+  // (h) Reload now restores the session. Its history entry must still unwind
+  // with one Back press, landing on this course's Home rather than doing
+  // nothing or leaving the app.
   const c14 = await b.newContext({ viewport: { width: 390, height: 844 },
     serviceWorkers: 'block' });
   const p14 = await c14.newPage();
@@ -738,10 +758,12 @@ const offer = (pg) => pg.evaluate(() => {
   await p14.goBack({ waitUntil: 'commit' }).catch(() => {});
   await p14.waitForTimeout(1500);
   const after14 = await p14.evaluate(() => ({
-    shelf: !!document.querySelector('.shelf.on'),
+    screen: current,
+    course: COURSE.id,
     url: location.href,
   }));
-  ok(after14.shelf && after14.url.startsWith('http'),
+  ok(after14.screen === 'home' && after14.course === 'day-skipper'
+      && after14.url.startsWith('http'),
     'one Back press after a reload mid-session moves, and moves inside the app');
   await c14.close();
 }

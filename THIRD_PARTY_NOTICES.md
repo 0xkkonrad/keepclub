@@ -10,6 +10,23 @@ licenses or copyrights and are not relicensed by the keep club license.
 under the MIT License. Its copyright and complete license notice are embedded
 at the top of that file.
 
+## yaml
+
+`web/lib/vendor/yaml-2.9.0.min.js` contains yaml 2.9.0 by Eemeli Aro,
+distributed under the ISC License. The complete license notice is in
+[`web/lib/vendor/yaml-2.9.0.LICENSE`](web/lib/vendor/yaml-2.9.0.LICENSE).
+Build provenance is documented in
+[`schema/yaml-parser-decision.md`](schema/yaml-parser-decision.md).
+
+## commonmark.js
+
+`web/lib/vendor/commonmark-parser-0.31.2.min.js` contains commonmark.js 0.31.2
+by John MacFarlane under the BSD 2-Clause License, entities 3.0.1 by Felix
+Böhm under the BSD 2-Clause License, and mdurl 1.0.1 by Vitaly Puzrin and Alex
+Kocharin under the MIT License. Complete notices are in the adjacent
+`commonmark-parser-*.LICENSE` files. Build provenance is documented in
+[`schema/markdown-parser-decision.md`](schema/markdown-parser-decision.md).
+
 ## Fonts
 
 The bundled DM Mono and Architects Daughter font files are distributed under

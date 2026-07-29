@@ -1,0 +1,24 @@
+{
+  "description": "Traversal and absolute paths are rejected at the earliest validation layer.",
+  "schemaValid": false,
+  "expectedDiagnostics": [
+    "media.invalid_path"
+  ],
+  "course": {
+    "schemaVersion": 2,
+    "courseId": "unsafe-media",
+    "cards": [
+      {
+        "cardId": "unsafe",
+        "front": "Unsafe path",
+        "media": [
+          {
+            "side": "back",
+            "mediaType": "image",
+            "source": "../secret.png"
+          }
+        ]
+      }
+    ]
+  }
+}

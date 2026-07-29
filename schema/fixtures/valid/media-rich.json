@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 2,
+  "courseId": "bird-calls",
+  "title": "Bird calls",
+  "authors": [
+    {
+      "name": "Example Naturalist"
+    }
+  ],
+  "cards": [
+    {
+      "cardId": "robin-song",
+      "front": "Which bird is singing?",
+      "back": "A European robin.",
+      "media": [
+        {
+          "mediaId": "robin-audio",
+          "side": "front",
+          "mediaType": "audio",
+          "source": "media/robin-song.opus",
+          "mimeType": "audio/ogg",
+          "caption": "Dawn song recorded in a city garden.",
+          "transcript": "A bright, liquid series of phrases.",
+          "durationSeconds": 18.4,
+          "credit": {
+            "name": "Example Naturalist",
+            "website": "https://example.org/"
+          }
+        },
+        {
+          "mediaId": "robin-photo",
+          "side": "back",
+          "mediaType": "image",
+          "source": "media/robin.webp",
+          "mimeType": "image/webp",
+          "alternativeText": "A European robin perched on a bare branch.",
+          "width": 1600,
+          "height": 1067
+        },
+        {
+          "mediaId": "robin-flight",
+          "side": "back",
+          "mediaType": "video",
+          "source": "media/robin-flight.webm",
+          "mimeType": "video/webm",
+          "posterImage": "media/robin-flight-poster.webp",
+          "captionTracks": [
+            {
+              "source": "media/robin-flight.en.vtt",
+              "language": "en",
+              "label": "English",
+              "default": true
+            }
+          ],
+          "transcript": "The robin takes off from a branch and lands beside a feeder.",
+          "durationSeconds": 8,
+          "width": 1280,
+          "height": 720
+        }
+      ]
+    },
+    {
+      "cardId": "identify-silhouette",
+      "media": [
+        {
+          "side": "front",
+          "mediaType": "image",
+          "source": "media/silhouette.png",
+          "alternativeText": "Small round bird with a fine bill and upright stance.",
+          "width": 800,
+          "height": 800
+        }
+      ]
+    }
+  ]
+}

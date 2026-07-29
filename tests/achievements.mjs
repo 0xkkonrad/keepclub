@@ -210,12 +210,12 @@ ok(A.DEFINITIONS.every(Object.isFrozen),
 
 {
   const deck = {
-    sections: [{ k: 'one', n: 2 }, { k: 'two', n: 2 }],
+    sections: [{ sectionId: 'one', cardCount: 2 }, { sectionId: 'two', cardCount: 2 }],
     cards: [
-      { i: 'a', s: 'one' },
-      { i: 'b', s: 'one' },
-      { i: 'c', s: 'two' },
-      { i: 'd', s: 'two' },
+      { cardId: 'a', sectionId: 'one' },
+      { cardId: 'b', sectionId: 'one' },
+      { cardId: 'c', sectionId: 'two' },
+      { cardId: 'd', sectionId: 'two' },
     ],
   };
   const state = {
@@ -258,8 +258,8 @@ ok(A.DEFINITIONS.every(Object.isFrozen),
     at: 1000,
     state: { answers: 2, recs: { a: mature, b: mature } },
     deck: {
-      sections: [{ k: 'one', n: 999 }],
-      cards: [{ i: 'a', s: 'one' }, { i: 'b', s: 'one' }],
+      sections: [{ sectionId: 'one', cardCount: 999 }],
+      cards: [{ cardId: 'a', sectionId: 'one' }, { cardId: 'b', sectionId: 'one' }],
     },
     course: { id: 'local-abc' },
   });

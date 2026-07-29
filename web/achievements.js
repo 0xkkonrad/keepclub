@@ -694,9 +694,9 @@
 
     for (const card of cards) {
       if (!plainObject(card)) continue;
-      const section = String(card.s ?? '');
+      const section = String(card.sectionId ?? '');
       sectionCounts.set(section, (sectionCounts.get(section) || 0) + 1);
-      const rec = recs[card.i];
+      const rec = recs[card.cardId];
       if (!plainObject(rec)) continue;
       seenCards++;
       sectionSeen.set(section, (sectionSeen.get(section) || 0) + 1);
@@ -711,7 +711,7 @@
       }
     }
 
-    const sectionKeys = sections.map((section) => String(section?.k ?? ''));
+    const sectionKeys = sections.map((section) => String(section?.sectionId ?? ''));
     const meaningfulSections = sectionKeys.filter((key) => (sectionCounts.get(key) || 0) > 0);
     const sweptSections = meaningfulSections.filter((key) => (
       (sectionSeen.get(key) || 0) >= sectionCounts.get(key)
