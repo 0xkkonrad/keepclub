@@ -148,15 +148,24 @@ cards:
 }
 
 {
-  const caseVariant = mediaYaml.replace('media/bird.png', 'Media/Bird.png');
+  const caseVariant = `${mediaYaml.replace('media/bird.png', 'Media/Bird.png')}
+  - cardId: bird-again
+    media:
+      - side: front
+        mediaType: image
+        source: media/bird.png
+        alternativeText: The same small bird
+`;
   const archive = storedZip([
     { name: 'course.keep.yml', bytes: caseVariant },
     { name: 'media/bird.png', bytes: png },
   ]);
   const result = await readCourseFile(archive, { fileName: 'case-variant.keep' });
-  ok(!!result.course && result.mediaIndexBySource['Media/Bird.png'] === 0
+  ok(!!result.course && result.media.length === 1
+      && result.mediaIndexBySource['Media/Bird.png'] === 0
+      && result.mediaIndexBySource['media/bird.png'] === 0
       && !codes(result).has('media.unreferenced_asset'),
-  'ASCII-case-equivalent references resolve once without a false unreferenced warning');
+  'ASCII-case-equivalent shared references resolve to one stored asset without a false warning');
 }
 
 {

@@ -130,14 +130,18 @@ function allAssetReferences(course) {
   const references = new Map();
   const add = (source, expectedType, path, declaredMimeType) => {
     if (typeof source !== 'string') return;
-    const existing = references.get(source);
+    const safe = normalizeCourseAssetPath(source);
+    const key = safe ? asciiFold(safe) : source;
+    const existing = references.get(key);
     if (existing) {
+      existing.sources.add(source);
       existing.paths.push(path);
       existing.expectedTypes.add(expectedType);
       if (declaredMimeType) existing.declaredMimeTypes.add(declaredMimeType.toLowerCase());
     } else {
-      references.set(source, {
+      references.set(key, {
         source,
+        sources: new Set([source]),
         expectedTypes: new Set([expectedType]),
         declaredMimeTypes: new Set(declaredMimeType ? [declaredMimeType.toLowerCase()] : []),
         paths: [path],
@@ -425,7 +429,7 @@ async function validateAssets(course, zip, out) {
         'Correct the mediaType/source or replace the file with the declared format.');
       continue;
     }
-    mediaIndexBySource[safe] = storageIndex;
+    for (const source of reference.sources) mediaIndexBySource[source] = storageIndex;
     media.push({
       storageIndex,
       source: safe,
@@ -438,7 +442,8 @@ async function validateAssets(course, zip, out) {
 
   if (zip) {
     const declared = new Set([MANIFEST,
-      ...[...references.keys()].map((value) => normalizeCourseAssetPath(value))
+      ...[...references.values()].flatMap((reference) => [...reference.sources])
+        .map((value) => normalizeCourseAssetPath(value))
         .filter(Boolean)].map(asciiFold));
     for (const name of zip.names) {
       const safe = normalizeCourseAssetPath(name);
