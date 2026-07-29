@@ -10,6 +10,11 @@ const ID = /^[a-z0-9][a-z0-9._-]{0,127}$/;
 const DOCS = 'https://docs.keepclub.app/reference/errors/#';
 const MAX_DIAGNOSTICS = 100;
 const LONG_SIDE_CODE_POINTS = 4000;
+const MAX_SECTIONS = 1000;
+const MAX_GROUPS = 250;
+const MAX_GROUP_SECTION_IDS = 1000;
+const MAX_TAGS = 64;
+const MAX_TAG_CODE_POINTS = 100;
 const MEDIA_TYPES = new Set(['image', 'audio', 'video']);
 const MEDIA_FIELDS = new Set([
   'mediaId', 'side', 'mediaType', 'source', 'mimeType', 'alternativeText',
@@ -133,8 +138,17 @@ function cloneData(value, path = '$', ancestors = new Set()) {
     }
     const result = {};
     for (const key of ownKeys(value, path)) {
-      result[key] = cloneData(ownValue(value, key, `${path}.${key}`),
-        `${path}.${key}`, ancestors);
+      // Assignment to the magic "__proto__" setter would turn authored data
+      // into inherited validator input, hiding the unknown field and allowing
+      // it to supply values such as title/front. Define every key as inert own
+      // data so strict-field validation sees exactly what the parser produced.
+      Object.defineProperty(result, key, {
+        value: cloneData(ownValue(value, key, `${path}.${key}`),
+          `${path}.${key}`, ancestors),
+        enumerable: true,
+        configurable: true,
+        writable: true,
+      });
     }
     return result;
   } finally {
@@ -153,7 +167,7 @@ function diagnosticsCollector() {
         path,
         message,
         correction,
-        docsUrl: DOCS + code.replaceAll('.', '-'),
+        docsUrl: DOCS + code.replace(/[._]/g, '-'),
       });
       return;
     }
@@ -211,7 +225,8 @@ function requiredTitle(value, path, out) {
       'Provide a non-empty title.');
     return false;
   }
-  if (!value.length || value.length > 200) {
+  const length = [...value].length;
+  if (!length || length > 200) {
     out.error('field.empty', path, 'A display title must contain 1–200 characters.',
       'Provide a meaningful title or remove the containing object.');
     return false;
@@ -561,18 +576,35 @@ function weakAlternativeText(alternativeText, source) {
 }
 
 function normalizeTags(raw, path, out) {
-  if (raw === undefined || !Array.isArray(raw)) return raw;
+  if (raw === undefined) return undefined;
+  if (!Array.isArray(raw)) {
+    out.error('field.invalid_type', path, 'tags must be a list.',
+      'Use a list of non-blank tag strings or omit tags.');
+    return undefined;
+  }
   if (!raw.length) {
     out.warning('field.empty_optional', path,
       'An empty tag list was removed.', 'Omit tags when this card has no tags.');
     return undefined;
   }
+  if (raw.length > MAX_TAGS) {
+    out.error('field.invalid_type', path,
+      `A card may declare at most ${MAX_TAGS} tags.`,
+      'Reduce the tag list or split the card.');
+  }
   const seen = new Set();
   const tags = [];
-  for (let index = 0; index < raw.length; index++) {
+  for (let index = 0; index < Math.min(raw.length, MAX_TAGS); index++) {
     const tag = raw[index];
     if (typeof tag !== 'string') {
-      tags.push(tag);
+      out.error('field.invalid_type', `${path}[${index}]`,
+        'A tag must be text.', 'Use a non-blank tag string or remove it.');
+      continue;
+    }
+    if (!tag.trim() || [...tag].length > MAX_TAG_CODE_POINTS) {
+      out.error('field.empty', `${path}[${index}]`,
+        `A tag must contain 1–${MAX_TAG_CODE_POINTS} meaningful characters.`,
+        'Use a shorter non-blank tag or remove it.');
       continue;
     }
     const comparison = unicodeCaseFold(tag);
@@ -613,12 +645,7 @@ function normalizeCredit(raw, path, out) {
     out.error('field.empty', `${path}.name`, 'A credit requires a name.',
       'Add the credited person or organization name.');
   }
-  if (raw.website !== undefined
-      && (typeof raw.website !== 'string' || !/^https:\/\/[^\s]+$/.test(raw.website))) {
-    out.error('field.invalid_type', `${path}.website`,
-      'A credit website must be an absolute HTTPS URL.',
-      'Use an https: URL or omit the website.');
-  }
+  if (raw.website !== undefined) validHttps(raw.website, `${path}.website`, out);
   return { ...raw };
 }
 
@@ -656,11 +683,12 @@ function normalizeCaptionTracks(raw, path, out) {
         'A caption track must be a WebVTT (.vtt) asset.',
         'Use a packaged .vtt caption file.');
     }
-    if (typeof track.language !== 'string'
-        || !/^[A-Za-z]{2,8}(?:-[A-Za-z0-9]{1,8})*$/.test(track.language)) {
+    if (track.language === undefined) {
       out.error('field.invalid_type', `${itemPath}.language`,
         'A caption language must be a valid language tag.',
         'Use a tag such as en or en-GB.');
+    } else {
+      validLanguage(track.language, `${itemPath}.language`, out);
     }
     optionalText(track.label, `${itemPath}.label`, 100, out);
     if (track.default !== undefined && typeof track.default !== 'boolean') {
@@ -890,10 +918,15 @@ function normalizeV2(input, options = {}) {
       'An empty sections list was removed and the default section was generated.',
       'Omit sections when every card belongs to the generated section.');
   }
+  if (Array.isArray(source.sections) && source.sections.length > MAX_SECTIONS) {
+    out.error('field.invalid_type', '$.sections',
+      `A course may declare at most ${MAX_SECTIONS.toLocaleString('en-US')} sections.`,
+      'Reduce the sections or split the course.');
+  }
   const sections = [];
   const sectionIds = new Set();
   if (declaredSections) {
-    for (let i = 0; i < source.sections.length; i++) {
+    for (let i = 0; i < Math.min(source.sections.length, MAX_SECTIONS); i++) {
       const raw = source.sections[i];
       const path = `$.sections[${i}]`;
       if (!isObject(raw)) {
@@ -904,6 +937,7 @@ function normalizeV2(input, options = {}) {
       unknownFields(raw, SECTION_FIELDS, path, out);
       const idOk = validId(raw.sectionId, `${path}.sectionId`, 'course.invalid_id', out);
       requiredTitle(raw.title, `${path}.title`, out);
+      optionalText(raw.description, `${path}.description`, 262144, out);
       if (idOk && sectionIds.has(raw.sectionId)) {
         out.error('section.duplicate_id', `${path}.sectionId`,
           `Section ID "${raw.sectionId}" is repeated.`,
@@ -1062,11 +1096,16 @@ function normalizeV2(input, options = {}) {
     out.warning('field.empty_optional', '$.groups',
       'An empty groups list was removed.', 'Omit groups when sections display directly.');
   }
+  if (Array.isArray(source.groups) && source.groups.length > MAX_GROUPS) {
+    out.error('field.invalid_type', '$.groups',
+      `A course may declare at most ${MAX_GROUPS} groups.`,
+      'Reduce the groups or split the course.');
+  }
   const groups = [];
   const groupIds = new Set();
   const groupedSections = new Set();
   if (Array.isArray(source.groups)) {
-    for (let i = 0; i < source.groups.length; i++) {
+    for (let i = 0; i < Math.min(source.groups.length, MAX_GROUPS); i++) {
       const raw = source.groups[i];
       const path = `$.groups[${i}]`;
       if (!isObject(raw)) {
@@ -1077,6 +1116,7 @@ function normalizeV2(input, options = {}) {
       unknownFields(raw, GROUP_FIELDS, path, out);
       const idOk = validId(raw.groupId, `${path}.groupId`, 'course.invalid_id', out);
       requiredTitle(raw.title, `${path}.title`, out);
+      optionalText(raw.description, `${path}.description`, 262144, out);
       if (idOk && groupIds.has(raw.groupId)) {
         out.error('group.duplicate_id', `${path}.groupId`,
           `Group ID "${raw.groupId}" is repeated.`,
@@ -1097,9 +1137,14 @@ function normalizeV2(input, options = {}) {
         });
         continue;
       }
+      if (raw.sectionIds.length > MAX_GROUP_SECTION_IDS) {
+        out.error('field.invalid_type', `${path}.sectionIds`,
+          `A group may contain at most ${MAX_GROUP_SECTION_IDS.toLocaleString('en-US')} section IDs.`,
+          'Reduce the group membership or split the course.');
+      }
       const local = new Set();
       let cardCount = 0;
-      for (let j = 0; j < raw.sectionIds.length; j++) {
+      for (let j = 0; j < Math.min(raw.sectionIds.length, MAX_GROUP_SECTION_IDS); j++) {
         const sectionId = raw.sectionIds[j];
         const memberPath = `${path}.sectionIds[${j}]`;
         if (!validId(sectionId, memberPath, 'course.invalid_id', out)) continue;
@@ -1145,6 +1190,11 @@ function normalizeV2(input, options = {}) {
     cards,
     cardCount: cards.length,
   };
+  // A spread cannot express deletion. Keep empty optional metadata from leaking
+  // back out of `source` after its normalizer deliberately removed it.
+  for (const field of ['authors', 'license', 'source']) {
+    if (!Object.hasOwn(metadata, field)) delete course[field];
+  }
   course.buildFingerprint = fingerprint(course);
   const failed = out.diagnostics.some((diagnostic) => diagnostic.severity === 'error');
   return {

@@ -9,11 +9,22 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const readJson = (...parts) => JSON.parse(fs.readFileSync(path.join(ROOT, ...parts), 'utf8'));
 const validDir = path.join(ROOT, 'schema', 'fixtures', 'valid');
 const invalidDir = path.join(ROOT, 'schema', 'fixtures', 'invalid');
+const publicSchema = readJson('schema', 'course-v2.schema.json');
+const sectionLimit = publicSchema.properties.sections.maxItems;
+const groupLimit = publicSchema.properties.groups.maxItems;
+const groupSectionLimit = publicSchema.$defs.group.properties.sectionIds.maxItems;
+const tagLimit = publicSchema.$defs.card.properties.tags.maxItems;
+const tagLengthLimit = publicSchema.$defs.card.properties.tags.items.maxLength;
+const titleLengthLimit = publicSchema.$defs.title.maxLength;
+const languageLengthLimit = publicSchema.$defs.languageTag.maxLength;
+const urlLengthLimit = publicSchema.$defs.httpsUrl.maxLength;
 const passed = [];
 const failed = [];
 const ok = (condition, message) =>
   (condition ? passed : failed).push((condition ? 'PASS  ' : 'FAIL  ') + message);
 const codes = (result) => new Set(result.diagnostics.map((diagnostic) => diagnostic.code));
+const hasDiagnostic = (result, code, path) => result.diagnostics.some((diagnostic) =>
+  diagnostic.code === code && diagnostic.path === path);
 
 for (const name of fs.readdirSync(validDir).filter((name) => name.endsWith('.json')).sort()) {
   const source = readJson('schema', 'fixtures', 'valid', name);
@@ -24,7 +35,8 @@ for (const name of fs.readdirSync(validDir).filter((name) => name.endsWith('.jso
       && result.contentRepresentation === 'authored-commonmark',
   `${name}: v2 text is marked authored CommonMark, not runtime HTML`);
   ok(result.diagnostics.every((diagnostic) =>
-    diagnostic.docsUrl?.startsWith('https://docs.keepclub.app/reference/errors/#')),
+    diagnostic.docsUrl === 'https://docs.keepclub.app/reference/errors/#'
+      + diagnostic.code.replace(/[._]/g, '-')),
   `${name}: every diagnostic uses docsUrl`);
   ok(JSON.stringify(source) === before, `${name}: validation does not mutate its input`);
 }
@@ -92,6 +104,224 @@ for (const name of [
   ok(!!result.course && !Object.hasOwn(result.course.cards[0], 'back')
       && codes(result).has('field.empty_back'),
   'a blank back warns and normalizes to intentional absence');
+}
+
+{
+  const result = readCourse({
+    schemaVersion: 2,
+    courseId: 'empty-optionals',
+    authors: [],
+    sections: [],
+    groups: [],
+    cards: [{
+      cardId: 'one',
+      front: 'Prompt',
+      tags: [],
+      media: [],
+    }],
+  });
+  ok(!!result.course
+      && !Object.hasOwn(result.course, 'authors')
+      && result.course.sections.length === 1
+      && result.course.groups.length === 0
+      && !Object.hasOwn(result.course.cards[0], 'tags')
+      && !Object.hasOwn(result.course.cards[0], 'media')
+      && result.diagnostics.filter((item) => item.code === 'field.empty_optional').length === 5,
+  'documented empty optional arrays warn and normalize to their absent defaults');
+}
+
+{
+  const result = readCourse({
+    schemaVersion: 2,
+    courseId: 'strict-readable-fields',
+    sections: [{ sectionId: 'all', title: 'All', description: 7 }],
+    groups: [{
+      groupId: 'everything',
+      title: 'Everything',
+      description: [],
+      sectionIds: ['all'],
+    }],
+    cards: [
+      { cardId: 'bad-tags-list', sectionId: 'all', front: 'One', tags: 'memory' },
+      { cardId: 'bad-tag-type', sectionId: 'all', front: 'Two', tags: [7] },
+      { cardId: 'blank-tag', sectionId: 'all', front: 'Three', tags: [' '] },
+      {
+        cardId: 'long-tag',
+        sectionId: 'all',
+        front: 'Four',
+        tags: ['x'.repeat(tagLengthLimit + 1)],
+      },
+    ],
+  });
+  ok(result.course === null
+      && hasDiagnostic(result, 'field.invalid_type', '$.sections[0].description')
+      && hasDiagnostic(result, 'field.invalid_type', '$.groups[0].description')
+      && hasDiagnostic(result, 'field.invalid_type', '$.cards[0].tags')
+      && hasDiagnostic(result, 'field.invalid_type', '$.cards[1].tags[0]')
+      && hasDiagnostic(result, 'field.empty', '$.cards[2].tags[0]')
+      && hasDiagnostic(result, 'field.empty', '$.cards[3].tags[0]'),
+  'runtime validation matches schema types and meaningful optional-string rules');
+}
+
+{
+  const exactTitle = '🗼'.repeat(titleLengthLimit);
+  const exact = readCourse({
+    schemaVersion: 2,
+    courseId: 'unicode-title-limit',
+    sections: [{ sectionId: 'all', title: exactTitle }],
+    groups: [{
+      groupId: 'all',
+      title: exactTitle,
+      sectionIds: ['all'],
+    }],
+    cards: [{ cardId: 'one', sectionId: 'all', front: 'Prompt' }],
+  });
+  const tooLong = readCourse({
+    schemaVersion: 2,
+    courseId: 'unicode-title-over-limit',
+    sections: [{ sectionId: 'all', title: `${exactTitle}🗼` }],
+    cards: [{ cardId: 'one', sectionId: 'all', front: 'Prompt' }],
+  });
+  ok(!!exact.course && exact.course.sections[0].title === exactTitle
+      && exact.course.groups[0].title === exactTitle
+      && tooLong.course === null
+      && hasDiagnostic(tooLong, 'field.empty', '$.sections[0].title'),
+  'title bounds use JSON Schema Unicode code points rather than UTF-16 units');
+}
+
+{
+  const sections = Array.from({ length: sectionLimit }, (_, index) => ({
+    sectionId: `section-${index}`,
+    title: `Section ${index}`,
+  }));
+  const cards = sections.map((section, index) => ({
+    cardId: `card-${index}`,
+    sectionId: section.sectionId,
+    front: `Prompt ${index}`,
+    ...(index === 0 ? {
+      tags: Array.from({ length: tagLimit }, (_, tag) => `tag-${tag}`),
+    } : {}),
+  }));
+  const result = readCourse({
+    schemaVersion: 2,
+    courseId: 'exact-list-limits',
+    sections,
+    groups: [{
+      groupId: 'all-sections',
+      title: 'All sections',
+      sectionIds: sections.map((section) => section.sectionId),
+    }],
+    cards,
+  });
+  ok(!!result.course
+      && result.course.sections.length === sectionLimit
+      && result.course.groups[0].sectionIds.length === groupSectionLimit
+      && result.course.cards[0].tags.length === tagLimit,
+  'runtime accepts the JSON Schema section, membership, and tag bounds exactly');
+}
+
+{
+  const sections = Array.from({ length: groupLimit }, (_, index) => ({
+    sectionId: `section-${index}`,
+    title: `Section ${index}`,
+  }));
+  const result = readCourse({
+    schemaVersion: 2,
+    courseId: 'exact-group-limit',
+    sections,
+    groups: sections.map((section, index) => ({
+      groupId: `group-${index}`,
+      title: `Group ${index}`,
+      sectionIds: [section.sectionId],
+    })),
+    cards: sections.map((section, index) => ({
+      cardId: `card-${index}`,
+      sectionId: section.sectionId,
+      front: `Prompt ${index}`,
+    })),
+  });
+  ok(!!result.course && result.course.groups.length === groupLimit,
+    'runtime accepts the JSON Schema group bound exactly');
+}
+
+{
+  const tooManySections = Array.from({ length: sectionLimit + 1 }, (_, index) => ({
+    sectionId: `section-${index}`,
+    title: `Section ${index}`,
+  }));
+  const sectionResult = readCourse({
+    schemaVersion: 2,
+    courseId: 'too-many-sections',
+    sections: tooManySections,
+    cards: tooManySections.map((section, index) => ({
+      cardId: `card-${index}`,
+      sectionId: section.sectionId,
+      front: `Prompt ${index}`,
+    })),
+  });
+
+  const groupSections = Array.from({ length: groupLimit + 1 }, (_, index) => ({
+    sectionId: `section-${index}`,
+    title: `Section ${index}`,
+  }));
+  const groupResult = readCourse({
+    schemaVersion: 2,
+    courseId: 'too-many-groups',
+    sections: groupSections,
+    groups: groupSections.map((section, index) => ({
+      groupId: `group-${index}`,
+      title: `Group ${index}`,
+      sectionIds: [section.sectionId],
+    })),
+    cards: groupSections.map((section, index) => ({
+      cardId: `card-${index}`,
+      sectionId: section.sectionId,
+      front: `Prompt ${index}`,
+    })),
+  });
+
+  const memberSections = Array.from({ length: groupSectionLimit }, (_, index) => ({
+    sectionId: `section-${index}`,
+    title: `Section ${index}`,
+  }));
+  const memberResult = readCourse({
+    schemaVersion: 2,
+    courseId: 'too-many-members',
+    sections: memberSections,
+    groups: [{
+      groupId: 'all-sections',
+      title: 'All sections',
+      sectionIds: [
+        ...memberSections.map((section) => section.sectionId),
+        memberSections[0].sectionId,
+      ],
+    }],
+    cards: memberSections.map((section, index) => ({
+      cardId: `card-${index}`,
+      sectionId: section.sectionId,
+      front: `Prompt ${index}`,
+    })),
+  });
+
+  const tagResult = readCourse({
+    schemaVersion: 2,
+    courseId: 'too-many-tags',
+    cards: [{
+      cardId: 'one',
+      front: 'Prompt',
+      tags: Array.from({ length: tagLimit + 1 }, (_, index) => `tag-${index}`),
+    }],
+  });
+
+  ok(sectionResult.course === null
+      && hasDiagnostic(sectionResult, 'field.invalid_type', '$.sections')
+      && groupResult.course === null
+      && hasDiagnostic(groupResult, 'field.invalid_type', '$.groups')
+      && memberResult.course === null
+      && hasDiagnostic(memberResult, 'field.invalid_type', '$.groups[0].sectionIds')
+      && tagResult.course === null
+      && hasDiagnostic(tagResult, 'field.invalid_type', '$.cards[0].tags'),
+  'runtime rejects one-over-limit collections at the JSON Schema paths');
 }
 
 {
@@ -244,6 +474,36 @@ for (const name of [
 }
 
 {
+  const longLanguage = `aa-${'a-'.repeat(31)}a`;
+  const longWebsite = `https://example.com/${'x'.repeat(urlLengthLimit)}`;
+  const result = readCourse({
+    schemaVersion: 2,
+    courseId: 'bounded-media-metadata',
+    cards: [{
+      cardId: 'one',
+      front: 'Prompt',
+      media: [{
+        side: 'back',
+        mediaType: 'video',
+        source: 'media/example.webm',
+        credit: { name: 'Creator', website: longWebsite },
+        captionTracks: [{
+          source: 'media/captions.vtt',
+          language: longLanguage,
+        }],
+      }],
+    }],
+  });
+  ok(longLanguage.length > languageLengthLimit
+      && result.course === null
+      && hasDiagnostic(result, 'field.invalid_type',
+        '$.cards[0].media[0].captionTracks[0].language')
+      && hasDiagnostic(result, 'field.invalid_type',
+        '$.cards[0].media[0].credit.website'),
+  'caption language and credit URL bounds match the reusable JSON Schema definitions');
+}
+
+{
   const result = readCourse({
     schemaVersion: 2,
     courseId: 'strict-metadata',
@@ -356,6 +616,55 @@ for (const name of [
   revocable.revoke();
   assert.doesNotThrow(() => { result = readCourse(revocable.proxy); });
   ok(result.course === null, 'a revoked proxy cannot make readCourse throw');
+}
+
+{
+  const topLevel = JSON.parse(`{
+    "schemaVersion": 2,
+    "courseId": "prototype-data",
+    "cards": [{ "cardId": "one", "front": "Safe" }],
+    "__proto__": { "title": "Inherited title" }
+  }`);
+  const cardLevel = JSON.parse(`{
+    "schemaVersion": 2,
+    "courseId": "prototype-card",
+    "cards": [{
+      "cardId": "one",
+      "__proto__": { "front": "Inherited prompt" }
+    }]
+  }`);
+  const nestedLevel = JSON.parse(`{
+    "schemaVersion": 2,
+    "courseId": "prototype-author",
+    "authors": [{
+      "__proto__": { "name": "Inherited author" }
+    }],
+    "cards": [{ "cardId": "one", "front": "Safe" }]
+  }`);
+  const inheritedCard = Object.create({ front: 'Inherited prompt' });
+  inheritedCard.cardId = 'one';
+  const topResult = readCourse(topLevel);
+  const cardResult = readCourse(cardLevel);
+  const nestedResult = readCourse(nestedLevel);
+  const inheritedResult = readCourse({
+    schemaVersion: 2,
+    courseId: 'inherited-card',
+    cards: [inheritedCard],
+  });
+  ok(topResult.course === null
+      && hasDiagnostic(topResult, 'field.unknown', '$.__proto__')
+      && cardResult.course === null
+      && hasDiagnostic(cardResult, 'field.unknown', '$.cards[0].__proto__')
+      && codes(cardResult).has('card.front_empty')
+      && nestedResult.course === null
+      && hasDiagnostic(nestedResult, 'field.unknown', '$.authors[0].__proto__')
+      && hasDiagnostic(nestedResult, 'field.empty', '$.authors[0].name')
+      && inheritedResult.course === null
+      && codes(inheritedResult).has('card.front_empty')
+      && !Object.hasOwn(Object.prototype, 'title')
+      && !Object.hasOwn(Object.prototype, 'front')
+      && !Object.hasOwn(Object.prototype, 'name'),
+  'special and inherited object data cannot satisfy fields or mutate prototypes');
 }
 
 console.log([...passed, ...failed].join('\n'));

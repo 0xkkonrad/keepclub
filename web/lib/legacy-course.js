@@ -93,7 +93,7 @@ function safeMessage(error) {
 }
 
 function docsLink(code) {
-  return ERROR_DOCS + code.replaceAll('.', '-');
+  return ERROR_DOCS + code.replace(/[._]/g, '-');
 }
 
 function collector() {
