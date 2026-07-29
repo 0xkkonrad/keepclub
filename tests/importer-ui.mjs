@@ -131,8 +131,9 @@ ok(/^local-[a-z0-9]+$/.test(id), `the imported deck becomes the resume target ($
 
 /* The account does not disappear when you start studying. */
 {
-  await p.click('[data-go="stats"], [data-nav="stats"], #nav-stats, .nav [data-screen="stats"]')
-    .catch(() => p.evaluate(() => go('stats')));
+  await p.click('#study-back');
+  await p.waitForSelector('#study-all:visible');
+  await p.click('[data-go="stats"]');
   await p.waitForSelector('#s-stats:not([hidden])');
   const stats = await p.textContent('#s-stats');
   ok(/where this deck came from/i.test(stats), 'Progress keeps the import receipt');

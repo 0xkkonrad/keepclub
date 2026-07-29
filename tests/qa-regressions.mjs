@@ -70,6 +70,65 @@ async function coursePage(options = {}, id = 'day-skipper') {
   await ctx.close();
 }
 
+/* Reload keeps the active queue and reveal position in this tab, while leaving
+ * durable progress in the unchanged per-course localStorage record. */
+{
+  const { ctx, page, errors } = await coursePage({}, 'competent-crew');
+  await page.click('#study-all');
+  await page.click('#reveal-btn');
+  await page.click('.grade[data-g="3"]');
+  await page.waitForSelector('#reveal-btn:visible');
+  await page.click('#reveal-btn');
+  const before = await page.evaluate(() => ({
+    cardId: session.queue[0],
+    queue: session.queue.slice(),
+    done: session.done,
+    revealed: session.revealed,
+    answers: state.answers,
+    progressKey: KEY,
+    activeKey: ACTIVE_STUDY_KEY,
+  }));
+
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.waitForFunction(() => document.getElementById('boot').hidden);
+  const restored = await page.evaluate(() => ({
+    current,
+    cardId: session?.queue[0],
+    queue: session?.queue.slice(),
+    done: session?.done,
+    revealed: session?.revealed,
+    answers: state.answers,
+    progress: localStorage.getItem(KEY),
+    active: sessionStorage.getItem(ACTIVE_STUDY_KEY),
+  }));
+  ok(restored.current === 'study' && restored.cardId === before.cardId
+      && JSON.stringify(restored.queue) === JSON.stringify(before.queue)
+      && restored.done === before.done && restored.revealed && before.revealed,
+  'refresh restores the exact active queue, current card, count, and revealed answer');
+  ok(restored.answers === before.answers && !!restored.progress && !!restored.active,
+    'refresh resume keeps durable progress and transient session state separate');
+
+  await page.keyboard.press('4');
+  await page.waitForFunction((answers) => state.answers === answers + 1, before.answers);
+  ok(await page.evaluate(() => state.answers) === before.answers + 1,
+    'the restored session can grade its current card exactly once');
+
+  await page.click('#study-back');
+  await page.waitForFunction(() => current === 'home' && !session);
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.waitForFunction(() => document.getElementById('boot').hidden);
+  const left = await page.evaluate(() => ({
+    current,
+    session: !!session,
+    active: sessionStorage.getItem(ACTIVE_STUDY_KEY),
+  }));
+  ok(left.current === 'home' && !left.session && left.active === null,
+    'ending a session clears refresh-resume state instead of resurrecting it');
+  ok(errors.length === 0,
+    `refresh-resume raises no page errors (${errors.join(' | ') || 'none'})`);
+  await ctx.close();
+}
+
 /* The async course picker is one history-aware, focus-contained dialog. */
 {
   const { ctx, page } = await coursePage();

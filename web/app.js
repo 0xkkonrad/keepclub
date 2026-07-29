@@ -19,6 +19,10 @@
 const KEY = MUNIN.stateKey(COURSE.id);
 const STUDY_LOCK_KEY = KEY + '/study-lock';
 const RESET_KEY = MUNIN.resetKey(COURSE.id);
+// An active queue is tab-local, not account progress. sessionStorage survives
+// a refresh in this tab without making an in-progress session follow someone
+// to another device through Sync or a backup.
+const ACTIVE_STUDY_KEY = 'keep-club/' + COURSE.id + '/active-study-session/v1';
 const DAY = 86400000;
 const MIN_EASE = 1.3, MAX_EASE = 2.8, MAX_IVL = 400;
 // Three lapses, not Anki's six: six never fires inside a few weeks of revision,
@@ -381,8 +385,12 @@ MUNIN.abandonState = (id) => {
   if (id !== COURSE.id) return;
   discardStateOnLeave = true;
   clearTimeout(saveTimer);
+  clearStudySession();
 };
-addEventListener('pagehide', flushAndReleaseStudyLock);
+addEventListener('pagehide', () => {
+  persistStudySession();
+  flushAndReleaseStudyLock();
+});
 addEventListener('pageshow', (e) => {
   // pagehide releases the lease so a page in the back-forward cache cannot
   // block another tab while suspended. If it comes back with its in-memory
@@ -1290,6 +1298,123 @@ function buildSession(sectionKey, opts) {
   };
 }
 
+/** Keep only the transient study screen in this tab.
+ *
+ * Review records still live in the unchanged per-course localStorage key. The
+ * queue belongs in sessionStorage: it survives Reload, but it is not exported,
+ * synced, or mistaken for progress on another device. */
+function clearStudySession() {
+  try { sessionStorage.removeItem(ACTIVE_STUDY_KEY); }
+  catch (e) { /* private/storage-blocked contexts simply cannot resume */ }
+}
+
+function persistStudySession() {
+  if (!session || current !== 'study' || !session.queue.length) return;
+  const active = {
+    section: session.section || null,
+    queue: session.queue.slice(),
+    total: n(session.total),
+    done: n(session.done),
+    again: n(session.again),
+    good: n(session.good),
+    clean: n(session.clean),
+    maxClean: n(session.maxClean),
+    missed: Array.isArray(session.missed) ? session.missed.slice() : [],
+    startedNew: n(session.startedNew),
+    revealed: !!session.revealed,
+    reel: Array.isArray(session.reel) ? session.reel.slice() : [],
+    reelCards: Array.isArray(session.reelCards) ? session.reelCards.slice() : [],
+    ahead: !!session.ahead,
+  };
+  try {
+    sessionStorage.setItem(ACTIVE_STUDY_KEY, JSON.stringify({
+      version: 1,
+      courseId: COURSE.id,
+      progressAnswers: n(state.answers),
+      resetStamp: readResetStamp(),
+      active,
+    }));
+  } catch (e) { /* progress still saves; only refresh-resume is unavailable */ }
+}
+
+function resumableStudySession() {
+  let saved;
+  try { saved = JSON.parse(sessionStorage.getItem(ACTIVE_STUDY_KEY) || 'null'); }
+  catch (e) {
+    clearStudySession();
+    return null;
+  }
+  if (!isPlainObject(saved) || saved.version !== 1 || saved.courseId !== COURSE.id
+      || n(saved.progressAnswers) !== n(state.answers)
+      || saved.resetStamp !== readResetStamp() || !isPlainObject(saved.active)) {
+    if (saved) clearStudySession();
+    return null;
+  }
+
+  const raw = saved.active;
+  const queue = Array.isArray(raw.queue) ? raw.queue.slice() : [];
+  const knownQueue = queue.length > 0 && queue.length <= DECK.cards.length
+    && queue.every((id) => typeof id === 'string' && byId.has(id))
+    && new Set(queue).size === queue.length;
+  const whole = (value, lo, hi) => Number.isInteger(Number(value))
+    && Number(value) >= lo && Number(value) <= hi ? Number(value) : null;
+  const done = whole(raw.done, 0, DECK.cards.length);
+  const total = whole(raw.total, 1, DECK.cards.length);
+  const section = raw.section === null || raw.section === undefined
+    ? null : (typeof raw.section === 'string' && sectionOf.has(raw.section) ? raw.section : false);
+  if (!knownQueue || done === null || total === null
+      || total !== done + queue.length || section === false) {
+    clearStudySession();
+    return null;
+  }
+  const ids = (value) => Array.isArray(value)
+    ? [...new Set(value.filter((id) => typeof id === 'string' && byId.has(id)))]
+      .slice(0, DECK.cards.length)
+    : [];
+  const strings = (value) => Array.isArray(value)
+    ? [...new Set(value.filter((item) => typeof item === 'string' && item.length <= 256))]
+      .slice(0, DECK.cards.length)
+    : [];
+  return {
+    section,
+    queue,
+    total,
+    done,
+    again: whole(raw.again, 0, DECK.cards.length * 10) || 0,
+    good: whole(raw.good, 0, DECK.cards.length * 10) || 0,
+    clean: whole(raw.clean, 0, DECK.cards.length * 10) || 0,
+    maxClean: whole(raw.maxClean, 0, DECK.cards.length * 10) || 0,
+    missed: ids(raw.missed),
+    startedNew: whole(raw.startedNew, 0, total) || 0,
+    revealed: !!raw.revealed,
+    reel: strings(raw.reel),
+    reelCards: ids(raw.reelCards),
+    ahead: !!raw.ahead,
+  };
+}
+
+function restoreStudySession() {
+  const restored = resumableStudySession();
+  if (!restored) return false;
+  if (!claimStudyLock()) {
+    toast('This session is still open in another tab.');
+    return false;
+  }
+  const wasRevealed = restored.revealed;
+  session = restored;
+  undoStack = [];
+  settleDock(false);
+  go('study');
+  // Reload replaced the current history entry while the shell reopened the
+  // course. Mark that same entry as Study instead of pushing one more copy on
+  // every refresh.
+  stops.push('study');
+  history.replaceState({ stop: 'study' }, '');
+  showCard();
+  if (wasRevealed && !session.revealed) reveal();
+  return true;
+}
+
 /** How many cards a study-ahead session will really serve.
  *
  * The same arithmetic as the ahead branch above, counted rather than built:
@@ -1617,6 +1742,7 @@ function startSession(sectionKey, opts) {
   if (!session.queue.length) {
     releaseStudyLock();
     session = null;
+    clearStudySession();
     toast(sectionKey ? 'Nothing to study in that section yet.' : 'Nothing to study right now.');
     return;
   }
@@ -1637,6 +1763,7 @@ function startSession(sectionKey, opts) {
 function leaveStudy(fromHistory) {
   $$('#done-reel video, #card-video video').forEach((v) => v.pause());
   flushAndReleaseStudyLock();
+  clearStudySession();
   session = null;
   if (globalThis.DSSync) DSSync.schedule(() => state);
   if (current !== 'home') go('home');
@@ -1750,6 +1877,7 @@ function showCard() {
     $('#keyhint').textContent = 'Space/Enter grades Good · 1–4 grades · U undoes';
     $('.grade[data-g="3"]').focus({ preventScroll: true });
   }
+  persistStudySession();
 }
 
 /** Bring the answer on screen, which revealing it used to leave to luck.
@@ -1846,6 +1974,7 @@ function reveal() {
   // ones the card gets, so answer() hands the pressed one back to grade().
   prepareGradeControls(card);
   settleDock();
+  persistStudySession();
 }
 
 function answer(g) {
@@ -1981,6 +2110,7 @@ function finish() {
   // The lease is the hand-off boundary between whole-document writers. Commit
   // the final answer before another tab is allowed to start from storage.
   flushAndReleaseStudyLock();
+  clearStudySession();
   session = null;
   if (globalThis.DSSync) DSSync.schedule(() => state);
   go('done');
@@ -3910,7 +4040,7 @@ async function boot() {
   // a page that is already finished: MuninBoot.dismiss() fades, and a fade
   // reveals whatever is behind it. Hiding first showed a blank frame.
   $('#app').hidden = false;
-  go('home');
+  if (!restoreStudySession()) go('home');
   // Not awaited: everything below is setup with nothing to show for it, and it
   // may as well happen behind the splash rather than after it. The failure
   // paths above return before this line, so a deck that could not be read

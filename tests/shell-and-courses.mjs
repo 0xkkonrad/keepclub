@@ -109,11 +109,15 @@ ok(!!st.state && Object.keys(JSON.parse(st.state).recs || {}).length >= 2, 'two 
 ok(st.last === 'competent-crew', 'resume target follows the entered course');
 ok(st.dsState === null, "the live Day Skipper app's storage key is never touched");
 
-/* ── cold open resumes the last course ── */
+/* ── reopening resumes the last course and its active session ── */
 await p.goto(URL, { waitUntil: 'networkidle' });
-await p.waitForSelector('#study-all');
+await p.waitForSelector('#reveal-btn:visible');
 ok((await p.textContent('#course-title')).trim().toLowerCase() === 'competent crew',
   'cold open resumes the last course, no shelf tap');
+ok(await p.evaluate(() => current === 'study' && session.done === 2),
+  'the same tab also resumes its active study queue');
+await p.click('#study-back');
+await p.waitForSelector('#study-all:visible');
 
 /* ── the theme is Munin's: light until you say otherwise, then yours ── */
 {
@@ -382,6 +386,7 @@ const offer = (pg) => pg.evaluate(() => {
     diagrams: new Set([...DECK.cards].map(backImage).filter(Boolean)
       .map((item) => item.source)).size,
     about: document.getElementById('about-copy').textContent,
+    shortcuts: document.getElementById('about-shortcuts').textContent,
     author: document.getElementById('about-author').href,
     source: document.getElementById('about-source').href,
   }));
@@ -394,6 +399,8 @@ const offer = (pg) => pg.evaluate(() => {
     'About names keep club, its open source, and kkonrad');
   ok(said.source === 'https://github.com/0xkkonrad/keepclub',
     'About links to the source repository');
+  ok(/desktop shortcuts.*space reveals.*1–4 grades.*u undoes/is.test(said.shortcuts),
+    'About documents the desktop study shortcuts');
   ok(said.offlineShown && said.offline.includes(`${said.diagrams} diagrams`),
     `offline counts this deck's diagrams (${said.diagrams})`);
 
@@ -675,9 +682,9 @@ const offer = (pg) => pg.evaluate(() => {
   await c13.close();
 }
 {
-  // (h) The narrow fix for a reload mid-session still holds: the entries the
-  // session pushed are left behind with nothing recorded against them, and the
-  // press that pops one must still do something rather than be swallowed.
+  // (h) Reload now restores the session. Its history entry must still unwind
+  // with one Back press, landing on this course's Home rather than doing
+  // nothing or leaving the app.
   const c14 = await b.newContext({ viewport: { width: 390, height: 844 },
     serviceWorkers: 'block' });
   const p14 = await c14.newPage();
@@ -692,10 +699,12 @@ const offer = (pg) => pg.evaluate(() => {
   await p14.goBack({ waitUntil: 'commit' }).catch(() => {});
   await p14.waitForTimeout(1500);
   const after14 = await p14.evaluate(() => ({
-    shelf: !!document.querySelector('.shelf.on'),
+    screen: current,
+    course: COURSE.id,
     url: location.href,
   }));
-  ok(after14.shelf && after14.url.startsWith('http'),
+  ok(after14.screen === 'home' && after14.course === 'day-skipper'
+      && after14.url.startsWith('http'),
     'one Back press after a reload mid-session moves, and moves inside the app');
   await c14.close();
 }
