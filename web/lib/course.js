@@ -8,6 +8,8 @@ import { detectCourseFormat, normalizeLegacyCourse } from './legacy-course.js';
 
 const ID = /^[a-z0-9][a-z0-9._-]{0,127}$/;
 const DOCS = 'https://docs.keepclub.app/reference/errors/';
+const MAX_DIAGNOSTICS = 100;
+const MEDIA_TYPES = new Set(['image', 'audio', 'video']);
 const TOP_FIELDS = new Set([
   'schemaVersion', 'courseId', 'title', 'shortTitle', 'tagline', 'description',
   'contentLanguage', 'instructionLanguage', 'authors', 'license', 'source',
@@ -91,14 +93,30 @@ function cloneData(value, path = '$', ancestors = new Set()) {
 
 function diagnosticsCollector() {
   const diagnostics = [];
-  const add = (code, severity, path, message, correction) => diagnostics.push({
-    code,
-    severity,
-    path,
-    message,
-    correction,
-    docsUrl: DOCS + code.replaceAll('.', '-'),
-  });
+  let truncated = false;
+  const add = (code, severity, path, message, correction) => {
+    if (diagnostics.length < MAX_DIAGNOSTICS) {
+      diagnostics.push({
+        code,
+        severity,
+        path,
+        message,
+        correction,
+        docsUrl: DOCS + code.replaceAll('.', '-'),
+      });
+      return;
+    }
+    if (truncated) return;
+    truncated = true;
+    diagnostics.push({
+      code: 'document.too_many_errors',
+      severity: 'error',
+      path: '',
+      message: 'More than 100 validation errors exist.',
+      correction: 'Fix the reported set, then validate the course again.',
+      docsUrl: DOCS + 'document-too-many-errors',
+    });
+  };
   return {
     diagnostics,
     error: (code, path, message, correction) =>
@@ -275,7 +293,11 @@ function normalizeV2(input) {
       }
       const hasFrontText = typeof raw.front === 'string' && raw.front.trim().length > 0;
       const hasFrontMedia = Array.isArray(raw.media)
-        && raw.media.some((media) => isObject(media) && media.side === 'front');
+        && raw.media.some((media) => isObject(media)
+          && media.side === 'front'
+          && MEDIA_TYPES.has(media.mediaType)
+          && typeof media.source === 'string'
+          && media.source.length > 0);
       if (!hasFrontText && !hasFrontMedia) {
         out.error('card.front_empty', path,
           'Neither front text nor front-side media can render a prompt.',

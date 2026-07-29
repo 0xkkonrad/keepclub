@@ -97,6 +97,31 @@ for (const name of [
 {
   const result = readCourse({
     schemaVersion: 2,
+    courseId: 'broken-media-front',
+    cards: [{ cardId: 'one', media: [{ side: 'front' }] }],
+  });
+  ok(result.course === null && codes(result).has('card.front_empty'),
+    'an incomplete media object cannot make an otherwise blank front renderable');
+}
+
+{
+  const result = readCourse({
+    schemaVersion: 2,
+    courseId: 'bounded-diagnostics',
+    cards: Array.from({ length: 150 }, (_, index) => ({
+      cardId: `card-${index}`,
+      front: 'Prompt',
+      unknown: true,
+    })),
+  });
+  ok(result.diagnostics.length === 101
+      && result.diagnostics.at(-1)?.code === 'document.too_many_errors',
+  'v2 validation caps diagnostics at 100 and records that more errors exist');
+}
+
+{
+  const result = readCourse({
+    schemaVersion: 2,
     courseId: 'strict-fields',
     extra: true,
     sections: [{ sectionId: 'one', title: 'One', extra: true }],
