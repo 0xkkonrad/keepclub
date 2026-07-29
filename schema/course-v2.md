@@ -193,11 +193,13 @@ rendering. The archive limits fit a media-rich course on contemporary mobile
 storage without treating available quota as permission; the preview must also
 show estimated installed size and fail honestly when quota is insufficient.
 
-Supported v2 publication targets are PNG, JPEG, WebP, GIF (non-animated
-preferred), SVG only after sanitization, MP3, Ogg Vorbis/Opus, WAV, M4A/AAC,
-MP4/H.264/AAC, WebM/VP8/VP9/Opus, and WebVTT. Browser support is checked at
-preview time; an unsupported codec blocks installation rather than creating a
-blank card.
+Accepted v2 package containers are PNG, JPEG, WebP, GIF (non-animated
+preferred), MP3, Ogg, WAV, M4A/AAC, MP4, WebM, and WebVTT. SVG remains blocked
+until a sanitizer exists. Import checks bounded magic bytes, extension,
+declared media type, and optional MIME type before storage; this is container
+validation, not a complete codec or payload decoder. Decode failures surface
+as unavailable media rather than a blank card. A publication pipeline should
+probe or transcode the complete payload for its target browsers.
 
 ## Validation and import
 

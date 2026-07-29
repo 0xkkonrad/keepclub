@@ -58,7 +58,7 @@ API: wording may improve, codes do not change meaning.
 | `media.invalid_path` | An asset path is unsafe or ambiguous; use one normalized relative path. |
 | `media.missing` | A declared asset is absent; add it or remove the reference. |
 | `media.type_mismatch` | Declared type, optional MIME, extension, and bytes disagree; correct the declaration/file. |
-| `media.unsupported` | The media container/codec cannot be rendered safely on target browsers; transcode it. |
+| `media.unsupported` | The media container is not in the safely accepted package set; transcode it. |
 | `media.too_many` | Per-card or course media count exceeds the documented limit; split/reduce it. |
 | `media.too_large` | A file exceeds its type limit; compress, transcode, or split it. |
 | `package.root_manifest_missing` | A `.keep` archive has no root `course.keep.yml`; add exactly that file. |

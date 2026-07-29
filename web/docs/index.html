@@ -265,6 +265,9 @@ cards:
             <code>..</code>, backslashes, URL schemes, or empty components.</li>
           <li>keep club sniffs file bytes and checks them against the declared
             type, MIME type, and extension.</li>
+          <li>That check identifies the container, not every codec or damaged
+            payload. Decode failures show as unavailable media; publication
+            tooling should probe or transcode for its target browsers.</li>
           <li>Published images need dimensions and meaningful alternative text
             unless decorative. Published video needs captions or a transcript.</li>
           <li>Imports are atomic: a missing or broken asset cannot silently
