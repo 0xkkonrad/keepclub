@@ -1466,7 +1466,11 @@ function renderHome() {
   const dueNow = Math.min(c.due, revRoom) + c.learning;
   const newNow = Math.min(c.fresh, newRoom);
 
-  $('#home-sub').textContent = `${DECK.cards.length} cards · ${DECK.sections.length} sections`;
+  const homeSub = $('#home-sub');
+  homeSub.textContent = COURSE.publicPresentation && COURSE.tagline
+    ? COURSE.tagline
+    : `${DECK.cards.length} cards · ${DECK.sections.length} sections`;
+  homeSub.hidden = false;
 
   // On day one every one of these reads as zero or nonsense — "0 to review" and
   // "0% started" tell a first-time reader nothing except that they have failed

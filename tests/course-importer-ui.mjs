@@ -9,6 +9,42 @@ const failed = [];
 const ok = (condition, message) =>
   (condition ? passed : failed).push((condition ? 'PASS  ' : 'FAIL  ') + message);
 
+function storedZip(entries) {
+  const locals = [];
+  const centrals = [];
+  let offset = 0;
+  for (const entry of entries) {
+    const name = Buffer.from(entry.name);
+    const body = Buffer.from(entry.bytes);
+    const local = Buffer.alloc(30 + name.length);
+    local.writeUInt32LE(0x04034b50, 0);
+    local.writeUInt16LE(0x800, 6);
+    local.writeUInt32LE(body.length, 18);
+    local.writeUInt32LE(body.length, 22);
+    local.writeUInt16LE(name.length, 26);
+    name.copy(local, 30);
+    const central = Buffer.alloc(46 + name.length);
+    central.writeUInt32LE(0x02014b50, 0);
+    central.writeUInt16LE(0x800, 8);
+    central.writeUInt32LE(body.length, 20);
+    central.writeUInt32LE(body.length, 24);
+    central.writeUInt16LE(name.length, 28);
+    central.writeUInt32LE(offset, 42);
+    name.copy(central, 46);
+    locals.push(local, body);
+    centrals.push(central);
+    offset += local.length + body.length;
+  }
+  const directory = Buffer.concat(centrals);
+  const end = Buffer.alloc(22);
+  end.writeUInt32LE(0x06054b50, 0);
+  end.writeUInt16LE(entries.length, 8);
+  end.writeUInt16LE(entries.length, 10);
+  end.writeUInt32LE(directory.length, 12);
+  end.writeUInt32LE(offset, 16);
+  return Buffer.concat([...locals, directory, end]);
+}
+
 const initial = `schemaVersion: 2
 courseId: tiny-club
 title: Tiny club
@@ -44,6 +80,28 @@ cards:
   - cardId: fourth
     front: A different course.
 `;
+const themed = `schemaVersion: 2
+courseId: themed-memory-club
+shortTitle: Pocket tower
+tagline: Small steps, long memory.
+cards:
+  - cardId: first-step
+    front: Remember the first step.
+theme:
+  accentColor: "#123456"
+  accentColorDark: "#abcdef"
+  accentInkColor: "#fedcba"
+  accentInkColorDark: "#102030"
+  paperColor: "#f8f1df"
+  paperColorDark: "#20242c"
+  loadingArtwork: theme/loading.png
+  loadingText: Building the memory tower…
+  loadingAnimation: pulse
+`;
+const tinyPng = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=',
+  'base64'
+);
 
 async function openImporter(page) {
   const shelf = page.locator('.shelf.on');
@@ -208,6 +266,82 @@ const identityPreview = await page.textContent('.imp-inner');
 ok(/stable course ID differs/i.test(identityPreview)
     && !/update to the same course/i.test(identityPreview),
   'title and card overlap cannot impersonate a different public courseId as an update');
+
+await page.click('.imp-x');
+await openImporter(page);
+await page.setInputFiles('#imp-input', {
+  name: 'themed.keep',
+  mimeType: 'application/zip',
+  buffer: storedZip([
+    { name: 'course.keep.yml', bytes: themed },
+    { name: 'theme/loading.png', bytes: tinyPng },
+  ]),
+});
+await page.waitForSelector('.imp-book:visible');
+await Promise.all([page.waitForEvent('load'), page.click('[data-keep="new"]')]);
+await page.waitForSelector('#boot-scene .boot-course-art', { state: 'attached' });
+await page.waitForFunction(() => {
+  const image = document.querySelector('#boot-scene .boot-course-art');
+  return image?.complete && image.naturalWidth === 1;
+});
+const loadingPresentation = await page.evaluate(() => {
+  const image = document.querySelector('#boot-scene .boot-course-art');
+  return {
+    line: document.querySelector('#boot-line')?.textContent,
+    source: image?.getAttribute('src'),
+    animation: image?.dataset.animation,
+  };
+});
+ok(loadingPresentation.line === 'Building the memory tower…'
+    && loadingPresentation.source?.startsWith('blob:')
+    && loadingPresentation.animation === 'pulse',
+  'a packaged course hydrates validated loading copy, artwork, and app-owned motion');
+
+await waitForBoot(page, errors);
+const themedLight = await page.evaluate(async () => {
+  const style = getComputedStyle(document.documentElement);
+  const rows = await (await import('./lib/store.js')).list();
+  const record = rows.find((row) => row.sourceCourseId === 'themed-memory-club');
+  return {
+    documentTitle: document.title,
+    header: document.querySelector('#course-title')?.textContent.trim(),
+    tagline: document.querySelector('#home-sub')?.textContent.trim(),
+    taglineHidden: document.querySelector('#home-sub')?.hidden,
+    accent: style.getPropertyValue('--accent').trim(),
+    ink: style.getPropertyValue('--accent-ink').trim(),
+    paper: style.getPropertyValue('--surface').trim(),
+    projectionKeys: Object.keys(record?.presentation || {}).sort(),
+    themeKeys: Object.keys(record?.presentation?.theme || {}).sort(),
+  };
+});
+ok(themedLight.documentTitle === 'keep club — Themed memory club'
+    && themedLight.header === 'Pocket tower'
+    && themedLight.tagline === 'Small steps, long memory.'
+    && !themedLight.taglineHidden,
+  'derived title, explicit short title, and tagline reach their distinct shell surfaces');
+ok(themedLight.accent === '#123456' && themedLight.ink === '#fedcba'
+    && themedLight.paper === '#f8f1df',
+  'the public light accent, ink, and compatible paper token theme the shell');
+ok(themedLight.projectionKeys.join(',') === 'shortTitle,tagline,theme'
+    && themedLight.themeKeys.join(',') === [
+      'accentColor', 'accentColorDark', 'accentInkColor', 'accentInkColorDark',
+      'loadingAnimation', 'loadingArtwork', 'loadingText', 'paperColor', 'paperColorDark',
+    ].sort().join(','),
+  'storage retains only the validated descriptive presentation projection');
+
+await page.click('#theme-btn');
+const themedDark = await page.evaluate(() => {
+  const style = getComputedStyle(document.documentElement);
+  return {
+    theme: document.documentElement.dataset.theme,
+    accent: style.getPropertyValue('--accent').trim(),
+    ink: style.getPropertyValue('--accent-ink').trim(),
+    paper: style.getPropertyValue('--surface').trim(),
+  };
+});
+ok(themedDark.theme === 'dark' && themedDark.accent === '#abcdef'
+    && themedDark.ink === '#102030' && themedDark.paper === '#20242c',
+  'the public dark accent, ink, and paper token survive the shell theme toggle');
 
 ok(errors.length === 0, `the course import flow has no page errors (${errors.join('; ')})`);
 await browser.close();

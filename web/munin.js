@@ -408,15 +408,17 @@ function muninGlyph(name) {
  * overridden from course.json (or Munin's own ink teal on the shelf). There
  * were four; the prefers-color-scheme one went with app.css's, and `:root`
  * stays because it is what paints before the theme attribute is written. */
-function injectAccent(a) {
+function injectAccent(a, paper) {
   const old = document.getElementById('course-theme');
   if (old) old.remove();
   const s = document.createElement('style');
   s.id = 'course-theme';
+  const lightPaper = paper && COLOUR.test(paper.light) ? ` --surface: ${paper.light};` : '';
+  const darkPaper = paper && COLOUR.test(paper.dark) ? ` --surface: ${paper.dark};` : '';
   s.textContent = `
-    :root { --accent: ${a.light}; --accent-ink: ${a.inkLight}; --g4: ${a.light}; }
-    :root[data-theme="light"] { --accent: ${a.light}; --accent-ink: ${a.inkLight}; --g4: ${a.light}; }
-    :root[data-theme="dark"] { --accent: ${a.dark}; --accent-ink: ${a.inkDark}; --g4: ${a.dark}; }`;
+    :root { --accent: ${a.light}; --accent-ink: ${a.inkLight}; --g4: ${a.light};${lightPaper} }
+    :root[data-theme="light"] { --accent: ${a.light}; --accent-ink: ${a.inkLight}; --g4: ${a.light};${lightPaper} }
+    :root[data-theme="dark"] { --accent: ${a.dark}; --accent-ink: ${a.inkDark}; --g4: ${a.dark};${darkPaper} }`;
   document.head.appendChild(s);
 }
 
@@ -439,6 +441,46 @@ function colours(a) {
   const out = Object.assign({}, t);
   for (const k of Object.keys(t)) if (COLOUR.test(a && a[k])) out[k] = a[k];
   return out;
+}
+
+const PUBLIC_COLOUR = /^#[0-9a-f]{6}(?:[0-9a-f]{2})?$/i;
+const PUBLIC_LOADING_ANIMATIONS = new Set(['none', 'gentle-bob', 'pulse']);
+const publicText = (value, maximum) =>
+  typeof value === 'string' && value.trim() && [...value].length <= maximum ? value : null;
+
+/* Imported records live in browser storage, which is a persistence boundary,
+ * not a trust boundary. Recognise only the projection written by the public
+ * v2 importer, only on keep imports, and map its descriptive names to the
+ * shell's older internal token names here. Anki records intentionally never
+ * enter this path. */
+function publicPresentationOf(rec) {
+  if (!rec || rec.importFormat !== 'keep'
+      || !rec.presentation || typeof rec.presentation !== 'object'
+      || Array.isArray(rec.presentation)) return null;
+  const raw = rec.presentation;
+  const theme = raw.theme && typeof raw.theme === 'object' && !Array.isArray(raw.theme)
+    ? raw.theme : {};
+  const colour = (name) => PUBLIC_COLOUR.test(theme[name]) ? theme[name] : null;
+  const loadingArtwork = publicText(theme.loadingArtwork, 240);
+  const loadingAnimation = PUBLIC_LOADING_ANIMATIONS.has(theme.loadingAnimation)
+    ? theme.loadingAnimation : 'gentle-bob';
+  return {
+    shortTitle: publicText(raw.shortTitle, 60),
+    tagline: publicText(raw.tagline, 200),
+    accent: {
+      light: colour('accentColor'),
+      dark: colour('accentColorDark'),
+      inkLight: colour('accentInkColor'),
+      inkDark: colour('accentInkColorDark'),
+    },
+    paper: {
+      light: colour('paperColor'),
+      dark: colour('paperColorDark'),
+    },
+    loadingText: publicText(theme.loadingText, 120),
+    loadingArtwork,
+    loadingAnimation,
+  };
 }
 
 /** Every slot a course left empty, filled from Munin's own theme. */
@@ -756,9 +798,19 @@ async function loadBootScene(c) {
 /** Everything a course needs once its theme is in hand. */
 async function startCourse(c, loadDoodles) {
   globalThis.COURSE = c;
-  injectAccent(c.accent);
+  injectAccent(c.accent, c.paper);
   const line = document.getElementById('boot-line');
   if (line && c.boot.line) line.textContent = c.boot.line;
+  const bootScene = document.getElementById('boot-scene');
+  if (bootScene && c.loadingArtworkUrl) {
+    const image = document.createElement('img');
+    image.className = 'boot-course-art';
+    image.src = c.loadingArtworkUrl;
+    image.alt = '';
+    image.dataset.animation = c.loadingAnimation;
+    bootScene.replaceChildren(image);
+    bootScene.dataset.from = c.id + '-package-art';
+  }
   document.title = 'keep club — ' + c.title;
   // A course that draws figures brings the stylesheet for them: its own nouns
   // — rigging, fenders, pontoons — used to be fifty rules in app.css, applied
@@ -787,6 +839,13 @@ async function startCourse(c, loadDoodles) {
     // their words, not Munin's, and the shelf already shows it as written.
     h1.classList.toggle('own', !!c.deck);
   }
+  if (c.publicPresentation) {
+    const sub = document.getElementById('home-sub');
+    if (sub) {
+      sub.textContent = c.tagline || '';
+      sub.hidden = !c.tagline;
+    }
+  }
   mountShelfButton(c);
   await scene;
 }
@@ -807,11 +866,11 @@ async function bootCourse(id) {
     .catch(() => { globalThis.DOODLE = MUNIN_DOODLE; }));
 }
 
-/* A deck someone imported. It has no folder and no files: the cards are in
- * IndexedDB and its pictures are blobs, so the shell hands app.js the deck
- * itself rather than a path to fetch. It brings no theme of its own, so
- * withDefaults dresses it entirely in Munin's — the same fallback any course
- * gets for the slots it leaves empty. */
+/* A deck someone imported. It has no folder: the cards and packaged media are
+ * in IndexedDB, so the shell hands app.js the deck itself rather than a path to
+ * fetch. Public v2 courses also bring a small validated presentation
+ * projection; legacy Anki decks retain the shell defaults they have always
+ * used. */
 async function bootLocal(id) {
   const store = await import('./lib/store.js');
   const rec = await store.get(id);
@@ -851,6 +910,18 @@ async function bootLocal(id) {
     const index = mediaIndexBySource[source];
     return Number.isSafeInteger(index) && index >= 0 ? mediaUrl(index) : null;
   };
+  const presentation = publicPresentationOf(rec);
+  const loadingText = presentation?.loadingText || 'Loading your deck…';
+  const line = document.getElementById('boot-line');
+  if (line) line.textContent = loadingText;
+  let loadingArtworkUrl = null;
+  if (presentation?.loadingArtwork) {
+    try {
+      loadingArtworkUrl = await resolveMediaSource(presentation.loadingArtwork);
+    } catch (e) {
+      // A missing/corrupt optional drawing cannot stop the cards opening.
+    }
+  }
   addEventListener('pagehide', () => {
     mediaClosed = true;
     mediaGeneration++;
@@ -875,8 +946,15 @@ async function bootLocal(id) {
   await startCourse(withDefaults({
     id,
     title: rec.title,
+    short: presentation?.shortTitle || undefined,
+    tagline: presentation?.tagline || undefined,
+    publicPresentation: !!presentation,
     base: '',
-    boot: { art: rec.art || MUNIN.theme.boot.art, line: 'Loading your deck…' },
+    accent: presentation?.accent,
+    paper: presentation?.paper,
+    boot: { art: rec.art || MUNIN.theme.boot.art, line: loadingText },
+    loadingArtworkUrl,
+    loadingAnimation: presentation?.loadingAnimation,
     sectionArt: rec.sectionArt || {},
     groupArt: rec.groupArt || {},
     deck: rec.deck,

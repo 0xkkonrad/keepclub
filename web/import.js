@@ -23,6 +23,27 @@ const esc = (t) => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replac
 const n = (v) => Number(v).toLocaleString('en-GB');
 const isKeepFile = (name) => /\.keep(?:\.yml)?$/i.test(String(name || ''));
 const cardIdentity = (card) => card?.cardId;
+const PUBLIC_THEME_FIELDS = [
+  'accentColor', 'accentColorDark', 'accentInkColor', 'accentInkColorDark',
+  'paperColor', 'paperColorDark', 'shelfArtwork', 'sectionArtwork',
+  'loadingArtwork', 'loadingText', 'loadingAnimation',
+];
+
+/* The authored document is retained separately for round trips. Shell chrome
+ * needs only a small, inert view of the fields the public validator already
+ * accepted: never copy an arbitrary theme object into the IndexedDB record
+ * that munin.js later turns into CSS and DOM. */
+function presentationOf(course) {
+  const theme = {};
+  for (const field of PUBLIC_THEME_FIELDS) {
+    if (Object.hasOwn(course.theme, field)) theme[field] = course.theme[field];
+  }
+  return {
+    shortTitle: course.shortTitle,
+    ...(course.tagline === undefined ? {} : { tagline: course.tagline }),
+    theme,
+  };
+}
 
 function keepReceipt(result) {
   const course = result.course;
@@ -256,6 +277,7 @@ export function openImporter() {
           media: result.media,
           mediaIndexBySource: result.mediaIndexBySource,
           receipt: keepReceipt(result),
+          presentation: presentationOf(result.course),
           sectionArt: {},
           groupArt: {},
         };
@@ -408,6 +430,7 @@ export function openImporter() {
         groupArt: built.groupArt,
         mediaIndexBySource: built.mediaIndexBySource,
         receipt: built.receipt,
+        ...(built.presentation ? { presentation: built.presentation } : {}),
         deck: built.deck,
       }, built.media);
     } catch (e) {
