@@ -404,7 +404,105 @@
         "extensions": {
           "$ref": "#/$defs/extensions"
         }
-      }
+      },
+      "oneOf": [
+        {
+          "title": "Image media fields",
+          "properties": {
+            "mediaType": {
+              "const": "image"
+            }
+          },
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "posterImage"
+                ]
+              },
+              {
+                "required": [
+                  "transcript"
+                ]
+              },
+              {
+                "required": [
+                  "captionTracks"
+                ]
+              },
+              {
+                "required": [
+                  "durationSeconds"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "title": "Audio media fields",
+          "properties": {
+            "mediaType": {
+              "const": "audio"
+            }
+          },
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "alternativeText"
+                ]
+              },
+              {
+                "required": [
+                  "decorative"
+                ]
+              },
+              {
+                "required": [
+                  "posterImage"
+                ]
+              },
+              {
+                "required": [
+                  "captionTracks"
+                ]
+              },
+              {
+                "required": [
+                  "width"
+                ]
+              },
+              {
+                "required": [
+                  "height"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "title": "Video media fields",
+          "properties": {
+            "mediaType": {
+              "const": "video"
+            }
+          },
+          "not": {
+            "anyOf": [
+              {
+                "required": [
+                  "alternativeText"
+                ]
+              },
+              {
+                "required": [
+                  "decorative"
+                ]
+              }
+            ]
+          }
+        }
+      ]
     },
     "captionTrack": {
       "type": "object",

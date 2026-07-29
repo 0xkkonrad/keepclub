@@ -179,6 +179,80 @@ for (const source of [
     `asset-path schema rejects ${source}`);
 }
 
+const mediaFieldValues = {
+  mediaId: 'sample-media',
+  side: 'front',
+  source: 'media/sample.png',
+  mimeType: 'image/png',
+  alternativeText: 'A useful visual description.',
+  decorative: false,
+  caption: 'A **caption**.',
+  posterImage: 'media/poster.webp',
+  transcript: 'A complete transcript.',
+  captionTracks: [{
+    source: 'media/captions.vtt',
+    language: 'en',
+    label: 'English',
+    default: true,
+  }],
+  durationSeconds: 12.5,
+  width: 640,
+  height: 480,
+  credit: { name: 'Example creator', website: 'https://example.com/creator' },
+  extensions: { 'org.example/course-field': true },
+};
+const commonMediaFields = [
+  'mediaId', 'side', 'mediaType', 'source', 'mimeType', 'caption', 'credit',
+  'extensions',
+];
+const mediaFieldsByType = {
+  image: [
+    ...commonMediaFields, 'alternativeText', 'decorative', 'width', 'height',
+  ],
+  audio: [
+    ...commonMediaFields, 'transcript', 'durationSeconds',
+  ],
+  video: [
+    ...commonMediaFields, 'posterImage', 'transcript', 'captionTracks',
+    'durationSeconds', 'width', 'height',
+  ],
+};
+const sourceByType = {
+  image: ['media/sample.png', 'image/png'],
+  audio: ['media/sample.mp3', 'audio/mpeg'],
+  video: ['media/sample.webm', 'video/webm'],
+};
+const documentedMediaFields = new Set(Object.values(mediaFieldsByType).flat());
+check(equal(
+  [...documentedMediaFields].sort(),
+  Object.keys(schema.$defs.media.properties).sort(),
+), 'media schema exposes exactly the runtime-documented field union');
+
+for (const [mediaType, allowedFields] of Object.entries(mediaFieldsByType)) {
+  const allowed = new Set(allowedFields);
+  const candidate = Object.fromEntries(allowedFields.map((field) => {
+    if (field === 'mediaType') return [field, mediaType];
+    if (field === 'source') return [field, sourceByType[mediaType][0]];
+    if (field === 'mimeType') return [field, sourceByType[mediaType][1]];
+    return [field, mediaFieldValues[field]];
+  }));
+  const validErrors = validate(candidate, schema.$defs.media);
+  check(validErrors.length === 0, `${mediaType} accepts every applicable media field`,
+    validErrors.slice(0, 4).join('; '));
+
+  for (const field of documentedMediaFields) {
+    if (allowed.has(field)) continue;
+    const invalid = {
+      side: 'front',
+      mediaType,
+      source: sourceByType[mediaType][0],
+      [field]: mediaFieldValues[field],
+    };
+    check(validate(invalid, schema.$defs.media).length > 0,
+      `${mediaType} rejects inapplicable field ${field}`);
+  }
+}
+
 if (failures.length) {
   process.stderr.write(`\n${failures.length} course schema contract failure(s):\n- ${failures.join('\n- ')}\n`);
   process.exit(1);
