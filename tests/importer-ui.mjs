@@ -160,8 +160,8 @@ ok(/^local-[a-z0-9]+$/.test(id), `the imported deck becomes the resume target ($
   ok(media.img === 1 && media.snd === 1,
     `the stored deck keeps one picture and one sound reference (${media.img}/${media.snd})`);
   ok(media.made === 0, `opening the deck does not eagerly load all media (${media.made} object URLs)`);
-  ok(media.schemaVersion === 2 && /^anki-/.test(media.courseId) && media.descriptiveCard,
-    'a new Anki import is stored and opened through the descriptive course boundary');
+  ok(media.schemaVersion === 2 && /^local-/.test(media.courseId) && media.descriptiveCard,
+    'an IndexedDB-backed Anki course is normalized before runtime use');
   const shown = await p.evaluate(async () => {
     const card = DECK.cards.find((c) => /<img/.test(c.front));
     startSession(card.sectionId, { allNew: true });

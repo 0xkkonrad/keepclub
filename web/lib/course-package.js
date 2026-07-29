@@ -8,6 +8,7 @@
  */
 
 import { parseCourseYaml } from './course-yaml.js';
+import { readCourse } from './course.js';
 import { readCourseForRuntime } from './course-runtime.js';
 import { readZip, ZipError } from './unzip.js';
 
@@ -423,6 +424,7 @@ async function validateAssets(course, zip, out) {
 function resultWithFailure(out, sourceKind) {
   return {
     course: null,
+    runtimeCourse: null,
     diagnostics: out.diagnostics,
     sourceFormat: 'course-v2',
     contentRepresentation: 'sanitized-html',
@@ -506,20 +508,23 @@ export async function readCourseFile(input, options = {}) {
     return resultWithFailure(out, sourceKind);
   }
 
-  const read = await readCourseForRuntime(parsed.value);
-  const combined = collector([...out.diagnostics, ...read.diagnostics]);
-  if (!read.course || combined.diagnostics.some((item) => item.severity === 'error')) {
+  const authored = readCourse(parsed.value);
+  const runtime = await readCourseForRuntime(parsed.value);
+  const combined = collector([...out.diagnostics, ...runtime.diagnostics]);
+  if (!authored.course || !runtime.course
+      || combined.diagnostics.some((item) => item.severity === 'error')) {
     return resultWithFailure(combined, sourceKind);
   }
 
-  const assets = await validateAssets(read.course, zip, combined);
+  const assets = await validateAssets(authored.course, zip, combined);
   if (combined.diagnostics.some((item) => item.severity === 'error')) {
     return resultWithFailure(combined, sourceKind);
   }
   return {
-    ...read,
+    ...authored,
     diagnostics: combined.diagnostics,
     sourceKind,
+    runtimeCourse: runtime.course,
     media: assets.media,
     mediaIndexBySource: assets.mediaIndexBySource,
   };

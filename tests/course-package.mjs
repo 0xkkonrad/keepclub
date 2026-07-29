@@ -63,8 +63,9 @@ cards:
   ok(!!result.course && result.sourceKind === 'keep-yaml',
     'a minimal text-only .keep.yml is accepted');
   ok(result.course?.cards.length === 2
-      && result.course.cards[0].front.includes('<strong>one</strong>'),
-  'its CommonMark is rendered and sanitized before runtime storage');
+      && result.course.cards[0].front === 'Remember **one** thing.'
+      && result.runtimeCourse.cards[0].front.includes('<strong>one</strong>'),
+  'authored CommonMark is stored while a one-pass sanitized runtime preview is prepared');
   ok(!result.course?.cards.some((card) => Object.hasOwn(card, 'back')),
     'front-only intent remains an absent back');
   ok(result.media.length === 0 && Object.keys(result.mediaIndexBySource).length === 0,

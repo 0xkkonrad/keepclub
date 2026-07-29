@@ -248,6 +248,10 @@ export function openImporter() {
           kind: 'keep',
           title: result.course.title || result.course.courseId,
           sourceCourseId: result.course.courseId,
+          course: result.runtimeCourse,
+          // Keep authored CommonMark on disk. Boot owns the one render pass;
+          // persisting its HTML preview would make a later boot render it as
+          // Markdown a second time.
           deck: result.course,
           media: result.media,
           mediaIndexBySource: result.mediaIndexBySource,
@@ -288,7 +292,12 @@ export function openImporter() {
           kind: 'anki',
           title: legacy.deck.name,
           sourceCourseId,
-          deck: normalized.course,
+          course: normalized.course,
+          // Existing Anki HTML has safe constructs outside public CommonMark
+          // (ruby, audio placeholders, sub/sup). Keep its proven format-1
+          // artifact on disk so the permanent adapter retains the
+          // sanitized-HTML representation marker on every read.
+          deck: legacy.deck,
           mediaIndexBySource: {},
         };
       }
@@ -327,7 +336,7 @@ export function openImporter() {
    * record whose card id is not in the deck, so the first boot after such a
    * replace silently wipes the lot. Match on the cards, and say which it is. */
   function match(decks, built) {
-    const mine = new Set(built.deck.cards.map(cardIdentity).filter(Boolean));
+    const mine = new Set(built.course.cards.map(cardIdentity).filter(Boolean));
     const identified = decks.filter((deck) =>
       deck.sourceCourseId && deck.sourceCourseId === built.sourceCourseId);
     if (identified.length) {
@@ -384,10 +393,10 @@ export function openImporter() {
         importFormat: built.kind,
         created: replacing ? replacing.created : Date.now(),
         updated: Date.now(),
-        cards: built.deck.cards.length,
+        cards: built.course.cards.length,
         // Kept so a later import can tell "the same deck again" from "another
         // deck with the same name" without loading every card.
-        ids: built.deck.cards.map(cardIdentity),
+        ids: built.course.cards.map(cardIdentity),
         art: RAVENS[Math.abs(hash(built.title)) % RAVENS.length],
         sectionArt: built.sectionArt,
         groupArt: built.groupArt,
