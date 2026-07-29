@@ -153,7 +153,8 @@ for (const c of COURSES) {
 
 /* ── engine → course ────────────────────────────────────────────────────── */
 
-const ENGINE = ['app.js', 'app.css', 'index.html', 'sync.js', 'munin.js', 'sw.js', 'import.js',
+const ENGINE = ['app.js', 'app.css', 'index.html', 'sync.js', 'achievements.js',
+  'share.js', 'notifications.js', 'munin.js', 'sw.js', 'import.js',
   'doodles-munin.js'].concat(
   fs.readdirSync(path.join(WEB, 'lib')).filter((f) => f.endsWith('.js')).map((f) => 'lib/' + f));
 
@@ -211,15 +212,23 @@ for (const c of COURSES) {
   ok(unknown.length === 0, `${c}: every class it exempts from the pen is its own ${unknown.join(', ')}`);
 }
 
-/* The hoard's own drawings are Munin's, or the defaults are unreachable.
- * Read out of the HOARD literal by name and tolerant of how it is formatted —
- * a version of this that insisted on one line shape failed the build with
- * "found 0" the first time the array was reflowed. */
-const hoardSrc = /const HOARD = \[([\s\S]*?)\n\];/.exec(read('app.js'));
-ok(!!hoardSrc, 'the hoard can be found in app.js');
-const hoardArts = hoardSrc
-  ? [...hoardSrc[1].matchAll(/\bart:\s*'([\w-]+)'/g)].map((m) => m[1]) : [];
-ok(hoardArts.length >= 10, `the hoard is a list of entries (found ${hoardArts.length})`);
+/* Legacy unlock ids and art remain reachable after moving the rules out of
+ * app.js. Evaluate the classic engine as code: a regex over an array literal
+ * would reward putting policy back inline merely to satisfy the test. */
+const achievementEngine = new Function(
+  `const globalThis = {}; const window = globalThis;\n${read('achievements.js')}\n`
+  + 'return globalThis.KeepClubAchievements;'
+)();
+const legacyIds = new Set([
+  'cast-off', 'underway', 'offshore', 'blue-water',
+  'streak-3', 'streak-7', 'streak-14', 'clean-run',
+  'night-watch', 'dawn-patrol', 'all-sections', 'section-swept',
+  'knot-untangled', 'deck-met',
+]);
+const legacy = achievementEngine.DEFINITIONS.filter((item) => legacyIds.has(item.id));
+ok(legacy.length === legacyIds.size, 'every shipped legacy achievement lives in the central engine');
+const hoardArts = legacy.map((item) => item.art);
+ok(hoardArts.length >= 10, `the legacy milestone set is intact (found ${hoardArts.length})`);
 const strayArt = hoardArts.filter((a) => !path_(MUNIN_DOODLE, a));
 ok(strayArt.length === 0, `every hoard default is drawn in Munin's own set ${strayArt.join(', ')}`);
 /* And each of them is a DIFFERENT drawing. The set held ten for a while and the
