@@ -360,6 +360,12 @@ self.addEventListener('fetch', (e) => {
   const url = new URL(req.url);
   if (url.origin !== location.origin) return;
 
+  // Public creator docs share the deployment but are not the app shell. Leave
+  // them to the browser/network; an offline docs request must not unexpectedly
+  // open the study app from cached index.html.
+  if (url.pathname === SCOPE + 'docs'
+      || url.pathname.startsWith(SCOPE + 'docs/')) return;
+
   // Card data and the clip map: network first so a rebuilt deck or a newly
   // attached clip arrives, cache as the fallback.
   if (url.pathname.endsWith('cards.json') || url.pathname.endsWith('videos.json')

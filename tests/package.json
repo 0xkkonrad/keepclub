@@ -3,6 +3,6 @@
   "private": true,
   "type": "module",
   "scripts": { "fixtures": "python3 fixtures/make-sqlite.py && python3 fixtures/make-apkg.py",
-    "test": "npm run fixtures && node course-schema-contract.mjs && node course-yaml.mjs && node course-markdown.mjs && node course-schema-v2.mjs && node course-runtime-reader.mjs && node course-package.mjs && node course-legacy-v1.mjs && node course-runtime-shape.mjs && node sqlite.mjs && node import.mjs && node sync-merge.mjs && node separation.mjs && node pull-to-refresh.mjs && node shell-and-courses.mjs && node importer-ui.mjs && node course-importer-ui.mjs && node qa-regressions.mjs && node mirror-migration.mjs && node pwa.mjs" },
+    "test": "npm run fixtures && node course-schema-contract.mjs && node course-yaml.mjs && node course-markdown.mjs && node course-schema-v2.mjs && node course-runtime-reader.mjs && node course-package.mjs && node docs-site.mjs && node course-legacy-v1.mjs && node course-runtime-shape.mjs && node sqlite.mjs && node import.mjs && node sync-merge.mjs && node separation.mjs && node pull-to-refresh.mjs && node shell-and-courses.mjs && node importer-ui.mjs && node course-importer-ui.mjs && node qa-regressions.mjs && node mirror-migration.mjs && node pwa.mjs" },
   "dependencies": { "playwright-core": "^1.49.0" }
 }

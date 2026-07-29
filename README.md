@@ -44,8 +44,20 @@ and transactional PWA updates.
 - `web/` — the PWA and shipped courses
 - `content/` — authored course sources and generators
 - `design/` — naming and visual-system source
+- `schema/` — public course format, diagnostics, and fixtures
+- `web/docs/` — creator guide and generated public reference artifacts
 - `tests/` — Node and Playwright regression suites
 - `scripts/` — course refresh, asset generation, and deployment
+
+The creator guide is deployed with the app at
+[keepclub.app/docs](https://keepclub.app/docs/). Refresh its generated schema
+download and diagnostic reference after changing the contract:
+
+```sh
+node scripts/build-docs.mjs --write
+```
+
+The deployment script refuses to continue if those public copies have drifted.
 
 The `munin/...` storage keys, `munin-*` cache names, the `/munin/` manifest id,
 and the `munin.js`/`doodles-munin.js` filenames are permanent compatibility

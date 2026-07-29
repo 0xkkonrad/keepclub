@@ -16,6 +16,8 @@ DOMAIN="keepclub.app"
 
 [ -d "$SITE/.git" ] || { echo "no site repo at $SITE (override with SITE=…)"; exit 1; }
 [ -f "$HERE/web/munin.js" ] || { echo "no app at $HERE/web"; exit 1; }
+node "$HERE/scripts/build-docs.mjs" --check \
+  || { echo "docs reference is stale; run node scripts/build-docs.mjs --write"; exit 1; }
 
 # Everything that can refuse to deploy refuses BEFORE anything is copied: rsync
 # overwrites the stamped sw.js, so a failure between copy and stamp would leave
