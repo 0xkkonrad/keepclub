@@ -3,8 +3,8 @@
 Membership pays in memories.
 
 keep club is a local-first progressive web app. It ships built-in courses,
-imports Anki `.apkg` decks, keeps study progress on the device, and works
-offline after the first visit.
+imports public `.keep.yml` / `.keep` courses and Anki `.apkg` decks, keeps
+study progress on the device, and works offline after the first visit.
 
 - App: [keepclub.app](https://keepclub.app/)
 - Source: [github.com/0xkkonrad/keepclub](https://github.com/0xkkonrad/keepclub)
