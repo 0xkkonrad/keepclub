@@ -148,6 +148,19 @@ cards:
 }
 
 {
+  const largePng = Buffer.alloc(COURSE_PACKAGE_LIMITS.imageBytes / 2 + 1);
+  png.copy(largePng);
+  const result = await readCourseFile(storedZip([
+    { name: 'course.keep.yml', bytes: mediaYaml },
+    { name: 'media/bird.png', bytes: largePng },
+  ]), { fileName: 'large-but-valid.keep' });
+  const warning = result.diagnostics.find((item) => item.code === 'media.large_file');
+  ok(!!result.course && warning?.severity === 'warning'
+      && warning.path === '$.cards[0].media[0].source',
+  'a validated packaged asset above half its hard limit gets a non-blocking size warning');
+}
+
+{
   const caseVariant = `${mediaYaml.replace('media/bird.png', 'Media/Bird.png')}
   - cardId: bird-again
     media:

@@ -9,6 +9,7 @@ import { detectCourseFormat, normalizeLegacyCourse } from './legacy-course.js';
 const ID = /^[a-z0-9][a-z0-9._-]{0,127}$/;
 const DOCS = 'https://docs.keepclub.app/reference/errors/#';
 const MAX_DIAGNOSTICS = 100;
+const LONG_SIDE_CODE_POINTS = 4000;
 const MEDIA_TYPES = new Set(['image', 'audio', 'video']);
 const MEDIA_FIELDS = new Set([
   'mediaId', 'side', 'mediaType', 'source', 'mimeType', 'alternativeText',
@@ -143,7 +144,7 @@ function cloneData(value, path = '$', ancestors = new Set()) {
 
 function diagnosticsCollector() {
   const diagnostics = [];
-  let truncated = false;
+  let errorsTruncated = false;
   const add = (code, severity, path, message, correction) => {
     if (diagnostics.length < MAX_DIAGNOSTICS) {
       diagnostics.push({
@@ -156,8 +157,11 @@ function diagnosticsCollector() {
       });
       return;
     }
-    if (truncated) return;
-    truncated = true;
+    // Quality advice must never become a blocking error merely because there
+    // is a lot of it. A later real error still records a bounded marker so it
+    // cannot be hidden behind an earlier page of warnings.
+    if (severity === 'warning' || errorsTruncated) return;
+    errorsTruncated = true;
     diagnostics.push({
       code: 'document.too_many_errors',
       severity: 'error',
@@ -511,6 +515,79 @@ function assetExtension(value) {
   return filename.includes('.') ? filename.split('.').at(-1).toLowerCase() : '';
 }
 
+function unicodeCaseFold(value) {
+  if (typeof value !== 'string') return '';
+  // Upper-then-lower handles multi-character and positional folds that a
+  // simple toLowerCase misses (for example ß/SS and Greek final sigma).
+  return value.normalize('NFKC').toUpperCase().toLowerCase();
+}
+
+function normalizedComparisonText(value) {
+  return unicodeCaseFold(value).trim().replace(/\s+/gu, ' ');
+}
+
+function warnLongSide(value, path, out) {
+  if (typeof value !== 'string') return;
+  let codePoints = 0;
+  for (const _character of value) {
+    codePoints++;
+    if (codePoints > LONG_SIDE_CODE_POINTS) {
+      out.warning('card.long_side', path,
+        `This card side is longer than ${LONG_SIDE_CODE_POINTS.toLocaleString('en-US')} characters.`,
+        'Split the material across cards or tighten the wording when practical.');
+      return;
+    }
+  }
+}
+
+function frontImpliesAnswer(value) {
+  const text = normalizedComparisonText(value);
+  if (!text) return false;
+  return /\b(?:reveal|show|see|check|view)\s+(?:the\s+)?answer\b/u.test(text)
+    || /\b(?:answer|solution)\s+(?:is\s+)?(?:below|above|on\s+the\s+back)\b/u.test(text)
+    || /\b(?:flip|turn)(?:\s+the\s+card)?\s+over\b/u.test(text);
+}
+
+function weakAlternativeText(alternativeText, source) {
+  if (typeof alternativeText !== 'string' || !alternativeText.trim()) return false;
+  const text = normalizedComparisonText(alternativeText);
+  const filename = typeof source === 'string' ? source.split('/').at(-1) : '';
+  const stem = filename.includes('.') ? filename.slice(0, filename.lastIndexOf('.')) : filename;
+  const normalizedFilename = normalizedComparisonText(filename);
+  const normalizedStem = normalizedComparisonText(stem).replace(/[-_]+/gu, ' ');
+  if (text === normalizedFilename || text === normalizedStem) return true;
+  return /^(?:an?\s+)?(?:image|photo|picture|graphic|diagram|screenshot|icon|logo|illustration)(?:\s+\d+)?[.!]?$/u
+    .test(text);
+}
+
+function normalizeTags(raw, path, out) {
+  if (raw === undefined || !Array.isArray(raw)) return raw;
+  if (!raw.length) {
+    out.warning('field.empty_optional', path,
+      'An empty tag list was removed.', 'Omit tags when this card has no tags.');
+    return undefined;
+  }
+  const seen = new Set();
+  const tags = [];
+  for (let index = 0; index < raw.length; index++) {
+    const tag = raw[index];
+    if (typeof tag !== 'string') {
+      tags.push(tag);
+      continue;
+    }
+    const comparison = unicodeCaseFold(tag);
+    if (seen.has(comparison)) {
+      out.warning('card.duplicate_tag', `${path}[${index}]`,
+        `Tag "${tag}" duplicates an earlier tag on this card.`,
+        'Remove the duplicate; the first spelling is retained.');
+      continue;
+    }
+    seen.add(comparison);
+    tags.push(tag);
+  }
+  return tags;
+}
+
 function positiveNumber(value, path, out, { integer = false, maximum = 86400 } = {}) {
   if (value === undefined) return true;
   if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0
@@ -688,6 +765,12 @@ function normalizeMedia(raw, path, out, options) {
       'This non-decorative image has no text alternative.',
       'Describe the useful visual content, or mark a truly decorative image decorative: true.');
   }
+  if (raw.mediaType === 'image' && raw.decorative !== true
+      && weakAlternativeText(raw.alternativeText, raw.source)) {
+    out.warning('media.alt_weak', `${path}.alternativeText`,
+      'This image alternative is filename-like or does not describe the useful content.',
+      'Replace it with a concise description of what the image conveys.');
+  }
   if (options.publication && raw.mediaType === 'image'
       && (!raw.width || !raw.height)) {
     out.error('publication.image_dimensions_required', path,
@@ -842,6 +925,7 @@ function normalizeV2(input, options = {}) {
 
   const cards = [];
   const cardIds = new Set();
+  const firstCardByContent = new Map();
   const mediaTally = { count: 0, reported: false };
   if (Array.isArray(source.cards)) {
     for (let i = 0; i < source.cards.length; i++) {
@@ -892,11 +976,45 @@ function normalizeV2(input, options = {}) {
         if (media) card.media = media;
         else delete card.media;
       }
+      if (raw.tags !== undefined) {
+        const tags = normalizeTags(raw.tags, `${path}.tags`, out);
+        if (tags === undefined) delete card.tags;
+        else card.tags = tags;
+      }
       if (typeof card.back === 'string' && !card.back.trim()) {
         delete card.back;
         out.warning('field.empty_back', `${path}.back`,
           'A blank back was removed; this is a front-only card.',
           'Omit back to state front-only intent explicitly.');
+      }
+      warnLongSide(card.front, `${path}.front`, out);
+      warnLongSide(card.back, `${path}.back`, out);
+
+      const hasBackText = typeof card.back === 'string' && card.back.trim().length > 0;
+      const hasBackMedia = Array.isArray(card.media)
+        && card.media.some((item) => item.side === 'back'
+          && MEDIA_TYPES.has(item.mediaType)
+          && typeof item.source === 'string'
+          && item.source.length > 0);
+      if (!hasBackText && !hasBackMedia && frontImpliesAnswer(card.front)) {
+        out.warning('card.front_only_answer_cue', `${path}.front`,
+          'This front-only prompt implies that an answer will be revealed.',
+          'Add the answer on the back, or reword the prompt as a front-only reminder.');
+      }
+
+      const normalizedFront = normalizedComparisonText(card.front);
+      if (normalizedFront) {
+        const signature = `${normalizedFront}\u0000${normalizedComparisonText(card.back)}`;
+        const first = firstCardByContent.get(signature);
+        if (first) {
+          out.warning('card.duplicate_looking_content', path,
+            `This card looks equivalent to earlier card "${first.cardId}".`,
+            'Confirm both cards are intentional, or remove the duplicate.');
+        } else {
+          firstCardByContent.set(signature, {
+            cardId: typeof card.cardId === 'string' ? card.cardId : `at index ${i}`,
+          });
+        }
       }
 
       let sectionId = card.sectionId;

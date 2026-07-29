@@ -95,6 +95,61 @@ for (const name of [
 }
 
 {
+  const longFront = 'L'.repeat(4001);
+  const result = readCourse({
+    schemaVersion: 2,
+    courseId: 'quality-advice',
+    title: 'Quality advice',
+    description: 'Exercises deterministic quality warnings.',
+    authors: [{ name: 'keep club' }],
+    cards: [
+      {
+        cardId: 'first',
+        front: ' Reveal the answer below. ',
+        back: ' ',
+        tags: ['Maße', 'MASSE', 'ＭＡＳＳＥ'],
+        media: [{
+          side: 'front',
+          mediaType: 'image',
+          source: 'media/prompt.png',
+          alternativeText: 'prompt.png',
+        }],
+      },
+      { cardId: 'duplicate', front: 'reveal the answer below.' },
+      { cardId: 'long', front: longFront, tags: [] },
+      {
+        cardId: 'has-back-media',
+        front: 'Flip this card over.',
+        media: [{
+          side: 'back',
+          mediaType: 'image',
+          source: 'media/answer.png',
+          alternativeText: 'A labeled answer diagram',
+        }],
+      },
+    ],
+  });
+  const diagnosticsByCode = (code) =>
+    result.diagnostics.filter((diagnostic) => diagnostic.code === code);
+  ok(!!result.course
+      && diagnosticsByCode('card.long_side')[0]?.path === '$.cards[2].front'
+      && diagnosticsByCode('card.front_only_answer_cue').length === 2
+      && diagnosticsByCode('card.duplicate_looking_content')[0]?.path === '$.cards[1]'
+      && diagnosticsByCode('media.alt_weak')[0]?.path
+        === '$.cards[0].media[0].alternativeText',
+  'quality warnings cover long sides, answer cues, duplicate-looking text, and weak alt text');
+  ok(diagnosticsByCode('card.duplicate_tag').length === 2
+      && result.course?.cards[0].tags.join(',') === 'Maße'
+      && !Object.hasOwn(result.course?.cards[2] || {}, 'tags')
+      && codes(result).has('field.empty_optional'),
+  'duplicate tags use Unicode compatibility/case folding and retain the first spelling');
+  ok(!result.diagnostics.some((diagnostic) =>
+    diagnostic.code === 'card.front_only_answer_cue'
+      && diagnostic.path === '$.cards[3].front'),
+  'back-side media suppresses the front-only answer-cue warning');
+}
+
+{
   const result = readCourse({
     schemaVersion: 2,
     courseId: 'broken-media-front',
@@ -218,6 +273,22 @@ for (const name of [
   ok(result.diagnostics.length === 101
       && result.diagnostics.at(-1)?.code === 'document.too_many_errors',
   'v2 validation caps diagnostics at 100 and records that more errors exist');
+}
+
+{
+  const result = readCourse({
+    schemaVersion: 2,
+    courseId: 'bounded-quality-advice',
+    cards: Array.from({ length: 150 }, (_, index) => ({
+      cardId: `card-${index}`,
+      front: `Prompt ${index}`,
+      tags: ['Memory', 'memory'],
+    })),
+  });
+  ok(!!result.course && result.diagnostics.length === 100
+      && result.diagnostics.every((diagnostic) => diagnostic.severity === 'warning')
+      && !codes(result).has('document.too_many_errors'),
+  'warning overflow stays bounded without turning an accepted course into an error');
 }
 
 {

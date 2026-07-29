@@ -48,10 +48,10 @@ function diagnostic(code, severity, path, message, correction) {
 }
 
 function collector(seed = []) {
-  const diagnostics = seed.slice(0, MAX_DIAGNOSTICS + 1);
-  let truncated = seed.length > MAX_DIAGNOSTICS;
-  if (truncated && !diagnostics.some((entry) => entry.code === 'document.too_many_errors')) {
-    diagnostics.length = MAX_DIAGNOSTICS;
+  const diagnostics = seed.slice(0, MAX_DIAGNOSTICS);
+  let errorsTruncated = seed.slice(MAX_DIAGNOSTICS)
+    .some((entry) => entry.severity === 'error');
+  if (errorsTruncated && !diagnostics.some((entry) => entry.code === 'document.too_many_errors')) {
     diagnostics.push(diagnostic(
       'document.too_many_errors',
       'error',
@@ -66,8 +66,8 @@ function collector(seed = []) {
       diagnostics.push(item);
       return;
     }
-    if (truncated) return;
-    truncated = true;
+    if (item.severity === 'warning' || errorsTruncated) return;
+    errorsTruncated = true;
     diagnostics.push(diagnostic(
       'document.too_many_errors',
       'error',
@@ -428,6 +428,13 @@ async function validateAssets(course, zip, out) {
         `Asset "${safe}" does not agree across its bytes, extension, and declared type.`,
         'Correct the mediaType/source or replace the file with the declared format.');
       continue;
+    }
+    const warningThreshold = fileLimit(expectedType) / 2;
+    if (bytes.length > warningThreshold) {
+      const sizeMiB = (bytes.length / (1024 * 1024)).toFixed(1);
+      out.warning('media.large_file', path,
+        `Asset "${safe}" is ${sizeMiB} MiB and uses more than half of its allowed file size.`,
+        'Compress or transcode it to reduce install and offline-storage use.');
     }
     for (const source of reference.sources) mediaIndexBySource[source] = storageIndex;
     media.push({
