@@ -37,7 +37,8 @@ npm test
 
 The test gate covers the scheduler and state model, Anki import, course
 separation, browser interactions, accessibility regressions, pull-to-refresh,
-and transactional PWA updates.
+achievement scope and privacy, local share-card fallbacks, notifications, and
+transactional PWA updates.
 
 ## Repository map
 
@@ -74,6 +75,23 @@ server.
 Imported decks remain local because their cards and media live in IndexedDB
 and can be much larger than the bounded progress-sync payload. Exported backup
 files remain the recovery path for every deck.
+
+Club-wide totals are derived from the course records present on the device.
+Sync remains deliberately namespaced per built-in course, so on a new device
+open each course once to pull it before expecting the club total to include it.
+
+## Achievements and sharing
+
+`web/achievements.js` is the single source of truth for achievement ids,
+rules, club-versus-course scope, share policy, and repeatable moments. It is a
+pure engine: `app.js` supplies progress facts and owns storage and rendering,
+while courses may change only achievement wording and art.
+
+Share cards are rendered on the device by `web/share.js`; progress documents,
+Sync keys, imported deck names, and card content are never inputs. System
+achievement notifications are explicitly opt-in and are used only while the
+installed app is in the background. A static PWA cannot promise scheduled
+reminders without a push service, so the UI says that plainly.
 
 ## Licensing
 

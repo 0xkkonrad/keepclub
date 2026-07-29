@@ -40,6 +40,7 @@ function state(overrides = {}) {
     revTotal: 0,
     revGood: 0,
     answers: 0,
+    bestClean: 0,
     ach: {},
     settings: {
       newPerDay: 20,
@@ -72,6 +73,7 @@ const rec = (overrides = {}) => Object.assign({
     answers: 16,
     revTotal: 12,
     revGood: 10,
+    bestClean: 18,
     ach: { first: 200 },
     settings: { newPerDay: 5, maxRev: 120, at: 900 },
   });
@@ -83,6 +85,7 @@ const rec = (overrides = {}) => Object.assign({
     answers: 11,
     revTotal: 9,
     revGood: 9,
+    bestClean: 42,
     ach: { first: 100, week: 500 },
     settings: { newPerDay: 40, maxRev: 80, at: 100 },
   });
@@ -100,6 +103,7 @@ const rec = (overrides = {}) => Object.assign({
   ok(merged.streak === 3, 'a streak split across devices is reconstructed');
   ok(merged.answers >= phone.answers && merged.answers >= laptop.answers,
     'the lifetime answer count never goes backwards');
+  ok(merged.bestClean === 42, 'the best clean run survives device merges');
   ok(merged.ach.first === 100 && merged.ach.week === 500,
     'milestones retain their earliest unlock');
   ok(merged.settings.newPerDay === 5,
@@ -157,12 +161,13 @@ const rec = (overrides = {}) => Object.assign({
 
 {
   const long = {};
-  for (let i = 0; i < 150; i++) {
+  for (let i = 0; i < 450; i++) {
     const date = new Date(2026, 0, 1 + i).toISOString().slice(0, 10);
     long[date] = 2;
   }
   const merged = mergeState(state({ days: long }), state());
-  ok(Object.keys(merged.days).length === 90, 'long histories prune to 90 retained days');
+  ok(Object.keys(merged.days).length === 400,
+    'long histories retain enough calendar evidence for a one-year club streak');
 }
 
 {
