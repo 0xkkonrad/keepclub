@@ -101,8 +101,8 @@ const legacyFailure = normalizeLegacyCourse({
 });
 const legacyDiagnostic = legacyFailure.diagnostics.find((item) => item.severity === 'error');
 const legacyDocsUrl = new URL(legacyDiagnostic.docsUrl);
-ok(legacyDocsUrl.hostname === 'docs.keepclub.app'
-    && legacyDocsUrl.pathname === '/reference/errors/'
+ok(legacyDocsUrl.hostname === 'keepclub.app'
+    && legacyDocsUrl.pathname === '/docs/reference/errors/'
     && legacyDocsUrl.hash === '#legacy-compatibility'
     && errors.includes(`id="${legacyDocsUrl.hash.slice(1)}"`),
   'a generated legacy diagnostic resolves to the deployed compatibility anchor');

@@ -12,7 +12,7 @@ import {
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.join(HERE, '..');
 const LEGACY_DOCS =
-  'https://docs.keepclub.app/reference/errors/#legacy-compatibility';
+  'https://keepclub.app/docs/reference/errors/#legacy-compatibility';
 const passed = [];
 const failed = [];
 const ok = (condition, message) =>

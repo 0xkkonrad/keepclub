@@ -211,10 +211,11 @@ Validation runs in three levels:
 3. Quality: non-blocking advice such as missing local attribution, weak alt
    text, long sides, duplicate-looking content, and front-only answer cues.
 
-Errors block the whole import atomically. Warnings require preview and explicit
-continuation. The receipt lists every default, normalization, warning, and
-rejection; it never silently drops a card or asset. Diagnostic codes and paths
-are defined in `diagnostics.md`.
+Errors block the whole import atomically; nothing is saved from a course with
+errors. Warnings require preview and explicit continuation, and the receipt
+lists what landed together with every warning; a course is never partially
+imported and a card or asset is never silently dropped. Diagnostic codes and
+paths are defined in `diagnostics.md`.
 
 ## Evolution
 
