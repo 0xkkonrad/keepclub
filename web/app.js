@@ -3291,7 +3291,10 @@ function wire() {
       return;
     }
     if (!confirm('Join the deck this key belongs to?\n\nThe progress on this device and the progress on that one are merged into a single deck — nothing is thrown away.')) return;
-    DSSync.turnOn(key);
+    if (!DSSync.turnOn(key)) {
+      toast('Sync could not be turned on because device storage is blocked.', true);
+      return;
+    }
     e.target.hidden = true;
     renderSyncState();
     runSync(true);

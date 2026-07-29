@@ -218,11 +218,17 @@ function pickRec(x, y) {
   let winner;
   if (num(x.rp) !== num(y.rp)) winner = num(x.rp) > num(y.rp) ? x : y;
   // Equal review counts are divergent answers to the same card. Keep the
-  // conservative schedule: a lapse on one device must not be erased by an
-  // Easy answer on another and pushed farther into the future.
-  else if (num(x.lp) !== num(y.lp)) winner = num(x.lp) > num(y.lp) ? x : y;
+  // relearning schedule when only one device lapsed, then the earlier due
+  // date. Lapse count itself cannot choose the schedule: it is merged by max
+  // below, and feeding that derived value back into the comparison made a
+  // three-device merge depend on grouping order.
+  else if ((x.st === 'l') !== (y.st === 'l')) winner = x.st === 'l' ? x : y;
   else if (num(x.due) !== num(y.due)) winner = num(x.due) < num(y.due) ? x : y;
-  else winner = stable(x) <= stable(y) ? x : y;
+  else {
+    const xSchedule = Object.assign({}, x, { lp: 0 });
+    const ySchedule = Object.assign({}, y, { lp: 0 });
+    winner = stable(xSchedule) <= stable(ySchedule) ? x : y;
+  }
   // Lapses are a lifetime counter. A later review record can legitimately win
   // the schedule while still having forked before a lapse on another device.
   return Object.assign({}, winner, { lp: Math.max(num(x.lp), num(y.lp)) });

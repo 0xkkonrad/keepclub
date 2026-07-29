@@ -389,6 +389,25 @@ const offer = (pg) => pg.evaluate(() => {
 
   ok(await p6.locator('[data-sync="new"]').isVisible(),
     'a built-in course offers account-free device sync');
+  await p6.click('[data-sync="join"]');
+  await p6.fill('#sync-join', '01234-56789-ABCDE-FGHJK-MNPQR');
+  await p6.evaluate(() => {
+    globalThis.__storageSetItem = Storage.prototype.setItem;
+    Storage.prototype.setItem = () => { throw new Error('storage blocked'); };
+    globalThis.confirm = () => true;
+  });
+  await p6.press('#sync-join', 'Enter');
+  const failedJoin = await p6.evaluate(() => ({
+    on: DSSync.enabled(),
+    joinVisible: !document.getElementById('sync-join').hidden,
+    toast: document.getElementById('toast').textContent,
+  }));
+  await p6.evaluate(() => {
+    Storage.prototype.setItem = globalThis.__storageSetItem;
+    delete globalThis.__storageSetItem;
+  });
+  ok(!failedJoin.on && failedJoin.joinVisible && /storage is blocked/i.test(failedJoin.toast),
+    'joining a Sync key stays visibly off when its identity cannot be stored');
   await p6.click('[data-sync="new"]');
   await p6.waitForFunction(() => DSSync.status().at > 0);
   const synced = await p6.evaluate(() => ({

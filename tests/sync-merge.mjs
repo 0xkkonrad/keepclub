@@ -122,6 +122,22 @@ const rec = (overrides = {}) => Object.assign({
 }
 
 {
+  const earlierReview = state({
+    recs: { a: rec({ rp: 10, lp: 0, st: 'r', due: 100, ivl: 30 }) },
+  });
+  const olderLapses = state({
+    recs: { a: rec({ rp: 9, lp: 5, st: 'r', due: 900, ivl: 8 }) },
+  });
+  const newestReview = state({
+    recs: { a: rec({ rp: 10, lp: 3, st: 'r', due: 50, ivl: 20 }) },
+  });
+  const left = mergeState(mergeState(earlierReview, olderLapses), newestReview);
+  const right = mergeState(earlierReview, mergeState(olderLapses, newestReview));
+  ok(same(left, right) && left.recs.a.due === 50 && left.recs.a.lp === 5,
+    'card scheduling merge is associative across three devices');
+}
+
+{
   const oldDate = state({
     settings: { newPerDay: 20, maxRev: 120, examDate: '2026-08-01', at: 100 },
   });
