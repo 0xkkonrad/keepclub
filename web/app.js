@@ -61,14 +61,18 @@ const $$ = (s) => Array.from(document.querySelectorAll(s));
  * the same way. */
 const pathOf = (set, name) => (typeof set[name] === 'string' ? set[name] : null);
 
-function doodle(name, cls, style) {
+function doodlePath(name) {
   // Munin's own set is consulted before the course's fallback: a name this
   // course does not draw but Munin does — the raven the hoard's defaults are
   // written in — is drawn by Munin, rather than collapsing into fourteen
   // copies of one course drawing. The two key spaces do not overlap (the
   // separation gate holds them apart), so this cannot capture a course's name.
-  const d = pathOf(DOODLE, name) || pathOf(MUNIN_DOODLE, name)
+  return pathOf(DOODLE, name) || pathOf(MUNIN_DOODLE, name)
     || pathOf(DOODLE, COURSE.fallback) || Object.values(DOODLE).find((v) => typeof v === 'string');
+}
+
+function doodle(name, cls, style) {
+  const d = doodlePath(name);
   return `<span class="dood ${cls || ''}"${style ? ` style="${style}"` : ''} aria-hidden="true">`
     + `<svg class="doodle" viewBox="0 0 32 32"><path d="${d}"/></svg></span>`;
 }
@@ -1150,6 +1154,22 @@ function renderAch() {
  * the row is scannable once you have met it a few times. */
 const SECTION_ART = COURSE.sectionArt || {};
 
+/* Format 2 deliberately has one course-level sectionArtwork: it is the
+ * default mark repeated anywhere a section needs an emblem, not a hidden
+ * per-section selection language. Built-in named section art remains more
+ * specific and wins. The package source stays inert in data-* until the shared
+ * IndexedDB resolver gives the <img> a blob: URL; it is never interpolated into
+ * an SVG path. */
+function sectionMark(sectionId, cls) {
+  if (SECTION_ART[sectionId]) return doodle(SECTION_ART[sectionId], cls);
+  const source = COURSE.sectionArtworkSource;
+  if (!source) return doodle(COURSE.fallback, cls);
+  return `<span class="dood course-section-art ${cls || ''}" aria-hidden="true">
+    <svg class="doodle" viewBox="0 0 32 32"><path d="${doodlePath(COURSE.fallback)}"/></svg>
+    <img alt="" hidden data-course-section-art="${escAttr(source)}">
+  </span>`;
+}
+
 /* One drawing per group of sections, for the Browse index. Several repeat a
  * drawing one of their own sections already uses — a group's emblem being the
  * most obvious thing in it is the point, and the two never appear at the same
@@ -1557,7 +1577,7 @@ function renderHome() {
       const li = document.createElement('li');
       const b = document.createElement('button');
       b.innerHTML = `
-        ${doodle(SECTION_ART[s.sectionId] || COURSE.fallback, 'sect-art')}
+        ${sectionMark(s.sectionId, 'sect-art')}
         <span class="sect-name">${escapeHtml(s.title)}</span>
         ${pending ? `<span class="sect-badge">${pending}</span>` : ''}
         <span class="sect-meta">${meta}</span>
@@ -1569,6 +1589,7 @@ function renderHome() {
     }
     list.appendChild(ul);
   }
+  hydrateSectionArtwork(list);
 }
 
 /* ── study ── */
@@ -2412,7 +2433,7 @@ function renderBrowseIndex() {
       const li = document.createElement('li');
       li.innerHTML = `<button class="btile" data-scope="${escapeHtml(sectionId)}"
           aria-label="${escAttr(s.title)}, ${n(s.cardCount)} cards. Read them.">
-        ${doodle(SECTION_ART[sectionId] || COURSE.fallback, 'btile-art')}
+        ${sectionMark(sectionId, 'btile-art')}
         ${m ? `<span class="btile-no">${escapeHtml(m[1])}</span>` : ''}
         <span class="btile-name">${escapeHtml(m ? m[2] : s.title)}</span>
         <span class="btile-n">${n(s.cardCount)} cards</span>
@@ -2422,6 +2443,7 @@ function renderBrowseIndex() {
     frag.appendChild(sec);
   }
   host.appendChild(frag);
+  hydrateSectionArtwork(host);
 }
 
 function renderBrowse() {
@@ -3067,6 +3089,38 @@ function hydrateMedia(root, load = true) {
   }
 }
 
+function hydrateSectionArtwork(root) {
+  if (!root || typeof COURSE.resolveMediaSource !== 'function') return;
+  for (const image of root.querySelectorAll('img[data-course-section-art]')) {
+    const source = image.dataset.courseSectionArt;
+    if (!source || image.dataset.courseSectionArtLoaded === '1') continue;
+    image.dataset.courseSectionArtLoaded = '1';
+    COURSE.resolveMediaSource(source).then((url) => {
+      if (!url || !image.isConnected || image.dataset.courseSectionArt !== source) {
+        delete image.dataset.courseSectionArtLoaded;
+        return;
+      }
+      const fallback = image.parentElement?.querySelector('.doodle');
+      image.addEventListener('load', () => {
+        if (!image.isConnected) return;
+        image.hidden = false;
+        if (fallback) fallback.hidden = true;
+      }, { once: true });
+      image.src = url;
+    }).catch(() => { delete image.dataset.courseSectionArtLoaded; });
+  }
+}
+
+function resetSectionArtwork() {
+  for (const image of document.querySelectorAll('img[data-course-section-art]')) {
+    image.removeAttribute('src');
+    image.hidden = true;
+    delete image.dataset.courseSectionArtLoaded;
+    const fallback = image.parentElement?.querySelector('.doodle');
+    if (fallback) fallback.hidden = false;
+  }
+}
+
 addEventListener('muninmediareset', () => {
   // Imported blob URLs are generation-scoped. A BFCache restore keeps this
   // document but needs fresh URLs for the visible question, revealed answer,
@@ -3089,6 +3143,9 @@ addEventListener('muninmediareset', () => {
       hydrateDescriptiveMedia(row.querySelector('.b-back-media'));
     }
   }
+  resetSectionArtwork();
+  hydrateSectionArtwork($('#section-list'));
+  hydrateSectionArtwork($('#browse-index'));
 });
 
 let toastTimer = null;

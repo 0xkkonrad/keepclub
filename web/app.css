@@ -454,6 +454,10 @@ button { cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-colo
 }
 .sect-art { grid-column: 1; grid-row: 1 / span 2; align-self: center;
   width: 26px; height: 26px; color: var(--accent); }
+.course-section-art { position: relative; display: grid; place-items: center; }
+.course-section-art > .doodle, .course-section-art > img {
+  grid-area: 1 / 1; width: 100%; height: 100%; object-fit: contain;
+}
 .sections button:active .sect-art { transform: translateY(1px); }
 .sect-meter {
   grid-column: 1 / -1; height: 8px; border-radius: 4px;

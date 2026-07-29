@@ -94,6 +94,8 @@ theme:
   accentInkColorDark: "#102030"
   paperColor: "#f8f1df"
   paperColorDark: "#20242c"
+  shelfArtwork: theme/shelf.png
+  sectionArtwork: theme/section.png
   loadingArtwork: theme/loading.png
   loadingText: Building the memory tower…
   loadingAnimation: pulse
@@ -274,6 +276,8 @@ await page.setInputFiles('#imp-input', {
   mimeType: 'application/zip',
   buffer: storedZip([
     { name: 'course.keep.yml', bytes: themed },
+    { name: 'theme/shelf.png', bytes: tinyPng },
+    { name: 'theme/section.png', bytes: tinyPng },
     { name: 'theme/loading.png', bytes: tinyPng },
   ]),
 });
@@ -298,6 +302,10 @@ ok(loadingPresentation.line === 'Building the memory tower…'
   'a packaged course hydrates validated loading copy, artwork, and app-owned motion');
 
 await waitForBoot(page, errors);
+await page.waitForFunction(() => {
+  const image = document.querySelector('#section-list img[data-course-section-art]');
+  return image?.complete && image.naturalWidth === 1 && !image.hidden;
+});
 const themedLight = await page.evaluate(async () => {
   const style = getComputedStyle(document.documentElement);
   const rows = await (await import('./lib/store.js')).list();
@@ -326,8 +334,24 @@ ok(themedLight.projectionKeys.join(',') === 'shortTitle,tagline,theme'
     && themedLight.themeKeys.join(',') === [
       'accentColor', 'accentColorDark', 'accentInkColor', 'accentInkColorDark',
       'loadingAnimation', 'loadingArtwork', 'loadingText', 'paperColor', 'paperColorDark',
+      'sectionArtwork', 'shelfArtwork',
     ].sort().join(','),
   'storage retains only the validated descriptive presentation projection');
+const homeSectionArtwork = await page.evaluate(() => {
+  const image = document.querySelector('#section-list img[data-course-section-art]');
+  const fallback = image?.parentElement?.querySelector('.doodle');
+  return {
+    source: image?.getAttribute('src'),
+    alt: image?.getAttribute('alt'),
+    decorative: image?.parentElement?.getAttribute('aria-hidden'),
+    fallbackHidden: fallback?.hidden,
+  };
+});
+ok(homeSectionArtwork.source?.startsWith('blob:')
+    && homeSectionArtwork.alt === ''
+    && homeSectionArtwork.decorative === 'true'
+    && homeSectionArtwork.fallbackHidden,
+  'the single public section artwork is a decorative raster default on Home');
 
 await page.click('#theme-btn');
 const themedDark = await page.evaluate(() => {
@@ -342,6 +366,99 @@ const themedDark = await page.evaluate(() => {
 ok(themedDark.theme === 'dark' && themedDark.accent === '#abcdef'
     && themedDark.ink === '#102030' && themedDark.paper === '#20242c',
   'the public dark accent, ink, and paper token survive the shell theme toggle');
+
+await page.click('#nav [data-go="browse"]');
+await page.waitForFunction(() => {
+  const image = document.querySelector('#browse-index img[data-course-section-art]');
+  return image?.complete && image.naturalWidth === 1 && !image.hidden;
+});
+const browseSectionArtwork = await page.evaluate(() => {
+  const image = document.querySelector('#browse-index img[data-course-section-art]');
+  return {
+    source: image?.getAttribute('src'),
+    fallbackHidden: image?.parentElement?.querySelector('.doodle')?.hidden,
+  };
+});
+ok(browseSectionArtwork.source?.startsWith('blob:') && browseSectionArtwork.fallbackHidden,
+  'the same public section default reaches Browse without entering SVG path markup');
+
+await page.click('.shelf-btn');
+await page.waitForSelector('.shelf.on[role="dialog"]');
+await page.waitForFunction(() => {
+  const image = document.querySelector(
+    '.shelf.on[role="dialog"] img[data-local-shelf-art="theme/shelf.png"]'
+  );
+  return image?.complete && image.naturalWidth === 1 && !image.hidden;
+});
+const shelfArtwork = await page.evaluate(() => {
+  const image = document.querySelector(
+    '.shelf.on[role="dialog"] img[data-local-shelf-art="theme/shelf.png"]'
+  );
+  return {
+    source: image?.getAttribute('src'),
+    alt: image?.getAttribute('alt'),
+    fallbackHidden: image?.parentElement?.querySelector('.dood')?.hidden,
+  };
+});
+ok(shelfArtwork.source?.startsWith('blob:')
+    && shelfArtwork.alt === ''
+    && shelfArtwork.fallbackHidden,
+  'the visible imported-course tile lazily hydrates its decorative packaged shelf artwork');
+const shelfUrlWasLive = await page.evaluate(async (url) => {
+  try { return (await fetch(url)).ok; } catch { return false; }
+}, shelfArtwork.source);
+await page.click('.shelf-x');
+await page.waitForSelector('.shelf.on[role="dialog"]', { state: 'detached' });
+const shelfUrlWasRevoked = await page.evaluate(async (url) => {
+  try { await fetch(url); return false; } catch { return true; }
+}, shelfArtwork.source);
+ok(shelfUrlWasLive && shelfUrlWasRevoked,
+  'shelf artwork stays live while mounted and is revoked after the selector closes');
+
+await page.evaluate(async () => {
+  const importedStore = await import('./lib/store.js');
+  const id = localStorage.getItem('munin/last-course');
+  const record = await importedStore.get(id);
+  // Simulate browser storage losing optional media after a successful import.
+  // The descriptive record/source map remains, but no Blob can be resolved.
+  await importedStore.put(record, []);
+});
+await page.reload({ waitUntil: 'load' });
+await waitForBoot(page, errors);
+const missingSectionArtwork = await page.evaluate(() => {
+  const image = document.querySelector('#section-list img[data-course-section-art]');
+  const fallback = image?.parentElement?.querySelector('.doodle');
+  return {
+    imageHidden: image?.hidden,
+    imageSource: image?.getAttribute('src'),
+    fallbackHidden: fallback?.hidden,
+    packagedBoot: !!document.querySelector('#boot-scene .boot-course-art'),
+    defaultBoot: !!document.querySelector('#boot-scene svg path'),
+  };
+});
+ok(missingSectionArtwork.imageHidden
+    && !missingSectionArtwork.imageSource
+    && !missingSectionArtwork.fallbackHidden
+    && !missingSectionArtwork.packagedBoot
+    && missingSectionArtwork.defaultBoot,
+  'missing optional theme Blobs leave the trusted section and loading fallbacks intact');
+
+await page.click('.shelf-btn');
+await page.waitForSelector('.shelf.on[role="dialog"]');
+const missingShelfArtwork = await page.evaluate(() => {
+  const image = document.querySelector(
+    '.shelf.on[role="dialog"] img[data-local-shelf-art="theme/shelf.png"]'
+  );
+  return {
+    imageHidden: image?.hidden,
+    imageSource: image?.getAttribute('src'),
+    fallbackHidden: image?.parentElement?.querySelector('.dood')?.hidden,
+  };
+});
+ok(missingShelfArtwork.imageHidden
+    && !missingShelfArtwork.imageSource
+    && !missingShelfArtwork.fallbackHidden,
+  'a missing shelf Blob keeps the trusted tile emblem instead of leaving a blank mark');
 
 ok(errors.length === 0, `the course import flow has no page errors (${errors.join('; ')})`);
 await browser.close();

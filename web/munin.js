@@ -461,6 +461,8 @@ function publicPresentationOf(rec) {
   const theme = raw.theme && typeof raw.theme === 'object' && !Array.isArray(raw.theme)
     ? raw.theme : {};
   const colour = (name) => PUBLIC_COLOUR.test(theme[name]) ? theme[name] : null;
+  const shelfArtwork = publicText(theme.shelfArtwork, 240);
+  const sectionArtwork = publicText(theme.sectionArtwork, 240);
   const loadingArtwork = publicText(theme.loadingArtwork, 240);
   const loadingAnimation = PUBLIC_LOADING_ANIMATIONS.has(theme.loadingAnimation)
     ? theme.loadingAnimation : 'gentle-bob';
@@ -478,8 +480,62 @@ function publicPresentationOf(rec) {
       dark: colour('paperColorDark'),
     },
     loadingText: publicText(theme.loadingText, 120),
+    shelfArtwork,
+    sectionArtwork,
     loadingArtwork,
     loadingAnimation,
+  };
+}
+
+/* One resolver for every imported-media surface: cards, packaged theme art,
+ * and the shelf. It is deliberately source-indexed and only creates blob:
+ * URLs for records already stored by the importer. Closing increments the
+ * generation before revoking, so an IndexedDB read that finishes late cannot
+ * resurrect a URL after its screen has gone away. */
+function localMediaResolver(store, rec) {
+  const urls = new Map();
+  const pending = new Map();
+  const mediaIndexBySource = rec.mediaIndexBySource
+    && typeof rec.mediaIndexBySource === 'object'
+    && !Array.isArray(rec.mediaIndexBySource)
+    ? rec.mediaIndexBySource : {};
+  let closed = false;
+  let generation = 0;
+  const mediaUrl = async (index) => {
+    if (closed) return null;
+    if (urls.has(index)) return urls.get(index);
+    if (pending.has(index)) return pending.get(index);
+    const requestedGeneration = generation;
+    const load = store.mediaBlob(rec.id, index).then((blob) => {
+      if (pending.get(index) === load) pending.delete(index);
+      if (!blob || closed || requestedGeneration !== generation) return null;
+      const url = URL.createObjectURL(blob);
+      urls.set(index, url);
+      return url;
+    }, (error) => {
+      if (pending.get(index) === load) pending.delete(index);
+      throw error;
+    });
+    pending.set(index, load);
+    return load;
+  };
+  return {
+    mediaUrl,
+    async resolveMediaSource(source) {
+      if (typeof source !== 'string' || !Object.hasOwn(mediaIndexBySource, source)) return null;
+      const index = mediaIndexBySource[source];
+      return Number.isSafeInteger(index) && index >= 0 ? mediaUrl(index) : null;
+    },
+    close() {
+      closed = true;
+      generation++;
+      pending.clear();
+      for (const url of urls.values()) URL.revokeObjectURL(url);
+      urls.clear();
+    },
+    reopen() {
+      closed = false;
+    },
   };
 }
 
@@ -879,37 +935,8 @@ async function bootLocal(id) {
   // Imported media is resolved lazily by app.js when a card or Browse row is
   // rendered. Loading every Blob here made a 100 MiB deck consume all 100 MiB
   // before Home appeared.
-  const urls = new Map();
-  const pending = new Map();
-  let mediaClosed = false;
-  let mediaGeneration = 0;
-  const mediaUrl = async (index) => {
-    if (mediaClosed) return null;
-    if (urls.has(index)) return urls.get(index);
-    if (pending.has(index)) return pending.get(index);
-    const generation = mediaGeneration;
-    const load = store.mediaBlob(id, index).then((blob) => {
-      if (pending.get(index) === load) pending.delete(index);
-      if (!blob || mediaClosed || generation !== mediaGeneration) return null;
-      const url = URL.createObjectURL(blob);
-      urls.set(index, url);
-      return url;
-    }, (e) => {
-      if (pending.get(index) === load) pending.delete(index);
-      throw e;
-    });
-    pending.set(index, load);
-    return load;
-  };
-  const mediaIndexBySource = rec.mediaIndexBySource
-    && typeof rec.mediaIndexBySource === 'object'
-    && !Array.isArray(rec.mediaIndexBySource)
-    ? rec.mediaIndexBySource : {};
-  const resolveMediaSource = async (source) => {
-    if (typeof source !== 'string' || !Object.hasOwn(mediaIndexBySource, source)) return null;
-    const index = mediaIndexBySource[source];
-    return Number.isSafeInteger(index) && index >= 0 ? mediaUrl(index) : null;
-  };
+  const media = localMediaResolver(store, rec);
+  const { mediaUrl, resolveMediaSource } = media;
   const presentation = publicPresentationOf(rec);
   const loadingText = presentation?.loadingText || 'Loading your deck…';
   const line = document.getElementById('boot-line');
@@ -923,15 +950,11 @@ async function bootLocal(id) {
     }
   }
   addEventListener('pagehide', () => {
-    mediaClosed = true;
-    mediaGeneration++;
-    pending.clear();
-    for (const url of urls.values()) URL.revokeObjectURL(url);
-    urls.clear();
+    media.close();
   });
   addEventListener('pageshow', (e) => {
     if (!e.persisted) return;
-    mediaClosed = false;
+    media.reopen();
     // The DOM itself survived, but every blob: URL in it was revoked when the
     // page entered the back-forward cache. Turn those elements back into lazy
     // placeholders and let app.js hydrate only what is visible.
@@ -955,6 +978,7 @@ async function bootLocal(id) {
     boot: { art: rec.art || MUNIN.theme.boot.art, line: loadingText },
     loadingArtworkUrl,
     loadingAnimation: presentation?.loadingAnimation,
+    sectionArtworkSource: presentation?.sectionArtwork,
     sectionArt: rec.sectionArt || {},
     groupArt: rec.groupArt || {},
     deck: rec.deck,
@@ -1029,6 +1053,11 @@ const SHELF_CSS = `
     border-left-color: var(--tile-accent, var(--stroke));
     border-radius: var(--r); box-shadow: var(--sh); padding: 14px 16px; min-height: var(--tap); }
   .shelf-tile .dood { width: 34px; height: 34px; flex: none; color: var(--tile-accent, var(--text)); }
+  .shelf-art-frame { position: relative; width: 34px; height: 34px; flex: none;
+    display: grid; place-items: center; }
+  .shelf-art-frame .dood, .shelf-art-frame img {
+    grid-area: 1 / 1; width: 100%; height: 100%; object-fit: contain;
+  }
   /* A flex item will not shrink below its contents unless it is told it may,
    * and a title with no spaces in it is one very long word. */
   .shelf-tile > span { min-width: 0; overflow-wrap: anywhere; }
@@ -1263,11 +1292,16 @@ function deckProgress(id) {
  * on this screen is escaped. */
 function localTile(d) {
   const art = MUNIN_DOODLE[d.art] || MUNIN_DOODLE[MUNIN.theme.fallback];
+  const shelfArtwork = publicPresentationOf(d)?.shelfArtwork;
+  const emblem = shelfArtwork
+    ? `<span class="shelf-art-frame">${tileArt(art)}<img alt="" hidden
+        data-local-shelf-art="${escHtml(shelfArtwork)}" data-local-deck="${escHtml(d.id)}"></span>`
+    : tileArt(art);
   const done = deckProgress(d.id);
   return `<div class="shelf-row">
     <button type="button" class="shelf-tile" data-course="${escHtml(d.id)}"
         style="--tile-accent:${escHtml(MUNIN.theme.accent.light)}">
-      ${tileArt(art)}
+      ${emblem}
       <span><b>${escHtml(d.title)}</b><small>your deck · ${Number(d.cards).toLocaleString('en-GB')
       } cards · ${new Date(d.created).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
       }${done ? ' · ' + done : ''}</small></span>
@@ -1275,6 +1309,66 @@ function localTile(d) {
     <button type="button" class="shelf-del" data-del="${escHtml(d.id)}"
       data-name="${escHtml(d.title)}" aria-label="Remove ${escHtml(d.title)}">✕</button>
   </div>`;
+}
+
+/* Shelf metadata is intentionally small: list() never fetches cards or media.
+ * Observe only the one declared shelf image per visible public course, then
+ * resolve that source through its stored source→index map. No authored URL is
+ * assigned to src, and closing the selector revokes every blob: URL it made. */
+function hydrateLocalShelfArtwork(root, decks, store) {
+  const byId = new Map((decks || []).map((deck) => [deck.id, deck]));
+  const resolvers = new Map();
+  let stopped = false;
+  const load = async (image) => {
+    const deck = byId.get(image.dataset.localDeck);
+    const source = publicPresentationOf(deck)?.shelfArtwork;
+    if (!deck || !source || source !== image.dataset.localShelfArt) return;
+    let resolver = resolvers.get(deck.id);
+    if (!resolver) {
+      resolver = localMediaResolver(store, deck);
+      resolvers.set(deck.id, resolver);
+    }
+    let url = null;
+    try {
+      url = await resolver.resolveMediaSource(source);
+    } catch (error) {
+      return;
+    }
+    if (!url || stopped || !image.isConnected
+        || image.dataset.localShelfArt !== source) return;
+    const fallback = image.parentElement?.querySelector('.dood');
+    image.addEventListener('load', () => {
+      if (!image.isConnected) return;
+      image.hidden = false;
+      if (fallback) fallback.hidden = true;
+    }, { once: true });
+    image.src = url;
+  };
+  const images = [...root.querySelectorAll('img[data-local-shelf-art]')];
+  const observer = typeof IntersectionObserver === 'function'
+    ? new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        observer.unobserve(entry.target);
+        const image = entry.target.querySelector('img[data-local-shelf-art]');
+        if (image) load(image);
+      }
+    }, { root, rootMargin: '80px' })
+    : null;
+  if (observer) {
+    // The <img> stays hidden until it loads, so observe its always-visible
+    // fallback frame rather than an element with no intersection box.
+    for (const image of images) observer.observe(image.parentElement);
+  } else {
+    // Still one bounded image per course, never its card-media library.
+    for (const image of images) load(image);
+  }
+  return () => {
+    stopped = true;
+    observer?.disconnect();
+    for (const resolver of resolvers.values()) resolver.close();
+    resolvers.clear();
+  };
 }
 
 /** Share the app's course selector, never a deep link or anyone's local data. */
@@ -1367,8 +1461,10 @@ async function renderShelf(asOverlay, say) {
   // rather than `[]`, because "we could not ask" must never be swept as "you
   // have none".
   let mine = null;
+  let localStore = null;
   try {
-    mine = await (await import('./lib/store.js')).list();
+    localStore = await import('./lib/store.js');
+    mine = await localStore.list();
   } catch (e) {
     console.error(e);
   }
@@ -1422,6 +1518,10 @@ async function renderShelf(asOverlay, say) {
     : 'pick a course — it opens straight here next time'}</p>
   </div>`;
   document.body.appendChild(el);
+  const stopShelfArtwork = localStore
+    ? hydrateLocalShelfArtwork(el, mine, localStore) : () => {};
+  const pageLeaving = () => stopShelfArtwork();
+  addEventListener('pagehide', pageLeaving, { once: true });
   el.querySelector('#shelf-theme').addEventListener('click', () => MuninTheme.cycle());
   el.querySelector('#shelf-share').addEventListener('click', (e) =>
     shareShelf(e.currentTarget, el.querySelector('#shelf-share-status')));
@@ -1475,6 +1575,8 @@ async function renderShelf(asOverlay, say) {
     }
     removeEventListener('keydown', modalKeys);
     removeEventListener('popstate', pop);
+    removeEventListener('pagehide', pageLeaving);
+    stopShelfArtwork();
     for (const u of under) u.inert = false;
     el.remove();
     // Back to the control that opened it, not to the top of the document.
