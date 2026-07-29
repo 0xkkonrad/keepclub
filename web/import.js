@@ -12,7 +12,7 @@
 
 import { readApkg, ApkgError, MAX_PACKAGE_BYTES } from './lib/anki.js';
 import { buildDeck, RAVENS } from './lib/deck.js';
-import { readCourseFile, COURSE_PACKAGE_LIMITS } from './lib/course-package.js';
+import { readCourseFile } from './lib/course-package.js';
 import { normalizeLegacyCourse } from './lib/legacy-course.js';
 import * as store from './lib/store.js';
 import { receiptHtml, nothingHtml, ensureCss, doodle } from './lib/receipt.js';
@@ -205,14 +205,16 @@ export function openImporter() {
   }
 
   function fail(message, detail) {
-    body.innerHTML = `<div class="imp-err"><b>${esc(message)}</b><p>${esc(detail || '')}</p></div>
+    body.innerHTML = `<div class="imp-err" role="alert"><b>${esc(message)}</b><p>${esc(detail || '')}</p></div>
       <div class="imp-acts"><button type="button" class="go" data-again>try another file</button></div>`;
-    body.querySelector('[data-again]').addEventListener('click', pick);
+    const again = body.querySelector('[data-again]');
+    again.addEventListener('click', pick);
+    again.focus();
   }
 
   function failDiagnostics(result) {
     const errors = result.diagnostics.filter((item) => item.severity === 'error').slice(0, 8);
-    body.innerHTML = `<div class="imp-err"><b>this course needs a fix</b>
+    body.innerHTML = `<div class="imp-err" role="alert"><b>this course needs a fix</b>
       <p>Nothing was saved. Correct the source, then try it again.</p>
       <ol class="imp-diags">${errors.map((item) => `<li><code>${esc(item.code)}</code>
         <span>${esc(item.message)}</span>
@@ -220,7 +222,9 @@ export function openImporter() {
         <small>${esc(item.correction)}</small></li>`).join('')}</ol></div>
       <div class="imp-acts"><button type="button" class="go" data-again>try another file</button>
       <a class="imp-docs" href="./docs/reference/errors/">open the error reference</a></div>`;
-    body.querySelector('[data-again]').addEventListener('click', pick);
+    const again = body.querySelector('[data-again]');
+    again.addEventListener('click', pick);
+    again.focus();
   }
 
   async function go(file) {
@@ -232,14 +236,10 @@ export function openImporter() {
 
     let built;
     try {
-      const bytes = new Uint8Array(await file.arrayBuffer());
       if (isKeepFile(file.name)) {
-        if (file.size > COURSE_PACKAGE_LIMITS.compressedBytes) {
-          fail('that course is too large for this device',
-            `the package is ${n(file.size)} bytes; the .keep limit is ${n(COURSE_PACKAGE_LIMITS.compressedBytes)}.`);
-          return;
-        }
-        const result = await readCourseFile(bytes, { fileName: file.name });
+        /* Give the reader the File itself. It can reject an oversized YAML or
+         * archive from File.size before arrayBuffer() reserves that memory. */
+        const result = await readCourseFile(file, { fileName: file.name });
         if (!result.course) {
           failDiagnostics(result);
           return;
@@ -263,6 +263,7 @@ export function openImporter() {
         if (file.size > MAX_PACKAGE_BYTES) {
           throw new ApkgError(`that package is too large for this device (${n(file.size)} bytes).`);
         }
+        const bytes = new Uint8Array(await file.arrayBuffer());
         const col = await readApkg(bytes);
         const legacy = await buildDeck(col, {
           fileName: file.name,
@@ -355,6 +356,11 @@ export function openImporter() {
     }
     const same = decks.filter((d) => d.title === built.title);
     if (!same.length) return null;
+    /* Public identity is explicit. A different courseId remains a different
+     * course even if a creator reused a title and some card IDs; the overlap
+     * heuristic below exists only for Anki exports whose source ID is derived
+     * from a changing set of imported cards. */
+    if (built.kind === 'keep') return { ...same[0], sameDeck: false };
     for (const d of same) {
       const overlap = (d.ids || []).filter((i) => mine.has(i)).length;
       if (overlap && overlap >= Math.min(d.cards, mine.size) / 2) {

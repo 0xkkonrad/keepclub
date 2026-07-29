@@ -1,9 +1,11 @@
 import assert from 'node:assert/strict';
 import {
+  COURSE_PACKAGE_LIMITS,
   normalizeCourseAssetPath,
   readCourseFile,
   sniffCourseAsset,
 } from '../web/lib/course-package.js';
+import { receiptHtml } from '../web/lib/receipt.js';
 
 const passed = [];
 const failed = [];
@@ -47,6 +49,17 @@ function storedZip(entries) {
   end.writeUInt32LE(directory.length, 12);
   end.writeUInt32LE(offset, 16);
   return new Uint8Array(Buffer.concat([...locals, directory, end]));
+}
+
+function centralOffset(archive, wanted) {
+  const view = new DataView(archive.buffer, archive.byteOffset, archive.byteLength);
+  for (let index = 0; index + 46 <= archive.length; index++) {
+    if (view.getUint32(index, true) !== 0x02014b50) continue;
+    const nameLength = view.getUint16(index + 28, true);
+    const name = Buffer.from(archive.subarray(index + 46, index + 46 + nameLength)).toString();
+    if (name === wanted) return index;
+  }
+  throw new Error(`central entry not found: ${wanted}`);
 }
 
 const minimal = `schemaVersion: 2
@@ -135,6 +148,18 @@ cards:
 }
 
 {
+  const caseVariant = mediaYaml.replace('media/bird.png', 'Media/Bird.png');
+  const archive = storedZip([
+    { name: 'course.keep.yml', bytes: caseVariant },
+    { name: 'media/bird.png', bytes: png },
+  ]);
+  const result = await readCourseFile(archive, { fileName: 'case-variant.keep' });
+  ok(!!result.course && result.mediaIndexBySource['Media/Bird.png'] === 0
+      && !codes(result).has('media.unreferenced_asset'),
+  'ASCII-case-equivalent references resolve once without a false unreferenced warning');
+}
+
+{
   const archive = storedZip([
     { name: 'course.keep.yml', bytes: mediaYaml },
     { name: 'media/bird.jpg', bytes: png },
@@ -209,6 +234,17 @@ cards:
 }
 
 {
+  const distinctUnicode = storedZip([
+    { name: 'course.keep.yml', bytes: minimal },
+    { name: 'media/Ä.png', bytes: png },
+    { name: 'media/ä.png', bytes: png },
+  ]);
+  const result = await readCourseFile(distinctUnicode, { fileName: 'unicode.keep' });
+  ok(!!result.course && !codes(result).has('package.duplicate_path'),
+    'path comparison folds ASCII only and does not invent non-ASCII collisions');
+}
+
+{
   const duplicate = storedZip([
     { name: 'course.keep.yml', bytes: minimal },
     { name: 'course.keep.yml', bytes: minimal },
@@ -232,6 +268,59 @@ cards:
 }
 
 {
+  const locallyEncrypted = storedZip([{ name: 'course.keep.yml', bytes: minimal }]);
+  const view = new DataView(
+    locallyEncrypted.buffer, locallyEncrypted.byteOffset, locallyEncrypted.byteLength,
+  );
+  view.setUint16(6, view.getUint16(6, true) | 0x1, true);
+  const result = await readCourseFile(locallyEncrypted, { fileName: 'local-encrypted.keep' });
+  ok(result.course === null && codes(result).has('package.unsupported_feature'),
+    'encryption declared only in a local ZIP header is still refused before reading');
+}
+
+{
+  const splitMethod = storedZip([{ name: 'course.keep.yml', bytes: minimal }]);
+  const view = new DataView(splitMethod.buffer, splitMethod.byteOffset, splitMethod.byteLength);
+  view.setUint16(8, 8, true);
+  const result = await readCourseFile(splitMethod, { fileName: 'split-method.keep' });
+  ok(result.course === null && codes(result).has('package.unsupported_feature'),
+    'contradictory local and directory compression methods are refused');
+}
+
+{
+  const oversizedManifest = storedZip([{ name: 'course.keep.yml', bytes: minimal }]);
+  const view = new DataView(
+    oversizedManifest.buffer, oversizedManifest.byteOffset, oversizedManifest.byteLength,
+  );
+  const central = centralOffset(oversizedManifest, 'course.keep.yml');
+  const claimed = COURSE_PACKAGE_LIMITS.manifestBytes + 1;
+  view.setUint32(central + 20, claimed, true);
+  view.setUint32(central + 24, claimed, true);
+  const result = await readCourseFile(oversizedManifest, { fileName: 'large-manifest.keep' });
+  ok(result.course === null && codes(result).has('limit.input_bytes')
+      && !codes(result).has('package.root_manifest_missing'),
+  'an oversized manifest is refused from metadata before its member is read');
+}
+
+{
+  const oversizedAsset = storedZip([
+    { name: 'course.keep.yml', bytes: mediaYaml },
+    { name: 'media/bird.png', bytes: png },
+  ]);
+  const view = new DataView(
+    oversizedAsset.buffer, oversizedAsset.byteOffset, oversizedAsset.byteLength,
+  );
+  const central = centralOffset(oversizedAsset, 'media/bird.png');
+  const claimed = COURSE_PACKAGE_LIMITS.imageBytes + 1;
+  view.setUint32(central + 20, claimed, true);
+  view.setUint32(central + 24, claimed, true);
+  const result = await readCourseFile(oversizedAsset, { fileName: 'large-image.keep' });
+  ok(result.course === null && codes(result).has('media.too_large')
+      && !codes(result).has('media.missing'),
+  'an oversized asset is refused from metadata before decompression or allocation');
+}
+
+{
   const hostileMarkdown = `schemaVersion: 2
 courseId: hostile
 cards:
@@ -244,8 +333,85 @@ cards:
 }
 
 {
+  class ClaimedLargeBlob extends Blob {
+    constructor(claimedSize) {
+      super(['small']);
+      this.claimedSize = claimedSize;
+      this.materialized = false;
+    }
+    get size() { return this.claimedSize; }
+    async arrayBuffer() {
+      this.materialized = true;
+      return super.arrayBuffer();
+    }
+  }
+  const hugeArchive = new ClaimedLargeBlob(COURSE_PACKAGE_LIMITS.compressedBytes + 1);
+  const archiveResult = await readCourseFile(hugeArchive, { fileName: 'huge.keep' });
+  const hugeYaml = new ClaimedLargeBlob(COURSE_PACKAGE_LIMITS.manifestBytes + 1);
+  const yamlResult = await readCourseFile(hugeYaml, { fileName: 'huge.keep.yml' });
+  ok(codes(archiveResult).has('package.too_large') && !hugeArchive.materialized
+      && codes(yamlResult).has('limit.input_bytes') && !hugeYaml.materialized,
+  'oversized Blob inputs are rejected from size without materializing their contents');
+}
+
+{
+  const repeated = Array.from({ length: 105 }, (_, index) =>
+    `  - cardId: repeated\n    front: Card ${index}`).join('\n');
+  const result = await readCourseFile(
+    `schemaVersion: 2\ncourseId: diagnostic-cap\ncards:\n${repeated}\n`,
+    { fileName: 'diagnostic-cap.keep.yml' },
+  );
+  ok(result.course === null && result.diagnostics.length === 101
+      && result.diagnostics.at(-1)?.code === 'document.too_many_errors',
+  'composed package diagnostics keep the explicit 100-error truncation marker');
+}
+
+{
+  const aac = Buffer.from([0xff, 0xf1, 0x50, 0x80, 0x00, 0x1f, 0xfc]);
+  const source = `schemaVersion: 2
+courseId: audio-club
+cards:
+  - cardId: tone
+    media:
+      - side: front
+        mediaType: audio
+        source: media/tone.aac
+        mimeType: audio/aac
+`;
+  const result = await readCourseFile(storedZip([
+    { name: 'course.keep.yml', bytes: source },
+    { name: 'media/tone.aac', bytes: aac },
+  ]), { fileName: 'audio.keep' });
+  ok(!!result.course && result.media[0]?.mimeType === 'audio/aac',
+    'documented raw AAC is distinguished from an MP3 frame by its ADTS header');
+}
+
+{
+  const warnings = Array.from({ length: 21 }, (_, index) => ({
+    message: `warning number ${index + 1}`,
+    correction: `correction ${index + 1}`,
+  }));
+  const html = receiptHtml({
+    type: 'keep',
+    title: 'Warnings',
+    courseId: 'warnings',
+    sourceKind: 'keep-package',
+    read: { cards: 1 },
+    made: { cards: 1, sections: 1, groups: 0 },
+    frontOnly: 1,
+    media: { images: 0, audio: 0, video: 0, bytes: 0 },
+    warnings,
+  });
+  ok(html.includes('warning number 1') && html.includes('warning number 21'),
+    'the bounded preview lists every warning instead of silently hiding warnings after 20');
+}
+
+{
   assert.equal(normalizeCourseAssetPath('media/bird.png'), 'media/bird.png');
-  for (const path of ['/root.png', '../up.png', 'a/../b.png', 'a\\\\b.png', 'a//b.png']) {
+  for (const path of [
+    '/root.png', '../up.png', 'a/../b.png', 'a\\\\b.png', 'a//b.png',
+    'https:remote.png', 'data:image.png', 'mailto:asset.png',
+  ]) {
     ok(normalizeCourseAssetPath(path) === null, `unsafe path is inert: ${path}`);
   }
   ok(sniffCourseAsset(png)?.mimeType === 'image/png',

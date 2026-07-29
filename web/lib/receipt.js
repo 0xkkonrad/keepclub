@@ -193,7 +193,7 @@ function keepBook(r) {
       r.media.bytes ? `, ${size(r.media.bytes)}` : ''} stored on this device</span></li>`);
   }
 
-  const warnings = (r.warnings || []).slice(0, 20).map((item) =>
+  const warnings = (r.warnings || []).map((item) =>
     `<li class="said"><b></b><span>${esc(item.message)}<span class="imp-eg">${
       esc(item.correction)}</span></span></li>`).join('');
   return `<div class="imp-book">

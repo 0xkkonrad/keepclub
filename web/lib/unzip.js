@@ -118,6 +118,9 @@ export class Zip {
     const e = this.entries.get(n);
     if (!e) throw new ZipError(`no member named ${n}`);
     if (e.flags & 0x1) throw new ZipError(`${n}: encrypted members are not supported`);
+    if (e.localMethod !== e.method) {
+      throw new ZipError(`${n}: local and directory compression methods disagree`);
+    }
     if (!Number.isSafeInteger(e.size) || !Number.isSafeInteger(e.csize)
         || e.size < 0 || e.csize < 0) {
       throw new ZipError(`${n}: impossible size`);
@@ -224,6 +227,30 @@ export function readZip(bytes) {
     if (e.size === 0xFFFFFFFF || e.csize === 0xFFFFFFFF || e.offset === 0xFFFFFFFF) {
       zip64Extra(dv, at + 46 + nameLen, extraLen, e);
     }
+    if (!Number.isSafeInteger(e.offset) || e.offset < 0
+        || e.offset + 30 > bytes.length || dv.getUint32(e.offset, true) !== LOC) {
+      throw new ZipError(`${n}: local header missing`);
+    }
+    const localFlags = dv.getUint16(e.offset + 6, true);
+    const localMethod = dv.getUint16(e.offset + 8, true);
+    const localNameLength = dv.getUint16(e.offset + 26, true);
+    const localNameAt = e.offset + 30;
+    if (localNameAt + localNameLength > bytes.length || localNameLength !== nameLen) {
+      throw new ZipError(`${n}: local header name does not match the directory`);
+    }
+    const centralNameAt = at + 46;
+    for (let j = 0; j < nameLen; j++) {
+      if (bytes[localNameAt + j] !== bytes[centralNameAt + j]) {
+        throw new ZipError(`${n}: local header name does not match the directory`);
+      }
+    }
+    /* The central directory is the index, not permission to ignore a local
+     * header that declares encryption or a different codec. Preserve both
+     * truths so format-specific callers can reject the member before reading
+     * it, and Zip.read remains safe for generic callers. */
+    e.localFlags = localFlags;
+    e.localMethod = localMethod;
+    e.flags |= localFlags & 0x1;
     // Directories are members too, and an .apkg has none, but a zip made by
     // hand might; they read as empty and would only confuse the caller.
     if (!n.endsWith('/')) {
@@ -234,6 +261,7 @@ export function readZip(bytes) {
         size: e.size,
         compressedSize: e.csize,
         method: e.method,
+        localMethod: e.localMethod,
         flags: e.flags,
       });
     }

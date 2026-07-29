@@ -36,6 +36,15 @@ cards:
   - cardId: repeated
     front: Two
 `;
+const differentIdentity = `schemaVersion: 2
+courseId: other-club
+title: Tiny club, revised
+cards:
+  - cardId: second
+    front: A reused card ID.
+  - cardId: fourth
+    front: A different course.
+`;
 
 async function openImporter(page) {
   const shelf = page.locator('.shelf.on');
@@ -109,6 +118,39 @@ ok(/^local-[a-z0-9]+$/.test(imported.resume)
     && imported.rows[0]?.sourceCourseId === 'tiny-club',
 'progress identity stays in the compatible local namespace while source identity is retained');
 
+const rollback = await page.evaluate(async () => {
+  const importedStore = await import('./lib/store.js');
+  const id = localStorage.getItem('munin/last-course');
+  const original = await importedStore.get(id);
+  let rejected = false;
+  try {
+    await importedStore.put({ ...original, title: 'partial write' }, [
+      {
+        source: 'first.png',
+        storageIndex: 0,
+        mediaType: 'image',
+        mimeType: 'image/png',
+        bytes: new Uint8Array([1]),
+      },
+      {
+        source: 'bad.png',
+        storageIndex: {},
+        mediaType: 'image',
+        mimeType: 'image/png',
+        bytes: new Uint8Array([2]),
+      },
+    ]);
+  } catch {
+    rejected = true;
+  }
+  const after = await importedStore.get(id);
+  const leaked = await importedStore.mediaBlob(id, 0);
+  await importedStore.put(original, []);
+  return { rejected, title: after.title, leaked: !!leaked };
+});
+ok(rollback.rejected && rollback.title === 'Tiny club' && !rollback.leaked,
+  'a synchronous media write failure aborts the whole IndexedDB replacement');
+
 /* Give the retained card one review record before updating. */
 await page.evaluate(() => {
   const card = DECK.cards.find((item) => item.cardId === 'second');
@@ -148,12 +190,23 @@ await page.waitForSelector('.imp-diags');
 const refusal = (await page.innerText('.imp-inner')).replace(/\s+/g, ' ');
 ok(/card\.duplicate_id/.test(refusal) && /Nothing was saved/.test(refusal),
   'schema errors are actionable and explicitly atomic');
+ok(await page.locator('.imp-err[role="alert"]').count() === 1
+    && await page.locator('[data-again]').evaluate((node) => node === document.activeElement),
+  'an import failure is announced and moves keyboard focus to recovery');
 const stillInstalled = await page.evaluate(async () => {
   const rows = await (await import('./lib/store.js')).list();
   return { rows: rows.length, ids: rows[0]?.ids };
 });
 ok(stillInstalled.rows === 1 && stillInstalled.ids.join(',') === 'second,third',
   'a failed import cannot partially replace the installed course');
+
+await page.click('[data-again]');
+await giveYaml(page, differentIdentity);
+await page.waitForSelector('.imp-book:visible');
+const identityPreview = await page.textContent('.imp-inner');
+ok(/stable course ID differs/i.test(identityPreview)
+    && !/update to the same course/i.test(identityPreview),
+  'title and card overlap cannot impersonate a different public courseId as an update');
 
 ok(errors.length === 0, `the course import flow has no page errors (${errors.join('; ')})`);
 await browser.close();

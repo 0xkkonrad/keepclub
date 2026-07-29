@@ -7,7 +7,7 @@
  * remain delegated to their one canonical readers.
  */
 
-import { parseCourseYaml } from './course-yaml.js';
+import { COURSE_YAML_LIMITS, parseCourseYaml } from './course-yaml.js';
 import { readCourse } from './course.js';
 import { readCourseForRuntime } from './course-runtime.js';
 import { readZip, ZipError } from './unzip.js';
@@ -15,6 +15,7 @@ import { readZip, ZipError } from './unzip.js';
 export const COURSE_PACKAGE_LIMITS = Object.freeze({
   compressedBytes: 250 * 1024 * 1024,
   expandedBytes: 500 * 1024 * 1024,
+  manifestBytes: COURSE_YAML_LIMITS.inputBytes,
   files: 2500,
   expansionRatio: 100,
   imageBytes: 25 * 1024 * 1024,
@@ -47,8 +48,18 @@ function diagnostic(code, severity, path, message, correction) {
 }
 
 function collector(seed = []) {
-  const diagnostics = seed.slice(0, MAX_DIAGNOSTICS);
+  const diagnostics = seed.slice(0, MAX_DIAGNOSTICS + 1);
   let truncated = seed.length > MAX_DIAGNOSTICS;
+  if (truncated && !diagnostics.some((entry) => entry.code === 'document.too_many_errors')) {
+    diagnostics.length = MAX_DIAGNOSTICS;
+    diagnostics.push(diagnostic(
+      'document.too_many_errors',
+      'error',
+      '',
+      'More than 100 validation errors exist.',
+      'Fix the reported set, then validate the course again.',
+    ));
+  }
   const add = (item) => {
     if (diagnostics.some((entry) => entry.code === 'document.too_many_errors')) return;
     if (diagnostics.length < MAX_DIAGNOSTICS) {
@@ -93,6 +104,10 @@ function extension(path) {
   return dot < 0 ? '' : name.slice(dot + 1).toLowerCase();
 }
 
+function asciiFold(path) {
+  return String(path).replace(/[A-Z]/g, (letter) => letter.toLowerCase());
+}
+
 /**
  * Return the normalized package path or null. Equality with NFC is required:
  * silently changing the spelling here would make receipts disagree with the
@@ -103,7 +118,7 @@ export function normalizeCourseAssetPath(value) {
   let normalized;
   try { normalized = value.normalize('NFC'); } catch { return null; }
   if (normalized !== value || [...normalized].length > 240
-      || normalized.startsWith('/') || /^[A-Za-z]:/.test(normalized)
+      || normalized.startsWith('/') || /^[A-Za-z][A-Za-z0-9+.-]*:/.test(normalized)
       || normalized.includes('\\') || /[\u0000-\u001f\u007f]/.test(normalized)
       || normalized.includes('//')) return null;
   const pieces = normalized.split('/');
@@ -187,8 +202,12 @@ export function sniffCourseAsset(bytes) {
     return { mediaType: 'audio', mimeType: 'audio/ogg', extension: 'ogg' };
   }
   if (ascii(bytes, 0, 3) === 'ID3'
-      || (bytes.length >= 2 && bytes[0] === 0xff && (bytes[1] & 0xe0) === 0xe0)) {
+      || (bytes.length >= 3 && bytes[0] === 0xff
+        && (bytes[1] & 0xe0) === 0xe0 && (bytes[1] & 0x06) !== 0)) {
     return { mediaType: 'audio', mimeType: 'audio/mpeg', extension: 'mp3' };
+  }
+  if (bytes.length >= 7 && bytes[0] === 0xff && (bytes[1] & 0xf6) === 0xf0) {
+    return { mediaType: 'audio', mimeType: 'audio/aac', extension: 'aac' };
   }
   if (starts(bytes, [0x1a, 0x45, 0xdf, 0xa3])) {
     return { mediaType: 'video', mimeType: 'video/webm', extension: 'webm' };
@@ -272,7 +291,7 @@ function packageStructure(zip, archiveBytes, out) {
         `Archive member "${entry.name}" is not a safe normalized relative path.`,
         'Rebuild the archive with NFC relative paths and no traversal or backslashes.');
     } else {
-      const key = safe.toLocaleLowerCase('en-US');
+      const key = asciiFold(safe);
       if (folded.has(key)) {
         out.error('package.duplicate_path', path,
           `Archive paths "${folded.get(key)}" and "${entry.name}" collide on common filesystems.`,
@@ -288,7 +307,8 @@ function packageStructure(zip, archiveBytes, out) {
         'Rebuild the archive with a standards-compliant ZIP tool.');
       continue;
     }
-    if ((entry.flags & 0x1) || ![0, 8].includes(entry.method)) {
+    if ((entry.flags & 0x1) || ![0, 8].includes(entry.method)
+        || entry.localMethod !== entry.method) {
       out.error('package.unsupported_feature', path,
         `Archive member "${entry.name}" uses encryption or an unsupported compression method.`,
         'Rebuild it as an unencrypted ZIP using stored or deflate compression.');
@@ -324,9 +344,11 @@ function packageStructure(zip, archiveBytes, out) {
 async function validateAssets(course, zip, out) {
   const references = allAssetReferences(course);
   const byFoldedPath = new Map();
+  const entryByName = new Map();
+  for (const entry of zip?.directory || []) entryByName.set(entry.name, entry);
   for (const name of zip?.names || []) {
     const safe = normalizeCourseAssetPath(name);
-    if (safe) byFoldedPath.set(safe.toLocaleLowerCase('en-US'), name);
+    if (safe) byFoldedPath.set(asciiFold(safe), name);
   }
   const media = [];
   const mediaIndexBySource = {};
@@ -348,13 +370,20 @@ async function validateAssets(course, zip, out) {
       continue;
     }
     const expectedType = [...reference.expectedTypes][0];
-    const actualName = byFoldedPath.get(safe.toLocaleLowerCase('en-US'));
+    const actualName = byFoldedPath.get(asciiFold(safe));
     if (!zip || !actualName) {
       out.error('media.missing', path,
         `The package does not contain declared asset "${safe}".`,
         zip
           ? 'Add the file at that exact path or remove the reference.'
           : 'Bundle media in a .keep archive; plain .keep.yml imports are text-only.');
+      continue;
+    }
+    const declaredSize = entryByName.get(actualName)?.size;
+    if (Number.isSafeInteger(declaredSize) && declaredSize > fileLimit(expectedType)) {
+      out.error('media.too_large', path,
+        `Asset "${safe}" exceeds the ${expectedType} file-size limit.`,
+        'Compress, transcode, split, or remove the asset.');
       continue;
     }
     let bytes;
@@ -409,9 +438,11 @@ async function validateAssets(course, zip, out) {
 
   if (zip) {
     const declared = new Set([MANIFEST,
-      ...[...references.keys()].map((value) => normalizeCourseAssetPath(value)).filter(Boolean)]);
+      ...[...references.keys()].map((value) => normalizeCourseAssetPath(value))
+        .filter(Boolean)].map(asciiFold));
     for (const name of zip.names) {
-      if (!declared.has(name)) {
+      const safe = normalizeCourseAssetPath(name);
+      if (!safe || !declared.has(asciiFold(safe))) {
         out.warning('media.unreferenced_asset', '$.package',
           `Archive member "${name}" is not declared by this course.`,
           'Remove it or reference it from a card or theme field.');
@@ -456,19 +487,25 @@ export async function readCourseFile(input, options = {}) {
     return resultWithFailure(out, sourceKind);
   }
 
-  let bytes;
-  try {
-    bytes = await bytesOf(input);
-  } catch {
-    out.error('document.invalid_yaml', '$',
-      'The selected course file could not be read.',
-      'Choose an intact UTF-8 .keep.yml file or .keep archive.');
-    return resultWithFailure(out, sourceKind);
-  }
-
   let zip = null;
-  let yaml = bytes;
+  let yaml = input;
   if (sourceKind === 'keep-package') {
+    if (typeof Blob !== 'undefined' && input instanceof Blob
+        && input.size > COURSE_PACKAGE_LIMITS.compressedBytes) {
+      out.error('package.too_large', '$',
+        'The .keep archive is larger than 250 MiB.',
+        'Reduce or split its bundled media.');
+      return resultWithFailure(out, sourceKind);
+    }
+    let bytes;
+    try {
+      bytes = await bytesOf(input);
+    } catch {
+      out.error('document.invalid_yaml', '$',
+        'The selected course file could not be read.',
+        'Choose an intact UTF-8 .keep.yml file or .keep archive.');
+      return resultWithFailure(out, sourceKind);
+    }
     if (bytes.length > COURSE_PACKAGE_LIMITS.compressedBytes) {
       out.error('package.too_large', '$',
         'The .keep archive is larger than 250 MiB.',
@@ -491,6 +528,13 @@ export async function readCourseFile(input, options = {}) {
         'Put exactly one course.keep.yml at the root of the .keep ZIP.');
     }
     if (out.diagnostics.some((item) => item.severity === 'error')) {
+      return resultWithFailure(out, sourceKind);
+    }
+    const manifestEntry = zip.directory.find((entry) => entry.name === MANIFEST);
+    if (manifestEntry?.size > COURSE_PACKAGE_LIMITS.manifestBytes) {
+      out.error('limit.input_bytes', '$',
+        'course.keep.yml is larger than 5 MiB.',
+        'Split the course or reduce its text before importing it.');
       return resultWithFailure(out, sourceKind);
     }
     try {
