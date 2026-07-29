@@ -5,18 +5,23 @@ suggested `correction`, and `docsUrl`. When the YAML parser can locate the
 problem, it also reports a one-based `line` and `column`. Wording may be
 clarified, but the meaning of a code will not change.
 
+This file covers the format-2 reader only. Diagnostics from the legacy
+format-1 compatibility reader (codes such as `card.missing_front` or
+`section.count_mismatch`) are intentionally not itemized here; they all link
+to the Legacy compatibility section of the built error reference.
+
 ## Parse and shape errors
 
 | Code | Meaning / correction |
 | --- | --- |
-| `document.invalid_yaml` | The document could not be parsed as YAML 1.2. Fix the syntax at the reported location. |
+| `document.invalid_yaml` | The document could not be parsed as YAML 1.2, or the selected file or its `.keep` archive could not be read at all. Fix the syntax at the reported location, or rebuild the archive. |
 | `document.unsupported_file_type` | This file is not `.keep.yml`, `.keep`, or another supported import format. Choose a supported course file. |
 | `document.multiple_documents` | The file contains more than one YAML document. Keep exactly one. |
 | `document.duplicate_key` | A mapping contains the same key twice. Remove one of the entries. |
 | `document.disallowed_tag` | The file uses a custom YAML tag. Use plain YAML data instead. |
 | `document.disallowed_anchor` | The file uses an anchor, alias, or merge key. Write the value out in full. |
 | `document.unsupported_yaml_version` | A `%YAML` directive selects a version other than 1.2. Remove the directive or select 1.2. |
-| `document.non_plain_value` | A mapping key or number cannot be stored safely as course data. Use string keys and finite, safe numbers. |
+| `document.non_plain_value` | A mapping key, number, or other scalar value cannot be stored safely as course data. Use string keys and plain string, number, boolean, or null values. |
 | `document.too_many_errors` | The parser found more than 100 errors. Fix the reported errors, then validate again. |
 | `limit.input_bytes` | The UTF-8 manifest is larger than 5 MiB. Split the course or reduce its size. |
 | `limit.nesting` | The YAML is nested more than 24 levels deep. Flatten the data. |
@@ -28,17 +33,17 @@ clarified, but the meaning of a code will not change.
 | `markdown.too_complex` | A Markdown field has more than 100,000 syntax nodes. Split or simplify it. |
 | `markdown.unsupported_construct` | This Markdown is not part of the format-2 subset. Replace it with one of the supported constructs. |
 | `markdown.unsafe_link` | A link does not use HTTPS or mailto. Fix the URL or leave the label as plain text. |
-| `markdown.empty` | A required Markdown field has no visible content. Add content, or omit the field if it is optional. |
+| `markdown.empty` | A required Markdown field has no visible content. Add content, or omit the field if it is optional. Reserved: the standard import path does not currently emit this code. |
 | `markdown.too_many_errors` | The parser found more than 100 Markdown errors. Fix the reported errors, then validate again. |
 | `course.not_object` | The document root is not a mapping. Make it a course mapping. |
 | `course.unsupported_schema_version` | `schemaVersion` is missing or is not `2`. Set it to the documented major version. |
 | `course.missing_id` | `courseId` is missing. Add a stable ID that you control. |
 | `course.invalid_id` | An ID is blank or does not follow the lowercase stable-ID format. Correct it; importers must not generate one automatically. |
-| `course.cards_required` | `cards` is missing, empty, or not a list. Add at least one card. |
+| `course.cards_required` | `cards` is missing, empty, not a list, or has more than 50,000 entries. Add at least one card, or split a course above the limit. |
 | `card.missing_id` | A card has no `cardId`. Give it a stable ID before importing. |
 | `field.unknown` | An object contains an unknown field. Use a documented field or a namespaced extension. |
-| `field.invalid_type` | A value has the wrong data type. Use the type listed in the field reference. |
-| `field.empty` | An optional value is present but empty. Add meaningful content or remove the field. |
+| `field.invalid_type` | A value has the wrong data type, or a list or object exceeds its documented size limit. Use the type listed in the field reference and stay within the limits. |
+| `field.empty` | A value is missing or blank where non-blank content is required. Add meaningful content, or remove the field if it is optional. |
 | `extension.invalid_namespace` | An extension key does not use a reverse-domain namespace. Use a name such as `org.example.tool`. |
 
 ## Semantic and asset errors
@@ -56,16 +61,16 @@ clarified, but the meaning of a code will not change.
 | `group.duplicate_section` | A section appears more than once across the groups. Keep one membership. |
 | `group.ungrouped_section` | A declared section is missing from the groups. Put every section in exactly one group. |
 | `media.invalid_path` | An asset path is unsafe or ambiguous. Use one normalized relative path. |
-| `media.missing` | A declared asset is not in the package. Add it or remove the reference. |
+| `media.missing` | A declared asset is not in the package, or could not be safely read from it. Add or replace the file, or remove the reference. |
 | `media.type_mismatch` | The declared type, MIME type, extension, and file contents do not agree. Correct the declaration or replace the file. |
 | `media.unsupported` | The media container is not supported in a `.keep` package. Transcode the file. |
-| `media.too_many` | A card or course has more media than the documented limit. Split it or remove some media. |
+| `media.too_many` | A card, course, or single media item (for example its caption tracks) has more attached media than the documented limit. Split it or remove some media. |
 | `media.too_large` | A media file is larger than its type allows. Compress, transcode, or split it. |
 | `package.root_manifest_missing` | The `.keep` archive has no root `course.keep.yml`. Add that file at the archive root. |
 | `package.duplicate_path` | Two archive entries resolve to the same path. Rename one. |
 | `package.unsafe_path` | An archive path is absolute, traverses directories, uses backslashes or control characters, or is otherwise unsafe. Rebuild the archive with safe relative paths. |
 | `package.too_many_files` | The archive contains more than 2,500 files. Reduce the number of files. |
-| `package.too_large` | The archive is too large when compressed or expanded. Reduce its size. |
+| `package.too_large` | The archive is too large when compressed or expanded, or a member declares an impossible size. Reduce its size or rebuild it with a standard ZIP tool. |
 | `package.expansion_ratio` | A file or archive expands by more than 100:1. Rebuild it without extreme compression. |
 | `package.unsupported_feature` | An entry is encrypted or uses an unsupported ZIP method. Rebuild it with unencrypted stored or deflated entries. |
 | `publication.license_required` | A course cannot be published without a license. Add one. |

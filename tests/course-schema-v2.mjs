@@ -35,7 +35,7 @@ for (const name of fs.readdirSync(validDir).filter((name) => name.endsWith('.jso
       && result.contentRepresentation === 'authored-commonmark',
   `${name}: v2 text is marked authored CommonMark, not runtime HTML`);
   ok(result.diagnostics.every((diagnostic) =>
-    diagnostic.docsUrl === 'https://docs.keepclub.app/reference/errors/#'
+    diagnostic.docsUrl === 'https://keepclub.app/docs/reference/errors/#'
       + diagnostic.code.replace(/[._]/g, '-')),
   `${name}: every diagnostic uses docsUrl`);
   ok(JSON.stringify(source) === before, `${name}: validation does not mutate its input`);

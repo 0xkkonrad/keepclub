@@ -13,11 +13,13 @@ or production.
   `https://keepclub.app/docs/`.
 - The immutable schema is deployed at
   `https://keepclub.app/docs/schema/course-v2.schema.json`.
-- Runtime diagnostic links use
-  `https://docs.keepclub.app/reference/errors/#…`, and schema v2's historical
-  `$id` is `https://docs.keepclub.app/schema/course-v2.schema.json`. The vanity
-  host therefore needs a path-preserving HTTPS redirect to the canonical
-  `/docs/` tree.
+- Runtime diagnostic links use the canonical
+  `https://keepclub.app/docs/reference/errors/#…` (they pointed at the vanity
+  host until 2026-07-29, when it still did not resolve). Schema v2's historical
+  `$id` remains `https://docs.keepclub.app/schema/course-v2.schema.json` — it
+  is an identifier, not a fetch URL. The vanity host is therefore optional
+  polish: if created, it needs a path-preserving HTTPS redirect to the
+  canonical `/docs/` tree; nothing user-facing breaks while it is absent.
 
 This is deliberately not a second documentation repository or an independent
 docs deployment. `scripts/deploy-to-keepclub.sh` copies the whole `web/` tree
