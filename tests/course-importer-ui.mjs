@@ -251,6 +251,8 @@ await page.waitForSelector('.imp-diags');
 const refusal = (await page.innerText('.imp-inner')).replace(/\s+/g, ' ');
 ok(/card\.duplicate_id/.test(refusal) && /Nothing was saved/.test(refusal),
   'schema errors are actionable and explicitly atomic');
+ok(await page.getAttribute('.imp-docs', 'href') === './docs/reference/errors/',
+  'public format errors retain the public diagnostic reference');
 ok(await page.locator('.imp-err[role="alert"]').count() === 1
     && await page.locator('[data-again]').evaluate((node) => node === document.activeElement),
   'an import failure is announced and moves keyboard focus to recovery');

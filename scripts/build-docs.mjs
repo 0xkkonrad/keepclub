@@ -107,6 +107,7 @@ ${group.entries.map(({ code, meaning }) => `          <div id="${anchor(code)}">
       <a href="../../schema/course-v2.schema.json">JSON Schema ↧</a>
       <strong>On this page</strong>
       ${navigation}
+        <a href="#legacy-compatibility">Legacy compatibility</a>
     </nav>
     <main id="content">
       <p class="eyebrow">Reference · stable API</p>
@@ -120,9 +121,28 @@ ${group.entries.map(({ code, meaning }) => `          <div id="${anchor(code)}">
           preview.</p>
       </div>
 ${sections}
+      <section id="legacy-compatibility">
+        <h2>Legacy compatibility</h2>
+        <div class="callout warning">
+          <p><strong>This is not a public authoring format.</strong> Legacy
+            diagnostics come from the internal reader that keeps bundled
+            courses and existing Anki imports working. Do not edit compact
+            legacy fields to make a course.</p>
+        </div>
+        <p>Use the diagnostic’s own code, path, message, and correction as the
+          specific account of what failed. For an Anki import, export a fresh
+          <code>.apkg</code> or <code>.colpkg</code> from a current Anki version
+          and try again. For a bundled course or a deck that used to open,
+          reload once; if it still fails, report the code and path because the
+          shipped/cache copy or stored import may be damaged.</p>
+        <p>Course creators should use the documented
+          <a href="../../#quick-start">format-2 <code>.keep.yml</code> and
+          <code>.keep</code> contract</a>.</p>
+      </section>
       <footer class="footer">
-        <p>Generated from <code>schema/diagnostics.md</code> in the keep club
-          source tree. Edit the contract, then rebuild this reference.</p>
+        <p>The format-2 tables are generated from
+          <code>schema/diagnostics.md</code> in the keep club source tree.
+          Edit the contract, then rebuild this reference.</p>
       </footer>
     </main>
   </div>

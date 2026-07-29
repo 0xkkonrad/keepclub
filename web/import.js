@@ -238,14 +238,17 @@ export function openImporter() {
 
   function failDiagnostics(result) {
     const errors = result.diagnostics.filter((item) => item.severity === 'error').slice(0, 8);
+    const reference = result.sourceFormat === 'legacy-v1'
+      ? './docs/reference/errors/#legacy-compatibility'
+      : './docs/reference/errors/';
     body.innerHTML = `<div class="imp-err" role="alert"><b>this course needs a fix</b>
       <p>Nothing was saved. Correct the source, then try it again.</p>
       <ol class="imp-diags">${errors.map((item) => `<li><code>${esc(item.code)}</code>
         <span>${esc(item.message)}</span>
         ${item.line ? `<small>line ${n(item.line)}, column ${n(item.column)}</small>` : ''}
-        <small>${esc(item.correction)}</small></li>`).join('')}</ol></div>
+      <small>${esc(item.correction)}</small></li>`).join('')}</ol></div>
       <div class="imp-acts"><button type="button" class="go" data-again>try another file</button>
-      <a class="imp-docs" href="./docs/reference/errors/">open the error reference</a></div>`;
+      <a class="imp-docs" href="${reference}">open the error reference</a></div>`;
     const again = body.querySelector('[data-again]');
     again.addEventListener('click', pick);
     again.focus();

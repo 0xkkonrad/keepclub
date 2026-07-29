@@ -17,7 +17,8 @@ const SOURCE_UNKNOWN = 'unknown';
 const SOURCE_UNSUPPORTED = 'unsupported';
 const DIAGNOSTIC_LIMIT = 100;
 const ITEM_LIMIT = 100000;
-const ERROR_DOCS = 'https://docs.keepclub.app/reference/errors/#';
+const ERROR_DOCS =
+  'https://docs.keepclub.app/reference/errors/#legacy-compatibility';
 
 const TOP_LEVEL_FIELDS = new Set([
   'format', 'name', 'course', 'sections', 'groups', 'cards', 'build', 'ds',
@@ -92,10 +93,6 @@ function safeMessage(error) {
   }
 }
 
-function docsLink(code) {
-  return ERROR_DOCS + code.replace(/[._]/g, '-');
-}
-
 function collector() {
   const diagnostics = [];
   const add = (code, severity, path, message, correction) => {
@@ -106,7 +103,7 @@ function collector() {
       path,
       message,
       correction,
-      docsUrl: docsLink(code),
+      docsUrl: ERROR_DOCS,
     });
   };
   return {

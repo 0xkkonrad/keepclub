@@ -5,6 +5,7 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { readCourse } from '../web/lib/course.js';
 import { parseCourseYaml } from '../web/lib/course-yaml.js';
+import { normalizeLegacyCourse } from '../web/lib/legacy-course.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const WEB = path.join(ROOT, 'web');
@@ -88,6 +89,23 @@ for (const code of diagnosticCodes) {
   const id = code.replace(/[._]/g, '-');
   ok(errors.includes(`id="${id}"`), `error reference owns #${id}`);
 }
+ok(errors.includes('id="legacy-compatibility"')
+    && errors.includes('This is not a public authoring format.')
+    && errors.includes('format-2 <code>.keep.yml</code>'),
+  'the error reference separates legacy troubleshooting from the public authoring contract');
+
+const legacyFailure = normalizeLegacyCourse({
+  format: 1,
+  sections: [],
+  cards: [],
+});
+const legacyDiagnostic = legacyFailure.diagnostics.find((item) => item.severity === 'error');
+const legacyDocsUrl = new URL(legacyDiagnostic.docsUrl);
+ok(legacyDocsUrl.hostname === 'docs.keepclub.app'
+    && legacyDocsUrl.pathname === '/reference/errors/'
+    && legacyDocsUrl.hash === '#legacy-compatibility'
+    && errors.includes(`id="${legacyDocsUrl.hash.slice(1)}"`),
+  'a generated legacy diagnostic resolves to the deployed compatibility anchor');
 
 function idsOf(html) {
   return new Set([...html.matchAll(/\bid="([^"]+)"/g)].map((match) => match[1]));
