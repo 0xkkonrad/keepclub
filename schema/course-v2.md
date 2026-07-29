@@ -164,6 +164,8 @@ constants; reducing one requires compatibility analysis.
 | `course.keep.yml` UTF-8 bytes | 5 MiB |
 | YAML nesting depth | 24 |
 | any YAML scalar | 1 MiB |
+| entries in any YAML list or mapping | 50,000 |
+| YAML syntax nodes | 500,000 |
 | `front`, `back`, or Markdown field | 256 KiB |
 | cards | 50,000 |
 | sections | 1,000 |

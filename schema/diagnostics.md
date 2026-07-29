@@ -14,9 +14,14 @@ API: wording may improve, codes do not change meaning.
 | `document.duplicate_key` | A mapping repeats a key; remove one rather than relying on parser precedence. |
 | `document.disallowed_tag` | A custom YAML tag was used; use plain YAML data. |
 | `document.disallowed_anchor` | An anchor, alias, or merge key was used; write the value explicitly. |
+| `document.unsupported_yaml_version` | A `%YAML` directive selects a version other than 1.2; remove it or select 1.2. |
+| `document.non_plain_value` | A mapping key or numeric value cannot be represented safely as plain course data; use string keys and finite, safe numbers. |
+| `document.too_many_errors` | More than 100 parser/safety errors exist; fix the reported set, then validate again. |
 | `limit.input_bytes` | The UTF-8 manifest exceeds 5 MiB; split or reduce the course. |
 | `limit.nesting` | YAML nesting exceeds 24 levels; flatten the data. |
 | `limit.scalar_length` | A scalar exceeds 1 MiB; split or reduce the content. |
+| `limit.collection_items` | A list or mapping exceeds 50,000 entries; split or reduce it. |
+| `limit.node_count` | The document exceeds 500,000 syntax nodes; split or simplify it. |
 | `course.not_object` | The root is not a mapping; make the document a course mapping. |
 | `course.unsupported_schema_version` | `schemaVersion` is absent or not `2`; use the documented major. |
 | `course.missing_id` | `courseId` is absent; add a stable creator-owned ID. |

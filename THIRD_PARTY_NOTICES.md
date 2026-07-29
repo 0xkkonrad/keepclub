@@ -10,6 +10,14 @@ licenses or copyrights and are not relicensed by the keep club license.
 under the MIT License. Its copyright and complete license notice are embedded
 at the top of that file.
 
+## yaml
+
+`web/lib/vendor/yaml-2.9.0.min.js` contains yaml 2.9.0 by Eemeli Aro,
+distributed under the ISC License. The complete license notice is in
+[`web/lib/vendor/yaml-2.9.0.LICENSE`](web/lib/vendor/yaml-2.9.0.LICENSE).
+Build provenance is documented in
+[`schema/yaml-parser-decision.md`](schema/yaml-parser-decision.md).
+
 ## Fonts
 
 The bundled DM Mono and Architects Daughter font files are distributed under
