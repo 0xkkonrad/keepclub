@@ -171,6 +171,13 @@ check(schema.properties.groups.maxItems === limits.groups, 'group limit agrees w
 check(schema.$defs.card.properties.tags.maxItems === limits.tagsPerCard, 'tag limit agrees with fixture');
 check(schema.$defs.card.properties.media.maxItems === limits.mediaPerCard, 'per-card media limit agrees with fixture');
 check(schema.$defs.markdown.maxLength === limits.markdownCodePoints, 'Markdown limit agrees with fixture');
+for (const source of [
+  'https:remote.png', 'data:image.png', 'mailto:asset.png',
+  '../up.png', 'a//b.png', 'a\\b.png', 'a/%2e%2e/b.png',
+]) {
+  check(validate(source, schema.$defs.assetPath).length > 0,
+    `asset-path schema rejects ${source}`);
+}
 
 if (failures.length) {
   process.stderr.write(`\n${failures.length} course schema contract failure(s):\n- ${failures.join('\n- ')}\n`);
