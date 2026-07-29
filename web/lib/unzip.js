@@ -88,16 +88,27 @@ function findDirectory(bytes, dv) {
 }
 
 export class Zip {
-  constructor(bytes, entries) {
+  constructor(bytes, entries, entryRecords = [], duplicateNames = []) {
     this.bytes = bytes;
     /** @type {Map<string, object>} */
     this.entries = entries;
+    /* The Anki reader only needs the last directory entry for a name. Public
+     * course packages need a little more truth: duplicate entries and declared
+     * compressed/expanded sizes must be rejected before any member is read.
+     * Keep that metadata read-only-by-convention and do not make callers reach
+     * into the parser's Map implementation. */
+    this.entryRecords = entryRecords;
+    this.duplicateNames = duplicateNames;
     this.readSizes = new Map();
     this.totalRead = 0;
   }
 
   has(n) { return this.entries.has(n); }
   get names() { return [...this.entries.keys()]; }
+  get directory() {
+    return this.entryRecords.map((entry) => ({ ...entry }));
+  }
+  get duplicates() { return [...this.duplicateNames]; }
 
   /** The member's bytes, decompressed. Throws rather than returning short. */
   async read(n) {
@@ -187,6 +198,8 @@ export function readZip(bytes) {
   }
 
   const entries = new Map();
+  const entryRecords = [];
+  const duplicateNames = [];
   let at = start;
   for (let i = 0; i < count; i++) {
     if (at + 46 > bytes.length || dv.getUint32(at, true) !== CEN) {
@@ -208,8 +221,12 @@ export function readZip(bytes) {
     }
     // Directories are members too, and an .apkg has none, but a zip made by
     // hand might; they read as empty and would only confuse the caller.
-    if (!n.endsWith('/')) entries.set(n, e);
+    if (!n.endsWith('/')) {
+      if (entries.has(n)) duplicateNames.push(n);
+      entries.set(n, e);
+      entryRecords.push({ name: n, size: e.size, compressedSize: e.csize, method: e.method });
+    }
     at += 46 + nameLen + extraLen + commentLen;
   }
-  return new Zip(bytes, entries);
+  return new Zip(bytes, entries, entryRecords, duplicateNames);
 }
