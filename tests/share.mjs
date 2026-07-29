@@ -76,7 +76,7 @@ const builtIn = {
 const card = Share.normalizeModel(builtIn);
 const illustratedSvg = Share.renderSvg(builtIn);
 ok(card.course.id === 'day-skipper' && card.course.accent === '#12abcd'
-    && card.course.art.d === 'M0 0L10 10Z' && card.tower.d === tower,
+    && card.course.art.path === 'M0 0L10 10Z' && card.tower.path === tower,
 'validated tower and built-in course art remain available to the renderer');
 ok(illustratedSvg.includes('Day Skipper')
     && illustratedSvg.includes('184')
@@ -109,8 +109,8 @@ const productionArt = Share.normalizeModel({
 });
 const productionSvg = Share.renderSvg(productionArt);
 ok(productionTower.length > 1000 && daySkipper.shelfPath.length > 1000
-    && productionArt.tower.d === productionTower
-    && productionArt.course.art.d === daySkipper.shelfPath,
+    && productionArt.tower.path === productionTower
+    && productionArt.course.art.path === daySkipper.shelfPath,
 'the production tower and Day Skipper emblem pass the restricted path grammar intact');
 ok(productionSvg.includes(`<path d="${productionTower}" opacity="1"/>`)
     && productionSvg.includes(`<path d="${daySkipper.shelfPath}" opacity="0.18"/>`)

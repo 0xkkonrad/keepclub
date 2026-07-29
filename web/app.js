@@ -1163,8 +1163,8 @@ function showNextUnlock() {
   currentUnlockId = a.id;
   $('#unlock-art').innerHTML = doodle(a.art);
   $('#unlock-key').textContent = 'unlocked';
-  $('#unlock-title').textContent = a.t;
-  $('#unlock-sub').textContent = a.d;
+  $('#unlock-title').textContent = a.title;
+  $('#unlock-sub').textContent = a.description;
   el.classList.remove('away');
   // Same element, second unlock: the entry animation only replays after a reflow.
   el.style.animation = 'none';
@@ -1256,12 +1256,12 @@ function shareModel(moment) {
       mastery: 'course milestone',
       membership: 'club membership',
     })[moment.family] || 'member achievement',
-    title: moment.title || moment.t,
-    body: moment.description || moment.d,
+    title: moment.title,
+    body: moment.description,
     stat: stat.stat,
     statLabel: stat.label,
     accent: COURSE.accent && COURSE.accent.light,
-    tower: { d: pathOf(MUNIN_DOODLE, 'tower'), viewBox: '0 0 32 32' },
+    tower: { path: pathOf(MUNIN_DOODLE, 'tower'), viewBox: '0 0 32 32' },
     // Club totals are not owned by whichever course happened to be open when
     // Share was tapped. Only a course-scoped moment earns a course deep link.
     course: imported || moment.scope !== 'course' ? null : {
@@ -1270,7 +1270,7 @@ function shareModel(moment) {
       title: COURSE.title,
       accent: COURSE.accent && COURSE.accent.light,
       art: {
-        d: pathOf(DOODLE, artName) || pathOf(MUNIN_DOODLE, artName),
+        path: pathOf(DOODLE, artName) || pathOf(MUNIN_DOODLE, artName),
         viewBox: '0 0 32 32',
       },
     },
@@ -1336,9 +1336,9 @@ function renderAch() {
     const on = unlocked[a.id];
     const when = on ? ` · ${longDate(dayKey(on))}` : '';
     return `<li class="${on ? '' : 'locked'}">${doodle(a.art)}
-      <span class="a-txt"><b>${escapeHtml(a.t)}</b><small>${escapeHtml(a.d)}${escapeHtml(when)}</small></span>
+      <span class="a-txt"><b>${escapeHtml(a.title)}</b><small>${escapeHtml(a.description)}${escapeHtml(when)}</small></span>
       ${on && a.shareable
-        ? `<button class="share-mini" data-share-ach="${escapeHtml(a.id)}" aria-label="Share ${escapeHtml(a.t)}">Share</button>`
+        ? `<button class="share-mini" data-share-ach="${escapeHtml(a.id)}" aria-label="Share ${escapeHtml(a.title)}">Share</button>`
         : ''}</li>`;
   }).join('');
   const repeatableRows = [...progressMoments.values()].map((moment) => `
@@ -1524,6 +1524,7 @@ function persistStudySession() {
     reel: Array.isArray(session.reel) ? session.reel.slice() : [],
     reelCards: Array.isArray(session.reelCards) ? session.reelCards.slice() : [],
     ahead: !!session.ahead,
+    sectionKeys: Array.isArray(session.sectionKeys) ? session.sectionKeys.slice() : [],
   };
   try {
     sessionStorage.setItem(ACTIVE_STUDY_KEY, JSON.stringify({
@@ -1589,6 +1590,12 @@ function resumableStudySession() {
     reel: strings(raw.reel),
     reelCards: ids(raw.reelCards),
     ahead: !!raw.ahead,
+    sectionKeys: Array.isArray(raw.sectionKeys)
+      ? [...new Set(raw.sectionKeys.filter((key) => sectionOf.has(key)))]
+      : [],
+    // Unlock records shown pre-refresh are already in state.ach; the finish
+    // screen simply cannot replay them as this session's hero after a reload.
+    newAchievements: [],
   };
 }
 
@@ -1601,6 +1608,20 @@ function restoreStudySession() {
   }
   const wasRevealed = restored.revealed;
   session = restored;
+  // The pre-refresh club snapshot is gone with the old page. Re-baseline from
+  // the current blobs: answers already recorded before the reload now count as
+  // "before this session", so a moment can only be missed, never invented.
+  const resumedClub = clubFacts();
+  const resumedContext = AchievementEngine.contextFromDeck({
+    at: Date.now(),
+    state,
+    deck: DECK,
+    course: COURSE,
+    session,
+  });
+  session.initialBestClean = resumedClub.personalBest;
+  session.previousClubLastDay = resumedClub.lastDay;
+  session.initialKeptSections = resumedContext.keptSectionKeys.slice();
   undoStack = [];
   settleDock(false);
   go('study');
@@ -2383,9 +2404,11 @@ function finish() {
     const repeatable = AchievementEngine.sessionMoments({
       at,
       course: COURSE,
+      // `context` is already normalised, so it carries previousPersonalBest: 0;
+      // only the canonical key can override it — the previousBestClean alias
+      // loses the `??` race against that stamped zero.
       context: Object.assign({}, context, {
-        previousBestClean: session.initialBestClean,
-        bestClean: Math.max(n(state.bestClean), n(session.maxClean)),
+        previousPersonalBest: session.initialBestClean,
         newlyKeptSections,
       }),
     });

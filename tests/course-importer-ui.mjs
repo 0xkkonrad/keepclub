@@ -1,7 +1,7 @@
 /* Public course import/update flow as a creator and learner meet it. */
 import { chromium } from 'playwright-core';
 
-const URL_ = process.env.MUNIN_URL || 'http://127.0.0.1:8777/keepclub/web/';
+const URL_ = process.env.MUNIN_URL || 'http://127.0.0.1:8777/projects/keepclub/web/';
 const EXE = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
   || chromium.executablePath();
 const passed = [];

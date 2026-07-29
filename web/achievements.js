@@ -61,11 +61,7 @@
       sharePrompt: share === SHARE.PROMPT,
       priority: 0,
       surfaces: share === SHARE.PRIVATE ? SURFACES.QUIET : SURFACES.SHAREABLE,
-    }, spec, {
-      // t/d keep the legacy app vocabulary available during migration.
-      t: spec.title,
-      d: spec.description,
-    }));
+    }, spec));
   }
 
   const DEFINITIONS = Object.freeze([
@@ -416,21 +412,16 @@
     return Object.freeze(DEFINITIONS.map((definition) => {
       const oldOverride = plainObject(legacy[definition.id]) ? legacy[definition.id] : {};
       const newOverride = plainObject(modern[definition.id]) ? modern[definition.id] : {};
-      const title = text(
-        newOverride.title || newOverride.t,
-        text(oldOverride.title || oldOverride.t, definition.title),
-      );
+      const title = text(newOverride.title, text(oldOverride.title, definition.title));
       const description = text(
-        newOverride.description || newOverride.d,
-        text(oldOverride.description || oldOverride.d, definition.description),
+        newOverride.description,
+        text(oldOverride.description, definition.description),
       );
       const art = text(newOverride.art, text(oldOverride.art, definition.art));
       return Object.freeze(Object.assign({}, definition, {
         title,
         description,
         art,
-        t: title,
-        d: description,
       }));
     }));
   }
@@ -564,8 +555,6 @@
       scope: definition.scope,
       title: definition.title,
       description: definition.description,
-      t: definition.title,
-      d: definition.description,
       art: definition.art,
       share: definition.share,
       sharePrompt: definition.share === SHARE.PROMPT,
@@ -996,8 +985,6 @@
       priority: 0,
       surfaces: share === SHARE.PRIVATE ? SURFACES.QUIET : SURFACES.SHAREABLE,
     }, spec, {
-      t: spec.title,
-      d: spec.description,
       payload: Object.freeze(spec.payload || {}),
     }));
   }
@@ -1069,7 +1056,6 @@
       });
       moments.push(Object.freeze(Object.assign({}, moment, {
         description: `a new personal best of ${best} without an again`,
-        d: `a new personal best of ${best} without an again`,
       })));
     }
 

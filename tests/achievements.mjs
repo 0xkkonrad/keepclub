@@ -57,8 +57,8 @@ ok(A.DEFINITIONS.every(Object.isFrozen),
       title: "Ship's log",
       items: {
         'streak-7': {
-          t: 'a week at sea',
-          d: 'seven days under sail',
+          title: 'a week at sea',
+          description: 'seven days under sail',
           art: 'anchor',
           rule: { metric: 'answers', gte: 0 },
           share: 'private',
@@ -85,7 +85,7 @@ ok(A.DEFINITIONS.every(Object.isFrozen),
 
   const privateItem = A.catalog({
     id: 'local-secret',
-    hoard: { items: { 'streak-7': { t: 'Private anatomy phrase', art: 'secret' } } },
+    hoard: { items: { 'streak-7': { title: 'Private anatomy phrase', art: 'secret' } } },
   }).find((definition) => definition.id === 'streak-7');
   ok(privateItem.title === 'a week in the club' && privateItem.art === 'roost',
     'imported metadata cannot leak into achievement presentation');
@@ -598,6 +598,27 @@ ok(A.DEFINITIONS.every(Object.isFrozen),
   ok(moments[0].scope === 'club' && moments[1].scope === 'course'
     && moments[2].scope === 'club',
   'repeatable personal best, section, and recap records carry the correct scope');
+
+  // The shell hands sessionMoments a context that already went through
+  // normaliseContext, where a missing previous best was stamped to 0. The
+  // stamped zero must not defeat a real previous best supplied alongside it.
+  const alreadyNormalised = A.contextFromDeck({
+    at,
+    state: { answers: 40, bestClean: 31 },
+    deck: { sections: [], cards: [] },
+    course: { id: 'day-skipper' },
+    session: { maxClean: 31, good: 31, again: 0 },
+  });
+  const repeatMoments = A.sessionMoments({
+    at,
+    course: { id: 'day-skipper', title: 'Day Skipper' },
+    context: Object.assign({}, alreadyNormalised, {
+      previousPersonalBest: 31,
+      sessionAnswers: 31,
+    }),
+  });
+  ok(!repeatMoments.some((moment) => moment.id.startsWith('personal-best')),
+    'matching a previous best through a pre-normalised context is not a new personal best');
   ok(moments.every(Object.isFrozen),
     'repeatable records and their scope are immutable');
   ok(moments[1].title === 'Rules of the road — kept' && moments[1].art === 'crossing',

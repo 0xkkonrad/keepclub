@@ -43,16 +43,16 @@
   }
 
   function graphic(value, fallbackViewBox) {
-    const source = typeof value === 'string' ? { d: value } : value;
+    const source = typeof value === 'string' ? { path: value } : value;
     if (!source || typeof source !== 'object') return null;
-    const d = String(source.d || source.path || '').trim();
+    const d = String(source.path || '').trim();
     if (!d || d.length > 50000 || !PATH_DATA.test(d)) return null;
 
     const raw = String(source.viewBox || fallbackViewBox || '0 0 32 32').trim();
     const parts = raw.split(/[\s,]+/).map(Number);
     if (parts.length !== 4 || !parts.every(Number.isFinite)
         || parts[2] <= 0 || parts[3] <= 0) return null;
-    return { d, viewBox: parts.join(' ') };
+    return { path: d, viewBox: parts.join(' ') };
   }
 
   function safeCourse(value) {
@@ -164,7 +164,7 @@
       + `viewBox="${xml(item.viewBox)}" preserveAspectRatio="xMidYMid meet" `
       + `fill="none" stroke="${ink}" stroke-width="2" stroke-linecap="round" `
       + `stroke-linejoin="round" overflow="visible" aria-hidden="true">`
-      + `<path d="${xml(item.d)}" opacity="${opacity}"/></svg>`;
+      + `<path d="${xml(item.path)}" opacity="${opacity}"/></svg>`;
   }
 
   /**
