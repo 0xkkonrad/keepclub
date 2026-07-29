@@ -37,7 +37,7 @@ function addDiagnostics(target, additions) {
  *
  * @param {unknown} input already-parsed JSON/YAML data
  * @param {{courseId?: string}} [options] legacy identity context
- * @returns {Promise<ReturnType<readCourse>>}
+ * @returns {Promise<ReturnType<typeof readCourse>>}
  */
 export async function readCourseForRuntime(input, options = {}) {
   const result = readCourse(input, options);
