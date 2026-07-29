@@ -74,6 +74,8 @@ function doodle(name, cls, style) {
 }
 
 let DECK = null;                 // normalized runtime course
+let COURSE_MEDIA = null;         // lazy descriptive media renderer
+let RUNTIME_SOURCE_FORMAT = 'legacy-v1';
 let FIGURES = null;              // figures.json — the labelled doodles
 let byId = new Map();
 let sectionOf = new Map();       // section id -> {sectionId, title, cardCount}
@@ -897,22 +899,17 @@ function escAttr(s) {
   return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 }
 
-/** Descriptive attachments for one authored side of a card.
- *
- * Legacy built-in diagrams are normalized into this same public media shape.
- * Imported cards keep embedded media in their HTML and therefore have no
- * attachment here. Keeping this lookup in one place prevents the old `m`/`d`
- * aliases from leaking back into runtime consumers. */
+/** Descriptive attachments for one authored side of a card. */
 function mediaForSide(card, side) {
-  return card && Array.isArray(card.media)
-    ? card.media.filter((item) => item && item.side === side
-      && /^(image|audio|video)$/.test(item.mediaType)
-      && typeof item.source === 'string' && item.source.length)
-    : [];
+  return COURSE_MEDIA ? COURSE_MEDIA.mediaForSide(card, side) : [];
 }
 
+/** The legacy built-in diagram continues through its established plate. */
 function backImage(card) {
-  return mediaForSide(card, 'back').find((item) => item.mediaType === 'image') || null;
+  return RUNTIME_SOURCE_FORMAT !== 'course-v2' && card && Array.isArray(card.media)
+    ? card.media.find((item) => item && item.side === 'back'
+      && item.mediaType === 'image' && typeof item.source === 'string')
+    : null;
 }
 
 /** Whether this card has a second side to reveal.
@@ -934,55 +931,23 @@ function courseMediaUrl(item) {
   return COURSE.base + item.source.split('/').map(encodeURIComponent).join('/');
 }
 
-function renderSideMedia(card, side, root, options = {}) {
-  if (!root) return;
-  root.replaceChildren();
-  for (const item of mediaForSide(card, side)) {
-    if (item === options.skip) continue;
-    const figure = document.createElement('figure');
-    figure.className = 'side-media-item';
-
-    if (item.mediaType === 'image') {
-      const button = document.createElement('button');
-      button.type = 'button';
-      button.className = 'side-media-image';
-      const image = document.createElement('img');
-      image.src = courseMediaUrl(item);
-      image.alt = item.decorative ? '' : str(item.alternativeText,
-        `Image for ${stripTags(card.front || 'this card')}`);
-      if (item.width && item.height) {
-        image.width = item.width;
-        image.height = item.height;
-      }
-      if (options.lazy) image.loading = 'lazy';
-      button.setAttribute('aria-label', `Enlarge image: ${image.alt || 'decorative image'}`);
-      button.append(image);
-      button.addEventListener('click', () => openLightbox(card, item));
-      figure.append(button);
-    } else {
-      const player = document.createElement(item.mediaType);
-      player.controls = true;
-      player.preload = 'metadata';
-      player.src = courseMediaUrl(item);
-      player.setAttribute('aria-label', str(item.caption,
-        `${item.mediaType === 'audio' ? 'Audio' : 'Video'} ${side}`));
-      if (item.mediaType === 'video') {
-        player.playsInline = true;
-        if (item.posterImage) {
-          player.poster = courseMediaUrl({ source: item.posterImage });
-        }
-      }
-      figure.append(player);
-    }
-
-    if (typeof item.caption === 'string' && item.caption.trim()) {
-      const caption = document.createElement('figcaption');
-      caption.textContent = item.caption;
-      figure.append(caption);
-    }
-    root.append(figure);
+function renderDescriptiveMediaInto(host, card, side, load = true) {
+  if (!host) return null;
+  if (RUNTIME_SOURCE_FORMAT !== 'course-v2' || !COURSE_MEDIA) {
+    host.replaceChildren();
+    host.hidden = true;
+    return host;
   }
-  root.hidden = !root.childElementCount;
+  return COURSE_MEDIA.renderCourseMediaInto(host, card, side, COURSE, {
+    load,
+    onOpenImage: (media, resolvedUrl) => openLightbox(card, media, resolvedUrl),
+  });
+}
+
+function hydrateDescriptiveMedia(root) {
+  if (RUNTIME_SOURCE_FORMAT === 'course-v2' && COURSE_MEDIA) {
+    COURSE_MEDIA.hydrateCourseMedia(root, COURSE);
+  }
 }
 
 function renderCardVideo(card) {
@@ -1688,7 +1653,7 @@ function showCard() {
   // allows b/i/u/br/sub/sup, lists, and safe links — nothing else.
   $('#card-q').innerHTML = card.front || '';
   hydrateMedia($('#card-q'));
-  renderSideMedia(card, 'front', $('#card-front-media'));
+  renderDescriptiveMediaInto($('#card-front-media'), card, 'front');
 
   const answer = $('#card-a');
   if (backed && typeof card.back === 'string') {
@@ -1698,8 +1663,7 @@ function showCard() {
     answer.replaceChildren();
   }
   const backMedia = $('#card-back-media');
-  backMedia.replaceChildren();
-  backMedia.hidden = true;
+  renderDescriptiveMediaInto(backMedia, card, 'back', false);
 
   renderCardFigure(card);
 
@@ -1831,7 +1795,7 @@ function reveal() {
   $('#grade-ask').classList.remove('away');
   $('#card-scroll').classList.add('shown');
   if (typeof card.back === 'string') hydrateMedia($('#card-a'));
-  renderSideMedia(card, 'back', $('#card-back-media'), { skip: backImage(card) });
+  hydrateDescriptiveMedia($('#card-back-media'));
   renderCardVideo(card);
   // The drawing is set going here rather than in renderCardFigure, because the
   // figure lives inside #answer-wrap and that is hidden until this moment: an
@@ -1847,7 +1811,7 @@ function reveal() {
     ? $('#card-a')
     : $('#answer-wrap').querySelector(
       'button:not([hidden]), audio[controls], video[controls], [tabindex]:not([tabindex="-1"])',
-    );
+    ) || $('#card-a');
   if (answerFocus) answerFocus.focus({ preventScroll: true });
   // One line, both ways round: a practice session and an ordinary one can
   // follow each other inside a single visit, and this is static markup.
@@ -2323,14 +2287,11 @@ function browseRow(hit, terms, withSection) {
   const q = li.querySelector('.b-q');
   q.innerHTML = c.front || '';
   hydrateMedia(q);
-  renderSideMedia(c, 'front', li.querySelector('.b-front-media'), { lazy: true });
+  renderDescriptiveMediaInto(li.querySelector('.b-front-media'), c, 'front');
   const answerRoot = li.querySelector('.browse-ans');
   if (answerRoot) {
     hydrateMedia(answerRoot, false);
-    renderSideMedia(c, 'back', li.querySelector('.b-back-media'), {
-      skip: image,
-      lazy: true,
-    });
+    renderDescriptiveMediaInto(li.querySelector('.b-back-media'), c, 'back', false);
   }
   // Whether the question ended up showing the match decides whether the row
   // owes an explanation — not which tier it was ranked in. The two disagree
@@ -2827,7 +2788,7 @@ function renderStats() {
 // bottom of the range.
 const lb = { scale: 1, fit: 1, tx: 0, ty: 0, base: null, pointers: new Map(), lastTap: 0, pinch: null, opener: null, node: null };
 
-function openLightbox(card, mediaItem) {
+function openLightbox(card, mediaItem, resolvedUrl) {
   const img = $('#lb-img');
   const figBox = $('#lb-fig');
   const image = mediaItem || backImage(card);
@@ -2846,7 +2807,7 @@ function openLightbox(card, mediaItem) {
     // drawing arrive twice — the second time while you are trying to zoom it.
   } else {
     figBox.innerHTML = '';
-    img.src = courseMediaUrl(image);
+    img.src = resolvedUrl || courseMediaUrl(image);
     img.alt = image.alternativeText || `Diagram: ${stripTags(card.front || '')}`;
   }
   $('#lb-title').textContent = stripTags(card.front || image?.alternativeText || 'Image').slice(0, 90);
@@ -3111,7 +3072,19 @@ addEventListener('muninmediareset', () => {
   if (session?.revealed && hasBackContent(card) && typeof card.back === 'string') {
     hydrateMedia($('#card-a'));
   }
-  for (const row of $$('#browse-list details[open]')) hydrateMedia(row);
+  if (COURSE_MEDIA) {
+    COURSE_MEDIA.resetCourseMedia();
+    hydrateDescriptiveMedia($('#card-front-media'));
+    if (session?.revealed) hydrateDescriptiveMedia($('#card-back-media'));
+  }
+  for (const row of $$('#browse-list li')) {
+    hydrateDescriptiveMedia(row.querySelector('.b-front-media'));
+    const details = row.querySelector('details');
+    if (details?.open) {
+      hydrateMedia(row);
+      hydrateDescriptiveMedia(row.querySelector('.b-back-media'));
+    }
+  }
 });
 
 let toastTimer = null;
@@ -3271,6 +3244,7 @@ function wire() {
     const d = e.target;
     if (!d.open) return;
     hydrateMedia(d);
+    hydrateDescriptiveMedia(d);
     const fig = d.querySelector('.b-fig');
     if (fig) drawFigureOn(fig);
   }, true);
@@ -3747,14 +3721,17 @@ function bootEscape() {
 
 /* ─────────────────────────── boot ─────────────────────────── */
 
-/** Read the shipped format through the permanent compatibility boundary.
- *
- * This deliberately returns the adapter result, diagnostics included. A later
- * The composed reader keeps both compact compatibility and validated format 2
- * behind this seam, so neither vocabulary leaks into boot. */
+/** Read every shipped/imported format through the composed public boundary.
+ * The rest of the app sees only the descriptive, sanitized runtime model. */
 async function readRuntimeCourse(input) {
-  const { readCourseForRuntime } = await import('./lib/course-runtime.js');
-  return readCourseForRuntime(input, { courseId: COURSE.id });
+  const [runtime, media] = await Promise.all([
+    import('./lib/course-runtime.js'),
+    import('./lib/course-media.js'),
+  ]);
+  COURSE_MEDIA = media;
+  const result = await runtime.readCourseForRuntime(input, { courseId: COURSE.id });
+  RUNTIME_SOURCE_FORMAT = result.sourceFormat;
+  return result;
 }
 
 async function boot() {

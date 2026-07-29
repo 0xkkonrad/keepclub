@@ -118,6 +118,17 @@ const SHELL = [
   'lib/anki.js',
   'lib/deck.js',
   'lib/html.js',
+  // Public format-2 reader. These are dynamic imports at course boot; keeping
+  // the exact graph in the shell makes an already-opened app able to restart
+  // and read JSON or YAML-authored courses with no network.
+  'lib/course.js',
+  'lib/legacy-course.js',
+  'lib/course-runtime.js',
+  'lib/course-markdown.js',
+  'lib/course-media.js',
+  'lib/course-yaml.js',
+  'lib/vendor/commonmark-parser-0.31.2.min.js',
+  'lib/vendor/yaml-2.9.0.min.js',
   'lib/receipt.js',
   'lib/sqlite.js',
   'lib/store.js',

@@ -101,7 +101,108 @@ for (const name of [
     cards: [{ cardId: 'one', media: [{ side: 'front' }] }],
   });
   ok(result.course === null && codes(result).has('card.front_empty'),
-    'an incomplete media object cannot make an otherwise blank front renderable');
+  'an incomplete media object cannot make an otherwise blank front renderable');
+}
+
+{
+  const result = readCourse({
+    schemaVersion: 2,
+    courseId: 'media-only',
+    contentLanguage: 'en',
+    cards: [{
+      cardId: 'one',
+      media: [
+        {
+          mediaId: 'prompt',
+          side: 'front',
+          mediaType: 'image',
+          source: 'media/prompt.png',
+          alternativeText: 'A prompt diagram',
+          width: 640,
+          height: 480,
+        },
+        {
+          side: 'back',
+          mediaType: 'audio',
+          source: 'media/answer.mp3',
+          transcript: 'The **spoken** answer.',
+          durationSeconds: 3.5,
+          credit: { name: 'Example', website: 'https://example.com/audio' },
+        },
+        {
+          side: 'back',
+          mediaType: 'video',
+          source: 'media/demo.webm',
+          posterImage: 'media/poster.webp',
+          captionTracks: [{
+            source: 'media/en.vtt', language: 'en', label: 'English', default: true,
+          }],
+        },
+      ],
+    }],
+  });
+  ok(!!result.course && result.course.cards[0].media.length === 3,
+    'image, audio, and video media normalize without compacting descriptive fields');
+  ok(result.course?.cards[0].front === undefined
+      && result.course.cards[0].media[0].source === 'media/prompt.png',
+  'front-side media alone is a renderable prompt and retains its authored source');
+  ok(result.course?.title === 'Media only'
+      && result.course.shortTitle === 'Media only'
+      && result.course.instructionLanguage === 'en'
+      && result.course.theme.loadingAnimation === 'gentle-bob',
+  'frozen title, language, and keep club theme defaults are applied');
+}
+
+{
+  const invalidMedia = readCourse({
+    schemaVersion: 2,
+    courseId: 'unsafe-media',
+    cards: [{
+      cardId: 'one',
+      front: 'Prompt',
+      media: [
+        { side: 'back', mediaType: 'image', source: 'https://evil.example/x.png' },
+        { side: 'back', mediaType: 'audio', source: '../answer.mp3', width: 5 },
+        { side: 'back', mediaType: 'video', source: 'media/not-video.png', decorative: true },
+      ],
+    }],
+  });
+  const invalidCodes = codes(invalidMedia);
+  ok(invalidMedia.course === null && invalidCodes.has('media.invalid_path')
+      && invalidCodes.has('media.type_mismatch') && invalidCodes.has('field.unknown'),
+  'remote/traversing sources, type mismatches, and per-type fields are rejected');
+
+  const publication = readCourse({
+    schemaVersion: 2,
+    courseId: 'publish-media',
+    cards: [{
+      cardId: 'one',
+      media: [{ side: 'front', mediaType: 'image', source: 'prompt.png' }],
+    }],
+  }, { publication: true });
+  const publicationCodes = codes(publication);
+  ok(publication.course === null
+      && publicationCodes.has('publication.image_alt_required')
+      && publicationCodes.has('publication.image_dimensions_required')
+      && publicationCodes.has('publication.license_required'),
+  'publication mode requires image accessibility metadata and a license');
+}
+
+{
+  const result = readCourse({
+    schemaVersion: 2,
+    courseId: 'strict-metadata',
+    theme: { accentColor: 'red', script: 'attack()' },
+    authors: [{ name: 'Creator', social: '@creator' }],
+    source: { repository: 'http://example.com/repo' },
+    extensions: { unnamespaced: true },
+    cards: [{ cardId: 'one', front: 'Prompt' }],
+  });
+  ok(result.course === null
+      && result.diagnostics.filter((item) => item.code === 'field.unknown').length >= 2
+      && codes(result).has('field.invalid_type')
+      && codes(result).has('extension.invalid_namespace'),
+  'nested metadata, theme, and extension objects are strict');
 }
 
 {

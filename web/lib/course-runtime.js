@@ -46,6 +46,29 @@ export async function readCourseForRuntime(input, options = {}) {
   }
 
   const diagnostics = [...result.diagnostics];
+  const course = { ...result.course };
+  if (typeof course.description === 'string') {
+    const rendered = await renderCourseMarkdown(course.description, {
+      path: '$.description',
+    });
+    course.description = rendered.html;
+    addDiagnostics(diagnostics, rendered.diagnostics);
+  }
+  for (const collection of ['sections', 'groups']) {
+    course[collection] = [];
+    for (let index = 0; index < result.course[collection].length; index++) {
+      const source = result.course[collection][index];
+      const item = { ...source };
+      if (typeof item.description === 'string') {
+        const rendered = await renderCourseMarkdown(item.description, {
+          path: `$.${collection}[${index}].description`,
+        });
+        item.description = rendered.html;
+        addDiagnostics(diagnostics, rendered.diagnostics);
+      }
+      course[collection].push(item);
+    }
+  }
   const cards = [];
   for (let index = 0; index < result.course.cards.length; index++) {
     const source = result.course.cards[index];
@@ -58,6 +81,21 @@ export async function readCourseForRuntime(input, options = {}) {
       card[side] = rendered.html;
       addDiagnostics(diagnostics, rendered.diagnostics);
     }
+    if (Array.isArray(source.media)) {
+      card.media = [];
+      for (let mediaIndex = 0; mediaIndex < source.media.length; mediaIndex++) {
+        const attachment = { ...source.media[mediaIndex] };
+        for (const field of ['caption', 'transcript']) {
+          if (typeof attachment[field] !== 'string') continue;
+          const rendered = await renderCourseMarkdown(attachment[field], {
+            path: `$.cards[${index}].media[${mediaIndex}].${field}`,
+          });
+          attachment[field] = rendered.html;
+          addDiagnostics(diagnostics, rendered.diagnostics);
+        }
+        card.media.push(attachment);
+      }
+    }
     cards.push(card);
     if (diagnostics.some((item) =>
       item.code === 'document.too_many_errors'
@@ -67,7 +105,7 @@ export async function readCourseForRuntime(input, options = {}) {
   const failed = diagnostics.some((item) => item.severity === 'error');
   return {
     ...result,
-    course: failed ? null : { ...result.course, cards },
+    course: failed ? null : { ...course, cards },
     diagnostics,
     contentRepresentation: 'sanitized-html',
   };

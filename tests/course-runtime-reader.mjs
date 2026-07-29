@@ -55,6 +55,50 @@ const ok = (condition, message) =>
 
 {
   const result = await readCourseForRuntime({
+    schemaVersion: 2,
+    courseId: 'media-markdown',
+    cards: [{
+      cardId: 'one',
+      front: 'Prompt',
+      media: [{
+        side: 'back',
+        mediaType: 'audio',
+        source: 'media/answer.mp3',
+        caption: 'A **spoken** answer.',
+        transcript: '<script>attack()</script> Safe transcript.',
+      }],
+    }],
+  });
+  const media = result.course?.cards[0].media[0];
+  ok(media?.caption.includes('<strong>spoken</strong>')
+      && media.transcript.includes('&lt;script&gt;'),
+  'media captions and transcripts use the same sanitized CommonMark boundary');
+}
+
+{
+  const result = await readCourseForRuntime({
+    schemaVersion: 2,
+    courseId: 'unsafe-media-markdown',
+    cards: [{
+      cardId: 'one',
+      media: [{
+        side: 'front',
+        mediaType: 'image',
+        source: 'media/prompt.png',
+        alternativeText: 'Prompt',
+        caption: '[unsafe](javascript:attack%28%29)',
+      }],
+    }],
+  });
+  ok(result.course === null
+      && result.diagnostics.some((item) =>
+        item.code === 'markdown.unsafe_link'
+          && item.path === '$.cards[0].media[0].caption'),
+  'unsafe media Markdown blocks the whole course at its descriptive field path');
+}
+
+{
+  const result = await readCourseForRuntime({
     format: 1,
     name: 'Legacy',
     sections: [{ k: 'all', t: 'All', n: 1 }],

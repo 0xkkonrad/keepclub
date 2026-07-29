@@ -842,6 +842,15 @@ async function bootLocal(id) {
     pending.set(index, load);
     return load;
   };
+  const mediaIndexBySource = rec.mediaIndexBySource
+    && typeof rec.mediaIndexBySource === 'object'
+    && !Array.isArray(rec.mediaIndexBySource)
+    ? rec.mediaIndexBySource : {};
+  const resolveMediaSource = async (source) => {
+    if (typeof source !== 'string' || !Object.hasOwn(mediaIndexBySource, source)) return null;
+    const index = mediaIndexBySource[source];
+    return Number.isSafeInteger(index) && index >= 0 ? mediaUrl(index) : null;
+  };
   addEventListener('pagehide', () => {
     mediaClosed = true;
     mediaGeneration++;
@@ -872,6 +881,7 @@ async function bootLocal(id) {
     groupArt: rec.groupArt || {},
     deck: rec.deck,
     mediaUrl,
+    resolveMediaSource,
   }), async () => { globalThis.DOODLE = MUNIN_DOODLE; });
 }
 

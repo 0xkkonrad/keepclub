@@ -795,23 +795,6 @@ button.plate:active { transform: translate(3px, 3px); box-shadow: none; }
   background: var(--surface); border: 2px dashed var(--line-strong);
 }
 
-.side-media[hidden] { display: none; }
-.side-media-item { margin: 14px 0 0; }
-.side-media-image {
-  display: block; width: 100%; padding: 6px;
-  background: #fff; border: var(--bw) solid var(--stroke); border-radius: var(--r-sm);
-  box-shadow: var(--sh-sm); cursor: zoom-in;
-}
-.side-media-image:active { transform: translate(3px, 3px); box-shadow: none; }
-.side-media-image img { display: block; width: 100%; height: auto; }
-.side-media-item audio, .side-media-item video {
-  display: block; width: 100%; max-height: min(56vh, 440px);
-}
-.side-media-item figcaption {
-  margin-top: 8px; font-family: var(--hand); font-size: .82rem;
-  color: var(--muted); text-align: center;
-}
-
 .dock {
   flex: 0 0 auto;
   padding: 14px 20px calc(12px + env(safe-area-inset-bottom));
@@ -1415,6 +1398,68 @@ mark {
   margin: 8px 0; padding-left: 12px; border-left: 3px solid var(--stroke); color: var(--muted);
 }
 .question ruby rt, .answer ruby rt { font-size: .6em; color: var(--muted); }
+
+.course-media-side {
+  display: grid;
+  gap: 12px;
+  margin: 12px 0;
+}
+.course-media {
+  margin: 0;
+  min-width: 0;
+}
+.course-media img,
+.course-media video {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: auto;
+  margin-inline: auto;
+  border-radius: var(--r-sm);
+}
+.course-media-image-button {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin-inline: auto;
+  padding: 6px;
+  background: #fff;
+  border: var(--bw) solid var(--stroke);
+  border-radius: var(--r-sm);
+  box-shadow: var(--sh-sm);
+  cursor: zoom-in;
+}
+.course-media-image-button:active {
+  transform: translate(3px, 3px);
+  box-shadow: none;
+}
+.course-media audio {
+  display: block;
+  width: min(100%, 360px);
+  margin-inline: auto;
+}
+.course-media figcaption,
+.course-media-transcript,
+.course-media-missing {
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: .84rem;
+  line-height: 1.5;
+  text-align: left;
+}
+.course-media-caption > :first-child,
+.course-media-transcript-text > :first-child { margin-top: 0; }
+.course-media-caption > :last-child,
+.course-media-transcript-text > :last-child { margin-bottom: 0; }
+.course-media-credit {
+  display: block;
+  margin-top: 4px;
+}
+.course-media-transcript summary {
+  cursor: pointer;
+  color: var(--text);
+}
+.course-media-missing { color: var(--danger); }
 
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
