@@ -252,7 +252,7 @@ export function openImporter() {
           // Keep authored CommonMark on disk. Boot owns the one render pass;
           // persisting its HTML preview would make a later boot render it as
           // Markdown a second time.
-          deck: result.course,
+          deck: result.authoredCourse,
           media: result.media,
           mediaIndexBySource: result.mediaIndexBySource,
           receipt: keepReceipt(result),

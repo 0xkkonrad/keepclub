@@ -424,6 +424,7 @@ async function validateAssets(course, zip, out) {
 function resultWithFailure(out, sourceKind) {
   return {
     course: null,
+    authoredCourse: null,
     runtimeCourse: null,
     diagnostics: out.diagnostics,
     sourceFormat: 'course-v2',
@@ -522,6 +523,10 @@ export async function readCourseFile(input, options = {}) {
   }
   return {
     ...authored,
+    // Keep the canonical document apart from validator-derived runtime fields.
+    // On the next boot those derived counters and fingerprints would correctly
+    // be rejected as unknown creator fields if they were persisted as input.
+    authoredCourse: parsed.value,
     diagnostics: combined.diagnostics,
     sourceKind,
     runtimeCourse: runtime.course,

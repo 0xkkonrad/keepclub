@@ -66,6 +66,10 @@ cards:
       && result.course.cards[0].front === 'Remember **one** thing.'
       && result.runtimeCourse.cards[0].front.includes('<strong>one</strong>'),
   'authored CommonMark is stored while a one-pass sanitized runtime preview is prepared');
+  ok(result.authoredCourse?.cards[0].front === 'Remember **one** thing.'
+      && result.authoredCourse.cardCount === undefined
+      && result.authoredCourse.sections === undefined,
+  'the canonical authored document excludes derived runtime fields');
   ok(!result.course?.cards.some((card) => Object.hasOwn(card, 'back')),
     'front-only intent remains an absent back');
   ok(result.media.length === 0 && Object.keys(result.mediaIndexBySource).length === 0,

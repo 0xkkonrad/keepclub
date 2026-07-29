@@ -2,6 +2,9 @@
 import { chromium } from 'playwright-core';
 
 const URL_ = process.env.MUNIN_URL || 'http://127.0.0.1:8777/keepclub/web/';
+const EXE = process.env.HOME
+  + '/.cache/ms-playwright/chromium_headless_shell-1217/'
+  + 'chrome-headless-shell-linux64/chrome-headless-shell';
 const passed = [];
 const failed = [];
 const ok = (condition, message) =>
@@ -41,7 +44,7 @@ async function openImporter(page) {
     await shelf.waitFor();
   }
   await page.click('[data-byo]');
-  await page.waitForSelector('#imp-input');
+  await page.waitForSelector('#imp-input', { state: 'attached' });
 }
 
 async function giveYaml(page, source, name = 'course.keep.yml') {
@@ -52,7 +55,23 @@ async function giveYaml(page, source, name = 'course.keep.yml') {
   });
 }
 
-const browser = await chromium.launch({ headless: true });
+async function waitForBoot(page, errors) {
+  try {
+    await page.waitForFunction(() => document.getElementById('boot').hidden,
+      null, { timeout: 20000 });
+  } catch (error) {
+    const state = await page.evaluate(() => ({
+      line: document.getElementById('boot-line')?.textContent,
+      back: document.getElementById('boot-back')?.hidden,
+      retry: Boolean(document.getElementById('boot-retry')),
+      title: document.title,
+    }));
+    throw new Error(`course boot did not finish: ${JSON.stringify(state)}; `
+      + `page errors: ${errors.join('; ')}`, { cause: error });
+  }
+}
+
+const browser = await chromium.launch({ executablePath: EXE });
 const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
 const page = await context.newPage();
 const errors = [];
@@ -66,14 +85,14 @@ ok((await page.textContent('.imp-how')).includes('.keep.yml')
 'the shared importer names both public course artifacts');
 
 await giveYaml(page, initial);
-await page.waitForSelector('.imp-book');
-const preview = await page.textContent('.imp-inner');
+await page.waitForSelector('.imp-book:visible');
+const preview = (await page.innerText('.imp-inner')).replace(/\s+/g, ' ');
 ok(/2 cards ready to study/.test(preview) && /2 front-only cards/.test(preview),
   'the preview distinguishes valid front-only cards from lost answers');
 ok(/stable ID tiny-club/.test(preview), 'the creator-owned course ID is visible before storage');
 
 await Promise.all([page.waitForEvent('load'), page.click('[data-keep="new"]')]);
-await page.waitForFunction(() => document.getElementById('boot').hidden, null, { timeout: 20000 });
+await waitForBoot(page, errors);
 const imported = await page.evaluate(async () => ({
   title: document.querySelector('#course-title')?.textContent.trim(),
   resume: localStorage.getItem('munin/last-course'),
@@ -104,15 +123,15 @@ await page.evaluate(() => writeNow());
 
 await openImporter(page);
 await giveYaml(page, updated);
-await page.waitForSelector('.imp-book');
-const updatePreview = await page.textContent('.imp-inner');
+await page.waitForSelector('.imp-book:visible');
+const updatePreview = (await page.innerText('.imp-inner')).replace(/\s+/g, ' ');
 ok(/update to the same course/i.test(updatePreview)
     && /1 card keeps/.test(updatePreview)
     && /1 card is new/.test(updatePreview)
     && /1 card leaves/.test(updatePreview),
 'a stable-course update previews unchanged, added, and removed cards');
 await Promise.all([page.waitForEvent('load'), page.click('[data-keep="replace"]')]);
-await page.waitForFunction(() => document.getElementById('boot').hidden, null, { timeout: 20000 });
+await waitForBoot(page, errors);
 const afterUpdate = await page.evaluate(() => ({
   ids: DECK.cards.map((card) => card.cardId),
   records: Object.keys(state.recs),
@@ -126,7 +145,7 @@ ok(afterUpdate.records.includes('second') && !afterUpdate.records.includes('firs
 await openImporter(page);
 await giveYaml(page, invalid);
 await page.waitForSelector('.imp-diags');
-const refusal = await page.textContent('.imp-inner');
+const refusal = (await page.innerText('.imp-inner')).replace(/\s+/g, ' ');
 ok(/card\.duplicate_id/.test(refusal) && /Nothing was saved/.test(refusal),
   'schema errors are actionable and explicitly atomic');
 const stillInstalled = await page.evaluate(async () => {
