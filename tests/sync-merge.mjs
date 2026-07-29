@@ -8,6 +8,13 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+const storage = new Map();
+globalThis.localStorage = {
+  getItem: (key) => storage.has(key) ? storage.get(key) : null,
+  setItem: (key, value) => storage.set(key, String(value)),
+  removeItem: (key) => storage.delete(key),
+};
+
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 new Function(fs.readFileSync(path.join(HERE, '..', 'web', 'sync.js'), 'utf8'))
   .call(globalThis);
@@ -106,6 +113,33 @@ const rec = (overrides = {}) => Object.assign({
 }
 
 {
+  const lapsed = rec({ rp: 6, lp: 1, st: 'l', due: 100, ivl: 8 });
+  const easy = rec({ rp: 6, lp: 0, st: 'r', due: 900, ivl: 30 });
+  const merged = mergeState(state({ recs: { a: lapsed } }),
+    state({ recs: { a: easy } }));
+  ok(merged.recs.a.lp === 1 && merged.recs.a.due === 100,
+    'an equal-review conflict keeps the lapse and the conservative schedule');
+}
+
+{
+  const oldDate = state({
+    settings: { newPerDay: 20, maxRev: 120, examDate: '2026-08-01', at: 100 },
+  });
+  const cleared = state({
+    settings: { newPerDay: 20, maxRev: 120, examDate: '', at: 200 },
+  });
+  const later = state({
+    settings: { newPerDay: 30, maxRev: 120, examDate: '', at: 300 },
+  });
+  const merged = mergeState(oldDate, cleared);
+  ok(merged.settings.examDate === '',
+    'a newer explicit exam-date clear is not resurrected');
+  ok(same(mergeState(mergeState(oldDate, cleared), later),
+    mergeState(oldDate, mergeState(cleared, later))),
+  'settings merge is associative across three devices');
+}
+
+{
   const long = {};
   for (let i = 0; i < 150; i++) {
     const date = new Date(2026, 0, 1 + i).toISOString().slice(0, 10);
@@ -124,6 +158,96 @@ const rec = (overrides = {}) => Object.assign({
   const hash = await hashKey(key);
   ok(/^[0-9a-f]{64}$/.test(hash), 'only a lower-case SHA-256 hash is sent');
   ok(hash === await hashKey(key), 'the same key hashes consistently');
+}
+
+{
+  storage.clear();
+  S.init({ app: 'day-skipper', supported: true });
+  const setItem = localStorage.setItem;
+  localStorage.setItem = () => { throw new Error('storage blocked'); };
+  ok(S.turnOn('0123456789ABCDEFGHJKMNPQR') === null && !S.enabled(),
+    'Sync does not claim to turn on when its identity cannot be stored');
+  localStorage.setItem = setItem;
+
+  S.turnOn('0123456789ABCDEFGHJKMNPQR');
+  const removeItem = localStorage.removeItem;
+  localStorage.removeItem = () => {};
+  ok(S.turnOff() === false && S.enabled(),
+    'Sync does not claim to turn off when its stored identity remains');
+  localStorage.removeItem = removeItem;
+  S.turnOff();
+}
+
+{
+  storage.clear();
+  let adopted = false;
+  let calls = 0;
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = (url, options) => {
+    calls++;
+    return new Promise((resolve, reject) => {
+      options.signal.addEventListener('abort', () =>
+        reject(new DOMException('aborted', 'AbortError')), { once: true });
+    });
+  };
+  S.init({
+    app: 'day-skipper',
+    supported: true,
+    sanitise: (value) => value,
+    onMerged: () => { adopted = true; },
+  });
+  S.turnOn('0123456789ABCDEFGHJKMNPQR');
+  const inFlight = S.sync(state());
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  const off = S.turnOff();
+  await inFlight;
+  ok(off && !S.enabled() && localStorage.getItem(S.KEY) === null,
+    'turning Sync off during a request cannot restore the old identity');
+  ok(!adopted && calls === 1,
+    'turning Sync off aborts the old transport before it uploads or merges');
+  globalThis.fetch = originalFetch;
+}
+
+{
+  storage.clear();
+  const originalFetch = globalThis.fetch;
+  const local = state({ recs: { phone: rec({ rp: 2 }) } });
+  const remote = state({ recs: { laptop: rec({ rp: 3 }) } });
+  const calls = [];
+  let puts = 0;
+  const reply = (value, status = 200) => Promise.resolve({
+    ok: status >= 200 && status < 300,
+    status,
+    text: async () => JSON.stringify(value),
+  });
+  globalThis.fetch = (url, options) => {
+    const fn = url.split('/').pop();
+    calls.push(fn);
+    if (fn === 'sync_get') return reply([]);
+    puts++;
+    if (puts === 1) {
+      return reply({ code: '23505', message: 'duplicate key value' }, 409);
+    }
+    if (puts === 2) {
+      return reply([{ ok: false, rev: 1, data: remote }]);
+    }
+    return reply([{ ok: true, rev: 2, data: JSON.parse(options.body).p_data }]);
+  };
+  let adopted = null;
+  S.init({
+    app: 'day-skipper',
+    supported: true,
+    sanitise: (value) => value,
+    onMerged: (value) => { adopted = value; },
+  });
+  S.turnOn('0123456789ABCDEFGHJKMNPQR');
+  const merged = await S.sync(local);
+  ok(calls.join(',') === 'sync_get,sync_put,sync_put,sync_put',
+    'a concurrent first-write collision retries through the revision conflict');
+  ok(merged.recs.phone && merged.recs.laptop && same(merged, adopted),
+    'the first-write retry retains progress from both devices');
+  S.turnOff();
+  globalThis.fetch = originalFetch;
 }
 
 console.log([...passed, ...failed].join('\n'));

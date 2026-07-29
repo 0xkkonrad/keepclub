@@ -37,6 +37,82 @@ async function coursePage(options = {}, id = 'day-skipper') {
   return { ctx, page, errors };
 }
 
+/* Skip links and tab changes land keyboard focus in the screen that is visible. */
+{
+  const ctx = await b.newContext({
+    viewport: { width: 390, height: 844 }, serviceWorkers: 'block',
+  });
+  const shelf = await ctx.newPage();
+  await shelf.goto(URL, { waitUntil: 'networkidle' });
+  await shelf.waitForFunction(() => document.getElementById('boot').hidden);
+  await shelf.focus('.skip');
+  await shelf.keyboard.press('Enter');
+  const shelfSkip = await shelf.evaluate(() => ({
+    id: document.activeElement?.id,
+    visible: !!document.activeElement?.getClientRects().length,
+  }));
+  ok(shelfSkip.id === 'shelf-main' && shelfSkip.visible,
+    'the first-run Skip link lands on the visible course shelf');
+  await ctx.close();
+}
+{
+  const { ctx, page } = await coursePage({}, 'competent-crew');
+  await page.click('[data-go="stats"]');
+  const tabFocus = await page.evaluate(() => ({
+    text: document.activeElement?.textContent?.trim().toLowerCase(),
+    screen: document.activeElement?.closest('.screen')?.id,
+  }));
+  await page.focus('.skip');
+  await page.keyboard.press('Enter');
+  const skipFocus = await page.evaluate(() => ({
+    id: document.activeElement?.id,
+    screen: document.activeElement?.closest('.screen')?.id,
+  }));
+  ok(tabFocus.screen === 's-stats' && tabFocus.text === 'progress',
+    'opening Progress moves focus from the last nav control to its heading');
+  ok(skipFocus.id === 'stats-main' && skipFocus.screen === 's-stats',
+    'Skip to content targets the visible Progress body');
+  await page.fill('#set-new', '25');
+  await page.dispatchEvent('#set-new', 'change');
+  await page.waitForTimeout(300);
+  const firstSettingAt = await page.evaluate(() =>
+    JSON.parse(localStorage.getItem(KEY)).settings.at);
+  ok(Number.isFinite(firstSettingAt) && firstSettingAt > 0,
+    'the first settings edit after a cold open gets a sync timestamp');
+  await ctx.close();
+}
+
+/* A short landscape viewport must show the question and keep notifications
+ * from becoming an invisible shield over Show answer. */
+{
+  const { ctx, page, errors } = await coursePage(
+    { viewport: { width: 568, height: 320 } }, 'competent-crew');
+  await page.click('#skip-exam');
+  await page.click('#study-all');
+  await page.waitForTimeout(80);
+  const geometry = await page.evaluate(() => {
+    const sc = document.getElementById('card-scroll').getBoundingClientRect();
+    const q = document.getElementById('card-q').getBoundingClientRect();
+    const btn = document.getElementById('reveal-btn').getBoundingClientRect();
+    const x = btn.x + btn.width / 2, y = btn.y + btn.height / 2;
+    return {
+      visibleQuestion: Math.max(0, Math.min(sc.bottom, q.bottom) - Math.max(sc.top, q.top)),
+      x, y,
+      hit: document.elementFromPoint(x, y)?.id,
+      toastPointers: getComputedStyle(document.getElementById('toast')).pointerEvents,
+    };
+  });
+  await page.mouse.click(geometry.x, geometry.y);
+  const revealed = await page.evaluate(() => session.revealed);
+  ok(geometry.visibleQuestion >= 28,
+    `a 568×320 study screen shows a readable question line (${geometry.visibleQuestion}px)`);
+  ok(geometry.hit === 'reveal-btn' && geometry.toastPointers === 'none' && revealed,
+    'a visible toast cannot intercept Show answer in landscape');
+  ok(errors.length === 0,
+    `short-landscape study raises no page errors (${errors.join(' | ') || 'none'})`);
+  await ctx.close();
+}
+
 /* Held keys and unrevealed numeric grades never answer a card. */
 {
   const { ctx, page, errors } = await coursePage();
