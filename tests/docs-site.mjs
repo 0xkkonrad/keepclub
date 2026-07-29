@@ -3,6 +3,8 @@ import http from 'node:http';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { readCourse } from '../web/lib/course.js';
+import { parseCourseYaml } from '../web/lib/course-yaml.js';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const WEB = path.join(ROOT, 'web');
@@ -63,6 +65,20 @@ for (const phrase of [
   'loadingAnimation',
 ]) {
   ok(guide.includes(phrase), `creator guide covers “${phrase}”`);
+}
+
+const examples = [...guide.matchAll(
+  /<pre data-course-example><code>([\s\S]*?)<\/code><\/pre>/g,
+)].map((match) => match[1]
+  .replace(/&lt;/g, '<')
+  .replace(/&gt;/g, '>')
+  .replace(/&amp;/g, '&'));
+ok(examples.length === 3, 'creator guide exposes three complete course examples');
+for (let index = 0; index < examples.length; index++) {
+  const parsed = await parseCourseYaml(examples[index]);
+  const course = parsed.value && readCourse(parsed.value);
+  ok(parsed.diagnostics.length === 0 && !!course?.course,
+    `creator example ${index + 1} parses and passes the shipped reader`);
 }
 
 const diagnostics = read(path.join(ROOT, 'schema', 'diagnostics.md'));
