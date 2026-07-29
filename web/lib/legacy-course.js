@@ -106,7 +106,7 @@ function collector() {
       path,
       message,
       correction,
-      docs: docsLink(code),
+      docsUrl: docsLink(code),
     });
   };
   return {
