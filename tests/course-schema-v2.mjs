@@ -651,6 +651,24 @@ for (const name of [
     courseId: 'inherited-card',
     cards: [inheritedCard],
   });
+  const priorFront = Object.getOwnPropertyDescriptor(Object.prototype, 'front');
+  let pollutedResult;
+  try {
+    Object.defineProperty(Object.prototype, 'front', {
+      value: 'Polluted prompt',
+      enumerable: true,
+      configurable: true,
+      writable: true,
+    });
+    pollutedResult = readCourse({
+      schemaVersion: 2,
+      courseId: 'polluted-prototype',
+      cards: [{ cardId: 'one' }],
+    });
+  } finally {
+    if (priorFront) Object.defineProperty(Object.prototype, 'front', priorFront);
+    else delete Object.prototype.front;
+  }
   ok(topResult.course === null
       && hasDiagnostic(topResult, 'field.unknown', '$.__proto__')
       && cardResult.course === null
@@ -661,6 +679,8 @@ for (const name of [
       && hasDiagnostic(nestedResult, 'field.empty', '$.authors[0].name')
       && inheritedResult.course === null
       && codes(inheritedResult).has('card.front_empty')
+      && pollutedResult.course === null
+      && codes(pollutedResult).has('card.front_empty')
       && !Object.hasOwn(Object.prototype, 'title')
       && !Object.hasOwn(Object.prototype, 'front')
       && !Object.hasOwn(Object.prototype, 'name'),

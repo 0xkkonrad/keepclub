@@ -136,12 +136,11 @@ function cloneData(value, path = '$', ancestors = new Set()) {
       }
       return result;
     }
-    const result = {};
+    // A null prototype also isolates validation from an already-polluted
+    // Object.prototype. Define properties explicitly so magic names such as
+    // "__proto__" remain ordinary authored data for strict-field validation.
+    const result = Object.create(null);
     for (const key of ownKeys(value, path)) {
-      // Assignment to the magic "__proto__" setter would turn authored data
-      // into inherited validator input, hiding the unknown field and allowing
-      // it to supply values such as title/front. Define every key as inert own
-      // data so strict-field validation sees exactly what the parser produced.
       Object.defineProperty(result, key, {
         value: cloneData(ownValue(value, key, `${path}.${key}`),
           `${path}.${key}`, ancestors),
