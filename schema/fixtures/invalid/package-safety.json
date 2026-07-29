@@ -1,0 +1,32 @@
+{
+  "description": "Synthetic archive inventory exercising package diagnostic families without checking in dangerous archives.",
+  "fixtureType": "package-inventory",
+  "expectedDiagnostics": [
+    "package.root_manifest_missing",
+    "package.duplicate_path",
+    "package.unsafe_path",
+    "package.too_many_files",
+    "package.too_large",
+    "package.expansion_ratio"
+  ],
+  "entries": [
+    {
+      "path": "../course.keep.yml",
+      "compressedBytes": 12,
+      "expandedBytes": 2000
+    },
+    {
+      "path": "media/Photo.png",
+      "compressedBytes": 100,
+      "expandedBytes": 1000
+    },
+    {
+      "path": "media/photo.png",
+      "compressedBytes": 100,
+      "expandedBytes": 1000
+    }
+  ],
+  "declaredEntryCount": 2501,
+  "declaredCompressedBytes": 262144001,
+  "declaredExpandedBytes": 524288001
+}

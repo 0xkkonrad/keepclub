@@ -1,0 +1,17 @@
+---
+schemaVersion: 2
+courseId: disallowed-yaml
+shared: &shared
+  front: Anchors are not accepted.
+cards:
+  - cardId: one
+    <<: *shared
+  - !custom
+    cardId: two
+    front: Custom tags are not accepted.
+---
+schemaVersion: 2
+courseId: second-document
+cards:
+  - cardId: three
+    front: Multiple documents are not accepted.

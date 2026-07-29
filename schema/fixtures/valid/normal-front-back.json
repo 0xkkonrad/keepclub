@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 2,
+  "courseId": "nautical-knots",
+  "title": "Nautical knots",
+  "shortTitle": "Knots",
+  "tagline": "Learn the knots that hold.",
+  "description": "A practical introduction to **essential knots**.",
+  "contentLanguage": "en-GB",
+  "instructionLanguage": "en-GB",
+  "authors": [
+    {
+      "name": "Example Author",
+      "website": "https://example.org/"
+    }
+  ],
+  "license": {
+    "identifier": "CC-BY-4.0",
+    "attribution": "Example Author, 2026"
+  },
+  "source": {
+    "website": "https://example.org/knots",
+    "repository": "https://example.org/knots/source"
+  },
+  "cards": [
+    {
+      "cardId": "bowline-purpose",
+      "front": "What is a bowline used for?",
+      "back": "Making a **fixed loop** that neither slips nor jams.",
+      "tags": [
+        "bowline",
+        "loops"
+      ],
+      "extensions": {
+        "org.example.generator": {
+          "sourceRow": 12
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "description": "Warnings do not block import but are visible before normalization.",
+  "schemaValid": true,
+  "expectedDiagnostics": [
+    "field.empty_back",
+    "course.missing_title",
+    "course.missing_description",
+    "card.front_only_answer_cue",
+    "card.duplicate_looking_content",
+    "card.duplicate_tag",
+    "media.alt_missing",
+    "media.transcript_missing",
+    "metadata.missing_attribution"
+  ],
+  "course": {
+    "schemaVersion": 2,
+    "courseId": "quality-example",
+    "sections": [],
+    "cards": [
+      {
+        "cardId": "one",
+        "front": "Reveal the answer below.",
+        "back": "",
+        "tags": [
+          "Memory",
+          "memory"
+        ],
+        "media": [
+          {
+            "side": "front",
+            "mediaType": "image",
+            "source": "media/prompt.png"
+          },
+          {
+            "side": "front",
+            "mediaType": "audio",
+            "source": "media/prompt.opus"
+          }
+        ]
+      },
+      {
+        "cardId": "two",
+        "front": " Reveal the answer below. "
+      }
+    ]
+  }
+}

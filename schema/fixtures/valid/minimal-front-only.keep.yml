@@ -1,0 +1,9 @@
+schemaVersion: 2
+courseId: daily-prompts
+
+cards:
+  - cardId: plan-tomorrow
+    front: Write down tomorrow's three priorities.
+
+  - cardId: recall-the-day
+    front: Recall three things you learned today.

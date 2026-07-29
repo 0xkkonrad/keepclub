@@ -1,0 +1,28 @@
+{
+  "description": "Omitted sectionId is ambiguous when more than one section exists.",
+  "schemaValid": true,
+  "expectedDiagnostics": [
+    "section.ambiguous_default",
+    "section.empty"
+  ],
+  "course": {
+    "schemaVersion": 2,
+    "courseId": "ambiguous-section",
+    "sections": [
+      {
+        "sectionId": "one",
+        "title": "One"
+      },
+      {
+        "sectionId": "two",
+        "title": "Two"
+      }
+    ],
+    "cards": [
+      {
+        "cardId": "unplaced",
+        "front": "Which section owns me?"
+      }
+    ]
+  }
+}

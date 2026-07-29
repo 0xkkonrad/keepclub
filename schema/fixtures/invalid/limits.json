@@ -1,0 +1,33 @@
+{
+  "description": "Boundary generators for the validator and package suites; values refer to the frozen contract.",
+  "fixtureType": "limit-cases",
+  "expectedDiagnostics": [
+    "limit.input_bytes",
+    "limit.nesting",
+    "limit.scalar_length",
+    "media.too_many",
+    "media.too_large",
+    "package.too_many_files",
+    "package.too_large",
+    "package.expansion_ratio"
+  ],
+  "limits": {
+    "inputBytes": 5242880,
+    "nestingDepth": 24,
+    "scalarBytes": 1048576,
+    "markdownCodePoints": 262144,
+    "cards": 50000,
+    "sections": 1000,
+    "groups": 250,
+    "tagsPerCard": 64,
+    "mediaPerCard": 16,
+    "mediaPerCourse": 2000,
+    "archiveCompressedBytes": 262144000,
+    "archiveExpandedBytes": 524288000,
+    "archiveFiles": 2500,
+    "expansionRatio": 100,
+    "imageBytes": 26214400,
+    "audioBytes": 52428800,
+    "videoBytes": 209715200
+  }
+}

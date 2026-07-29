@@ -1,0 +1,17 @@
+{
+  "description": "Identity is required, non-empty, and uses the stable lowercase grammar.",
+  "schemaValid": false,
+  "expectedDiagnostics": [
+    "course.invalid_id",
+    "card.missing_id"
+  ],
+  "course": {
+    "schemaVersion": 2,
+    "courseId": "Not A Stable ID",
+    "cards": [
+      {
+        "front": "This card has no ID."
+      }
+    ]
+  }
+}

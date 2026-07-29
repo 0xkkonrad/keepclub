@@ -1,0 +1,61 @@
+{
+  "description": "Shape-valid data can still have duplicate IDs, broken references, empty sections, and incomplete groups.",
+  "schemaValid": true,
+  "expectedDiagnostics": [
+    "card.duplicate_id",
+    "section.duplicate_id",
+    "section.unknown",
+    "section.empty",
+    "group.duplicate_id",
+    "group.unknown_section",
+    "group.duplicate_section",
+    "group.ungrouped_section"
+  ],
+  "course": {
+    "schemaVersion": 2,
+    "courseId": "broken-references",
+    "sections": [
+      {
+        "sectionId": "known",
+        "title": "Known"
+      },
+      {
+        "sectionId": "known",
+        "title": "Duplicate identity"
+      },
+      {
+        "sectionId": "empty",
+        "title": "Empty"
+      }
+    ],
+    "groups": [
+      {
+        "groupId": "one",
+        "title": "One",
+        "sectionIds": [
+          "known"
+        ]
+      },
+      {
+        "groupId": "one",
+        "title": "Duplicate group",
+        "sectionIds": [
+          "known",
+          "missing"
+        ]
+      }
+    ],
+    "cards": [
+      {
+        "cardId": "duplicate-card",
+        "sectionId": "known",
+        "front": "First"
+      },
+      {
+        "cardId": "duplicate-card",
+        "sectionId": "missing",
+        "front": "Second"
+      }
+    ]
+  }
+}

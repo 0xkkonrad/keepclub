@@ -1,0 +1,18 @@
+{
+  "description": "Known objects are strict and compact aliases never enter format 2.",
+  "schemaValid": false,
+  "expectedDiagnostics": [
+    "field.unknown"
+  ],
+  "course": {
+    "schemaVersion": 2,
+    "courseId": "bad-alias",
+    "cards": [
+      {
+        "cardId": "one",
+        "front": "Readable field",
+        "q": "Compact fields are forbidden"
+      }
+    ]
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 2,
+  "courseId": "garden-basics",
+  "title": "Garden basics",
+  "sections": [
+    {
+      "sectionId": "soil",
+      "title": "Soil"
+    },
+    {
+      "sectionId": "watering",
+      "title": "Watering",
+      "description": "How to water without wasting it."
+    }
+  ],
+  "groups": [
+    {
+      "groupId": "foundations",
+      "title": "Foundations",
+      "sectionIds": [
+        "soil",
+        "watering"
+      ]
+    }
+  ],
+  "cards": [
+    {
+      "cardId": "compost-purpose",
+      "sectionId": "soil",
+      "front": "What does compost add to soil?",
+      "back": "Organic matter and slowly released nutrients.",
+      "tags": [
+        "soil-health"
+      ]
+    },
+    {
+      "cardId": "water-morning",
+      "sectionId": "watering",
+      "front": "Why water early in the morning?",
+      "back": "Less water is lost to evaporation, and leaves can dry during the day.",
+      "tags": [
+        "water"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 2,
+  "courseId": "color-theory",
+  "title": "Color theory",
+  "cards": [
+    {
+      "cardId": "complement-blue",
+      "front": "Which color is complementary to blue?",
+      "back": "Orange."
+    }
+  ],
+  "theme": {
+    "accentColor": "#B84A32",
+    "accentColorDark": "#F08A72",
+    "accentInkColor": "#FFF9EF",
+    "accentInkColorDark": "#1A1715",
+    "paperColor": "#FFF9EF",
+    "paperColorDark": "#1A1715",
+    "shelfArtwork": "theme/color-wheel.png",
+    "sectionArtwork": "theme/swatches.webp",
+    "loadingArtwork": "theme/loading.png",
+    "loadingText": "Mixing colors…",
+    "loadingAnimation": "gentle-bob"
+  },
+  "extensions": {
+    "com.keepclub.example": {
+      "fixturePurpose": "safe declarative theme"
+    }
+  }
+}
