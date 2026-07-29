@@ -57,6 +57,10 @@ for (const phrase of [
   'Errors block the whole import',
   'Stable IDs protect progress',
   'Scheduling, streaks, due dates, and learner history never belong',
+  'Section and group',
+  'Attribution and provenance',
+  'Namespaced extensions',
+  'loadingAnimation',
 ]) {
   ok(guide.includes(phrase), `creator guide covers “${phrase}”`);
 }

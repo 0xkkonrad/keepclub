@@ -91,6 +91,8 @@ await openImporter(page);
 ok((await page.textContent('.imp-how')).includes('.keep.yml')
     && (await page.textContent('.imp-how')).includes('.keep'),
 'the shared importer names both public course artifacts');
+ok((await page.getAttribute('.imp-how a', 'href')) === './docs/#quick-start',
+  'the importer links to the live creator quick start');
 
 await giveYaml(page, initial);
 await page.waitForSelector('.imp-book:visible');

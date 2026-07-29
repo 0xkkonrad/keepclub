@@ -7,7 +7,7 @@
 import { detectCourseFormat, normalizeLegacyCourse } from './legacy-course.js';
 
 const ID = /^[a-z0-9][a-z0-9._-]{0,127}$/;
-const DOCS = 'https://docs.keepclub.app/reference/errors/';
+const DOCS = 'https://docs.keepclub.app/reference/errors/#';
 const MAX_DIAGNOSTICS = 100;
 const MEDIA_TYPES = new Set(['image', 'audio', 'video']);
 const MEDIA_FIELDS = new Set([

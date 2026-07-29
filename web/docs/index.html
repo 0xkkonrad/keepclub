@@ -317,6 +317,17 @@ cards:
           </table>
         </div>
 
+        <h3>Section and group</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Record</th><th>Required fields</th><th>Optional fields and rules</th></tr></thead>
+            <tbody>
+              <tr><td>Section</td><td><code>sectionId</code>, <code>title</code></td><td><code>description</code>, <code>extensions</code>. Omit the whole list for one generated <code>all-cards</code> section.</td></tr>
+              <tr><td>Group</td><td><code>groupId</code>, <code>title</code>, <code>sectionIds</code></td><td><code>description</code>, <code>extensions</code>. If groups exist, every declared section appears exactly once.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
         <h3>Card</h3>
         <div class="table-wrap">
           <table>
@@ -346,6 +357,39 @@ cards:
             </tbody>
           </table>
         </div>
+
+        <h3>Attribution and provenance</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Record</th><th>Fields</th><th>Rule</th></tr></thead>
+            <tbody>
+              <tr><td>Author</td><td><code>name</code>, <code>website</code>, <code>email</code></td><td><code>name</code> is required for each author; websites use HTTPS.</td></tr>
+              <tr><td>License</td><td><code>identifier</code>, <code>name</code>, <code>website</code>, <code>attribution</code></td><td>Optional for private import; at least one field and a license are required for keep club publication.</td></tr>
+              <tr><td>Source</td><td><code>website</code>, <code>repository</code></td><td>At least one HTTPS source link when the record is present.</td></tr>
+              <tr><td>Media credit</td><td><code>name</code>, <code>website</code></td><td><code>name</code> is required when a credit is present.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Theme</h3>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Fields</th><th>Meaning</th></tr></thead>
+            <tbody>
+              <tr><td><code>accentColor</code>, <code>accentColorDark</code>, <code>accentInkColor</code>, <code>accentInkColorDark</code></td><td>Six- or eight-digit hex accent and on-accent colors for light and dark presentation.</td></tr>
+              <tr><td><code>paperColor</code>, <code>paperColorDark</code></td><td>Light and dark paper colors.</td></tr>
+              <tr><td><code>shelfArtwork</code>, <code>sectionArtwork</code>, <code>loadingArtwork</code></td><td>Normalized relative paths to packaged raster assets.</td></tr>
+              <tr><td><code>loadingText</code></td><td>Short loading copy; defaults to “Loading…”.</td></tr>
+              <tr><td><code>loadingAnimation</code></td><td><code>none</code>, <code>gentle-bob</code>, or <code>pulse</code>; arbitrary CSS is never accepted.</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3>Namespaced extensions</h3>
+        <p><code>extensions</code> is optional on courses, sections, groups,
+          cards, and media. Keys use a reverse-domain namespace such as
+          <code>org.example.generator/template</code>. Values stay inert:
+          keep club preserves them but does not execute or interpret them.</p>
         <p>The downloadable schema is the exhaustive machine-readable source:
           <a href="schema/course-v2.schema.json"><code>course-v2.schema.json</code></a>.</p>
       </section>

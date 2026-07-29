@@ -17,7 +17,7 @@ const SOURCE_UNKNOWN = 'unknown';
 const SOURCE_UNSUPPORTED = 'unsupported';
 const DIAGNOSTIC_LIMIT = 100;
 const ITEM_LIMIT = 100000;
-const ERROR_DOCS = 'https://docs.keepclub.app/reference/errors/';
+const ERROR_DOCS = 'https://docs.keepclub.app/reference/errors/#';
 
 const TOP_LEVEL_FIELDS = new Set([
   'format', 'name', 'course', 'sections', 'groups', 'cards', 'build', 'ds',

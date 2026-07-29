@@ -164,7 +164,7 @@ export function openImporter() {
   draggable ? '' : '<small>your cards stay on this device</small>'}</button>
       <input type="file" accept=".keep.yml,.keep,.apkg,.colpkg,application/zip,text/yaml" hidden id="imp-input">
       <p class="imp-how"><b>keep club courses:</b> choose a text-only <b>.keep.yml</b> or a
-        <b>.keep</b> package with its media. <a href="./docs/getting-started/">See the format.</a><br><br>
+        <b>.keep</b> package with its media. <a href="./docs/#quick-start">See the format.</a><br><br>
         <b>from anki:</b> <b>File → Export</b>, choose <b>Anki Deck Package</b>. Scheduling
         does not come across; every card starts new.</p>`;
     const input = body.querySelector('#imp-input');
