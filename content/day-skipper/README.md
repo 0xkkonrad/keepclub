@@ -1,13 +1,13 @@
 # RYA Day Skipper — course source
 
 537 cards across 24 sections, 24 diagrams, 14 labelled figures, 28 chrome
-doodles and 54 video clips. Munin ships what this builds; nothing under
+doodles and 54 video clips. keep club ships what this builds; nothing under
 `web/courses/day-skipper/` is hand-edited.
 
 This lived in its own repo (`0xkkonrad/rya-day-skipper`) with a standalone app
-in front of it until **28 July 2026**, when the app was retired and Munin took
+in front of it until **28 July 2026**, when the app was retired and keep club took
 the course over. Competent Crew's 60 pointer cards resolve against this tree,
-so both courses now rebuild from a clone of Munin alone — which they could not
+so both courses now rebuild from a clone of keep club alone — which they could not
 while this was somewhere else.
 
 ```
@@ -22,8 +22,7 @@ src/build.py           validates and emits build/decks/ and build/STUDY-GUIDE.md
 video/                 the clip pipeline — see below
 media/                 the 24 diagrams at full size, plus 2 Competent Crew ones
 CORRECTIONS.md         errata found against the syllabus, and what was changed
-supabase/              schema for the retired app's sync backend, kept because
-                       it is the only copy and Munin's sync will want it
+supabase/              schema and migrations for keep club's device-key sync
 ```
 
 ## Building
@@ -60,5 +59,5 @@ both come from. Losing it means shipping someone else's video unattributed.
 ## What did not come across
 
 The standalone app (`web/`), its eight browser test suites, its PWA icon
-generator and its deploy script stayed behind. Munin has its own of each. What
+generator and its deploy script stayed behind. keep club has its own of each. What
 moved is the course and everything that makes it.

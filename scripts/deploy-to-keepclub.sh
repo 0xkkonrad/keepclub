@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
 # Copy web/ into the keepclub.app site repo, which serves the app at the DOMAIN
-# ROOT — unlike deploy-to-kkonrad.sh, which drops it under kkonrad.com/munin.
+# ROOT. The retired kkonrad.com/munin copy is not a deployment target.
 #
 #   ./scripts/deploy-to-keepclub.sh          # stage the files, show the diff
 #   ./scripts/deploy-to-keepclub.sh --commit # stage, commit and push
 #
-# The two deploys are independent on purpose: kkonrad.com/munin keeps working,
-# and nothing about this one touches it. Same sw.js stamping in both, because a
-# cache-first shell that is not restamped strands returning visitors for good.
+# The flattened Pages repository is separate from the source repository.
+# sw.js is stamped from the exact content copied here, because a cache-first
+# shell that is not restamped strands returning visitors for good.
 set -euo pipefail
 
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-SITE="${SITE:-/workspaces/sandbox/projects/keepclub}"
+SITE="${SITE:-/workspaces/sandbox/projects/keepclub-pages}"
 DOMAIN="keepclub.app"
 
 [ -d "$SITE/.git" ] || { echo "no site repo at $SITE (override with SITE=…)"; exit 1; }
@@ -70,7 +70,7 @@ git add -A
 git status --short | head -20 || true
 if [ "${1:-}" = "--commit" ]; then
   SRC=$(git -C "$HERE" rev-parse --short HEAD)
-  git commit -q -m "Deploy the app to $DOMAIN root (from munin@$SRC)"
+  git commit -q -m "Deploy the app to $DOMAIN root (from keepclub@$SRC)"
   git push -q origin main
   echo "pushed — Pages will rebuild"
 fi

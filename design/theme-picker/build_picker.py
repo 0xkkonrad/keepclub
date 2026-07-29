@@ -7,7 +7,7 @@ import os
 import re
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-DS_WEB = "/workspaces/sandbox/projects/munin/content/day-skipper/build"
+DS_WEB = os.path.abspath(os.path.join(HERE, "..", "..", "content", "day-skipper", "build"))
 
 ravens = json.load(open(os.path.join(HERE, "ravens.json")))
 

@@ -90,7 +90,7 @@ python3 content/competent-crew/src/build.py   # writes content/competent-crew/bu
 ```
 
 `build/` is **not committed**. Day Skipper's source lives in this repo
-(`content/day-skipper/`), so a clone of Munin rebuilds both decks on its own.
+(`content/day-skipper/`), so a clone of keep club rebuilds both decks on its own.
 What ships is the copy under `web/courses/competent-crew/`, which is committed,
 so the app never depends on the build having run.
 
@@ -124,6 +124,6 @@ sections turns this into Day Skipper.
 
 ## Status
 
-**Shipped.** The course is live in Munin. This source was authored in
+**Shipped.** The course is live in keep club. This source was authored in
 `_temp/rya-competent-crew/` and moved here on 28 July 2026; the rebuild in its
 new home reproduces the shipped `cards.json` byte for byte.

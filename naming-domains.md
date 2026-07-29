@@ -5,21 +5,34 @@ Companion to [naming-research.md](naming-research.md), which sweeps mythology fo
 this one is about **names that can be bought and found**. The full candidate set with meanings,
 collisions and risk notes is [design/naming/candidates.json](design/naming/candidates.json).
 
-**DECIDED 28 Jul 2026: the name is KEEP CLUB.** Konrad's call, after the doodle sets. Nothing is
-bought yet. The app still ships as Munin at `kkonrad.com/munin`.
+**DECIDED 28 Jul 2026: the name is keep club and the mark is the tower.** The
+app was rebranded in place, rather than putting a new name in front of Munin.
+The old name survives only in compatibility identifiers and the archived
+decision trail.
 
 **`keepclub.app` is bought and LIVE** (28 Jul). DNS at Namecheap BasicDNS: four A + four AAAA on
 the apex to GitHub Pages, `www` CNAME to `0xkkonrad.github.io.`, both parking records removed.
-The site is its own repo — **[0xkkonrad/keepclub](https://github.com/0xkkonrad/keepclub)** — with
-Pages on `main`/root, `CNAME` = `keepclub.app`, Let's Encrypt cert covering apex and `www`, and
-HTTPS enforced. Deployed by [scripts/deploy-to-keepclub.sh](scripts/deploy-to-keepclub.sh);
-85/85 of the shell suite green against the live domain.
+The source repo is **[0xkkonrad/keepclub](https://github.com/0xkkonrad/keepclub)**.
+The flattened Pages output lives separately at
+**[0xkkonrad/keepclub-pages](https://github.com/0xkkonrad/keepclub-pages)**,
+with Pages on `main`/root, `CNAME` = `keepclub.app`, a certificate covering
+apex and `www`, and HTTPS enforced. It is deployed by
+[scripts/deploy-to-keepclub.sh](scripts/deploy-to-keepclub.sh).
 
-`kkonrad.com/munin` is untouched and still serves. The two deploys are independent on purpose.
+**DECIDED 29 Jul 2026: `kkonrad.com/munin` is retired.** It is a migration
+landing page rather than a second copy of the app. Existing local progress and
+imported decks can be moved to `keepclub.app`; new use belongs on the canonical
+domain.
 
-**The app is still branded Munin.** Only the *name* and the *mark* are decided — whether Keep Club
-replaces Munin or fronts it (`rename-or-address`) and what happens to the raven (`raven-fate`) are
-still open in the picker, so nothing in the UI was rebranded.
+The tower is the brand mark. The fourteen ravens remain the app's doodle
+vocabulary for section marks, imported-deck emblems and milestone drawings;
+they are illustrations, not the logo. The generic achievement heading is
+**Milestones**, while courses may still provide an in-world title such as
+**Ship's log**.
+
+The manifest id remains `/munin/` permanently. A manifest id is an installed
+app identity, not visible naming; changing it would make browsers create a new
+app and orphan existing installs.
 
 ---
 
@@ -203,10 +216,18 @@ HaGeZi exception request that a `.club` would have needed is no longer necessary
 
 ## Where it stands
 
-The name is settled. What is still open, and is still live in the picker: whether **keep club**
-replaces Munin outright or is the front door to it, what happens to the raven and the hoard, the
-App Store title, and where acquisition traffic comes from. The `the-name` card is now decided —
-option E — and the recommendation on it is superseded by Konrad's call.
+The naming decisions are closed:
+
+- **Name:** keep club, replacing Munin outright.
+- **Address:** `keepclub.app`, with the old kkonrad.com mirror retired.
+- **Source repository:** `0xkkonrad/keepclub`.
+- **Mark:** tower.
+- **Ravens:** retained as the illustration vocabulary, not the identity.
+- **Achievements:** Milestones by default; course-specific names remain valid.
+- **Installed identity:** manifest id `/munin/` retained for compatibility.
+
+The pickers remain in `design/` as the record of the alternatives and
+reasoning. Their historical OPEN labels do not describe the shipped app.
 
 **The mark is `tower`** (locked 28 Jul). Mocked up in place at
 <https://claude.ai/code/artifact/0334fbdc-9688-47cc-b5ab-8bc177828a48>; the other sixteen candidates

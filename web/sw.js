@@ -12,7 +12,7 @@
  * course had to be registered — and the one you find last, because forgetting
  * it ships a course that works online and 404s offline.
  *
- * BUILD is stamped by scripts/deploy-to-kkonrad.sh from the content actually
+ * BUILD is stamped by scripts/deploy-to-keepclub.sh from the content actually
  * shipped: without that, a cache-first shell never updates.
  */
 const BUILD = { shell: 'dev', courses: {} };
@@ -108,6 +108,7 @@ const SHELL = [
   'index.html',
   'app.css',
   'app.js',
+  'sync.js',
   'munin.js',
   'doodles-munin.js',
   // The importer and its parsers. Loaded only when someone brings a deck, and

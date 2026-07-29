@@ -6,11 +6,12 @@ import json
 import os
 import sys
 
-DS = "/workspaces/sandbox/projects/munin/content/day-skipper/src"
+HERE = os.path.dirname(os.path.abspath(__file__))
+DS = os.path.abspath(os.path.join(HERE, "..", "..", "content", "day-skipper", "src"))
 sys.path.insert(0, DS)
 import rough  # noqa: E402
 
-OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ravens.json")
+OUT = os.path.join(HERE, "ravens.json")
 
 # 32x32 boxes, same conventions as Day Skipper's doodles.py.
 SOURCE = {

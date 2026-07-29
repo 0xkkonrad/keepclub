@@ -47,7 +47,10 @@ create index if not exists blobs_updated_at_idx on sync.blobs (updated_at);
 -- wide open. The owner bypasses this, so the functions below still work.
 alter table sync.blobs enable row level security;
 
-insert into sync.apps (app) values ('day-skipper') on conflict do nothing;
+insert into sync.apps (app) values
+  ('day-skipper'),
+  ('competent-crew')
+on conflict do nothing;
 
 
 -- ---------------------------------------------------------------------------

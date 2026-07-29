@@ -1,4 +1,4 @@
-# Munin tests
+# keep club tests
 
 `sqlite.mjs` — the read-only SQLite reader against databases SQLite itself
 wrote (`fixtures/make-sqlite.py`): interior pages, overflow chains, WITHOUT
@@ -42,9 +42,18 @@ shelf → Day Skipper (indigo) → courses overlay → Competent Crew (slate) �
 two cards answered → per-course storage asserted (and `rya-ds/v1`, the live
 Day Skipper app's key, asserted UNTOUCHED) → cold open resumes the course.
 
-Run: serve the sandbox on :8765 (`bash /workspaces/sandbox/.preview-serve.sh`),
+`sync-merge.mjs` — the cross-device merge algebra without a server:
+commutativity, idempotence, monotonic review history, streak reconstruction,
+key validation, and the guarantee that only a SHA-256 hash is transported.
+
+`mirror-migration.mjs` — a real two-origin browser move from the retired
+kkonrad.com mirror into keepclub.app: built-in progress, an imported deck,
+its review history and media all cross, while the originals remain untouched.
+
+Run: serve the sandbox on :8777
+(`python3 -m http.server 8777 --directory /workspaces/sandbox`),
 `npm install` once, `npm test` — which builds the fixtures first and runs all
-seven suites. The fixtures
+ten suites. The fixtures
 are generated and gitignored: a binary blob in the history is a binary blob
 nobody can review. `MUNIN_URL` overrides the target (e.g. the
 live site). Gotchas encoded in the test, learned the hard way: app chrome is
@@ -53,8 +62,8 @@ top-level `let` in a classic script and never reaches `globalThis` — wait on
 `#boot`'s hidden flag instead; state writes are debounced — flush with the
 app's own `writeNow()` before asserting localStorage.
 
-The parity gate (project.md T7) means porting Day Skipper's four suites onto
-Munin; this file is the seed.
+The original parity gate ported Day Skipper's suites into keep club; this file
+records the resulting gate.
 
 Verified out-of-suite (network-dependent, so not wired into `npm test`):
 an offline reload of the live site — SW controlled, precache warm, network

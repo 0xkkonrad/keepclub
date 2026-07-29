@@ -1,4 +1,4 @@
-/* The Munin shell, driven like a person: fresh profile → shelf → a course →
+/* The keep club shell, driven like a person: fresh profile → shelf → a course →
  * a study session → resume on the next cold open.
  * usage: serve the sandbox on :8765, then  node shell-and-courses.mjs
  */
@@ -8,7 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright-core';
 
 const EXE = process.env.HOME + '/.cache/ms-playwright/chromium_headless_shell-1217/chrome-headless-shell-linux64/chrome-headless-shell';
-const URL = process.env.MUNIN_URL || 'http://127.0.0.1:8765/projects/munin/web/';
+const URL = process.env.MUNIN_URL || 'http://127.0.0.1:8777/projects/keepclub/web/';
 
 const out = [], fails = [];
 const ok = (c, m) => (c ? out : fails).push((c ? 'PASS  ' : 'FAIL  ') + m);
@@ -279,6 +279,21 @@ const offer = (pg) => pg.evaluate(() => {
 {
   const c6 = await b.newContext({ viewport: { width: 390, height: 844 } });
   const p6 = await c6.newPage();
+  const syncCalls = [];
+  await p6.route('https://dyaxdgpaideblyhpxyft.supabase.co/rest/v1/rpc/**',
+    async (route) => {
+      const request = route.request();
+      const body = request.postDataJSON();
+      const fn = new globalThis.URL(request.url()).pathname.split('/').pop();
+      syncCalls.push({ fn, body });
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(fn === 'sync_get'
+          ? []
+          : [{ ok: true, rev: 1, data: body.p_data }]),
+      });
+    });
   // munin.js runs at the end of <body>, so anything it does is done before
   // DOMContentLoaded — and long before app.js is fetched.
   await p6.addInitScript(() => {
@@ -310,7 +325,7 @@ const offer = (pg) => pg.evaluate(() => {
   await p6.waitForSelector('.shelf.on');
   const first = await p6.evaluate(() => globalThis.__early);
   ok(first.from === 'munin' && first.paths === 1,
-    `first run paints Munin's own raven (${first.from})`);
+    `first run paints keep club's tower (${first.from})`);
   // .boot is a grid of two children with no row template. Rows stretch by
   // default, which put the drawing a quarter down the screen and its caption
   // three quarters down, with the gap rendering nowhere. Both numbers, because
@@ -364,10 +379,29 @@ const offer = (pg) => pg.evaluate(() => {
   ok(/keep club.*open-source.*kkonrad/is.test(said.about)
       && said.author === 'https://kkonrad.com/',
     'About names keep club, its open source, and kkonrad');
-  ok(said.source === 'https://github.com/0xkkonrad/munin',
+  ok(said.source === 'https://github.com/0xkkonrad/keepclub',
     'About links to the source repository');
   ok(said.offlineShown && said.offline.includes(`${said.diagrams} diagrams`),
     `offline counts this deck's diagrams (${said.diagrams})`);
+
+  ok(await p6.locator('[data-sync="new"]').isVisible(),
+    'a built-in course offers account-free device sync');
+  await p6.click('[data-sync="new"]');
+  await p6.waitForFunction(() => DSSync.status().at > 0);
+  const synced = await p6.evaluate(() => ({
+    key: document.getElementById('sync-key').textContent,
+    localKey: DSSync.KEY,
+    stored: localStorage.getItem(DSSync.KEY),
+  }));
+  ok(/^(?:[0-9A-HJKMNP-TV-Z]{5}-){4}[0-9A-HJKMNP-TV-Z]{5}$/.test(synced.key),
+    'sync gives the learner one readable 25-character key');
+  ok(synced.localKey === 'munin/sync-off' && JSON.parse(synced.stored).key,
+    'the released sync storage key is retained');
+  ok(syncCalls.some((call) => call.fn === 'sync_get'
+      && call.body.p_app === 'day-skipper')
+      && syncCalls.some((call) => call.fn === 'sync_put'
+        && call.body.p_app === 'day-skipper'),
+    'sync reads then writes the active course through its isolated backend namespace');
   await c6.close();
 }
 

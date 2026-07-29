@@ -7,7 +7,7 @@ import { chromium } from 'playwright-core';
 const EXE = process.env.HOME
   + '/.cache/ms-playwright/chromium_headless_shell-1217/'
   + 'chrome-headless-shell-linux64/chrome-headless-shell';
-const URL_ = process.env.MUNIN_URL || 'http://127.0.0.1:8765/projects/munin/web/';
+const URL_ = process.env.MUNIN_URL || 'http://127.0.0.1:8777/projects/keepclub/web/';
 const out = [], fails = [];
 const ok = (condition, message) =>
   (condition ? out : fails).push((condition ? 'PASS  ' : 'FAIL  ') + message);

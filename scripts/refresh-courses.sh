@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Re-copy course DATA from the upstream builds into the self-contained course
-# folders. Data only — app.js/app.css/index.html are Munin's own and diverge
+# folders. Data only — app.js/app.css/index.html are keep club's own and diverge
 # deliberately until the parity-gate re-extraction.
 #
 #   ./scripts/refresh-courses.sh            # show what would change

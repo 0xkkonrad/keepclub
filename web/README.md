@@ -1,4 +1,4 @@
-# Munin — the app
+# keep club — the app
 
 The shell in front of the courses. Extracted from the Day Skipper app
 (`projects/rya-day-skipper/web/`, commit 04119a6) per the locked theme & shell
@@ -6,9 +6,9 @@ decisions in `../project.md`.
 
 ## The seam
 
-**A course owns its cards and its theme. Munin owns the app.**
+**A course owns its cards and its theme. keep club owns the app.**
 
-| The course brings | Munin brings |
+| The course brings | keep club brings |
 |---|---|
 | cards.json, figures.json, videos.json, img/, video/ | the review engine, the scheduler, every screen |
 | its accent pair, its doodle set, its section/group/frieze art | the picker, the importer, the light/dark theme |
@@ -17,8 +17,8 @@ decisions in `../project.md`.
 | its `notice` (the fineprint) and `credit`, its `short` header title | offline, backup, sync, install |
 | its figure vocabulary — `figures.css` + `figures.noPen` | the figure *language*: dashes, leaders, arcs, colour tokens |
 
-Anything a course does not bring, it gets from Munin — slot by slot, in
-`withDefaults()`. **Munin's own theme is not a special case for imported
+Anything a course does not bring, it gets from keep club — slot by slot, in
+`withDefaults()`. **keep club's own theme is not a special case for imported
 decks; it is the default layer.** A deck someone dropped in brings none of the
 left-hand column and is dressed entirely by the right.
 
@@ -32,9 +32,9 @@ left-hand column and is dressed entirely by the right.
    checked as a shape, not against the registry — the resume path must not wait
    for a list to load before it can boot.
 3. `munin/last-course` → fetch `courses/<id>/course.json`, fill its empty slots
-   from Munin's defaults, inject the accent (4 CSS scopes), fetch the course's
+   from keep club's defaults, inject the accent (4 CSS scopes), fetch the course's
    boot scene, load its `doodles.js`, then `app.js`.
-4. No course → the shelf (Munin ink teal #0E3F39, perch mark). Inside a course
+4. No course → the shelf (keep club ink teal #0E3F39, tower mark). Inside a course
    the "courses" pill overlays the shelf without clearing resume state.
 5. Which of those two the bare URL means is read off `history.state`: entering
    a course is a fresh load, so the picker and the course are two entries over
@@ -71,8 +71,8 @@ of the shelf intact.
 course.json —
 `accent`, `short`, `tagline`, `boot.line`, `boot.art`, `shelfArt`,
 `shelfPath`, `fallback`, `sectionArt`, `groupArt`, `friezeArt`, `examDate`,
-`notice`, `credit`, `hoard`, `figures`. Anything absent comes from Munin. A course with
-a title and two hundred cards works, looks like Munin, and is not a
+`notice`, `credit`, `hoard`, `figures`. Anything absent comes from keep club. A course with
+a title and two hundred cards works, looks like keep club, and is not a
 second-class citizen — that is the ruling, and `tests/separation.mjs` requires
 exactly the two files above and no more.
 
@@ -194,15 +194,15 @@ answer "none of them exist".
   and from the deck's own picture count. They were markup, and so were printed
   over every course and every imported deck.
 - Deck/media fetches go through `COURSE.base`.
-- **Sync is off** — `munin.js` ships a DSSync stub. The live Day Skipper app
-  shares this origin and its Supabase rows; Munin joins sync only at the
-  parity gate with a state migration. Settings still shows the sync panel;
-  its buttons are inert until then.
+- **Sync is on for built-in courses** — `sync.js` uses one device key across
+  course-specific progress blobs. The merge is commutative and idempotent;
+  imported deck cards/media remain local and every deck still has file backup.
 
 ## Deploy
 
-kkonrad.com/munin (locked) — LIVE since 27 July 2026. /day-skipper 301s here
-only at parity: the full local suite green + a state-migration check.
+`keepclub.app` is canonical and deploys through
+`scripts/deploy-to-keepclub.sh`. The old `kkonrad.com/munin` copy was retired
+on 29 July 2026 and now exists only as a progress/deck migration landing page.
 
 ## Importing an Anki deck
 
@@ -217,9 +217,9 @@ lib/sqlite.js    a read-only SQLite reader: b-trees, overflow, WITHOUT ROWID
 lib/anki.js      which collection is the real one, and the two schemas
 lib/template.js  Anki's card templates, including cloze
 lib/html.js      an allow-list sanitiser that re-writes rather than passes through
-lib/deck.js      collection → Munin deck, and the receipt
+lib/deck.js      collection → keep club deck, and the receipt
 lib/store.js     IndexedDB: one row per deck, one per media file
-lib/vendor/      fzstd (MIT) — the only third-party code in Munin
+lib/vendor/      fzstd (MIT) — the only third-party code in keep club
 ```
 
 Four things worth knowing before changing any of it.

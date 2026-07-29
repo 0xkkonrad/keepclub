@@ -6,7 +6,7 @@ import { chromium } from 'playwright-core';
 
 const EXE = process.env.HOME
   + '/.cache/ms-playwright/chromium_headless_shell-1217/chrome-headless-shell-linux64/chrome-headless-shell';
-const URL = process.env.MUNIN_URL || 'http://127.0.0.1:8765/projects/munin/web/';
+const URL = process.env.MUNIN_URL || 'http://127.0.0.1:8777/projects/keepclub/web/';
 const VIDEO_FILE = new globalThis.URL('../web/courses/day-skipper/videos.json', import.meta.url).pathname;
 const out = [], fails = [];
 const ok = (c, m) => (c ? out : fails).push((c ? 'PASS  ' : 'FAIL  ') + m);

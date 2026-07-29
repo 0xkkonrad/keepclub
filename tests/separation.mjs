@@ -153,7 +153,7 @@ for (const c of COURSES) {
 
 /* ── engine → course ────────────────────────────────────────────────────── */
 
-const ENGINE = ['app.js', 'app.css', 'index.html', 'munin.js', 'sw.js', 'import.js',
+const ENGINE = ['app.js', 'app.css', 'index.html', 'sync.js', 'munin.js', 'sw.js', 'import.js',
   'doodles-munin.js'].concat(
   fs.readdirSync(path.join(WEB, 'lib')).filter((f) => f.endsWith('.js')).map((f) => 'lib/' + f));
 

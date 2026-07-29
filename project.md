@@ -1,6 +1,12 @@
-# Munin
+# keep club
 
-Spaced repetition that doesn't make you learn the app first.
+> This is the original Munin build brief and historical decision record. The
+> public name became **keep club** and the mark became the **tower** on
+> 28 July 2026; see [naming-domains.md](naming-domains.md). Historical Munin
+> language below is retained where it explains decisions, while `munin/...`
+> identifiers remain permanently for install and progress compatibility.
+
+Membership pays in memories.
 
 Anki's scheduler is the best thing in the category and its interface is the reason most
 people who try it stop. Munin keeps the first and replaces the second.
@@ -10,10 +16,10 @@ Named for Odin's raven of memory — a small friendly raven who remembers things
 Germanic and Egyptian myth is in `naming-research.md`; it ran after the name was locked,
 came out at the same answer, and is kept as a bench for naming everything else.
 
-Status: **v0 live at kkonrad.com/munin** (27 Jul). The shell + themes engine over the
-extracted Day Skipper engine, both courses playable, per-course state, sync stubbed off
-until the parity gate. `web/README.md` documents the boot order and what differs from
-Day Skipper's app.js. /day-skipper is untouched and still the app of record.
+Status: **live at [keepclub.app](https://keepclub.app/)**. Both built-in
+courses are playable, imported Anki decks remain local, and built-in progress
+can sync between devices with a shared key. The old `kkonrad.com/munin`
+deployment is retired to a one-time browser-data migration page.
 
 The `.apkg` importer (phase 3) is built on `feat/anki-importer`: drop a deck on the shelf,
 read the receipt, study it. Both Anki export formats, cloze and reversed cards, pictures
