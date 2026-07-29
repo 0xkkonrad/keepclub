@@ -13,7 +13,10 @@
 import { readApkg, ApkgError, MAX_PACKAGE_BYTES } from './lib/anki.js';
 import { buildDeck, RAVENS } from './lib/deck.js';
 import { readCourseFile } from './lib/course-package.js';
-import { normalizeLegacyCourse } from './lib/legacy-course.js';
+import {
+  normalizeLegacyCourse,
+  projectDescriptiveCourseToLegacy,
+} from './lib/legacy-course.js';
 import * as store from './lib/store.js';
 import { receiptHtml, nothingHtml, ensureCss, doodle } from './lib/receipt.js';
 
@@ -304,8 +307,14 @@ export function openImporter() {
           body.querySelector('[data-again]').addEventListener('click', pick);
           return;
         }
-        const sourceCourseId = `anki-${(hash(JSON.stringify(legacy.deck.cards)) >>> 0).toString(36)}`;
-        const normalized = normalizeLegacyCourse(legacy.deck, { courseId: sourceCourseId });
+        /* Anki HTML is already rendered and sanitized, so it must retain the
+         * permanent format-1 content marker in storage. The inverse projection
+         * lives at the same compatibility boundary as its reader; buildDeck
+         * and this importer otherwise use descriptive course fields only. */
+        const storageDeck = projectDescriptiveCourseToLegacy(legacy.deck);
+        const sourceCourseId =
+          `anki-${(hash(JSON.stringify(storageDeck.cards)) >>> 0).toString(36)}`;
+        const normalized = normalizeLegacyCourse(storageDeck, { courseId: sourceCourseId });
         if (!normalized.course) {
           failDiagnostics(normalized);
           return;
@@ -313,14 +322,14 @@ export function openImporter() {
         built = {
           ...legacy,
           kind: 'anki',
-          title: legacy.deck.name,
+          title: legacy.deck.title,
           sourceCourseId,
           course: normalized.course,
           // Existing Anki HTML has safe constructs outside public CommonMark
           // (ruby, audio placeholders, sub/sup). Keep its proven format-1
           // artifact on disk so the permanent adapter retains the
           // sanitized-HTML representation marker on every read.
-          deck: legacy.deck,
+          deck: storageDeck,
           mediaIndexBySource: {},
         };
       }

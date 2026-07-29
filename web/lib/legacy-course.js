@@ -443,6 +443,79 @@ function checkedLength(array, path, out) {
 }
 
 /**
+ * Project a trusted descriptive Anki build back to the permanent format-1
+ * storage shape. Anki fronts/backs have already been rendered and sanitized;
+ * storing them as schemaVersion 2 would make boot treat that HTML as authored
+ * CommonMark. Keeping this inverse projection beside the format-1 reader makes
+ * that compatibility decision explicit and prevents compact keys from leaking
+ * back into the importer or builder.
+ *
+ * This is deliberately not a general format-2 serializer. The representation
+ * marker is required so creator-authored CommonMark can never cross it.
+ *
+ * @param {object} input descriptive buildDeck output
+ * @returns {object} format-1 object suitable for IndexedDB/backups
+ */
+export function projectDescriptiveCourseToLegacy(input) {
+  if (!isObject(input)) throw new TypeError('the descriptive Anki course must be an object');
+  if (ownValue(input, 'contentRepresentation', '$.contentRepresentation') !== 'sanitized-html') {
+    throw new TypeError('only already-sanitized Anki HTML can use the legacy storage projection');
+  }
+
+  const title = ownValue(input, 'title', '$.title');
+  const rawSections = ownValue(input, 'sections', '$.sections');
+  const rawGroups = ownValue(input, 'groups', '$.groups');
+  const rawCards = ownValue(input, 'cards', '$.cards');
+  const buildFingerprint = ownValue(input, 'buildFingerprint', '$.buildFingerprint');
+  if (!isNonEmptyString(title) || !Array.isArray(rawSections)
+      || !Array.isArray(rawGroups) || !Array.isArray(rawCards)
+      || !isNonEmptyString(buildFingerprint)) {
+    throw new TypeError('the descriptive Anki course is incomplete');
+  }
+
+  const sections = Array.from(rawSections, (section, index) => {
+    if (!isObject(section)) throw new TypeError(`section ${index} is not an object`);
+    return {
+      k: ownValue(section, 'sectionId', `$.sections[${index}].sectionId`),
+      t: ownValue(section, 'title', `$.sections[${index}].title`),
+      n: ownValue(section, 'cardCount', `$.sections[${index}].cardCount`),
+      o: ownValue(section, 'order', `$.sections[${index}].order`),
+    };
+  });
+  const groups = Array.from(rawGroups, (group, index) => {
+    if (!isObject(group)) throw new TypeError(`group ${index} is not an object`);
+    const sectionIds = ownValue(group, 'sectionIds', `$.groups[${index}].sectionIds`);
+    if (!Array.isArray(sectionIds)) {
+      throw new TypeError(`group ${index} has no section list`);
+    }
+    return {
+      k: ownValue(group, 'groupId', `$.groups[${index}].groupId`),
+      t: ownValue(group, 'title', `$.groups[${index}].title`),
+      s: [...sectionIds],
+      n: ownValue(group, 'cardCount', `$.groups[${index}].cardCount`),
+    };
+  });
+  const cards = Array.from(rawCards, (card, index) => {
+    if (!isObject(card)) throw new TypeError(`card ${index} is not an object`);
+    return {
+      i: ownValue(card, 'cardId', `$.cards[${index}].cardId`),
+      q: ownValue(card, 'front', `$.cards[${index}].front`),
+      a: ownValue(card, 'back', `$.cards[${index}].back`),
+      s: ownValue(card, 'sectionId', `$.cards[${index}].sectionId`),
+    };
+  });
+
+  return {
+    format: LEGACY_COURSE_FORMAT,
+    name: title,
+    sections,
+    groups,
+    cards,
+    build: buildFingerprint,
+  };
+}
+
+/**
  * Normalize one compact format-1 course into a fresh descriptive format-2
  * runtime object. Legacy cards.json often has no course identity, so callers
  * must supply the surrounding course folder or imported-record ID.

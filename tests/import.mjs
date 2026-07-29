@@ -1,11 +1,17 @@
 /* The importer, end to end, over packages built to Anki's own schema.
  * usage:  python3 fixtures/make-apkg.py && node import.mjs
  */
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { deflateRawSync } from 'node:zlib';
 import { readApkg, ApkgError } from '../web/lib/anki.js';
 import { buildDeck } from '../web/lib/deck.js';
 import { clean, toText } from '../web/lib/html.js';
+import {
+  normalizeLegacyCourse,
+  projectDescriptiveCourseToLegacy,
+} from '../web/lib/legacy-course.js';
 import { readZip, ZipError } from '../web/lib/unzip.js';
 import { cloze, clozeOrds } from '../web/lib/template.js';
 
@@ -17,6 +23,15 @@ const run = async (n, fileName) => {
   const col = await readApkg(load(n));
   return { col, ...(await buildDeck(col, { fileName: fileName || n })) };
 };
+
+function sourceCourseId(cards) {
+  const source = JSON.stringify(cards);
+  let hash = 0;
+  for (let i = 0; i < source.length; i++) {
+    hash = (Math.imul(hash, 31) + source.charCodeAt(i)) | 0;
+  }
+  return `anki-${(hash >>> 0).toString(36)}`;
+}
 
 /** One-member ZIP, just enough structure to exercise the browser reader. */
 function zipOne(member, plain) {
@@ -53,49 +68,57 @@ const legacy = await run('legacy.apkg');
   ok(receipt.read.cards === 13, `13 card rows read (${receipt.read.cards})`);
   ok(receipt.read.notes === 11, `11 notes read (${receipt.read.notes})`);
   ok(deck.cards.length === 11, `11 cards made (${deck.cards.length})`);
-  ok(deck.name === 'Sailing', `the deck is named from what its decks share ("${deck.name}")`);
+  ok(deck.title === 'Sailing', `the deck is named from what its decks share ("${deck.title}")`);
 
-  const secs = deck.sections.map((s) => `${s.t}:${s.n}`).join(' ');
+  const secs = deck.sections.map((section) => `${section.title}:${section.cardCount}`).join(' ');
   ok(secs === 'Knots:2 Reading · Almanac:2 Reading · Pilot books:2 Tides:5',
     `four sections, counted (${secs})`);
-  ok(deck.sections.every((s) => deck.cards.filter((c) => c.s === s.k).length === s.n),
+  ok(deck.sections.every((section) => deck.cards.filter((card) =>
+    card.sectionId === section.sectionId).length === section.cardCount),
     'every section count matches the cards that carry its key');
   ok(deck.groups.length === 0, 'no groups, because grouping would hide two sections');
 
-  const find = (q) => deck.cards.find((c) => toText(c.q).includes(q));
+  const find = (q) => deck.cards.find((card) => toText(card.front).includes(q));
   const bowline = find('bowline');
-  ok(bowline && !toText(bowline.a).includes('What is a bowline'),
+  ok(bowline && !toText(bowline.back).includes('What is a bowline'),
     'the answer does not repeat the question that {{FrontSide}} put there');
-  ok(bowline && bowline.a.startsWith('A loop that will not slip'),
-    `the <hr id=answer> separator goes with it ("${bowline?.a.slice(0, 40)}")`);
+  ok(bowline && bowline.back.startsWith('A loop that will not slip'),
+    `the <hr id=answer> separator goes with it ("${bowline?.back.slice(0, 40)}")`);
 
   const clove = find('Clove hitch');
-  ok(clove && clove.a.includes('&amp;') && clove.a.includes('&deg;'),
+  ok(clove && clove.back.includes('&amp;') && clove.back.includes('&deg;'),
     'entities written by the deck survive');
 
   // A reversed note is two cards, one each way.
-  const neapQ = deck.cards.filter((c) => toText(c.q) === 'Neap tide');
-  const neapA = deck.cards.filter((c) => toText(c.q) === 'The smallest range, at the quarters');
+  const neapQ = deck.cards.filter((card) => toText(card.front) === 'Neap tide');
+  const neapA = deck.cards.filter((card) =>
+    toText(card.front) === 'The smallest range, at the quarters');
   ok(neapQ.length === 1 && neapA.length === 1, 'a reversed note makes both cards');
 
   // Cloze: one card per deletion, each blanking only its own.
-  const c1 = deck.cards.find((c) => c.q.includes('[...]') && toText(c.q).includes('sail'));
-  const c2 = deck.cards.find((c) => c.q.includes('[...]') && toText(c.q).includes('halyard'));
+  const c1 = deck.cards.find((card) =>
+    card.front.includes('[...]') && toText(card.front).includes('sail'));
+  const c2 = deck.cards.find((card) =>
+    card.front.includes('[...]') && toText(card.front).includes('halyard'));
   ok(!!c1 && !!c2, 'a cloze note makes one card per deletion');
-  ok(c1 && toText(c1.a).includes('halyard') && c1.a.includes('class="cloze"'),
+  ok(c1 && toText(c1.back).includes('halyard') && c1.back.includes('class="cloze"'),
     'the cloze answer fills in the blank it hid');
-  ok(c1 && toText(c1.q).includes('sail') && !toText(c1.q).includes('halyard'),
+  ok(c1 && toText(c1.front).includes('sail') && !toText(c1.front).includes('halyard'),
     'the other deletions stay visible on the question');
 
   const hinted = find('Leeway');
-  ok(hinted && hinted.q.includes('<i>starts with L</i>'), '{{#Hint}} prints when the field is filled');
-  ok(hinted && !toText(hinted.q).includes('Meaning'), '{{type:…}} contributes nothing to a card you read');
+  ok(hinted && hinted.front.includes('<i>starts with L</i>'),
+    '{{#Hint}} prints when the field is filled');
+  ok(hinted && !toText(hinted.front).includes('Meaning'),
+    '{{type:…}} contributes nothing to a card you read');
   const unhinted = find('Set');
-  ok(unhinted && toText(unhinted.a).includes('(no hint)'), '{{^Hint}} prints when the field is empty');
+  ok(unhinted && toText(unhinted.back).includes('(no hint)'),
+    '{{^Hint}} prints when the field is empty');
 
   // A filtered deck is a view; the card belongs to the deck it came from.
   const spring = find('Spring tide');
-  ok(spring && deck.sections.find((s) => s.k === spring.s)?.t === 'Tides',
+  ok(spring && deck.sections.find((section) =>
+    section.sectionId === spring.sectionId)?.title === 'Tides',
     'a card sitting in a filtered deck lands in its home deck');
 
   ok(receipt.skipped.reduce((n, s) => n + s.count, 0) === 2, 'two cards accounted for as dropped');
@@ -109,6 +132,85 @@ const legacy = await run('legacy.apkg');
     'cards are counted by the note type that made them');
 }
 
+/* ── the one permanent Anki storage projection ── */
+{
+  const descriptive = legacy.deck;
+  ok(descriptive.contentRepresentation === 'sanitized-html'
+      && descriptive.cards.every((card) =>
+        ['cardId', 'front', 'back', 'sectionId'].every((field) => field in card))
+      && descriptive.sections.every((section) =>
+        ['sectionId', 'title', 'cardCount', 'order'].every((field) => field in section)),
+  'buildDeck emits descriptive cards and sections with an explicit sanitized-HTML marker');
+
+  const stored = projectDescriptiveCourseToLegacy(descriptive);
+  ok(stored.format === 1
+      && JSON.stringify(Object.keys(stored.cards[0])) === '["i","q","a","s"]'
+      && sourceCourseId(stored.cards) === 'anki-72u5r'
+      && createHash('sha256').update(JSON.stringify(stored)).digest('hex')
+        === '2b1cf825ad1f48043b8595f4a8720620b25e0b60059f98ea054621121336d51d',
+  'the compatibility projection preserves the released storage bytes and Anki source identity');
+
+  const normalized = normalizeLegacyCourse(stored, {
+    courseId: sourceCourseId(stored.cards),
+  });
+  ok(normalized.course?.cards.every((card, index) =>
+    card.cardId === descriptive.cards[index].cardId
+      && card.sectionId === descriptive.cards[index].sectionId
+      && card.front === descriptive.cards[index].front
+      && card.back === descriptive.cards[index].back)
+      && normalized.course.cards[0].front === 'What is a bowline?'
+      && normalized.course.cards[0].back.includes('<br><b>Under load</b>'),
+  'the projected deck round-trips without treating sanitized Anki HTML as CommonMark');
+
+  assert.throws(() => projectDescriptiveCourseToLegacy({
+    ...descriptive,
+    contentRepresentation: 'authored-commonmark',
+  }), /sanitized Anki HTML/,
+  'creator-authored CommonMark cannot enter the legacy HTML storage projection');
+}
+
+{
+  const names = [
+    'Grouped::Alpha::One',
+    'Grouped::Alpha::Two',
+    'Grouped::Beta::Three',
+    'Grouped::Beta::Four',
+  ];
+  const notetype = {
+    name: 'Basic',
+    cloze: false,
+    fields: ['Front', 'Back'],
+    templates: [{ ord: 0, name: 'Card 1', qfmt: '{{Front}}', afmt: '{{Back}}' }],
+  };
+  const col = {
+    schema: 11,
+    member: 'collection.anki2',
+    notes: function* notes() {
+      for (let i = 0; i < names.length; i++) {
+        yield { id: i + 1, mid: 1, flds: `Question ${i}\x1fAnswer ${i}`, tags: '' };
+      }
+    },
+    cards: function* cards() {
+      for (let i = 0; i < names.length; i++) {
+        yield { id: i + 100, nid: i + 1, did: i + 10, ord: 0, queue: 0 };
+      }
+    },
+    notetypes: new Map([[1, notetype]]),
+    decks: new Map(names.map((name, index) => [index + 10, name])),
+    media: new Map(),
+    async mediaBytes() { return null; },
+  };
+  const grouped = await buildDeck(col);
+  ok(grouped.deck.groups.length === 2
+      && grouped.deck.groups.every((group) =>
+        group.groupId && group.title && group.sectionIds.length === 2 && group.cardCount === 2)
+      && grouped.deck.cards.every((card) => card.sectionId),
+  'buildDeck emits descriptive group identity, membership, counts, and card section IDs');
+  const stored = projectDescriptiveCourseToLegacy(grouped.deck);
+  ok(stored.groups.every((group) => group.k && group.t && group.s.length === 2 && group.n === 2),
+    'the compatibility boundary alone owns compact persisted group fields');
+}
+
 /* ── media ── */
 {
   const { deck, receipt, media } = legacy;
@@ -116,16 +218,19 @@ const legacy = await run('legacy.apkg');
     `one picture and one sound (${receipt.media.images}/${receipt.media.sounds})`);
   ok(receipt.media.missing.includes('gone.png'),
     'a picture the package does not contain is named, not silently dropped');
-  const img = deck.cards.find((c) => c.q.includes('<img'));
-  ok(img && /src="munin-media:\d+"/.test(img.q), 'pictures point at the deck, never at the network');
-  const snd = deck.cards.find((c) => c.a.includes('<audio'));
-  ok(snd && /src="munin-media:\d+"/.test(snd.a), '[sound:…] becomes something you can play');
-  ok(!deck.cards.some((c) => /gone\.png/.test(c.q + c.a)), 'the missing picture leaves no broken image');
+  const img = deck.cards.find((card) => card.front.includes('<img'));
+  ok(img && /src="munin-media:\d+"/.test(img.front),
+    'pictures point at the deck, never at the network');
+  const snd = deck.cards.find((card) => card.back.includes('<audio'));
+  ok(snd && /src="munin-media:\d+"/.test(snd.back),
+    '[sound:…] becomes something you can play');
+  ok(!deck.cards.some((card) => /gone\.png/.test(card.front + card.back)),
+    'the missing picture leaves no broken image');
   ok(media.length === 2 && media[0].source === 'knot.png' && media[0].bytes.length > 0,
     'the media files come out with their bytes');
   ok(media.find((m) => m.source === 'horn.mp3').mediaType === 'audio',
     'sound is marked as sound');
-  const bird = deck.cards.find((c) => c.a.includes('🐦'));
+  const bird = deck.cards.find((card) => card.back.includes('🐦'));
   ok(!!bird, 'unicode survives the round trip');
 }
 
@@ -146,7 +251,7 @@ const legacy = await run('legacy.apkg');
 /* ── anything a stranger wrote is inert by the time it is stored ── */
 {
   const { deck } = await run('hostile.apkg');
-  const all = deck.cards.map((c) => c.q + c.a).join('\n');
+  const all = deck.cards.map((card) => card.front + card.back).join('\n');
   const banned = [/<script/i, /onerror/i, /onclick/i, /javascript:/i, /<iframe/i, /<style/i,
     /<svg/i, /onbegin/i, /window\.__pwned/i];
   const leaked = banned.filter((re) => re.test(all));
@@ -239,17 +344,18 @@ const legacy = await run('legacy.apkg');
     `"100%.png" and "50%off.mp3" are found (${receipt.media.images}/${receipt.media.sounds})`);
 
   // Decks that share no parent cannot name the deck between them.
-  ok(deck.name === 'my-collection',
-    `with nothing in common, the deck takes the file's name ("${deck.name}")`);
+  ok(deck.title === 'my-collection',
+    `with nothing in common, the deck takes the file's name ("${deck.title}")`);
 
   // A cloze card is a card because something is hidden.
-  ok(!deck.cards.some((c) => toText(c.q) === toText(c.a).replace(/ extra$/, '')),
+  ok(!deck.cards.some((card) =>
+    toText(card.front) === toText(card.back).replace(/ extra$/, '')),
     'no card asks you its own answer');
   ok(receipt.skipped.some((s) => /nothing was blanked out/.test(s.why)),
     'a cloze with no deletion is dropped, and said so');
 
   // Two cards must never be one card.
-  const ids = deck.cards.map((c) => c.i);
+  const ids = deck.cards.map((card) => card.cardId);
   ok(new Set(ids).size === ids.length, `every card has an id of its own (${ids.length} cards, ${new Set(ids).size} ids)`);
 
   // An SVG cannot be shown, so it is not a picture that landed.
@@ -262,7 +368,7 @@ const legacy = await run('legacy.apkg');
   const { deck, receipt } = await run('badmedia.apkg');
   ok(deck.cards.length === 11, `a corrupt media file leaves the cards alone (${deck.cards.length})`);
   ok(receipt.media.damaged?.length === 1, `and is named as damaged (${receipt.media.damaged})`);
-  ok(!deck.cards.some((c) => /munin-media:0"/.test(c.q + c.a)),
+  ok(!deck.cards.some((card) => /munin-media:0"/.test(card.front + card.back)),
     'the card it belonged to shows no broken image');
 }
 
