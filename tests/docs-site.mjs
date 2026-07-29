@@ -156,10 +156,11 @@ const server = http.createServer((req, res) => {
   if (!file.startsWith(`${WEB}/`) && file !== WEB) return res.writeHead(403).end();
   try {
     if (fs.statSync(file).isDirectory()) file = path.join(file, 'index.html');
+    const contents = fs.readFileSync(file);
     res.writeHead(200, {
       'content-type': contentTypes[path.extname(file)] || 'application/octet-stream',
     });
-    res.end(fs.readFileSync(file));
+    res.end(contents);
   } catch {
     res.writeHead(404).end();
   }

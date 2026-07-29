@@ -79,11 +79,12 @@ const server = http.createServer((req, res) => {
   const file = path.resolve(WEB, `.${decodeURIComponent(url.pathname)}`);
   if (!file.startsWith(`${WEB}/`)) return res.writeHead(403).end();
   try {
+    const contents = fs.readFileSync(file);
     res.writeHead(200, {
       'content-type': path.extname(file) === '.js'
         ? 'application/javascript' : 'application/octet-stream',
     });
-    res.end(fs.readFileSync(file));
+    res.end(contents);
   } catch {
     res.writeHead(404).end();
   }

@@ -162,11 +162,12 @@ const server = http.createServer((req, res) => {
     return;
   }
   try {
+    const contents = fs.readFileSync(file);
     res.writeHead(200, {
       'content-type': mime[path.extname(file)] || 'application/octet-stream',
       'cache-control': 'no-store',
     });
-    res.end(fs.readFileSync(file));
+    res.end(contents);
   } catch {
     res.writeHead(404).end();
   }
