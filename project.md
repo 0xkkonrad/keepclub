@@ -372,10 +372,13 @@ re-importing is the migration path, which is the same mechanism as replacing a d
 ## Not doing
 
 - Anki sync-protocol compatibility, in either direction.
-- Ongoing deck updates. Import is a one-time migration, so there is no diff-before-apply
-  and no subscribe-to-a-deck. **This is a known hole** — the update path was the loudest
-  complaint in the ecosystem and we're choosing not to answer it. Revisit if shared decks
-  ever matter.
+- Subscribe-to-a-deck. There is no ongoing relationship with an upstream deck.
+  (Re-import of the same deck, by contrast, is NOT a hole: `import.js` matches the
+  incoming file against the shelf, shows a confirm-before-apply receipt, and the replace
+  path keeps scheduling — verified in `tests/importer-ui.mjs`. What's weak, as of
+  29 Jul 2026, is the *matching* — it is gated on the derived deck title, and the
+  computed added/removed delta is never rendered for .apkg. That's a fix, not a
+  feature.)
 - AI card generation. Card-making is part of learning; Skola's reasoning holds.
 - A shared-deck marketplace.
 - Anything named after Anki. AnkiPro was forced to rename to Noji in June 2025 under
@@ -385,9 +388,12 @@ re-importing is the migration path, which is the same mechanism as replacing a d
 
 - **Supabase project** — personal, or under an existing org? Keys not chosen. This also
   gates the daily keepalive above.
-- **Flick-grading on desktop.** Buttons are the stated fallback, but the best interaction
-  in the product being mobile-only is a real cost. Trackpad gesture? Arrow keys with the
-  same ghost label?
+- ~~**Flick-grading on desktop.**~~ Settled 29 Jul 2026: the flick itself is Phase 2 and
+  unbuilt, so there is no desktop gap today — desktop grading is `1`–`4` + `Space` + `U`
+  with the per-grade intervals always visible on the buttons and an on-screen key hint.
+  No mainstream SRS app does desktop gesture grading, and WCAG 2.1.1 rules out
+  hold-to-escalate as a sole path. The live question moves into Phase 2: build the ghost
+  label as ONE shared renderer (hover/focus-driven on desktop, flick-driven on mobile).
 - **Distance→grade mapping.** Needs to be tuned on a real thumb, not designed on paper.
 - **Do edits ever reset scheduling** (see 4b).
 
