@@ -283,8 +283,13 @@ Local-first PWA, Supabase behind it.
   survive this — thousands of cards plus media need a real store.)
 - **Supabase:** auth, sync, and media storage. Row-level security per user. A deck is
   rows, not a blob, so a partial sync is a normal state and not a corruption.
-- **Scheduler:** FSRS (`ts-fsrs`). Day Skipper's tuned SM-2 does not come across. What
-  *does* come across is its exam-date interval clamp — that's what makes mode 1
+- **Scheduler:** the plan said FSRS (`ts-fsrs`); what shipped is SM-2 with the awkward
+  parts removed — two learning steps, four grades, Hard holds the interval (`web/app.js`).
+  FSRS is still the right call and remains open. There is no per-review log — per-card
+  state is interval, ease, reps and lapses — so a switch would seed FSRS from current
+  state the way Anki's own migration does when logs are missing; approximate, but no
+  progress reset. What did come
+  across from Day Skipper is the exam-date interval clamp — that's what makes mode 1
   ("cramming for a date") real rather than a label.
 - **No accounts required to start.** Sign-in is what turns on sync, not what turns on the
   app. Anki's onboarding failure is a decision we get to not repeat.
@@ -310,8 +315,9 @@ Two things that make this actually work rather than look like it works:
 Once a day is deliberate overkill against a 7-day window: it means six consecutive silent
 failures before anything is actually at risk.
 
-**Not wired yet** — blocked on the Supabase project existing. It's a cron line and a
-five-line script once there are keys.
+**Not wired yet — and no longer blocked.** The Supabase project exists and serves live
+sync (`web/sync.js` carries the endpoint). All that's missing is the cron line and the
+five-line script on the Hetzner box.
 
 ## Phases
 
