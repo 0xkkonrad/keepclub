@@ -1,5 +1,12 @@
 # docs.keepclub.app handoff
 
+**Status: CLOSED, 29 July 2026 — the vanity host was dropped by owner
+decision.** No third-party redirect service will be used, no `docs` DNS
+record should exist, and nothing depends on the hostname: all runtime
+diagnostic links use the canonical `https://keepclub.app/docs/` tree, and
+the schema `$id` is an identifier, not a fetch URL. The rest of this
+document is kept only as a design reference should the idea ever revive.
+
 Audience: the agent or operator with Namecheap DNS and GitHub Pages
 administration. This repository change does **not** alter DNS, Pages settings,
 or production.
