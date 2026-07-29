@@ -53,8 +53,10 @@ progress.
 
 ## Licensing
 
-A software license must be selected before the source repository is made
-public. Third-party course videos remain the property of their original
-creators and are not covered by the future software license; their creators
-and original posts are recorded in
-`content/day-skipper/video/sources.csv`.
+keep club's original software and project documentation are available under
+the [MIT License](LICENSE).
+
+Third-party dependencies and assets retain their own licenses or copyrights;
+see [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md). In particular, the
+third-party course videos are not covered by the MIT License. Their creators
+and original posts are recorded in `content/day-skipper/video/sources.csv`.
