@@ -13,9 +13,37 @@ set -euo pipefail
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SITE="${SITE:-/workspaces/sandbox/projects/keepclub-pages}"
 DOMAIN="keepclub.app"
+MODE="${1:-}"
 
 [ -d "$SITE/.git" ] || { echo "no site repo at $SITE (override with SITE=…)"; exit 1; }
 [ -f "$HERE/web/munin.js" ] || { echo "no app at $HERE/web"; exit 1; }
+case "$MODE" in
+  ""|--commit) ;;
+  *) echo "usage: $0 [--commit]"; exit 1 ;;
+esac
+
+# Refuse every repository-state problem before rsync --delete gets a chance to
+# overwrite it. A deployment is a fast-forward of the dedicated Pages main,
+# not a place to collect somebody else's edits or a commit on a feature branch
+# while an unchanged main is pushed.
+[ "$(git -C "$SITE" branch --show-current)" = "main" ] \
+  || { echo "site repo must be on main"; exit 1; }
+[ -z "$(git -C "$SITE" status --porcelain)" ] \
+  || { echo "site repo has uncommitted work; refusing to overwrite it"; exit 1; }
+SITE_REMOTE=$(git -C "$SITE" remote get-url origin 2>/dev/null || true)
+[[ "$SITE_REMOTE" =~ (^|[:/])0xkkonrad/keepclub-pages(\.git)?$ ]] \
+  || { echo "site origin is not 0xkkonrad/keepclub-pages"; exit 1; }
+SITE_HEAD=$(git -C "$SITE" rev-parse HEAD)
+SITE_MAIN=$(git -C "$SITE" rev-parse refs/remotes/origin/main 2>/dev/null || true)
+[ -n "$SITE_MAIN" ] && [ "$SITE_HEAD" = "$SITE_MAIN" ] \
+  || { echo "site main is not exactly origin/main; pull or resolve it first"; exit 1; }
+
+if [ "$MODE" = "--commit" ]; then
+  [ "$(git -C "$HERE" branch --show-current)" = "main" ] \
+    || { echo "source repo must be on main for a committed deployment"; exit 1; }
+  [ -z "$(git -C "$HERE" status --porcelain)" ] \
+    || { echo "source repo has uncommitted work; commit it before deploying"; exit 1; }
+fi
 node "$HERE/scripts/build-docs.mjs" --check \
   || { echo "docs reference is stale; run node scripts/build-docs.mjs --write"; exit 1; }
 
@@ -70,9 +98,13 @@ echo "sw shell cache: munin-shell-$SHELL_STAMP"
 cd "$SITE"
 git add -A
 git status --short | head -20 || true
-if [ "${1:-}" = "--commit" ]; then
+if [ "$MODE" = "--commit" ]; then
   SRC=$(git -C "$HERE" rev-parse --short HEAD)
+  if git diff --cached --quiet; then
+    echo "nothing changed — Pages is already at keepclub@$SRC"
+    exit 0
+  fi
   git commit -q -m "Deploy the app to $DOMAIN root (from keepclub@$SRC)"
-  git push -q origin main
+  git push -q origin HEAD:main
   echo "pushed — Pages will rebuild"
 fi

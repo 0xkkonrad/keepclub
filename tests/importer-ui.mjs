@@ -306,9 +306,16 @@ ok(/^local-[a-z0-9]+$/.test(id), `the imported deck becomes the resume target ($
   await give(p, 'notzip.apkg');
   await p.waitForSelector('.imp-err', { timeout: 15000 });
   ok((await p.textContent('.imp-err')).includes('could not be read'), 'junk is refused in plain words');
+  const refusalFocus = await p.evaluate(() => ({
+    role: document.querySelector('.imp-err')?.getAttribute('role'),
+    focused: document.activeElement === document.querySelector('.imp-err'),
+  }));
+  ok(refusalFocus.role === 'alert' && refusalFocus.focused,
+    'an import refusal is announced and keeps meaningful focus inside the dialog');
   await p.click('[data-again]');
   await p.waitForSelector('#imp-file');
-  ok(true, 'and you can try another file without starting over');
+  ok(await p.evaluate(() => document.activeElement?.id === 'imp-file'),
+    'trying another file returns focus to the picker');
   await p.click('.imp-x');
 }
 

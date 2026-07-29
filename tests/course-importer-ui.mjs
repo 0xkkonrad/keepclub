@@ -254,8 +254,8 @@ ok(/card\.duplicate_id/.test(refusal) && /Nothing was saved/.test(refusal),
 ok(await page.getAttribute('.imp-docs', 'href') === './docs/reference/errors/',
   'public format errors retain the public diagnostic reference');
 ok(await page.locator('.imp-err[role="alert"]').count() === 1
-    && await page.locator('[data-again]').evaluate((node) => node === document.activeElement),
-  'an import failure is announced and moves keyboard focus to recovery');
+    && await page.locator('.imp-err').evaluate((node) => node === document.activeElement),
+  'an import failure is announced and moves keyboard focus to its error summary');
 const stillInstalled = await page.evaluate(async () => {
   const rows = await (await import('./lib/store.js')).list();
   return { rows: rows.length, ids: rows[0]?.ids };
@@ -264,6 +264,8 @@ ok(stillInstalled.rows === 1 && stillInstalled.ids.join(',') === 'second,third',
   'a failed import cannot partially replace the installed course');
 
 await page.click('[data-again]');
+ok(await page.locator('#imp-file').evaluate((node) => node === document.activeElement),
+  'trying another public course returns focus to the file picker');
 await giveYaml(page, differentIdentity);
 await page.waitForSelector('.imp-book:visible');
 const identityPreview = await page.textContent('.imp-inner');

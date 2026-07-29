@@ -46,6 +46,10 @@ Day Skipper app's key, asserted UNTOUCHED) → cold open resumes the course.
 commutativity, idempotence, monotonic review history, streak reconstruction,
 key validation, and the guarantee that only a SHA-256 hash is transported.
 
+`deploy-script.mjs` — destructive deployment preflights in disposable Git
+repositories: wrong branches, dirty Pages work and an unexpected remote are
+all refused before the copy begins.
+
 `mirror-migration.mjs` — a real two-origin browser move from the retired
 kkonrad.com mirror into keepclub.app: built-in progress, an imported deck,
 its review history and media all cross, while the originals remain untouched.

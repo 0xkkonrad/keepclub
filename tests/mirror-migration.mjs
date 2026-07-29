@@ -132,6 +132,60 @@ try {
     db.close();
   }, legacyState);
 
+  // A newer deck already at keepclub.app with the same generated id. Migration
+  // is automatic, so overlap is not permission to replace it with the old copy.
+  const targetSeed = await context.newPage();
+  await targetSeed.goto('http://127.0.0.1:8777/projects/keepclub/web/',
+    { waitUntil: 'networkidle' });
+  await targetSeed.waitForSelector('.shelf.on');
+  await targetSeed.evaluate(async () => {
+    localStorage.setItem('munin/local-moveabc/state/v1', JSON.stringify({
+      v: 1,
+      recs: {
+        'newer-card': {
+          st: 'r', step: 0, ivl: 30, ea: 2.6, due: 900, rp: 9, lp: 0, pv: 0,
+        },
+      },
+      day: '2026-07-29',
+      days: { '2026-07-29': 9 },
+      answers: 9,
+      settings: { newPerDay: 15, maxRev: 120, at: 20 },
+    }));
+    const db = await new Promise((resolve, reject) => {
+      const request = indexedDB.open('munin', 1);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(['decks', 'cards', 'media'], 'readwrite');
+      tx.objectStore('decks').put({
+        id: 'local-moveabc',
+        title: 'Newer navigation',
+        description: 'Already at keepclub.app',
+        cards: 2,
+        ids: ['legacy-card', 'newer-card'],
+        created: 2,
+      });
+      tx.objectStore('cards').put({
+        title: 'Newer navigation',
+        cards: [
+          { i: 'legacy-card', q: 'Updated front', a: 'Updated back', s: 'new' },
+          { i: 'newer-card', q: 'New card', a: 'New answer', s: 'new' },
+        ],
+      }, 'local-moveabc');
+      tx.objectStore('media').put({
+        name: 'newer.png',
+        kind: 'image',
+        blob: new Blob([new Uint8Array([1, 2, 3])], { type: 'image/png' }),
+      }, ['local-moveabc', 0]);
+      tx.oncomplete = resolve;
+      tx.onerror = () => reject(tx.error);
+      tx.onabort = () => reject(tx.error);
+    });
+    db.close();
+  });
+  await targetSeed.close();
+
   const popupReady = context.waitForEvent('page');
   await oldPage.click('#move');
   const newPage = await popupReady;
@@ -142,8 +196,6 @@ try {
   const moved = await newPage.evaluate(async () => {
     const progress = JSON.parse(
       localStorage.getItem('munin/day-skipper/state/v1') || 'null');
-    const importedProgress = JSON.parse(
-      localStorage.getItem('munin/local-moveabc/state/v1') || 'null');
     const db = await new Promise((resolve, reject) => {
       const request = indexedDB.open('munin', 1);
       request.onsuccess = () => resolve(request.result);
@@ -154,20 +206,39 @@ try {
       request.onsuccess = () => resolve(request.result);
       request.onerror = () => reject(request.error);
     });
-    const [meta, cards, media] = await Promise.all([
-      get('decks', 'local-moveabc'),
-      get('cards', 'local-moveabc'),
-      get('media', ['local-moveabc', 0]),
-    ]);
+    const metas = await new Promise((resolve, reject) => {
+      const request = db.transaction('decks').objectStore('decks').getAll();
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    const legacyMeta = metas.find((deck) => deck.title === 'Legacy navigation');
+    const legacyId = legacyMeta?.id;
+    const [targetMeta, targetCards, targetMedia, legacyCards, legacyMedia] =
+      await Promise.all([
+        get('decks', 'local-moveabc'),
+        get('cards', 'local-moveabc'),
+        get('media', ['local-moveabc', 0]),
+        legacyId ? get('cards', legacyId) : null,
+        legacyId ? get('media', [legacyId, 0]) : null,
+      ]);
     db.close();
     return {
       progress,
-      importedProgress,
+      targetProgress: JSON.parse(
+        localStorage.getItem('munin/local-moveabc/state/v1') || 'null'),
+      importedProgress: legacyId
+        ? JSON.parse(localStorage.getItem(`munin/${legacyId}/state/v1`) || 'null')
+        : null,
       theme: localStorage.getItem('munin/theme'),
       last: localStorage.getItem('munin/last-course'),
-      meta,
-      cards,
-      mediaBytes: media ? await media.blob.arrayBuffer().then((b) => b.byteLength) : 0,
+      targetMeta,
+      targetCards,
+      targetMediaBytes: targetMedia
+        ? await targetMedia.blob.arrayBuffer().then((b) => b.byteLength) : 0,
+      legacyMeta,
+      legacyCards,
+      legacyMediaBytes: legacyMedia
+        ? await legacyMedia.blob.arrayBuffer().then((b) => b.byteLength) : 0,
       notice: document.body.textContent,
     };
   });
@@ -175,9 +246,15 @@ try {
     'built-in course progress crosses the origin');
   ok(moved.importedProgress?.recs?.['legacy-card']?.rp === 4,
     'the imported deck review history crosses the origin');
-  ok(moved.meta?.title === 'Legacy navigation' && moved.cards?.cards?.length === 1,
-    'the imported deck and cards cross the origin');
-  ok(moved.mediaBytes === 4, 'imported media crosses the origin');
+  ok(moved.targetMeta?.title === 'Newer navigation'
+      && moved.targetCards?.cards?.length === 2
+      && moved.targetProgress?.recs?.['newer-card']?.rp === 9
+      && moved.targetMediaBytes === 3,
+    'a newer colliding target deck, history and media are not overwritten');
+  ok(moved.legacyMeta?.id !== 'local-moveabc'
+      && moved.legacyCards?.cards?.length === 1,
+    'the legacy collision is remapped and both decks survive');
+  ok(moved.legacyMediaBytes === 4, 'the remapped legacy media crosses the origin');
   ok(moved.theme === 'dark', 'an unset keepclub.app theme inherits the old choice');
   ok(moved.last === null, 'the move lands on the shelf instead of forcing a course');
   ok(moved.notice.includes('moved 2 progress records and 1 imported deck'),

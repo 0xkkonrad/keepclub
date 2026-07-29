@@ -229,7 +229,7 @@ export function nothingHtml(r) {
       ? `it holds ${plural(r.read.notes, 'note')} and not one card. Anki makes the cards from a note type; if this is a shared deck, the note type that made them is not in the file.`
       : 'there are no notes and no cards in it — the export came out empty.';
   const li = lost(r);
-  return `<h2 class="imp-h">nothing to study in that package</h2>
+  return `<h2 class="imp-h" tabindex="-1">nothing to study in that package</h2>
     <p class="imp-sub">${why}</p>
     ${li ? `<div class="imp-book"><h3>what didn’t</h3><ul>${li}</ul></div>` : ''}
     <div class="imp-acts">
@@ -246,7 +246,7 @@ export function receiptHtml(r, existing) {
         plural(delta.added, 'card')} ${delta.added === 1 ? 'is' : 'are'} new, and ${
         plural(delta.removed, 'card')} ${delta.removed === 1 ? 'leaves' : 'leave'} the course.</p>`
       : '';
-    return `<h2 class="imp-h">${esc(r.title)}</h2>
+    return `<h2 class="imp-h" tabindex="-1">${esc(r.title)}</h2>
       <p class="imp-sub">read from ${r.sourceKind === 'keep-package'
     ? 'a .keep package' : 'a .keep.yml course'} · stable ID ${esc(r.courseId)}</p>
       ${book(r)}
@@ -262,7 +262,7 @@ export function receiptHtml(r, existing) {
         <button type="button" data-cancel>throw it away</button>
       </div>`;
   }
-  return `<h2 class="imp-h">${esc(r.title)}</h2>
+  return `<h2 class="imp-h" tabindex="-1">${esc(r.title)}</h2>
     <p class="imp-sub">read from ${r.modern ? 'a current' : 'a legacy'} anki export</p>
     ${book(r)}
     ${existing ? `<p class="imp-sub">you already have a deck called ${esc(existing.title)}, imported ${

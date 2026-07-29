@@ -403,9 +403,31 @@ const offer = (pg) => pg.evaluate(() => {
     'About documents the desktop study shortcuts');
   ok(said.offlineShown && said.offline.includes(`${said.diagrams} diagrams`),
     `offline counts this deck's diagrams (${said.diagrams})`);
+  ok((await p6.textContent('#how')).replace(/\s+/g, ' ')
+    .includes('only share it if you turn on Sync'),
+    'the getting-started privacy copy describes opt-in Sync truthfully');
 
   ok(await p6.locator('[data-sync="new"]').isVisible(),
     'a built-in course offers account-free device sync');
+  await p6.click('[data-sync="join"]');
+  await p6.fill('#sync-join', '01234-56789-ABCDE-FGHJK-MNPQR');
+  await p6.evaluate(() => {
+    globalThis.__storageSetItem = Storage.prototype.setItem;
+    Storage.prototype.setItem = () => { throw new Error('storage blocked'); };
+    globalThis.confirm = () => true;
+  });
+  await p6.press('#sync-join', 'Enter');
+  const failedJoin = await p6.evaluate(() => ({
+    on: DSSync.enabled(),
+    joinVisible: !document.getElementById('sync-join').hidden,
+    toast: document.getElementById('toast').textContent,
+  }));
+  await p6.evaluate(() => {
+    Storage.prototype.setItem = globalThis.__storageSetItem;
+    delete globalThis.__storageSetItem;
+  });
+  ok(!failedJoin.on && failedJoin.joinVisible && /storage is blocked/i.test(failedJoin.toast),
+    'joining a Sync key stays visibly off when its identity cannot be stored');
   await p6.click('[data-sync="new"]');
   await p6.waitForFunction(() => DSSync.status().at > 0);
   const synced = await p6.evaluate(() => ({
@@ -422,7 +444,44 @@ const offer = (pg) => pg.evaluate(() => {
       && syncCalls.some((call) => call.fn === 'sync_put'
         && call.body.p_app === 'day-skipper'),
     'sync reads then writes the active course through its isolated backend namespace');
+  await p6.evaluate(() => {
+    globalThis.__resetConfirmCalls = 0;
+    globalThis.confirm = () => { globalThis.__resetConfirmCalls++; return true; };
+  });
+  await p6.click('#reset-btn');
+  const resetGuard = await p6.evaluate(() => ({
+    on: DSSync.enabled(),
+    confirms: globalThis.__resetConfirmCalls,
+    toast: document.getElementById('toast').textContent,
+  }));
+  ok(resetGuard.on && resetGuard.confirms === 0 && /turn sync off/i.test(resetGuard.toast),
+    'a synced deck refuses local erase before making a misleading destructive promise');
+  await p6.click('#import-btn');
+  const restoreGuard = await p6.textContent('#toast');
+  ok(/turn sync off/i.test(restoreGuard),
+    'an exact backup restore is refused until shared progress is disconnected');
   await c6.close();
+}
+
+/* Firefox Android installs from its browser menu and never supplies the
+ * beforeinstallprompt event Chrome uses. Keep the manual route discoverable. */
+{
+  const cf = await b.newContext({
+    viewport: { width: 390, height: 844 },
+    serviceWorkers: 'block',
+    userAgent: 'Mozilla/5.0 (Android 14; Mobile; rv:141.0) Gecko/141.0 Firefox/141.0',
+  });
+  const pf = await cf.newPage();
+  await pf.goto(URL, { waitUntil: 'networkidle' });
+  await pf.waitForFunction(() => document.getElementById('boot').hidden);
+  const shelfOffer = await pf.evaluate(() => ({
+    visible: !document.getElementById('shelf-install').hidden,
+    text: document.getElementById('shelf-install').textContent,
+  }));
+  ok(shelfOffer.visible && /firefox menu/i.test(shelfOffer.text)
+      && /install/i.test(shelfOffer.text),
+    'Firefox Android gets its menu-based install instructions');
+  await cf.close();
 }
 
 /* ── a course's figure vocabulary is the course's ─────────────────────────

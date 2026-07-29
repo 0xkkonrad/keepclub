@@ -178,7 +178,7 @@ export function openImporter() {
   // rectangle is decoration in front of the only control that works.
   const draggable = matchMedia('(hover: hover) and (pointer: fine)').matches;
 
-  function pick() {
+  function pick(moveFocus = false) {
     body.innerHTML = `
       ${draggable ? `<div class="imp-drop" id="imp-drop">
         <b>drop a course here</b>
@@ -197,6 +197,7 @@ export function openImporter() {
       opener.addEventListener('click', () => input.click());
     }
 
+    if (moveFocus) body.querySelector('#imp-file').focus();
     const zone = body.querySelector('.imp-drop');
     if (!zone) return;
     for (const ev of ['dragenter', 'dragover']) {
@@ -229,11 +230,10 @@ export function openImporter() {
   }
 
   function fail(message, detail) {
-    body.innerHTML = `<div class="imp-err" role="alert"><b>${esc(message)}</b><p>${esc(detail || '')}</p></div>
+    body.innerHTML = `<div class="imp-err" role="alert" tabindex="-1"><b>${esc(message)}</b><p>${esc(detail || '')}</p></div>
       <div class="imp-acts"><button type="button" class="go" data-again>try another file</button></div>`;
-    const again = body.querySelector('[data-again]');
-    again.addEventListener('click', pick);
-    again.focus();
+    body.querySelector('.imp-err').focus();
+    body.querySelector('[data-again]').addEventListener('click', () => pick(true));
   }
 
   function failDiagnostics(result) {
@@ -241,7 +241,7 @@ export function openImporter() {
     const reference = result.sourceFormat === 'legacy-v1'
       ? './docs/reference/errors/#legacy-compatibility'
       : './docs/reference/errors/';
-    body.innerHTML = `<div class="imp-err" role="alert"><b>this course needs a fix</b>
+    body.innerHTML = `<div class="imp-err" role="alert" tabindex="-1"><b>this course needs a fix</b>
       <p>Nothing was saved. Correct the source, then try it again.</p>
       <ol class="imp-diags">${errors.map((item) => `<li><code>${esc(item.code)}</code>
         <span>${esc(item.message)}</span>
@@ -249,9 +249,8 @@ export function openImporter() {
       <small>${esc(item.correction)}</small></li>`).join('')}</ol></div>
       <div class="imp-acts"><button type="button" class="go" data-again>try another file</button>
       <a class="imp-docs" href="${reference}">open the error reference</a></div>`;
-    const again = body.querySelector('[data-again]');
-    again.addEventListener('click', pick);
-    again.focus();
+    body.querySelector('.imp-err').focus();
+    body.querySelector('[data-again]').addEventListener('click', () => pick(true));
   }
 
   async function go(file) {
@@ -307,7 +306,8 @@ export function openImporter() {
         // permanent adapter (correctly) rejects an empty course.
         if (!legacy.deck.cards.length) {
           body.innerHTML = nothingHtml(legacy.receipt);
-          body.querySelector('[data-again]').addEventListener('click', pick);
+          body.querySelector('.imp-h').focus();
+          body.querySelector('[data-again]').addEventListener('click', () => pick(true));
           return;
         }
         /* Anki HTML is already rendered and sanitized, so it must retain the
@@ -359,6 +359,7 @@ export function openImporter() {
       return;
     }
     body.innerHTML = receiptHtml(built.receipt, existing);
+    body.querySelector('.imp-h').focus();
     body.querySelector('[data-cancel]').addEventListener('click', () => close(false));
     for (const b of body.querySelectorAll('[data-keep]')) {
       b.addEventListener('click', () => keep(built, b.dataset.keep === 'replace' ? existing : null));
