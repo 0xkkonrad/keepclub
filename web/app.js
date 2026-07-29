@@ -73,12 +73,12 @@ function doodle(name, cls, style) {
     + `<svg class="doodle" viewBox="0 0 32 32"><path d="${d}"/></svg></span>`;
 }
 
-let DECK = null;                 // cards.json
+let DECK = null;                 // normalized runtime course
 let FIGURES = null;              // figures.json — the labelled doodles
 let byId = new Map();
-let sectionOf = new Map();       // section key -> {t, n}
-let groupOf = new Map();         // group key -> {t, n, s: [section keys]}
-let groupFor = new Map();        // section key -> group key
+let sectionOf = new Map();       // section id -> {sectionId, title, cardCount}
+let groupOf = new Map();         // group id -> {groupId, title, cardCount, sectionIds}
+let groupFor = new Map();        // section id -> group id
 let state = null;
 let session = null;
 let undoStack = [];
@@ -524,7 +524,7 @@ function newBudget() {
   if (manual <= 0) return 0;
   const d = daysToExam();
   if (d === null || d <= 0) return manual;
-  const unseen = DECK ? DECK.cards.filter((c) => !state.recs[c.i]).length : 0;
+  const unseen = DECK ? DECK.cards.filter((c) => !state.recs[c.cardId]).length : 0;
   if (!unseen) return manual;
   return Math.max(manual, Math.ceil(unseen / Math.max(1, Math.round(d * 0.6))));
 }
@@ -704,7 +704,7 @@ function isDue(id, now) {
  * things about the syllabus. */
 function byGroup() {
   return [...groupOf.values()]
-    .map((g) => [g, g.s.map((k) => sectionOf.get(k)).filter(Boolean)]);
+    .map((g) => [g, g.sectionIds.map((id) => sectionOf.get(id)).filter(Boolean)]);
 }
 
 function counts(sectionKey) {
@@ -713,7 +713,7 @@ function counts(sectionKey) {
   let due = 0, fresh = 0, learning = 0, seen = 0, mature = 0;
   for (const c of DECK.cards) {
     if (!test(c)) continue;
-    const r = state.recs[c.i];
+    const r = state.recs[c.cardId];
     if (!r) { fresh++; continue; }
     seen++;
     if (r.st === 'l') learning++;
@@ -781,14 +781,15 @@ function playerHtml(clip) {
 /* Draw the card's labelled doodle, if it has one.
  *
  * The drawing is authored once in src/figures.py and reused across the cards
- * that share it; `card.f.on` says which labels this card is asking about, and
- * everything else on the drawing dims to context. With no `on` list every
- * label lights, which is what a card wanting the whole picture means.
+ * that share it; `card.figure.highlightedLabels` says which labels this card is
+ * asking about, and everything else on the drawing dims to context. With no
+ * highlighted-label list every label lights, which is what a card wanting the
+ * whole picture means.
  *
  * The SVG body is trusted markup from the build, not user content, which is
  * why it can go in as innerHTML — the same contract as the card text. */
 function figureSVG(card, cls) {
-  const def = FIGURES && FIGURES[card.f.n];
+  const def = FIGURES && card.figure && FIGURES[card.figure.figureId];
   if (!def) return '';
   return `<svg class="figure${cls ? ' ' + cls : ''}" viewBox="${def.vb}" role="img"`
     + ` aria-label="${escAttr(figureAlt(card, def))}">${def.b}</svg>`;
@@ -797,7 +798,8 @@ function figureSVG(card, cls) {
 /* Light the labels this card asked for. Everything else on the drawing stays,
    dimmed — that is what lets one drawing serve several cards. */
 function litFigure(root, card) {
-  const on = card.f.on && card.f.on.length ? new Set(card.f.on) : null;
+  const labels = card.figure && card.figure.highlightedLabels;
+  const on = labels && labels.length ? new Set(labels) : null;
   root.querySelectorAll('[data-l]').forEach((el) => {
     el.classList.toggle('on', !on || on.has(el.getAttribute('data-l')));
   });
@@ -867,7 +869,7 @@ function drawFigureOn(root) {
 
 function renderCardFigure(card) {
   const box = $('#card-figure');
-  const def = card && card.f && FIGURES && FIGURES[card.f.n];
+  const def = card && card.figure && FIGURES && FIGURES[card.figure.figureId];
   if (!def) {
     box.hidden = true;
     $('#figure-plate').innerHTML = '';
@@ -876,7 +878,7 @@ function renderCardFigure(card) {
   const plate = $('#figure-plate');
   plate.innerHTML = figureSVG(card);
   litFigure(plate, card);
-  plate.setAttribute('aria-label', `Enlarge the drawing: ${stripTags(card.q)}`);
+  plate.setAttribute('aria-label', `Enlarge the drawing: ${stripTags(card.front)}`);
   $('#figure-cap').textContent = def.cap + ' Tap to enlarge.';
   box.hidden = false;
   // No drawFigureOn() here: this runs while #answer-wrap is still hidden.
@@ -886,8 +888,8 @@ function renderCardFigure(card) {
 /* Screen readers get the terms the card is actually asking about, not a list
    of everything drawn — the dimmed labels are context the eye skips. */
 function figureAlt(card, def) {
-  const spec = card.f;
-  const on = (spec.on && spec.on.length ? spec.on : def.l).map((s) => s.replace(/-/g, ' '));
+  const labels = card.figure.highlightedLabels;
+  const on = (labels && labels.length ? labels : def.l).map((s) => s.replace(/-/g, ' '));
   return `${def.cap} Labelled: ${on.join(', ')}.`;
 }
 
@@ -895,15 +897,31 @@ function escAttr(s) {
   return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 }
 
+/** The legacy built-in diagram, normalized into the public media shape.
+ *
+ * Imported cards keep embedded media in their HTML and therefore have no
+ * attachment here. Keeping this lookup in one place prevents the old `m`/`d`
+ * aliases from leaking back into runtime consumers. */
+function backImage(card) {
+  return card && Array.isArray(card.media)
+    ? card.media.find((item) => item && item.side === 'back'
+      && item.mediaType === 'image' && typeof item.source === 'string')
+    : null;
+}
+
+function courseMediaUrl(item) {
+  return COURSE.base + item.source.split('/').map(encodeURIComponent).join('/');
+}
+
 function renderCardVideo(card) {
   const host = $('#card-video');
-  const clips = clipsFor(card.i);
+  const clips = clipsFor(card.cardId);
   host.hidden = !clips.length;
   if (!clips.length) { host.innerHTML = ''; return; }
   // data-card is what "close" uses to rebuild the thumbnails; without it the
   // player collapsed into an empty row.
   host.innerHTML = `<p class="vhead">${clips.length === 1 ? 'A clip on this' : 'Clips on this'}</p>
-    <div class="vrow" data-card="${escapeHtml(card.i)}">${clips.map((c) => thumbHtml(c)).join('')}</div>`;
+    <div class="vrow" data-card="${escapeHtml(card.cardId)}">${clips.map((c) => thumbHtml(c)).join('')}</div>`;
 }
 
 /* One handler for both screens: a thumbnail swaps itself for a player, and the
@@ -985,15 +1003,17 @@ function achContext(sess) {
   const seenPer = new Map();
   let seen = 0, tamed = false;
   for (const c of DECK.cards) {
-    const r = state.recs[c.i];
+    const r = state.recs[c.cardId];
     if (!r) continue;
     seen++;
-    touched.add(c.s);
-    seenPer.set(c.s, (seenPer.get(c.s) || 0) + 1);
+    touched.add(c.sectionId);
+    seenPer.set(c.sectionId, (seenPer.get(c.sectionId) || 0) + 1);
     if (r.lp >= LEECH_AT && r.st === 'r' && r.ivl >= 7) tamed = true;
   }
   let swept = 0;
-  for (const s of DECK.sections) if ((seenPer.get(s.k) || 0) >= s.n) swept++;
+  for (const s of DECK.sections) {
+    if ((seenPer.get(s.sectionId) || 0) >= s.cardCount) swept++;
+  }
   return {
     answers: n(state.answers),
     streak: n(state.streak),
@@ -1130,7 +1150,7 @@ function friezeRule() {
 function renderFrieze() {
   const el = $('#frieze');
   if (!el || !DECK) return;
-  const seen = DECK.cards.filter((c) => state.recs[c.i]).length;
+  const seen = DECK.cards.filter((c) => state.recs[c.cardId]).length;
   const filled = seen === 0 ? 0 : Math.max(1, Math.round((seen / DECK.cards.length) * FRIEZE_ART.length));
   el.innerHTML = FRIEZE_ART
     // The index, not a delay: each drawing runs an entrance and an idle, and a
@@ -1149,9 +1169,9 @@ function buildSession(sectionKey, opts) {
   const now = Date.now();
   const pool = DECK.cards.filter(scopeTest(sectionKey));
 
-  const learning = pool.filter((c) => state.recs[c.i] && state.recs[c.i].st === 'l');
-  let reviews = pool.filter((c) => isDue(c.i, now));
-  let fresh = pool.filter((c) => !state.recs[c.i]);
+  const learning = pool.filter((c) => state.recs[c.cardId] && state.recs[c.cardId].st === 'l');
+  let reviews = pool.filter((c) => isDue(c.cardId, now));
+  let fresh = pool.filter((c) => !state.recs[c.cardId]);
 
   const revRoom = Math.max(0, state.settings.maxRev - state.revDone);
   const newRoom = Math.max(0, newBudget() - state.newDone);
@@ -1159,8 +1179,9 @@ function buildSession(sectionKey, opts) {
   if (opts.ahead) {
     // Studying ahead: pull the soonest-due cards even though they are not due yet.
     const notYet = pool
-      .filter((c) => state.recs[c.i] && state.recs[c.i].st === 'r' && state.recs[c.i].due > now)
-      .sort((a, b) => state.recs[a.i].due - state.recs[b.i].due)
+      .filter((c) => state.recs[c.cardId] && state.recs[c.cardId].st === 'r'
+        && state.recs[c.cardId].due > now)
+      .sort((a, b) => state.recs[a.cardId].due - state.recs[b.cardId].due)
       .slice(0, AHEAD_BATCH);
     reviews = reviews.concat(notYet);
     // Studying ahead is the app's own suggestion, so it honours the daily new
@@ -1190,13 +1211,13 @@ function buildSession(sectionKey, opts) {
   }
 
   if (!state.settings.shuffle && !sectionKey) {
-    const order = new Map(DECK.sections.map((s, i) => [s.k, i]));
-    queue.sort((a, b) => order.get(a.s) - order.get(b.s));
+    const order = new Map(DECK.sections.map((s, i) => [s.sectionId, i]));
+    queue.sort((a, b) => order.get(a.sectionId) - order.get(b.sectionId));
   }
 
   return {
     section: sectionKey,
-    queue: queue.map((c) => c.i),
+    queue: queue.map((c) => c.cardId),
     total: queue.length,
     done: 0,
     again: 0,
@@ -1221,7 +1242,7 @@ function aheadSize(sectionKey) {
   const now = Date.now();
   let learning = 0, due = 0, notYet = 0, fresh = 0;
   for (const c of DECK.cards.filter(scopeTest(sectionKey))) {
-    const r = state.recs[c.i];
+    const r = state.recs[c.cardId];
     if (!r) { fresh++; continue; }
     if (r.st === 'l') learning++;
     else if (r.due <= now) due++;
@@ -1302,7 +1323,7 @@ function goTab(name) {
  *  answer — you need to go and read the material. */
 function leeches() {
   return DECK.cards.filter((c) => {
-    const r = state.recs[c.i];
+    const r = state.recs[c.cardId];
     return r && r.lp >= LEECH_AT;
   });
 }
@@ -1465,42 +1486,43 @@ function renderHome() {
     // counts() walks the whole deck, so it is called once per section and the
     // theme's total is added up from those rather than costing a second pass.
     const rows = inside.map((s) => {
-      const sc = counts(s.k);
+      const sc = counts(s.sectionId);
       return { s, sc, pending: Math.min(sc.due, 999) + sc.learning };
     });
-    if (g.t) {
+    if (g.title) {
       // The heading says what is waiting inside the theme, because the question
       // Home answers is "where do I go next" and the answer used to be
       // twenty-four rows of column you had to read to work it out.
       const waiting = rows.reduce((t, r) => t + r.pending, 0);
       const h = document.createElement('h3');
       h.className = 'h-part';
-      h.innerHTML = `<span>${escapeHtml(g.t)}</span>`
+      h.innerHTML = `<span>${escapeHtml(g.title)}</span>`
         + (waiting ? `<span class="h-part-n">${n(waiting)} to review</span>` : '');
       list.appendChild(h);
     }
     const ul = document.createElement('ul');
     ul.className = 'sections';
     for (const { s, sc, pending } of rows) {
-      const pct = Math.round(((sc.mature + (sc.seen - sc.learning - sc.mature) * 0.5) / s.n) * 100);
+      const pct = Math.round(((sc.mature + (sc.seen - sc.learning - sc.mature) * 0.5)
+        / s.cardCount) * 100);
       // The meta line says what the number means. A bare badge on an untouched
       // section reads as "12 due" when it means "12 you have never seen".
       let meta;
-      if (pending) meta = `${pending} to review · ${s.n} cards`;
-      else if (sc.seen === 0) meta = `${s.n} cards · not started`;
-      else if (sc.fresh) meta = `${sc.fresh} new left · ${s.n} cards`;
-      else meta = `all ${s.n} scheduled · ${pct}% known well`;
+      if (pending) meta = `${pending} to review · ${s.cardCount} cards`;
+      else if (sc.seen === 0) meta = `${s.cardCount} cards · not started`;
+      else if (sc.fresh) meta = `${sc.fresh} new left · ${s.cardCount} cards`;
+      else meta = `all ${s.cardCount} scheduled · ${pct}% known well`;
 
       const li = document.createElement('li');
       const b = document.createElement('button');
       b.innerHTML = `
-        ${doodle(SECTION_ART[s.k] || COURSE.fallback, 'sect-art')}
-        <span class="sect-name">${escapeHtml(s.t)}</span>
+        ${doodle(SECTION_ART[s.sectionId] || COURSE.fallback, 'sect-art')}
+        <span class="sect-name">${escapeHtml(s.title)}</span>
         ${pending ? `<span class="sect-badge">${pending}</span>` : ''}
         <span class="sect-meta">${meta}</span>
         ${pct > 0 ? `<span class="sect-meter"><i style="width:${Math.min(100, pct)}%"></i></span>` : ''}`;
-      b.setAttribute('aria-label', `${s.t}. ${meta}. Study this section.`);
-      b.addEventListener('click', () => startSession(s.k));
+      b.setAttribute('aria-label', `${s.title}. ${meta}. Study this section.`);
+      b.addEventListener('click', () => startSession(s.sectionId));
       li.appendChild(b);
       ul.appendChild(li);
     }
@@ -1574,8 +1596,8 @@ function showCard() {
   if (!card) return finish();
   session.revealed = false;
 
-  const sect = sectionOf.get(card.s);
-  $('#study-section').textContent = sect ? sect.t : card.s;
+  const sect = sectionOf.get(card.sectionId);
+  $('#study-section').textContent = sect ? sect.title : card.sectionId;
   $('#study-left').textContent = `${session.done} done · ${session.queue.length} left`;
   const pct = session.total ? Math.round((session.done / (session.done + session.queue.length)) * 100) : 0;
   $('#session-bar').style.width = pct + '%';
@@ -1583,34 +1605,33 @@ function showCard() {
 
   // Only "new" earns a badge. "Young" versus "mature" is the scheduler's
   // business and reads as a difficulty rating the author set.
-  const fresh = stateOf(card.i) === 'new';
+  const fresh = stateOf(card.cardId) === 'new';
   $('#card-chip').hidden = !fresh;
   $('#card-chip').textContent = 'new';
-  const rec = state.recs[card.i];
+  const rec = state.recs[card.cardId];
   $('#leech-chip').hidden = !(rec && rec.lp >= LEECH_AT);
 
   // Card HTML is generated by the course build through content/mdc.py, which
   // allows b/i/u/br/sub/sup, lists, and safe links — nothing else.
-  $('#card-q').innerHTML = card.q;
-  $('#card-a').innerHTML = card.a;
+  $('#card-q').innerHTML = card.front;
+  $('#card-a').innerHTML = card.back || '';
   hydrateMedia($('#card-q'));
   hydrateMedia($('#card-a'), false);
 
   renderCardFigure(card);
 
   const fig = $('#card-fig');
-  if (card.m) {
+  const image = backImage(card);
+  if (image) {
     const img = $('#card-img');
-    // `d` is owed whenever `m` is present, but a deck that shipped without it
-    // should cost the layout reservation, not the card.
-    if (card.d) {
-      img.width = card.d[0];
-      img.height = card.d[1];
+    if (image.width && image.height) {
+      img.width = image.width;
+      img.height = image.height;
     } else {
       img.removeAttribute('width');
       img.removeAttribute('height');
     }
-    img.alt = `Diagram: ${stripTags(card.q)}`;
+    img.alt = `Diagram: ${stripTags(card.front)}`;
     // Offline with an uncached diagram, this used to be a broken-image icon
     // under a caption inviting you to tap it, and the lightbox opened empty.
     img.onerror = () => {
@@ -1618,8 +1639,8 @@ function showCard() {
       $('#fig-missing').hidden = false;
     };
     img.onload = () => { $('#fig-missing').hidden = true; };
-    img.src = COURSE.base + 'img/' + card.m;
-    $('#fig-btn').setAttribute('aria-label', `Enlarge the diagram: ${stripTags(card.q)}`);
+    img.src = courseMediaUrl(image);
+    $('#fig-btn').setAttribute('aria-label', `Enlarge the diagram: ${stripTags(card.front)}`);
     fig.hidden = false;
     $('#fig-missing').hidden = true;
   } else {
@@ -1707,7 +1728,7 @@ function reveal() {
   // drops focus to <body>. Put it on the answer so it is read out and so Tab
   // continues from the right place.
   $('#card-a').focus({ preventScroll: true });
-  const rec = state.recs[card.i];
+  const rec = state.recs[card.cardId];
   // One line, both ways round: a practice session and an ordinary one can
   // follow each other inside a single visit, and this is static markup.
   $('#grade-ask').textContent = session.ahead
@@ -1914,7 +1935,7 @@ function nextDueLine() {
   const now = Date.now();
   let soonest = Infinity;
   for (const c of DECK.cards) {
-    const r = state.recs[c.i];
+    const r = state.recs[c.cardId];
     if (r && r.st === 'r' && r.due > now) soonest = Math.min(soonest, r.due);
   }
   if (soonest === Infinity) return 'Nothing else is scheduled. You can start new cards whenever you like.';
@@ -1981,11 +2002,11 @@ async function indexDeck() {
   for (let i = 0; i < DECK.cards.length; i++) {
     const c = DECK.cards[i];
     // Padded with spaces so a whole-word test is a plain includes().
-    c._q = ' ' + searchable(c.q) + ' ';
-    c._a = ' ' + searchable(c.a) + ' ';
-    c._all = c._q + c._a;
-    c._plain = plainText(c.a);   // for the snippet, punctuation and all
-    for (const w of c._all.split(' ')) if (w) deckWords.add(w);
+    c._searchFront = ' ' + searchable(c.front) + ' ';
+    c._searchBack = ' ' + searchable(c.back || '') + ' ';
+    c._searchAll = c._searchFront + c._searchBack;
+    c._plainBack = plainText(c.back || ''); // for the snippet, punctuation and all
+    for (const w of c._searchAll.split(' ')) if (w) deckWords.add(w);
     // Search preparation is linear but HTML-to-text work is not cheap. Let the
     // boot drawing and browser input breathe on very large imported decks.
     if (i && i % 500 === 0) await new Promise((r) => setTimeout(r, 0));
@@ -2021,9 +2042,9 @@ const hasWord = (hay, w) =>
  *  fourteen cards whose answers mention tides above the first card that is
  *  actually about one. */
 function rankOf(c, terms) {
-  if (terms.every((w) => hasWord(c._q, w))) return 0;    // the question says it
-  if (terms.every((w) => hasTerm(c._q, w))) return 1;    // the question contains it
-  if (terms.every((w) => hasWord(c._all, w))) return 2;  // the answer says it
+  if (terms.every((w) => hasWord(c._searchFront, w))) return 0; // the question says it
+  if (terms.every((w) => hasTerm(c._searchFront, w))) return 1; // the question contains it
+  if (terms.every((w) => hasWord(c._searchAll, w))) return 2;   // the answer says it
   return 3;
 }
 
@@ -2125,10 +2146,10 @@ function scopeName(sk) {
   if (sk === LEECH_FILTER) return 'the cards that keep slipping';
   if (isGroup(sk)) {
     const g = groupOf.get(sk.slice(2));
-    return g ? g.t : sk;
+    return g ? g.title : sk;
   }
   const s = sectionOf.get(sk);
-  return s ? s.t : sk;
+  return s ? s.title : sk;
 }
 
 /** The sections a scope covers, deck order. Empty for anything that is not a
@@ -2136,7 +2157,7 @@ function scopeName(sk) {
 function scopeSections(sk) {
   if (!sk || !isGroup(sk)) return [];
   const g = groupOf.get(sk.slice(2));
-  return g ? g.s : [];
+  return g ? g.sectionIds : [];
 }
 
 /** Which cards a scope key holds: '' is the whole deck, `terms` is one section,
@@ -2145,8 +2166,8 @@ function scopeSections(sk) {
  *  the 95 cards of a theme and then handing over 35 is the bug this prevents. */
 function scopeTest(key) {
   const inside = new Set(scopeSections(key));
-  if (inside.size) return (c) => inside.has(c.s);
-  return (c) => !key || c.s === key;
+  if (inside.size) return (c) => inside.has(c.sectionId);
+  return (c) => !key || c.sectionId === key;
 }
 
 /** The count on screen, and the same sentence spoken once you stop typing.
@@ -2166,19 +2187,20 @@ function sayCount(text) {
 
 function browseRow(hit, terms, withSection) {
   const c = hit.c;
-  const sect = sectionOf.get(c.s);
-  const hasFig = !c.m && c.f && FIGURES && FIGURES[c.f.n];
+  const sect = sectionOf.get(c.sectionId);
+  const image = backImage(c);
+  const hasFig = !image && c.figure && FIGURES && FIGURES[c.figure.figureId];
   const li = document.createElement('li');
-  li.dataset.card = c.i;
-  li.dataset.sect = c.s;
+  li.dataset.card = c.cardId;
+  li.dataset.sect = c.sectionId;
   li.innerHTML = `<details><summary><span class="b-head"><span class="b-where" hidden></span>`
     + `<span class="b-q"></span><span class="b-why" hidden></span></span></summary>`
-    + `<div class="browse-ans"><span class="b-text">${c.a}</span>
-      ${c.m ? `<button class="plate b-plate" aria-label="Enlarge the diagram: ${escAttr(stripTags(c.q))}"><img src="${COURSE.base}img/${encodeURIComponent(c.m)}" alt="Diagram: ${escapeHtml(stripTags(c.q))}" loading="lazy"${c.d ? ` width="${n(c.d[0])}" height="${n(c.d[1])}"` : ''}></button><span class="b-zoom">Tap the diagram to enlarge</span>` : ''}
-      ${hasFig ? `<button class="plate b-fig" aria-label="Enlarge the drawing: ${escAttr(stripTags(c.q))}">${figureSVG(c)}</button><span class="b-zoom">Tap the drawing to enlarge</span>` : ''}
-      <span class="b-sect">${escapeHtml(sect ? sect.t : c.s)} · ${STATE_WORDS[stateOf(c.i)]}</span></div></details>`;
+    + `<div class="browse-ans"><span class="b-text">${c.back || ''}</span>
+      ${image ? `<button class="plate b-plate" aria-label="Enlarge the diagram: ${escAttr(stripTags(c.front))}"><img src="${escAttr(courseMediaUrl(image))}" alt="Diagram: ${escapeHtml(stripTags(c.front))}" loading="lazy"${image.width && image.height ? ` width="${n(image.width)}" height="${n(image.height)}"` : ''}></button><span class="b-zoom">Tap the diagram to enlarge</span>` : ''}
+      ${hasFig ? `<button class="plate b-fig" aria-label="Enlarge the drawing: ${escAttr(stripTags(c.front))}">${figureSVG(c)}</button><span class="b-zoom">Tap the drawing to enlarge</span>` : ''}
+      <span class="b-sect">${escapeHtml(sect ? sect.title : c.sectionId)} · ${STATE_WORDS[stateOf(c.cardId)]}</span></div></details>`;
   const q = li.querySelector('.b-q');
-  q.innerHTML = c.q;
+  q.innerHTML = c.front;
   hydrateMedia(q);
   hydrateMedia(li.querySelector('.browse-ans'), false);
   // Whether the question ended up showing the match decides whether the row
@@ -2191,7 +2213,7 @@ function browseRow(hit, terms, withSection) {
   markTerms(li.querySelector('.b-text'), terms);
   if (terms.length && !shown) {
     const why = li.querySelector('.b-why');
-    const text = snippet(c._plain, terms);
+    const text = snippet(c._plainBack, terms);
     if (text) {
       why.textContent = text;
       markTerms(why, terms);
@@ -2200,10 +2222,10 @@ function browseRow(hit, terms, withSection) {
   }
   if (withSection && sect) {
     const where = li.querySelector('.b-where');
-    where.textContent = sect.t;
+    where.textContent = sect.title;
     where.hidden = false;
   }
-  if (c.m) li.querySelector('.b-plate').addEventListener('click', () => openLightbox(c));
+  if (image) li.querySelector('.b-plate').addEventListener('click', () => openLightbox(c));
   if (hasFig) {
     const holder = li.querySelector('.b-fig');
     litFigure(holder, c);
@@ -2230,8 +2252,8 @@ function appendRows(from) {
   let prev = list.lastElementChild ? list.lastElementChild.dataset.sect : '';
   const frag = document.createDocumentFragment();
   for (const hit of browseHits.slice(from, browseLimit)) {
-    frag.appendChild(browseRow(hit, browseTerms, grouped && hit.c.s !== prev));
-    prev = hit.c.s;
+    frag.appendChild(browseRow(hit, browseTerms, grouped && hit.c.sectionId !== prev));
+    prev = hit.c.sectionId;
   }
   const firstNew = frag.firstChild;
   list.appendChild(frag);
@@ -2260,7 +2282,7 @@ function upFrom(sk) {
   if (!sk || sk === LEECH_FILTER) return null;
   if (isGroup(sk)) return { to: '' };
   const g = groupFor.get(sk);
-  return g && groupOf.get(g) && groupOf.get(g).t ? { to: GROUP_AT + g } : { to: '' };
+  return g && groupOf.get(g) && groupOf.get(g).title ? { to: GROUP_AT + g } : { to: '' };
 }
 
 /* The deck writes its sections as "05 IRPCS — rules of the road". On a tile the
@@ -2280,26 +2302,26 @@ function renderBrowseIndex() {
   for (const g of groupOf.values()) {
     const sec = document.createElement('section');
     sec.className = 'bgroup';
-    const named = !!g.t;
+    const named = !!g.title;
     sec.innerHTML = (named ? `<h2 class="bgroup-h">
-        ${doodle(GROUP_ART[g.k] || COURSE.fallback, 'bgroup-art')}
-        <span class="bgroup-t">${escapeHtml(g.t)}</span>
-        <button class="bgroup-all" data-scope="${escapeHtml(GROUP_AT + g.k)}"
-          aria-label="Read all ${n(g.n)} cards in ${escAttr(g.t)}">${n(g.n)} cards →</button>
+        ${doodle(GROUP_ART[g.groupId] || COURSE.fallback, 'bgroup-art')}
+        <span class="bgroup-t">${escapeHtml(g.title)}</span>
+        <button class="bgroup-all" data-scope="${escapeHtml(GROUP_AT + g.groupId)}"
+          aria-label="Read all ${n(g.cardCount)} cards in ${escAttr(g.title)}">${n(g.cardCount)} cards →</button>
       </h2>` : '')
       + '<ul class="btiles"></ul>';
     const ul = sec.querySelector('.btiles');
-    for (const k of g.s) {
-      const s = sectionOf.get(k);
+    for (const sectionId of g.sectionIds) {
+      const s = sectionOf.get(sectionId);
       if (!s) continue;
-      const m = SECT_NO.exec(s.t);
+      const m = SECT_NO.exec(s.title);
       const li = document.createElement('li');
-      li.innerHTML = `<button class="btile" data-scope="${escapeHtml(k)}"
-          aria-label="${escAttr(s.t)}, ${n(s.n)} cards. Read them.">
-        ${doodle(SECTION_ART[k] || COURSE.fallback, 'btile-art')}
+      li.innerHTML = `<button class="btile" data-scope="${escapeHtml(sectionId)}"
+          aria-label="${escAttr(s.title)}, ${n(s.cardCount)} cards. Read them.">
+        ${doodle(SECTION_ART[sectionId] || COURSE.fallback, 'btile-art')}
         ${m ? `<span class="btile-no">${escapeHtml(m[1])}</span>` : ''}
-        <span class="btile-name">${escapeHtml(m ? m[2] : s.t)}</span>
-        <span class="btile-n">${n(s.n)} cards</span>
+        <span class="btile-name">${escapeHtml(m ? m[2] : s.title)}</span>
+        <span class="btile-n">${n(s.cardCount)} cards</span>
       </button>`;
       ul.appendChild(li);
     }
@@ -2328,9 +2350,10 @@ function renderBrowse() {
     sel.innerHTML = '<option value="">All sections</option>' +
       (wantLeech ? `<option value="${LEECH_FILTER}">★ Keeps slipping (${n(lc)})</option>` : '') +
       [...groupOf.values()].map((g) =>
-        `<optgroup label="${escapeHtml(g.t || 'Sections')}">`
-        + (g.t ? opt(GROUP_AT + g.k, `All of ${g.t} (${n(g.n)})`) : '')
-        + g.s.map((k) => opt(k, (sectionOf.get(k) || {}).t || k)).join('')
+        `<optgroup label="${escapeHtml(g.title || 'Sections')}">`
+        + (g.title
+          ? opt(GROUP_AT + g.groupId, `All of ${g.title} (${n(g.cardCount)})`) : '')
+        + g.sectionIds.map((id) => opt(id, (sectionOf.get(id) || {}).title || id)).join('')
         + '</optgroup>').join('');
     sel.value = keep;
   }
@@ -2344,7 +2367,7 @@ function renderBrowse() {
   const test = scopeTest(sk);
   const inScope = (c) => {
     if (sk === LEECH_FILTER) {
-      const r = state.recs[c.i];
+      const r = state.recs[c.cardId];
       return !!r && r.lp >= LEECH_AT;
     }
     return test(c);
@@ -2356,7 +2379,7 @@ function renderBrowse() {
     if (!inScope(c)) continue;
     scope++;
     if (!terms.length) { hits.push({ c, r: 0 }); continue; }
-    if (!terms.every((w) => hasTerm(c._all, w))) continue;
+    if (!terms.every((w) => hasTerm(c._searchAll, w))) continue;
     hits.push({ c, r: rankOf(c, terms) });
   }
   hits.sort((a, b) => a.r - b.r);   // stable, so deck order survives inside a tier
@@ -2411,7 +2434,7 @@ function renderBrowse() {
   // A search that finds nothing here may still find something in the deck.
   const wide = $('#browse-wide');
   const elsewhere = (!hits.length && terms.length && sk)
-    ? DECK.cards.filter((c) => terms.every((w) => hasTerm(c._all, w))).length : 0;
+    ? DECK.cards.filter((c) => terms.every((w) => hasTerm(c._searchAll, w))).length : 0;
   wide.hidden = !elsewhere;
   if (elsewhere) {
     wide.textContent = `Search all ${n(all)} cards instead — ${n(elsewhere)} match${elsewhere === 1 ? '' : 'es'}`;
@@ -2573,7 +2596,7 @@ function renderSyncState() {
 function renderStats() {
   rollDay();
   const buckets = { new: 0, learning: 0, young: 0, mature: 0 };
-  for (const c of DECK.cards) buckets[stateOf(c.i)]++;
+  for (const c of DECK.cards) buckets[stateOf(c.cardId)]++;
   const acc = state.revTotal ? Math.round((state.revGood / state.revTotal) * 100) : null;
 
   $('#stats-sub').textContent = `${countStudiedToday()} answers today`;
@@ -2590,7 +2613,7 @@ function renderStats() {
   const now = Date.now();
   const bins = new Array(7).fill(0);
   for (const c of DECK.cards) {
-    const r = state.recs[c.i];
+    const r = state.recs[c.cardId];
     if (!r || r.st !== 'r') continue;
     const d = Math.round((startOfDay(r.due) - startOfDay(now)) / DAY);
     if (d <= 0) bins[0]++;
@@ -2613,18 +2636,19 @@ function renderStats() {
 
   // One pass for the whole deck rather than one per section: this used to walk
   // all 537 cards twenty-four times over to fill twenty-four bars.
-  const bySect = new Map(DECK.sections.map((s) => [s.k, { new: 0, learning: 0, young: 0, mature: 0 }]));
+  const bySect = new Map(DECK.sections.map((s) =>
+    [s.sectionId, { new: 0, learning: 0, young: 0, mature: 0 }]));
   for (const c of DECK.cards) {
-    const b = bySect.get(c.s);
-    if (b) b[stateOf(c.i)]++;
+    const b = bySect.get(c.sectionId);
+    if (b) b[stateOf(c.cardId)]++;
   }
   $('#mastery').innerHTML = byGroup().map(([g, inside]) => {
     const rows = inside.map((s) => {
-      const b = bySect.get(s.k);
-      const p = (x) => (x / s.n) * 100;
+      const b = bySect.get(s.sectionId);
+      const p = (x) => (x / s.cardCount) * 100;
       return `<li>
-      <span>${escapeHtml(s.t)}</span>
-      <span class="m-n">${b.mature} solid · ${b.young + b.learning} seen · ${s.n} total</span>
+      <span>${escapeHtml(s.title)}</span>
+      <span class="m-n">${b.mature} solid · ${b.young + b.learning} seen · ${s.cardCount} total</span>
       <span class="m-bar" role="img" aria-label="${b.mature} known well, ${b.young} bedding in, ${b.learning} learning, ${b.new} not started">
         <i class="m-mature" style="width:${p(b.mature)}%"></i>
         <i class="m-young" style="width:${p(b.young)}%"></i>
@@ -2633,9 +2657,9 @@ function renderStats() {
     }).join('');
     // The theme's own share of solid cards, which is the number you would
     // otherwise be adding up off four bars by eye.
-    const tot = inside.reduce((t, s) => t + s.n, 0);
-    const solid = inside.reduce((t, s) => t + bySect.get(s.k).mature, 0);
-    return (g.t ? `<h3 class="h-part"><span>${escapeHtml(g.t)}</span>`
+    const tot = inside.reduce((t, s) => t + s.cardCount, 0);
+    const solid = inside.reduce((t, s) => t + bySect.get(s.sectionId).mature, 0);
+    return (g.title ? `<h3 class="h-part"><span>${escapeHtml(g.title)}</span>`
       + `<span class="h-part-n">${Math.round((solid / tot) * 100)}% solid</span></h3>` : '')
       + `<ul class="mastery">${rows}</ul>`;
   }).join('');
@@ -2653,7 +2677,7 @@ function renderStats() {
   $('#new-hint').textContent = auto > state.settings.newPerDay
     ? `Raised to ${auto} a day to get through the deck before your exam.`
     : '';
-  $('#build-line').textContent = `Deck build ${DECK.build} · ${DECK.cards.length} cards`;
+  $('#build-line').textContent = `Deck build ${DECK.buildFingerprint || 'unknown'} · ${DECK.cards.length} cards`;
   renderAch();
   // Re-asked on every visit rather than once at boot: on a first load the
   // registration is still being made when the app finishes starting, and the
@@ -2675,7 +2699,8 @@ const lb = { scale: 1, fit: 1, tx: 0, ty: 0, base: null, pointers: new Map(), la
 function openLightbox(card) {
   const img = $('#lb-img');
   const figBox = $('#lb-fig');
-  const isFig = !card.m && card.f && FIGURES && FIGURES[card.f.n];
+  const image = backImage(card);
+  const isFig = !image && card.figure && FIGURES && FIGURES[card.figure.figureId];
   lb.opener = document.activeElement;
   img.hidden = !!isFig;
   figBox.hidden = !isFig;
@@ -2690,10 +2715,10 @@ function openLightbox(card) {
     // drawing arrive twice — the second time while you are trying to zoom it.
   } else {
     figBox.innerHTML = '';
-    img.src = COURSE.base + 'img/' + card.m;
-    img.alt = `Diagram: ${stripTags(card.q)}`;
+    img.src = courseMediaUrl(image);
+    img.alt = `Diagram: ${stripTags(card.front)}`;
   }
-  $('#lb-title').textContent = stripTags(card.q).slice(0, 90);
+  $('#lb-title').textContent = stripTags(card.front).slice(0, 90);
   $('#lightbox').hidden = false;
   document.body.style.overflow = 'hidden';
   // aria-modal alone does not stop Tab walking into the page behind the
@@ -2716,7 +2741,7 @@ function openLightbox(card) {
     // A figure is drawn to be read at card size, so it opens to fit and zooms
     // from there; a diagram is a dense reference page and opens already big.
     const natural = isFig
-      ? Number(FIGURES[card.f.n].vb.split(/\s+/)[2]) || lb.base.w
+      ? Number(FIGURES[card.figure.figureId].vb.split(/\s+/)[2]) || lb.base.w
       : img.naturalWidth / 2;
     // Fitting means both axes. Sized on width alone, a tall figure opened half
     // a screen below the stage on a phone held sideways — and the fit control,
@@ -3014,11 +3039,11 @@ function wire() {
   $('#end-btn').addEventListener('click', () => leaveStudy(false));
   $('#fig-btn').addEventListener('click', () => {
     const c = currentCard();
-    if (c && c.m) openLightbox(c);
+    if (backImage(c)) openLightbox(c);
   });
   $('#figure-plate').addEventListener('click', () => {
     const c = currentCard();
-    if (c && c.f) openLightbox(c);
+    if (c && c.figure) openLightbox(c);
   });
   boundExamInputs();
   wireVideo('#card-video');
@@ -3267,7 +3292,7 @@ function wire() {
       app: EXPORT_APP,
       format: EXPORT_FORMAT,
       exportedAt: new Date(Date.now()).toISOString(),
-      deckBuild: DECK.build,
+      deckBuild: DECK.buildFingerprint,
       cardsWithHistory: Object.keys(state.recs).length,
     }, state);
     const blob = new Blob([JSON.stringify(payload, null, 1)], { type: 'application/json' });
@@ -3367,7 +3392,8 @@ function wire() {
       toast('Offline storage is still starting up — try again in a moment.');
       return;
     }
-    const urls = Array.from(new Set(DECK.cards.filter((c) => c.m).map((c) => COURSE.base + 'img/' + c.m)));
+    const urls = Array.from(new Set(DECK.cards
+      .map(backImage).filter(Boolean).map(courseMediaUrl)));
     btn.disabled = true;
     btn.textContent = `Saving 0 of ${urls.length}…`;
     prefetchRequest = (crypto.randomUUID && crypto.randomUUID())
@@ -3523,7 +3549,7 @@ function workerReg() {
 function renderOffline() {
   const card = $('#offline-card');
   if (!card) return;
-  const shots = new Set(DECK.cards.filter((c) => c.m).map((c) => c.m));
+  const shots = new Set(DECK.cards.map(backImage).filter(Boolean).map((item) => item.source));
   if (!shots.size) {
     // An imported deck keeps its pictures in the database with its cards;
     // there is nothing to fetch and nothing to say.
@@ -3586,17 +3612,28 @@ function bootEscape() {
 
 /* ─────────────────────────── boot ─────────────────────────── */
 
+/** Read the shipped format through the permanent compatibility boundary.
+ *
+ * This deliberately returns the adapter result, diagnostics included. A later
+ * composed `readCourse` can replace this one seam without teaching the rest of
+ * the app either the old compact vocabulary or an unvalidated new format. */
+async function readRuntimeCourse(input) {
+  const { normalizeLegacyCourse } = await import('./lib/legacy-course.js');
+  return normalizeLegacyCourse(input, { courseId: COURSE.id });
+}
+
 async function boot() {
   load();
   applyTheme();
+  let rawCourse;
   try {
     // An imported deck has no cards.json to fetch: it came out of a .apkg and
     // lives in the browser's own database, so the shell hands it over directly.
-    if (COURSE.deck) DECK = COURSE.deck;
+    if (COURSE.deck) rawCourse = COURSE.deck;
     else {
       const res = await fetch(COURSE.base + 'cards.json', { cache: 'no-cache' });
       if (!res.ok) throw new Error('HTTP ' + res.status);
-      DECK = await res.json();
+      rawCourse = await res.json();
     }
   } catch (e) {
     // The line, not the whole screen: the scene the course drew is what
@@ -3608,23 +3645,25 @@ async function boot() {
     return;
   }
 
-  /* A deck that is the wrong shape is caught here rather than three screens
-   * later. Two things build one — the python that authors a course and the
-   * .apkg importer — and neither used to be checked against the other. The
-   * message names the first thing wrong with it, because "it did not work" is
-   * what this replaced. */
+  /* Normalize before assigning the shared runtime object. No consumer below
+   * this point can observe the compact input, and a format-2 object is refused
+   * until the composed public reader validates it. */
   try {
-    const { validateDeck } = await import('./lib/validate.js');
-    const v = validateDeck(DECK);
-    if (!v.ok) {
-      console.error('deck:', v.errors);
-      bootSays('This deck could not be read. ' + v.errors[0]);
+    const result = await readRuntimeCourse(rawCourse);
+    if (!result.course) {
+      console.error('course:', result.diagnostics);
+      const first = result.diagnostics.find((item) => item.severity === 'error');
+      bootSays('This deck could not be read. '
+        + (first ? first.message : 'Its format is not supported.'));
       bootEscape();
       return;
     }
+    DECK = result.course;
   } catch (e) {
-    // The validator itself failing is not a reason to refuse to study.
     console.error(e);
+    bootSays('This deck could not be read. Its compatibility reader did not load.');
+    bootEscape();
+    return;
   }
 
   // "537 cards is more than you can cram" is true of a syllabus and false of a
@@ -3635,17 +3674,24 @@ async function boot() {
       ? `${DECK.cards.length} cards is more than you can cram. Give the app a date and it works out how many new cards a day you need, and stops scheduling anything for after you have sat it.`
       : `Give the app a date and it works out how many of these ${DECK.cards.length} cards a day you need, and stops scheduling anything for after you have sat it.`;
   }
-  byId = new Map(DECK.cards.map((c) => [c.i, c]));
-  sectionOf = new Map(DECK.sections.map((s) => [s.k, s]));
+  byId = new Map(DECK.cards.map((c) => [c.cardId, c]));
+  sectionOf = new Map(DECK.sections.map((s) => [s.sectionId, s]));
   // An older cards.json in the cache has no groups. The index falls back to one
   // unnamed group holding everything, which is the flat list of sections — worse
   // than the grouping, but not a blank Browse screen while the worker catches up.
   const gs = DECK.groups && DECK.groups.length
     ? DECK.groups
-    : [{ k: 'all', t: '', s: DECK.sections.map((s) => s.k), n: DECK.cards.length }];
-  groupOf = new Map(gs.map((g) => [g.k, g]));
+    : [{
+        groupId: 'all',
+        title: '',
+        sectionIds: DECK.sections.map((s) => s.sectionId),
+        cardCount: DECK.cards.length,
+      }];
+  groupOf = new Map(gs.map((g) => [g.groupId, g]));
   groupFor = new Map();
-  for (const g of gs) for (const s of g.s) groupFor.set(s, g.k);
+  for (const g of gs) {
+    for (const sectionId of g.sectionIds) groupFor.set(sectionId, g.groupId);
+  }
   await indexDeck();
 
   // drop history for cards that no longer exist

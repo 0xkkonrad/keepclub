@@ -147,17 +147,25 @@ ok(/^local-[a-z0-9]+$/.test(id), `the imported deck becomes the resume target ($
   await p.goto(URL_, { waitUntil: 'networkidle' });
   await p.waitForFunction(() => document.getElementById('boot').hidden);
   const media = await p.evaluate(() => ({
-    img: (DECK.cards.filter((c) => /<img[^>]+src="munin-media:/.test(c.q + c.a))).length,
-    snd: (DECK.cards.filter((c) => /<audio[^>]+src="munin-media:/.test(c.q + c.a))).length,
+    img: (DECK.cards.filter((c) =>
+      /<img[^>]+src="munin-media:/.test(c.front + (c.back || '')))).length,
+    snd: (DECK.cards.filter((c) =>
+      /<audio[^>]+src="munin-media:/.test(c.front + (c.back || '')))).length,
     made: globalThis.__madeObjectUrls,
+    schemaVersion: DECK.schemaVersion,
+    courseId: DECK.courseId,
+    descriptiveCard: Object.hasOwn(DECK.cards[0], 'cardId')
+      && !Object.hasOwn(DECK.cards[0], 'i'),
   }));
   ok(media.img === 1 && media.snd === 1,
     `the stored deck keeps one picture and one sound reference (${media.img}/${media.snd})`);
   ok(media.made === 0, `opening the deck does not eagerly load all media (${media.made} object URLs)`);
+  ok(media.schemaVersion === 2 && /^local-/.test(media.courseId) && media.descriptiveCard,
+    'an IndexedDB-backed imported legacy course is normalized before runtime use');
   const shown = await p.evaluate(async () => {
-    const card = DECK.cards.find((c) => /<img/.test(c.q));
-    startSession(card.s, { allNew: true });
-    session.queue = [card.i];
+    const card = DECK.cards.find((c) => /<img/.test(c.front));
+    startSession(card.sectionId, { allNew: true });
+    session.queue = [card.cardId];
     session.total = 1;
     showCard();
     const img = document.querySelector('#card-q img');
@@ -194,19 +202,19 @@ ok(/^local-[a-z0-9]+$/.test(id), `the imported deck becomes the resume target ($
   // Native media controls own Space. The global study shortcut used to turn
   // this into a Good grade and finish the card instead of toggling playback.
   const audio = await p.evaluate(() => {
-    const card = DECK.cards.find((c) => /<audio\b/.test(c.q + c.a));
-    startSession(card.s, { allNew: true });
-    session.queue = [card.i];
+    const card = DECK.cards.find((c) => /<audio\b/.test(c.front + (c.back || '')));
+    startSession(card.sectionId, { allNew: true });
+    session.queue = [card.cardId];
     session.total = 1;
     showCard();
-    if (/<audio\b/.test(card.a)) reveal();
-    return { id: card.i, records: Object.keys(state.recs).length };
+    if (/<audio\b/.test(card.back || '')) reveal();
+    return { id: card.cardId, records: Object.keys(state.recs).length };
   });
   await p.waitForSelector('#card-q audio, #card-a audio');
   await p.locator('#card-q audio, #card-a audio').focus();
   await p.keyboard.press(' ');
   const afterSpace = await p.evaluate(() => ({
-    id: currentCard()?.i, records: Object.keys(state.recs).length, studying: current === 'study',
+    id: currentCard()?.cardId, records: Object.keys(state.recs).length, studying: current === 'study',
   }));
   ok(afterSpace.studying && afterSpace.id === audio.id && afterSpace.records === audio.records,
     'Space on native audio controls does not grade the flashcard');

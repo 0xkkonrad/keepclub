@@ -270,8 +270,8 @@ async function cachesAt(page) {
   await observer.goto(BASE + '?course=competent-crew', { waitUntil: 'load' });
   await observer.waitForFunction(() => document.getElementById('boot').hidden);
   const urls = await source.evaluate(() =>
-    Array.from(new Set(DECK.cards.filter((c) => c.m)
-      .map((c) => new URL(COURSE.base + 'img/' + c.m, location.href).href))).slice(0, 3));
+    Array.from(new Set(DECK.cards.map(backImage).filter(Boolean)
+      .map((item) => new URL(courseMediaUrl(item), location.href).href))).slice(0, 3));
   state.delayImages = 120;
   await source.evaluate((batch) => navigator.serviceWorker.controller.postMessage({
     type: 'prefetch', urls: batch, requestId: 'closing-client',

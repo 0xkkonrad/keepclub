@@ -356,6 +356,17 @@ const offer = (pg) => pg.evaluate(() => {
   ok(early.from.startsWith('day-skipper-'),
     `so the FIRST open paints the course's own scene before app.js (${early.from})`);
   ok(early.line === 'Loading deck…', `and says what the course says (${early.line})`);
+  const runtimeCourse = await p6.evaluate(() => ({
+    schemaVersion: DECK.schemaVersion,
+    courseId: DECK.courseId,
+    descriptiveCard: Object.hasOwn(DECK.cards[0], 'cardId')
+      && Object.hasOwn(DECK.cards[0], 'front'),
+    compactCard: Object.hasOwn(DECK.cards[0], 'i')
+      || Object.hasOwn(DECK.cards[0], 'q'),
+  }));
+  ok(runtimeCourse.schemaVersion === 2 && runtimeCourse.courseId === 'day-skipper'
+      && runtimeCourse.descriptiveCard && !runtimeCourse.compactCard,
+    'a fetched legacy course is normalized before entering shared runtime state');
 
   /* Progress: the words on it are the course's, not the engine's. */
   await p6.click('[data-go="stats"]');
@@ -367,7 +378,8 @@ const offer = (pg) => pg.evaluate(() => {
     link: document.querySelector('#notice a')?.href || '',
     offline: document.getElementById('offline-note').textContent,
     offlineShown: !document.getElementById('offline-card').hidden,
-    diagrams: new Set([...DECK.cards].filter((c) => c.m).map((c) => c.m)).size,
+    diagrams: new Set([...DECK.cards].map(backImage).filter(Boolean)
+      .map((item) => item.source)).size,
     about: document.getElementById('about-copy').textContent,
     author: document.getElementById('about-author').href,
     source: document.getElementById('about-source').href,

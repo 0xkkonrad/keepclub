@@ -123,7 +123,8 @@ async function coursePage(options = {}, id = 'day-skipper') {
   await a.waitForFunction(() => document.getElementById('boot').hidden);
   await c.goto(URL, { waitUntil: 'networkidle' });
   await c.waitForFunction(() => document.getElementById('boot').hidden);
-  const sections = await a.evaluate(() => DECK.sections.slice(0, 2).map((s) => s.k));
+  const sections = await a.evaluate(() =>
+    DECK.sections.slice(0, 2).map((s) => s.sectionId));
   await a.evaluate((sk) => startSession(sk, {}), sections[0]);
   await c.evaluate((sk) => startSession(sk, {}), sections[1]);
   await c.waitForTimeout(100);
@@ -340,7 +341,7 @@ async function coursePage(options = {}, id = 'day-skipper') {
   await page.goto(URL + '?course=competent-crew', { waitUntil: 'networkidle' });
   await page.waitForFunction(() => document.getElementById('boot').hidden);
   const due = await page.evaluate(() => {
-    const id = DECK.cards[0].i;
+    const id = DECK.cards[0].cardId;
     grade(id, 3, 1);
     return { from: dayKey(Date.now()), due: dayKey(state.recs[id].due) };
   });
@@ -373,7 +374,7 @@ async function coursePage(options = {}, id = 'day-skipper') {
   await page.evaluate(() => {
     const id = Object.keys(VIDEOS.cards)[0];
     const c = byId.get(id);
-    startSession(c.s, { allNew: true });
+    startSession(c.sectionId, { allNew: true });
     session.queue = [id];
     session.total = 1;
     showCard();
@@ -392,8 +393,13 @@ async function coursePage(options = {}, id = 'day-skipper') {
 {
   const { ctx, page } = await coursePage();
   await page.waitForFunction(() => !!FIGURES);
+  const encodedMediaUrl = await page.evaluate(() =>
+    courseMediaUrl({ source: 'img/100% #?.png' }));
+  ok(encodedMediaUrl.endsWith('img/100%25%20%23%3F.png'),
+    `diagram URL encoding preserves path separators and quotes unsafe filename bytes (${encodedMediaUrl})`);
   await page.evaluate(() => {
-    const c = DECK.cards.find((x) => x.m || (x.f && FIGURES[x.f.n]));
+    const c = DECK.cards.find((x) =>
+      backImage(x) || (x.figure && FIGURES[x.figure.figureId]));
     document.querySelector('[data-go="browse"]').focus();
     openLightbox(c);
   });
@@ -426,7 +432,7 @@ async function coursePage(options = {}, id = 'day-skipper') {
   await page.goto(URL + '?course=day-skipper', { waitUntil: 'load' });
   await page.waitForFunction(() => document.getElementById('boot').hidden);
   await page.evaluate(async () => {
-    openLightbox(DECK.cards.find((c) => c.m));
+    openLightbox(DECK.cards.find((c) => backImage(c)));
     const lateLoad = $('#lb-img').onload;
     closeLightbox(true);
     // Model the load event already queued by the browser at the moment close()
@@ -497,7 +503,7 @@ async function coursePage(options = {}, id = 'day-skipper') {
   const target = 'e633f0d73a';
   await page.evaluate((id) => {
     const c = byId.get(id);
-    startSession(c.s, { allNew: true });
+    startSession(c.sectionId, { allNew: true });
     session.queue = [id];
     session.total = 1;
     showCard();
@@ -528,7 +534,7 @@ async function coursePage(options = {}, id = 'day-skipper') {
   const target = 'e633f0d73a';
   await page.evaluate((id) => {
     const c = byId.get(id);
-    startSession(c.s, { allNew: true });
+    startSession(c.sectionId, { allNew: true });
     session.queue = [id];
     session.total = 1;
     showCard();
@@ -561,7 +567,7 @@ async function coursePage(options = {}, id = 'day-skipper') {
       return real(fn, ms, ...args);
     };
     DECK = { cards: Array.from({ length: 1201 }, (_, i) => ({
-      i: String(i), q: `Question ${i}`, a: `Answer ${i}`,
+      cardId: String(i), front: `Question ${i}`, back: `Answer ${i}`,
     })) };
     await Promise.resolve(indexDeck());
     DECK = original;
