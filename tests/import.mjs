@@ -121,9 +121,10 @@ const legacy = await run('legacy.apkg');
   const snd = deck.cards.find((c) => c.a.includes('<audio'));
   ok(snd && /src="munin-media:\d+"/.test(snd.a), '[sound:…] becomes something you can play');
   ok(!deck.cards.some((c) => /gone\.png/.test(c.q + c.a)), 'the missing picture leaves no broken image');
-  ok(media.length === 2 && media[0].name === 'knot.png' && media[0].bytes.length > 0,
+  ok(media.length === 2 && media[0].source === 'knot.png' && media[0].bytes.length > 0,
     'the media files come out with their bytes');
-  ok(media.find((m) => m.name === 'horn.mp3').kind === 'snd', 'sound is marked as sound');
+  ok(media.find((m) => m.source === 'horn.mp3').mediaType === 'audio',
+    'sound is marked as sound');
   const bird = deck.cards.find((c) => c.a.includes('🐦'));
   ok(!!bird, 'unicode survives the round trip');
 }

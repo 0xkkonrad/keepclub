@@ -112,16 +112,18 @@ export function normalizeCourseAssetPath(value) {
 
 function allAssetReferences(course) {
   const references = new Map();
-  const add = (source, expectedType, path) => {
+  const add = (source, expectedType, path, declaredMimeType) => {
     if (typeof source !== 'string') return;
     const existing = references.get(source);
     if (existing) {
       existing.paths.push(path);
       existing.expectedTypes.add(expectedType);
+      if (declaredMimeType) existing.declaredMimeTypes.add(declaredMimeType.toLowerCase());
     } else {
       references.set(source, {
         source,
         expectedTypes: new Set([expectedType]),
+        declaredMimeTypes: new Set(declaredMimeType ? [declaredMimeType.toLowerCase()] : []),
         paths: [path],
       });
     }
@@ -131,7 +133,7 @@ function allAssetReferences(course) {
     for (let mediaIndex = 0; mediaIndex < (card.media || []).length; mediaIndex++) {
       const media = card.media[mediaIndex];
       const base = `$.cards[${cardIndex}].media[${mediaIndex}]`;
-      add(media.source, media.mediaType, `${base}.source`);
+      add(media.source, media.mediaType, `${base}.source`, media.mimeType);
       if (media.posterImage !== undefined) add(media.posterImage, 'image', `${base}.posterImage`);
       for (let trackIndex = 0; trackIndex < (media.captionTracks || []).length; trackIndex++) {
         add(media.captionTracks[trackIndex]?.source, 'caption',
@@ -285,6 +287,11 @@ function packageStructure(zip, archiveBytes, out) {
         'Rebuild the archive with a standards-compliant ZIP tool.');
       continue;
     }
+    if ((entry.flags & 0x1) || ![0, 8].includes(entry.method)) {
+      out.error('package.unsupported_feature', path,
+        `Archive member "${entry.name}" uses encryption or an unsupported compression method.`,
+        'Rebuild it as an unencrypted ZIP using stored or deflate compression.');
+    }
     expanded += entry.size;
     compressed += entry.compressedSize;
     if (entry.size > 0
@@ -374,9 +381,15 @@ async function validateAssets(course, zip, out) {
           : 'Transcode it to a documented browser-safe format.');
       continue;
     }
+    const sniffedMime = sniffed.mediaType === 'iso-media'
+      ? (expectedType === 'audio' ? 'audio/mp4' : 'video/mp4')
+      : sniffed.mimeType;
     if (!typeMatches(sniffed, expectedType)
         || !matchingExtension(safe, expectedType)
-        || !extensionMatchesBytes(safe, sniffed, expectedType)) {
+        || !extensionMatchesBytes(safe, sniffed, expectedType)
+        || reference.declaredMimeTypes.size > 1
+        || (reference.declaredMimeTypes.size === 1
+          && !reference.declaredMimeTypes.has(sniffedMime))) {
       out.error('media.type_mismatch', path,
         `Asset "${safe}" does not agree across its bytes, extension, and declared type.`,
         'Correct the mediaType/source or replace the file with the declared format.');
@@ -387,7 +400,7 @@ async function validateAssets(course, zip, out) {
       storageIndex,
       source: safe,
       mediaType: expectedType,
-      mimeType: sniffed.mimeType,
+      mimeType: sniffedMime,
       bytes,
     });
     storageIndex++;

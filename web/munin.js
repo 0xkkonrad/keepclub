@@ -896,8 +896,11 @@ async function mountReceipt(rec) {
     box.innerHTML = book(rec.receipt);
     const when = document.createElement('p');
     when.className = 'key';
+    const source = rec.receipt.type === 'keep'
+      ? (rec.receipt.sourceKind === 'keep-package' ? 'a .keep package' : 'a .keep.yml course')
+      : 'an anki package';
     when.textContent = `imported ${new Date(rec.created).toLocaleDateString('en-GB', {
-      day: 'numeric', month: 'long', year: 'numeric' })} from an anki package`;
+      day: 'numeric', month: 'long', year: 'numeric' })} from ${source}`;
     host.append(h, when, box);
   } catch (e) {
     console.error(e);

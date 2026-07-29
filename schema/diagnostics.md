@@ -10,6 +10,7 @@ API: wording may improve, codes do not change meaning.
 | Code | Meaning / correction |
 | --- | --- |
 | `document.invalid_yaml` | YAML 1.2 cannot be parsed; fix the syntax at the reported location. |
+| `document.unsupported_file_type` | The selected file is not `.keep.yml`, `.keep`, or an existing supported import format; choose a canonical course artifact. |
 | `document.multiple_documents` | More than one YAML document was supplied; keep exactly one. |
 | `document.duplicate_key` | A mapping repeats a key; remove one rather than relying on parser precedence. |
 | `document.disallowed_tag` | A custom YAML tag was used; use plain YAML data. |
@@ -66,6 +67,7 @@ API: wording may improve, codes do not change meaning.
 | `package.too_many_files` | The archive exceeds 2,500 files; reduce it. |
 | `package.too_large` | Compressed or expanded archive limits are exceeded; reduce it. |
 | `package.expansion_ratio` | A file/archive expands over 100:1; rebuild without dangerous compression behavior. |
+| `package.unsupported_feature` | A member is encrypted or uses an unsupported ZIP method; rebuild with unencrypted stored/deflate entries. |
 | `publication.license_required` | Publication was requested without a license; declare one. |
 | `publication.image_alt_required` | A published non-decorative image lacks useful alternative text; add it. |
 | `publication.image_dimensions_required` | A published image lacks known dimensions; add or derive them. |

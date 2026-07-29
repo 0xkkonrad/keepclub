@@ -152,6 +152,20 @@ cards:
 }
 
 {
+  const wrongMime = mediaYaml.replace(
+    'source: media/bird.png',
+    'source: media/bird.png\n        mimeType: image/jpeg',
+  );
+  const archive = storedZip([
+    { name: 'course.keep.yml', bytes: wrongMime },
+    { name: 'media/bird.png', bytes: png },
+  ]);
+  const result = await readCourseFile(archive, { fileName: 'picture.keep' });
+  ok(result.course === null && codes(result).has('media.type_mismatch'),
+    'optional declared MIME must agree with sniffed bytes');
+}
+
+{
   const archive = storedZip([
     { name: 'course.keep.yml', bytes: minimal },
     { name: 'unused.png', bytes: png },
@@ -197,6 +211,19 @@ cards:
   const result = await readCourseFile(duplicate, { fileName: 'duplicate.keep' });
   ok(result.course === null && codes(result).has('package.duplicate_path'),
     'duplicate ZIP directory names are refused rather than last-one-wins');
+}
+
+{
+  const encrypted = storedZip([{ name: 'course.keep.yml', bytes: minimal }]);
+  const view = new DataView(encrypted.buffer, encrypted.byteOffset, encrypted.byteLength);
+  let central = -1;
+  for (let index = 0; index + 46 <= encrypted.length; index++) {
+    if (view.getUint32(index, true) === 0x02014b50) { central = index; break; }
+  }
+  view.setUint16(central + 8, view.getUint16(central + 8, true) | 0x1, true);
+  const result = await readCourseFile(encrypted, { fileName: 'encrypted.keep' });
+  ok(result.course === null && codes(result).has('package.unsupported_feature'),
+    'encrypted ZIP members are refused before manifest parsing');
 }
 
 {

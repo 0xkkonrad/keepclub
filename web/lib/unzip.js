@@ -16,8 +16,11 @@ const CEN = 0x02014b50;       // a central directory entry
 const LOC = 0x04034b50;       // a local file header
 
 const dec = new TextDecoder();
-export const MAX_ZIP_MEMBER_BYTES = 128 * 1024 * 1024;
-const MAX_ZIP_TOTAL_BYTES = 384 * 1024 * 1024;
+/* The public course contract permits one 200 MiB video and 500 MiB expanded
+ * archive. Format-specific readers impose tighter limits (Anki media is still
+ * 64 MiB); this generic ZIP ceiling must not contradict the public boundary. */
+export const MAX_ZIP_MEMBER_BYTES = 200 * 1024 * 1024;
+const MAX_ZIP_TOTAL_BYTES = 500 * 1024 * 1024;
 const MAX_EXPANSION_RATIO = 500;
 const RATIO_FLOOR = 1024 * 1024;
 const MAX_ENTRIES = 100000;
@@ -114,6 +117,7 @@ export class Zip {
   async read(n) {
     const e = this.entries.get(n);
     if (!e) throw new ZipError(`no member named ${n}`);
+    if (e.flags & 0x1) throw new ZipError(`${n}: encrypted members are not supported`);
     if (!Number.isSafeInteger(e.size) || !Number.isSafeInteger(e.csize)
         || e.size < 0 || e.csize < 0) {
       throw new ZipError(`${n}: impossible size`);
@@ -210,6 +214,7 @@ export function readZip(bytes) {
     const extraLen = dv.getUint16(at + 30, true);
     const commentLen = dv.getUint16(at + 32, true);
     const e = {
+      flags,
       method: dv.getUint16(at + 10, true),
       csize: dv.getUint32(at + 20, true),
       size: dv.getUint32(at + 24, true),
@@ -224,7 +229,13 @@ export function readZip(bytes) {
     if (!n.endsWith('/')) {
       if (entries.has(n)) duplicateNames.push(n);
       entries.set(n, e);
-      entryRecords.push({ name: n, size: e.size, compressedSize: e.csize, method: e.method });
+      entryRecords.push({
+        name: n,
+        size: e.size,
+        compressedSize: e.csize,
+        method: e.method,
+        flags: e.flags,
+      });
     }
     at += 46 + nameLen + extraLen + commentLen;
   }

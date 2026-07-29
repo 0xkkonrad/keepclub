@@ -343,7 +343,12 @@ export async function buildDeck(col, opts = {}) {
       lost.add(i);
       continue;
     }
-    media.push({ i, name, kind: acc.sounds.has(i) ? 'snd' : 'img', bytes });
+    media.push({
+      storageIndex: i,
+      source: name,
+      mediaType: acc.sounds.has(i) ? 'audio' : 'image',
+      bytes,
+    });
   }
   /* A reference with no file behind it would render as a broken image for
    * ever. This happens BEFORE the sections are built, because a card can lose

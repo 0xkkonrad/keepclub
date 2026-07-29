@@ -88,8 +88,11 @@ export async function put(record, media) {
   // for as long as the browser does.
   ms.delete(IDBKeyRange.bound([record.id], [record.id, []]));
   for (const m of media) {
-    ms.put({ name: m.name, kind: m.kind, blob: new Blob([m.bytes], { type: mime(m.name) }) },
-      [record.id, m.i]);
+    ms.put({
+      source: m.source,
+      mediaType: m.mediaType,
+      blob: new Blob([m.bytes], { type: m.mimeType || mime(m.source) }),
+    }, [record.id, m.storageIndex]);
   }
   const { deck, ...card } = record;
   tx.objectStore(CARDS).put(deck, record.id);
