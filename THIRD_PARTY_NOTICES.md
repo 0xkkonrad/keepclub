@@ -18,6 +18,15 @@ distributed under the ISC License. The complete license notice is in
 Build provenance is documented in
 [`schema/yaml-parser-decision.md`](schema/yaml-parser-decision.md).
 
+## commonmark.js
+
+`web/lib/vendor/commonmark-parser-0.31.2.min.js` contains commonmark.js 0.31.2
+by John MacFarlane under the BSD 2-Clause License, entities 3.0.1 by Felix
+Böhm under the BSD 2-Clause License, and mdurl 1.0.1 by Vitaly Puzrin and Alex
+Kocharin under the MIT License. Complete notices are in the adjacent
+`commonmark-parser-*.LICENSE` files. Build provenance is documented in
+[`schema/markdown-parser-decision.md`](schema/markdown-parser-decision.md).
+
 ## Fonts
 
 The bundled DM Mono and Architects Daughter font files are distributed under

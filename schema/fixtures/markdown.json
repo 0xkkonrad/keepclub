@@ -1,0 +1,73 @@
+{
+  "fixtureVersion": 1,
+  "cases": [
+    {
+      "id": "formatting",
+      "source": "First *light* and **strong**.  \nNext.\n\n- red\n- blue",
+      "html": "<p>First <em>light</em> and <strong>strong</strong>.<br>\nNext.</p>\n<ul>\n<li>red</li>\n<li>blue</li>\n</ul>",
+      "text": "First light and strong. Next. red blue",
+      "diagnostics": []
+    },
+    {
+      "id": "links",
+      "source": "[site](https://keepclub.app/a?x=1&y=2) [mail](mailto:hi@example.com)",
+      "html": "<p><a href=\"https://keepclub.app/a?x=1&amp;y=2\" rel=\"noopener noreferrer\" target=\"_blank\">site</a> <a href=\"mailto:hi@example.com\" rel=\"noopener noreferrer\" target=\"_blank\">mail</a></p>",
+      "text": "site mail",
+      "diagnostics": []
+    },
+    {
+      "id": "raw-html",
+      "source": "<script>attack()</script> <b onclick=\"attack()\">text</b>",
+      "html": "<p>&lt;script&gt;attack()&lt;/script&gt; &lt;b onclick=\"attack()\"&gt;text&lt;/b&gt;</p>",
+      "text": "<script>attack()</script> <b onclick=\"attack()\">text</b>",
+      "diagnostics": []
+    },
+    {
+      "id": "unsafe-link",
+      "source": "[label](javascript:attack%28%29)",
+      "html": "<p>label</p>",
+      "text": "label",
+      "diagnostics": ["markdown.unsafe_link"]
+    },
+    {
+      "id": "image",
+      "source": "![map](https://example.com/map.png)",
+      "html": "<p>map</p>",
+      "text": "map",
+      "diagnostics": ["markdown.unsupported_construct"]
+    },
+    {
+      "id": "unsupported",
+      "source": "# Heading\n\n`inline`\n\n~~~\nblock\n~~~",
+      "html": "<p>Heading</p>\n<p>inline</p>\n<p>block<br></p>",
+      "text": "Heading inline block",
+      "diagnostics": [
+        "markdown.unsupported_construct",
+        "markdown.unsupported_construct",
+        "markdown.unsupported_construct"
+      ]
+    },
+    {
+      "id": "table-literal",
+      "source": "| A | B |\n| - | - |\n| 1 | 2 |",
+      "html": "<p>| A | B |\n| - | - |\n| 1 | 2 |</p>",
+      "text": "| A | B | | - | - | | 1 | 2 |",
+      "diagnostics": []
+    },
+    {
+      "id": "empty-optional",
+      "source": " \n",
+      "html": "",
+      "text": "",
+      "diagnostics": []
+    },
+    {
+      "id": "empty-required",
+      "source": " \n",
+      "options": { "allowEmpty": false },
+      "html": "",
+      "text": "",
+      "diagnostics": ["markdown.empty"]
+    }
+  ]
+}

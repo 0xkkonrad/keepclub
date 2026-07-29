@@ -22,6 +22,13 @@ API: wording may improve, codes do not change meaning.
 | `limit.scalar_length` | A scalar exceeds 1 MiB; split or reduce the content. |
 | `limit.collection_items` | A list or mapping exceeds 50,000 entries; split or reduce it. |
 | `limit.node_count` | The document exceeds 500,000 syntax nodes; split or simplify it. |
+| `markdown.too_long` | One Markdown field exceeds 256 KiB; split or shorten it. |
+| `markdown.too_deep` | Markdown nesting exceeds 64 levels; flatten nested lists or formatting. |
+| `markdown.too_complex` | One Markdown field exceeds 100,000 syntax nodes; split or simplify it. |
+| `markdown.unsupported_construct` | Markdown outside the format-2 subset was used; replace it with a supported construct. |
+| `markdown.unsafe_link` | A link is not HTTPS or mailto; correct it or leave its label as plain text. |
+| `markdown.empty` | A caller-required Markdown field has no visible content; add content or omit the optional field. |
+| `markdown.too_many_errors` | More than 100 Markdown errors exist; fix the reported set, then validate again. |
 | `course.not_object` | The root is not a mapping; make the document a course mapping. |
 | `course.unsupported_schema_version` | `schemaVersion` is absent or not `2`; use the documented major. |
 | `course.missing_id` | `courseId` is absent; add a stable creator-owned ID. |

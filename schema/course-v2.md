@@ -92,9 +92,12 @@ documented CommonMark subset: paragraphs, hard/soft line breaks, emphasis,
 strong emphasis, ordered and unordered lists, and links using `https:` or
 `mailto:`. Raw HTML is escaped. Images are not embedded with Markdown image
 syntax; use explicit media objects so packaging, accessibility, offline state,
-and validation remain honest. Heading levels, fenced code, tables, and other
-constructs may be added only by a later schema-major revision or documented
-compatible expansion.
+and validation remain honest. Inline code, heading levels, fenced or indented
+code, block quotes, thematic breaks, and tables are not format-2 constructs.
+Unsupported constructs produce an error and an inert preview; pipe-table
+syntax remains literal paragraph text. Ordered-list start numbers currently
+normalize to `1`, matching the sanitizer. Further constructs may be added only
+by a later schema-major revision or documented compatible expansion.
 
 The importer renders and sanitizes before storage. A side containing only
 markup removed by sanitization is blank.
