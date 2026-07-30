@@ -82,6 +82,113 @@ async function coursePage(options = {}, id = 'day-skipper') {
   await ctx.close();
 }
 
+/* Text size. Browser-level because none of what can go wrong is in one
+ * function: the size is a root attribute the stylesheet resolves, it rides in
+ * the same settings block Sync merges, and it has to be on the document before
+ * the app is unhidden or the first frame is the wrong size. */
+{
+  const { ctx, page, errors } = await coursePage();
+  await page.click('[data-go="stats"]');
+  const fresh = await page.evaluate(() => ({
+    attr: document.documentElement.dataset.font,
+    picked: document.getElementById('set-font').value,
+    root: parseFloat(getComputedStyle(document.documentElement).fontSize),
+    at: state.settings.at,
+  }));
+  ok(fresh.attr === 'default' && fresh.picked === 'default' && fresh.root === 15,
+    `a deck nobody has sized opens at the size the app was drawn at (${fresh.attr}, ${fresh.root}px)`);
+
+  await page.selectOption('#set-font', 'xlarge');
+  await page.evaluate(() => writeNow());
+  const bigger = await page.evaluate(() => ({
+    attr: document.documentElement.dataset.font,
+    root: parseFloat(getComputedStyle(document.documentElement).fontSize),
+    // A rem-sized piece of chrome, to prove the whole app moved and not just
+    // whatever happens to inherit the root size directly.
+    heading: parseFloat(getComputedStyle(document.getElementById('hoard-title')).fontSize),
+    stored: JSON.parse(localStorage.getItem(KEY)).settings,
+  }));
+  ok(bigger.attr === 'xlarge' && bigger.root > fresh.root,
+    `picking Extra large resizes the app in place (${bigger.root}px)`);
+  ok(bigger.heading > 11.7,
+    `chrome measured in rem grows with it (${bigger.heading}px, was 11.7px)`);
+  ok(bigger.stored.fontSize === 'xlarge',
+    'the chosen size is kept in the review document');
+  ok(Number.isFinite(bigger.stored.at) && bigger.stored.at > 0,
+    'changing the text size stamps the settings block, so it syncs like the rest');
+
+  // Every change, not only the first: an unstamped edit loses the next merge to
+  // a device that changed nothing since.
+  await page.waitForTimeout(20);
+  await page.selectOption('#set-font', 'small');
+  const smaller = await page.evaluate(() => {
+    writeNow();
+    return {
+      root: parseFloat(getComputedStyle(document.documentElement).fontSize),
+      at: JSON.parse(localStorage.getItem(KEY)).settings.at,
+    };
+  });
+  ok(smaller.root === 13 && smaller.at > bigger.stored.at,
+    `a second change re-stamps the block (${smaller.root}px, ${smaller.at} > ${bigger.stored.at})`);
+
+  /* Before the first frame, not after it. Both events are recorded from
+     document_start; the size has to be written before #app is ever unhidden. */
+  await page.addInitScript(() => {
+    globalThis.__fontOrder = [];
+    new MutationObserver((records) => {
+      for (const r of records) {
+        if (r.attributeName === 'data-font') globalThis.__fontOrder.push('size');
+        else if (r.target.id === 'app' && !r.target.hidden) globalThis.__fontOrder.push('shown');
+      }
+    }).observe(document, { attributes: true, subtree: true, attributeFilter: ['data-font', 'hidden'] });
+  });
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.waitForFunction(() => document.getElementById('boot').hidden);
+  const reopened = await page.evaluate(() => ({
+    attr: document.documentElement.dataset.font,
+    root: parseFloat(getComputedStyle(document.documentElement).fontSize),
+    picked: document.getElementById('set-font').value,
+    order: globalThis.__fontOrder,
+  }));
+  ok(reopened.attr === 'small' && reopened.root === 13 && reopened.picked === 'small',
+    `the size survives a reload and the control comes back on it (${reopened.attr})`);
+  ok(reopened.order.indexOf('size') === 0 && reopened.order.includes('shown'),
+    `the size is on the document before the app is shown (${reopened.order.join(',')})`);
+
+  // A value the control could never have produced, and a save from before this
+  // setting existed. Both are the default, and neither stops the deck opening.
+  const DROP = 'drop-the-field';
+  for (const [what, value] of [
+    ['a size that is not one of the four', 'enormous'],
+    ['a size stored as a number', 22],
+    ['a size stored as null', null],
+    ['a save written before the setting existed', DROP],
+  ]) {
+    // Written into the live document rather than straight into localStorage,
+    // for the reason notes.mjs records: this page rewrites the key from memory
+    // on pagehide, so anything planted behind its back is gone before the
+    // reload that was meant to read it.
+    await page.evaluate(([v, drop]) => {
+      if (v === drop) delete state.settings.fontSize; else state.settings.fontSize = v;
+      writeNow();
+    }, [value, DROP]);
+    await page.reload({ waitUntil: 'networkidle' });
+    await page.waitForFunction(() => document.getElementById('boot').hidden);
+    const fixed = await page.evaluate(() => ({
+      booted: document.getElementById('boot').hidden,
+      attr: document.documentElement.dataset.font,
+      root: parseFloat(getComputedStyle(document.documentElement).fontSize),
+      inState: state.settings.fontSize,
+    }));
+    ok(fixed.booted && fixed.attr === 'default' && fixed.root === 15
+        && fixed.inState === 'default',
+    `${what} is read back as the default (${fixed.attr}, ${fixed.root}px)`);
+  }
+  ok(errors.length === 0,
+    `the text size raises no page errors (${errors.join(' | ') || 'none'})`);
+  await ctx.close();
+}
+
 /* A short landscape viewport must show the question and keep notifications
  * from becoming an invisible shield over Show answer. */
 {

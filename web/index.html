@@ -318,6 +318,20 @@
           <input type="checkbox" id="set-shuffle">
           <span>Mix sections together <small>Stops you recognising an answer from the cards around it</small></span>
         </label>
+        <!-- Last, and the only setting here that is not about scheduling: it
+             changes what the app looks like rather than what it shows you next.
+             The four steps are written out in the markup rather than built by
+             app.js, so the control is complete and readable before any script
+             has run — the same reason the notice above carries its default. -->
+        <label class="setting">
+          <span>Text size <small>Scales the whole app, not just the cards.</small></span>
+          <select id="set-font">
+            <option value="small">Small</option>
+            <option value="default">Default</option>
+            <option value="large">Large</option>
+            <option value="xlarge">Extra large</option>
+          </select>
+        </label>
       </div>
 
       <!-- Installing sits with the other things you set up, not on the study

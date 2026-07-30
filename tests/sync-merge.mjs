@@ -76,7 +76,7 @@ const rec = (overrides = {}) => Object.assign({
     revGood: 10,
     bestClean: 18,
     ach: { first: 200 },
-    settings: { newPerDay: 5, maxRev: 120, at: 900 },
+    settings: { newPerDay: 5, maxRev: 120, fontSize: 'large', at: 900 },
   });
   const laptop = state({
     recs: { a: rec({ rp: 3, ivl: 8, due: 900 }), c: rec({ rp: 5 }) },
@@ -88,7 +88,7 @@ const rec = (overrides = {}) => Object.assign({
     revGood: 9,
     bestClean: 42,
     ach: { first: 100, week: 500 },
-    settings: { newPerDay: 40, maxRev: 80, at: 100 },
+    settings: { newPerDay: 40, maxRev: 80, fontSize: 'default', at: 100 },
   });
 
   const merged = mergeState(phone, laptop);
@@ -109,6 +109,10 @@ const rec = (overrides = {}) => Object.assign({
     'milestones retain their earliest unlock');
   ok(merged.settings.newPerDay === 5,
     'the most recently changed settings block wins as a block');
+  // Text size is in the block rather than beside it, so it crosses with the
+  // rest of it and nothing in the merge has to know the field exists.
+  ok(merged.settings.fontSize === 'large',
+    'the text size travels with the settings block it belongs to');
 
   let repeated = merged;
   for (let i = 0; i < 25; i++) {

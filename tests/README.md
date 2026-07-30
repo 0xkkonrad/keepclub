@@ -23,7 +23,9 @@ deck removal.
 
 `qa-regressions.mjs` — cross-surface browser regressions from the deep QA pass:
 single-writer study tabs, midnight and DST scheduling, held keys, session
-summary/Undo state, settings conflicts, modal Back/focus behavior, lightbox
+summary/Undo state, settings conflicts, the text-size setting (applied before
+the app is shown, stamped for sync, and any other value read back as the
+default), modal Back/focus behavior, lightbox
 containment, removed optional assets, late video metadata, cached-scene
 sanitization, and chunked large-deck indexing.
 

@@ -73,8 +73,24 @@
   --fig-blu: #1f5fa8;             /* water and wind, the one colour the app lacks */
   --mono: "DM Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --hand: "Architects Daughter", "Bradley Hand", cursive;
+  /* The one number the whole type scale is measured from. Every size in this
+     file is a rem, so the root's own size is the only place text size can be
+     set from — and 15px is what the app was drawn at, so it is the default
+     here and stays the default for anyone who never touches the setting. */
+  --font-px: 15px;
   color-scheme: light;
 }
+
+/* Text size, four steps, written by applyFontSize() in app.js. Steps rather
+   than a slider: the point is legibility, not typography, and a person picking
+   between four names cannot land on a size that breaks the layout. Declared as
+   attribute overrides for the same reason the theme is — the stylesheet is
+   parsed before any script runs, so the sizes have to already be here for the
+   attribute to mean anything on the first frame. */
+:root[data-font="small"] { --font-px: 13px; }
+:root[data-font="default"] { --font-px: 15px; }
+:root[data-font="large"] { --font-px: 17px; }
+:root[data-font="xlarge"] { --font-px: 19px; }
 
 /* There is no prefers-color-scheme block, on purpose. Munin's default is LIGHT,
  * not the device's setting (28 July 2026): the app is drawn — paper, ink and a
@@ -114,7 +130,7 @@ html, body {
   height: 100%;
   background: var(--bg);
   color: var(--text);
-  font: 15px/1.55 var(--mono);
+  font: var(--font-px)/1.55 var(--mono);
   font-feature-settings: "kern" 1;
   -webkit-text-size-adjust: 100%;
   overscroll-behavior-y: none;
@@ -1261,6 +1277,20 @@ mark {
 }
 .setting input[type=number] { width: 80px; }
 .setting input[type=date] { padding: 0 10px; }
+/* No width: the control has to hold "Extra large" at every size it can pick,
+   including the largest one, and a fixed width would clip the word that names
+   the step you are standing on. The chevron is the section filter's, drawn in
+   --text so it inverts with the paper. */
+.setting select {
+  min-height: 44px; flex: none; appearance: none;
+  padding: 0 32px 0 12px;
+  background-color: var(--surface);
+  border: var(--bw) solid var(--stroke); border-radius: var(--r-sm);
+  background-image: linear-gradient(45deg, transparent 50%, var(--text) 50%),
+                    linear-gradient(135deg, var(--text) 50%, transparent 50%);
+  background-position: calc(100% - 17px) center, calc(100% - 12px) center;
+  background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
+}
 .setting.row { justify-content: flex-start; gap: 12px; }
 .setting.row input { width: 20px; height: 20px; flex: none; accent-color: var(--accent); }
 .setting small { display: block; color: var(--muted); font-size: .74rem; margin-top: 3px; line-height: 1.5; }

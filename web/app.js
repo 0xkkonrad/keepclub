@@ -61,6 +61,13 @@ const EXAM_DEFAULT = (typeof COURSE.examDate === 'string' && /^\d{4}-\d{2}-\d{2}
 // so typing 2026 walks through 0002, 0020 and 0202 on its way. Anything outside
 // this window is someone mid-keystroke, not a date they mean.
 const EXAM_MIN_YEAR = 2020, EXAM_MAX_YEAR = 2040;
+// The text sizes offered, smallest first. Names rather than numbers: the pixels
+// belong to app.css (`:root[data-font=…]`), which is the only place that knows
+// what the type scale is measured in, and a number stored here would be a
+// second opinion about it. 'default' is 15px — the size the app was drawn at,
+// and what anyone who has never opened this setting is already reading.
+const FONT_SIZES = ['small', 'default', 'large', 'xlarge'];
+const FONT_DEFAULT = 'default';
 
 const $ = (s) => document.querySelector(s);
 const $$ = (s) => Array.from(document.querySelectorAll(s));
@@ -195,7 +202,11 @@ function freshState() {
     // Light by default rather than following the system: the paper, the ink
     // outlines and the hard shadows are the design, and the derived dark set is
     // the fallback for people who go looking for it.
-    settings: { newPerDay: 20, maxRev: 120, shuffle: true, examDate: EXAM_DEFAULT, examSkipped: false },
+    settings: {
+      newPerDay: 20, maxRev: 120, shuffle: true,
+      examDate: EXAM_DEFAULT, examSkipped: false,
+      fontSize: FONT_DEFAULT,
+    },
   };
 }
 
@@ -231,6 +242,13 @@ function sanitise(raw) {
   s.settings.at = Math.round(num(s.settings.at, 0, 8.64e15, 0));
   s.settings.shuffle = !!s.settings.shuffle;
   s.settings.examSkipped = !!s.settings.examSkipped;
+  // Anything that is not one of the four steps is the default size, which also
+  // covers the case that matters most: every save written before this setting
+  // existed has no fontSize at all, and those people must go on reading the app
+  // at exactly the size they have always read it at. The value is written
+  // straight into an attribute selector, so it is checked against the list
+  // rather than merely coerced to a string.
+  if (!FONT_SIZES.includes(s.settings.fontSize)) s.settings.fontSize = FONT_DEFAULT;
   // The default exam date belongs to a fresh install only. A restored backup
   // that never had one must not silently inherit it — that would compress every
   // interval on someone else's deck the moment they imported it.
@@ -376,6 +394,7 @@ function refuseForeignWrite() {
       for (const id of Object.keys(state.recs)) if (!byId.has(id)) delete state.recs[id];
       settingsShape = JSON.stringify(Object.assign({}, state.settings, { at: 0 }));
       applyTheme();
+      applyFontSize();
       if (current === 'home') renderHome();
       if (current === 'stats') renderStats();
       if (current === 'browse') renderBrowse();
@@ -523,6 +542,7 @@ addEventListener('storage', (e) => {
   // This was another tab's write, not a fresh local settings decision.
   settingsShape = JSON.stringify(Object.assign({}, state.settings, { at: 0 }));
   applyTheme();
+  applyFontSize();
   if (current === 'home') renderHome();
   if (current === 'stats') renderStats();
   if (current === 'browse') renderBrowse();
@@ -3390,6 +3410,7 @@ function adoptSynced(merged) {
   rollDay();
   writeNow();
   applyTheme();
+  applyFontSize();
   if (current === 'home') renderHome();
   if (current === 'stats') renderStats();
   if (current === 'browse') renderBrowse();
@@ -3584,6 +3605,7 @@ function renderStats() {
   $('#set-new').value = state.settings.newPerDay;
   $('#set-max').value = state.settings.maxRev;
   $('#set-shuffle').checked = state.settings.shuffle;
+  $('#set-font').value = state.settings.fontSize;
   $('#set-exam').value = state.settings.examDate || '';
   const d = daysToExam();
   $('#exam-hint').textContent = d === null
@@ -3985,6 +4007,23 @@ function applyTheme() {
   $('#theme-btn').title = `Colour theme: ${MuninTheme.showing()}`;
 }
 
+/* Text size, unlike the theme, IS the course's — it rides in the review
+ * document so Sync carries it to your other device with the rest of the block.
+ * The shelf paints before any of that is read and stays at the default; the
+ * attribute is only ever written here, and entering or leaving a course is a
+ * reload, so no course's size can survive onto the shelf behind it.
+ *
+ * Called beside applyTheme() everywhere, and for the same reason: both are
+ * chrome that has to agree with a state document this app did not necessarily
+ * write — a merge, another tab's write, a restored backup, an erase.
+ *
+ * At boot it runs immediately after load(), while #app is still hidden behind
+ * the loading screen, so the first frame anyone sees is already at their size.
+ * Setting it any later is a flash of 15px type on a phone that asked for 19. */
+function applyFontSize() {
+  document.documentElement.setAttribute('data-font', state.settings.fontSize);
+}
+
 /* ─────────────────────────── wiring ─────────────────────────── */
 
 function wire() {
@@ -4217,6 +4256,18 @@ function wire() {
     state.settings.shuffle = e.target.checked;
     save();
   });
+  $('#set-font').addEventListener('change', (e) => {
+    // Applied before the save, not after it: the save is debounced and the
+    // refusal path can send it back, and either way this is a control whose
+    // whole point is that you see the answer in the same breath as the change.
+    // A value the <select> could not have produced still goes through the same
+    // list the sanitiser uses — nothing writes an attribute unchecked.
+    const want = FONT_SIZES.includes(e.target.value) ? e.target.value : FONT_DEFAULT;
+    state.settings.fontSize = want;
+    e.target.value = want;
+    applyFontSize();
+    save();
+  });
   const setExamDate = (value) => {
     // Half-typed years arrive here as 0002-08-12. Ignore them: the change event
     // fires again with the real year a keystroke later.
@@ -4420,6 +4471,7 @@ function wire() {
     rollDay();
     if (!writeNow()) return;
     applyTheme();
+    applyFontSize();
     renderStats();
     toast(lost
       ? `Restored ${known.length} cards. ${lost} were from an older deck and were dropped.`
@@ -4506,6 +4558,7 @@ function wire() {
     state = Object.assign(freshState(), { notes });
     if (!writeNow()) return;
     applyTheme();
+    applyFontSize();
     renderStats();
     toast(kept ? 'Progress erased. Your notes are still here.' : 'Progress erased.');
   });
@@ -4728,6 +4781,7 @@ async function readRuntimeCourse(input) {
 async function boot() {
   load();
   applyTheme();
+  applyFontSize();
   let rawCourse;
   try {
     // An imported deck has no cards.json to fetch: it came out of a .apkg and
