@@ -46,6 +46,15 @@ Day Skipper app's key, asserted UNTOUCHED) → cold open resumes the course.
 commutativity, idempotence, monotonic review history, streak reconstruction,
 key validation, and the guarantee that only a SHA-256 hash is transported.
 
+`notes.mjs` — the per-deck notes tool as a person meets it: add, read back,
+edit and delete through the panel's own controls, the words surviving a reload
+and the load sanitiser, markup typed into a note staying characters, a
+deliberately corrupt notes block still opening the deck, the panel's history
+entry and Tab containment, an idle tab refused while another studies, notes
+swept with the deck they belong to, and notes kept by the erase that only
+offered to take review history. The merge algebra behind them — commutative,
+idempotent, and a delete that is not resurrected — is in `sync-merge.mjs`.
+
 `deploy-script.mjs` — destructive deployment preflights in disposable Git
 repositories: wrong branches, dirty Pages work and an unexpected remote are
 all refused before the copy begins.

@@ -1296,6 +1296,78 @@ mark {
 }
 #sync-join[hidden] { display: none; }
 
+/* ── notes ───────────────────────────────────────────────────────── */
+
+/* Somebody's own words about the deck, in the app's own furniture: paper, 2px
+   ink, the hard shadow. Nothing here names a colour — every value is one of the
+   two theme sets' variables, so the panel is drawn in whichever one is showing
+   and there is no second design to keep in step. */
+
+/* The row on Home that opens it. A ghost button's shape, laid out like the
+   leech row: a name and a line saying what is behind it. */
+.notes-row {
+  width: 100%; text-align: left; margin-top: 20px;
+  display: grid; gap: 3px; min-height: var(--tap);
+  background: var(--surface); border: var(--bw) solid var(--stroke);
+  border-radius: var(--r); box-shadow: var(--sh-sm); padding: 12px 14px;
+  transition: transform .08s ease, box-shadow .08s ease;
+}
+.notes-row:active { transform: translate(3px, 3px); box-shadow: 0 0 0 var(--stroke); }
+.notes-row span { font-weight: 500; font-size: .9rem; text-transform: lowercase; }
+.notes-row small { color: var(--muted); font-size: .76rem; }
+
+/* Above the `courses` pill (80) and below the lightbox (90); the two are never
+   open at once, and the pill is inert while this is up anyway. The toast (70)
+   is deliberately left underneath — a panel you are typing into answers inside
+   itself, and .notes-say is where every message it has goes. */
+.notes {
+  position: fixed; inset: 0; z-index: 82;
+  background: color-mix(in srgb, var(--stroke) 55%, transparent);
+  display: flex; align-items: flex-end; justify-content: center;
+}
+.notes[hidden] { display: none; }
+/* Anchored to the bottom edge on a phone, where the keyboard comes up under it
+   and the thumb is: a centred card would spend the whole session behind the
+   keyboard. On a wide screen the max-width is what stops it being a banner. */
+.notes-card {
+  width: min(560px, 100%); max-height: 92vh; overflow-y: auto;
+  background: var(--bg); color: var(--text);
+  border: var(--bw) solid var(--stroke); border-bottom: 0;
+  border-radius: var(--r) var(--r) 0 0;
+  padding: 16px 20px calc(20px + env(safe-area-inset-bottom));
+}
+.notes-bar { display: flex; align-items: center; gap: 8px; }
+.notes-bar h2 {
+  flex: 1; margin: 0; font-size: 1.05rem; font-weight: 500;
+  letter-spacing: -.02em; text-transform: lowercase;
+}
+.notes-write { margin: 14px 0 0; }
+#notes-text {
+  display: block; width: 100%; padding: 12px 14px; resize: vertical;
+  background: var(--surface); color: var(--text);
+  border: var(--bw) solid var(--stroke); border-radius: var(--r-sm);
+  font: inherit; font-size: .92rem; line-height: 1.6;
+}
+.notes-acts { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+.notes-acts .primary { flex: 1; }
+/* A fixed floor, so a message appearing does not shove the list down the page
+   under the finger that is reaching for it. */
+.notes-say { margin: 10px 0 0; min-height: 1.3em; font-size: .78rem; color: var(--muted); }
+.notes-list { list-style: none; margin: 14px 0 0; padding: 0; border-top: 2px dotted var(--line); }
+.notes-list:empty { margin: 0; border-top: 0; }
+.notes-list li { border-bottom: 2px dotted var(--line); padding: 12px 0; }
+/* pre-wrap, because a note is exactly what was typed and line breaks are the
+   only shape plain text has; anywhere, because a pasted URL is one long word
+   and nothing else on this screen may be pushed sideways by it. */
+.note-text {
+  margin: 0; font-size: .9rem; line-height: 1.6;
+  white-space: pre-wrap; overflow-wrap: anywhere;
+}
+.note-foot { display: flex; align-items: center; gap: 14px; margin-top: 2px; }
+.note-when { flex: 1; min-width: 0; font-size: .72rem; color: var(--muted); }
+.note-foot .link-btn { padding: 6px 2px; min-height: 40px; flex: none; }
+.notes-empty { margin: 16px 0 0; font-size: .8rem; line-height: 1.65; color: var(--muted); }
+
 /* ── lightbox ────────────────────────────────────────────────────── */
 
 .lightbox {

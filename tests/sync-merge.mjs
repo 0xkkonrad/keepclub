@@ -42,6 +42,7 @@ function state(overrides = {}) {
     answers: 0,
     bestClean: 0,
     ach: {},
+    notes: {},
     settings: {
       newPerDay: 20,
       maxRev: 120,
@@ -168,6 +169,68 @@ const rec = (overrides = {}) => Object.assign({
   const merged = mergeState(state({ days: long }), state());
   ok(Object.keys(merged.days).length === 400,
     'long histories retain enough calendar evidence for a one-year club streak');
+}
+
+/* Notes are a set of separately-stamped records, not one last-write-wins block:
+ * two devices that both wrote something between syncs must both keep it. */
+{
+  const note = (overrides = {}) =>
+    Object.assign({ at: 100, ed: 100, text: 'a note' }, overrides);
+  const phone = state({
+    notes: { aa: note({ text: 'written on the phone' }), bb: note({ at: 50, ed: 50 }) },
+  });
+  const laptop = state({
+    notes: { cc: note(), bb: note({ at: 50, ed: 400, text: 'fixed on the laptop' }) },
+  });
+  const merged = mergeState(phone, laptop);
+  ok(same(merged, mergeState(laptop, phone)), 'the note merge is commutative');
+  ok(same(merged, mergeState(merged, phone)) && same(merged, mergeState(merged, laptop)),
+    'merging the same notes again changes nothing');
+  ok(Object.keys(merged.notes).sort().join() === 'aa,bb,cc',
+    'a note written on one device only is kept');
+  ok(merged.notes.bb.text === 'fixed on the laptop' && merged.notes.bb.at === 50,
+    'the later edit of a note wins while it keeps the moment it was written');
+}
+
+{
+  const written = state({ notes: { aa: { at: 100, ed: 100, text: 'the note' } } });
+  const deleted = state({ notes: { aa: { at: 100, ed: 500, text: '' } } });
+  const merged = mergeState(written, deleted);
+  ok(merged.notes.aa.text === '',
+    'a deleted note is not resurrected by the device that still has it');
+  ok(same(merged, mergeState(deleted, written)) && same(merged, mergeState(merged, written)),
+    'the delete marker survives repeated merges in either order');
+  const again = state({ notes: { aa: { at: 100, ed: 900, text: 'written again' } } });
+  ok(mergeState(merged, again).notes.aa.text === 'written again',
+    'a note written again after a delete is not held down by the marker');
+  const third = state({ notes: { aa: { at: 100, ed: 700, text: 'from a third device' } } });
+  ok(same(mergeState(mergeState(written, deleted), third),
+    mergeState(written, mergeState(deleted, third))),
+  'the note merge is associative across three devices');
+}
+
+{
+  const many = {};
+  for (let i = 0; i < 300; i++) many['x' + i.toString(36)] = { at: i, ed: i, text: '' };
+  for (let i = 0; i < 250; i++) {
+    many['n' + i.toString(36)] = { at: i, ed: i, text: 'kept ' + i };
+  }
+  const merged = mergeState(state({ notes: many }), state());
+  const kept = Object.values(merged.notes);
+  ok(kept.length === 400 && kept.filter((value) => value.text).length === 250,
+    'an over-long note set is capped, and delete markers go before anyone\'s words');
+}
+
+{
+  // An own "__proto__" key only exists in JSON, which is exactly where a synced
+  // blob comes from. Written as an object literal it would set a prototype and
+  // prove nothing.
+  const hostile = JSON.parse('{"__proto__":{"at":1,"ed":1,"text":"x"},'
+    + '"Upper":{"at":1,"ed":1,"text":"y"},"ok1":{"at":1,"ed":1,"text":"z"}}');
+  const merged = mergeState(state({ notes: hostile }), state());
+  ok(Object.keys(merged.notes).join() === 'ok1'
+      && Object.getPrototypeOf(merged.notes) === Object.prototype,
+  'a note id that is not an id this app writes never becomes an object key');
 }
 
 {

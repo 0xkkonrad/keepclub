@@ -263,6 +263,73 @@ function mergeSettings(x, y) {
   return Object.assign({}, winner);
 }
 
+/* ─────────────────────────── notes ─────────────────────────── */
+
+/* Notes merge as a set of separately-stamped records, never as one block.
+ *
+ * Settings are one thing a person changes, so last-write-wins over the whole
+ * block is honest there. Notes are many things they write, and two devices
+ * between one sync and the next routinely both have new ones — merged as a
+ * block, whichever device wrote fewer of them would simply lose them. So each
+ * note carries its own `at` (when it was written) and `ed` (when it last
+ * changed), and the union is taken id by id.
+ *
+ * Deleting is the half that needs the care. A plain union resurrects every note
+ * the other device has not heard about yet, so a delete is recorded rather than
+ * dropped: the record stays, its text emptied, its `ed` newer than the text it
+ * replaces — and that empty record beats the older words on the device that
+ * still has them. An empty note is therefore the delete marker, which is also
+ * why the app refuses to store an empty note as a note.
+ *
+ * The markers are what makes this converge, and they are also why the entry
+ * count is capped. Dropping the oldest markers can only bring back a note that
+ * was deleted more than NOTE_SLOTS entries ago, on a device that has been away
+ * across all of them; an unbounded set on a bounded server blob is the worse
+ * failure, because it takes the review history down with it.
+ */
+const NOTE_SLOTS = 400;
+// An id is used as an object key, here and in app.js's sanitiser, which is the
+// one thing about it that has to be true. Hex is what app.js writes; anything
+// else came from somewhere else and is not stored under a key of its choosing.
+const NOTE_ID = /^[a-z0-9]{1,64}$/;
+
+function pickNote(x, y) {
+  if (!x) return y;
+  if (!y) return x;
+  let winner;
+  if (num(x.ed) !== num(y.ed)) winner = num(x.ed) > num(y.ed) ? x : y;
+  else winner = stable(x) <= stable(y) ? x : y;
+  // When a note was written is a fact about the past, and the earliest claim is
+  // the true one — the same rule the milestones keep. Carrying the winner's own
+  // stamp instead made a list re-order itself after a sync, which reads as the
+  // app shuffling notes nobody touched.
+  const written = [num(x.at), num(y.at)].filter((value) => value > 0);
+  return Object.assign({}, winner, { at: written.length ? Math.min(...written) : 0 });
+}
+
+function mergeNotes(a, b) {
+  const entries = [];
+  for (const id of new Set(Object.keys(a).concat(Object.keys(b)))) {
+    if (!NOTE_ID.test(id)) continue;
+    entries.push([id, pickNote(
+      a[id] === undefined ? null : obj(a[id]),
+      b[id] === undefined ? null : obj(b[id])
+    )]);
+  }
+  // Live notes before delete markers, newest first, id last so the order is
+  // total: an eviction that depended on iteration order would make a
+  // three-device merge depend on which pair was merged first.
+  entries.sort((x, y) => {
+    const liveX = x[1].text ? 0 : 1, liveY = y[1].text ? 0 : 1;
+    if (liveX !== liveY) return liveX - liveY;
+    if (num(x[1].ed) !== num(y[1].ed)) return num(y[1].ed) - num(x[1].ed);
+    return x[0] < y[0] ? -1 : 1;
+  });
+  const out = {};
+  for (const [id, note] of entries.slice(0, NOTE_SLOTS)) out[id] = note;
+  return out;
+}
+
 /* Commutative and idempotent: syncing the same pair repeatedly cannot inflate
  * counters, while the record with the most review history always survives. */
 function mergeState(a, b) {
@@ -319,6 +386,7 @@ function mergeState(a, b) {
   }
 
   out.settings = mergeSettings(obj(a.settings), obj(b.settings));
+  out.notes = mergeNotes(obj(a.notes), obj(b.notes));
   return out;
 }
 
@@ -498,7 +566,9 @@ root.DSSync = {
   hashKey,
   mergeState,
   mergeSettings,
+  mergeNotes,
   pickRec,
+  pickNote,
   streakFrom,
   stable,
   app: () => cfg.app,

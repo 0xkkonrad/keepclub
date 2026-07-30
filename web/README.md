@@ -193,6 +193,14 @@ answer "none of them exist".
 - The fineprint, the video credit and the offline note come from the course
   and from the deck's own picture count. They were markup, and so were printed
   over every course and every imported deck.
+- **Notes.** A deck holds plain-text notes of your own, written from the panel
+  behind the Notes row on Home. They live in the same per-deck document as the
+  review history (`state.notes`, id → `{at, ed, text}`), so they survive a
+  reload, the load sanitiser and a restored backup, they obey the single-writer
+  study lease, and they go with the deck when it is removed. An emptied record
+  is a delete, which is what stops a sync handing back a note you deleted on
+  the other device — `mergeNotes` in `sync.js` says why at length. Erasing
+  progress does *not* take them: that button offers to erase review history.
 - Deck/media fetches go through `COURSE.base`.
 - **Sync is on for built-in courses** — `sync.js` uses one device key across
   course-specific progress blobs. The merge is commutative and idempotent;

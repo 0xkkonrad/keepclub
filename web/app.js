@@ -31,6 +31,24 @@ const LEECH_AT = 3;
 // How many cards a deliberate "study ahead" or "no cards due in this section"
 // session serves. Unbounded, it hands over the entire remaining deck.
 const AHEAD_BATCH = 20;
+// A note is a person's own words about the deck, so it is plain text, it is
+// theirs, and it is bounded. Both caps are enforced on the way in and again on
+// the way back out of storage: the sync blob a built-in course uploads is
+// bounded at the far end, and one deck's notes must not be what fills it — the
+// review history is in the same document and would go down with it.
+const NOTE_LEN = 2000;
+// Live notes one deck may hold. Past this the panel says so rather than
+// silently dropping the oldest, which is somebody's writing.
+const NOTE_MAX = 200;
+// Stored entries: live notes plus the emptied records that record a delete.
+// Must match sync.js's NOTE_SLOTS — the merge caps to the same number, and a
+// sanitiser with a lower cap would throw away what the merge just kept.
+const NOTE_SLOTS = 400;
+// Ids are written by newNoteId() and are hex. They are checked rather than
+// trusted because a note id is used as an object key, and `{}['__proto__'] = v`
+// sets a prototype instead of a property — a restored file or a synced blob is
+// exactly where a key like that would arrive from.
+const NOTE_ID = /^[a-z0-9]{1,64}$/;
 // Stamped into every exported file so restore can tell a real backup from any
 // other JSON someone happens to pick.
 const EXPORT_APP = 'munin/' + COURSE.id;
@@ -173,6 +191,7 @@ function freshState() {
     answers: 0,                  // every grade ever, for the hoard
     bestClean: 0,                // longest run without Again, across sessions
     ach: {},                     // achievement id -> unlocked timestamp
+    notes: {},                   // note id -> {at, ed, text}; empty text = deleted
     // Light by default rather than following the system: the paper, the ink
     // outlines and the hard shadows are the design, and the derived dark set is
     // the fallback for people who go looking for it.
@@ -276,6 +295,39 @@ function sanitise(raw) {
     }
   }
   s.ach = ach;
+
+  // Notes are the one part of this document a person wrote themselves, which
+  // makes them the one part with no shape the app can predict. Everything here
+  // has a way of arriving: a restored backup written by an older build with no
+  // notes at all, a synced blob that spent time in a database, a file someone
+  // edited by hand. A note whose text is a number renders as "[object
+  // Object]" at best and throws at worst, and either way it does it on the
+  // screen that is meant to be showing what they wrote.
+  const notes = {};
+  if (isPlainObject(raw.notes)) {
+    const entries = [];
+    for (const [id, note] of Object.entries(raw.notes)) {
+      if (!NOTE_ID.test(id) || !isPlainObject(note)) continue;
+      // Tabs and newlines are text a person typed and are kept. The rest of the
+      // C0 range is not: it survives JSON, it is invisible in the panel, and it
+      // is the difference between what the list shows and what is stored.
+      const text = (typeof note.text === 'string' ? note.text : '')
+        .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, '')
+        .slice(0, NOTE_LEN);
+      const at = Math.round(num(note.at, 0, 8.64e15, 0));
+      // An edit stamp that is missing falls back to the written stamp rather
+      // than to zero: zero would lose every merge against a device that has
+      // the same note, including the copy this one is about to delete.
+      entries.push([id, { at, ed: Math.round(num(note.ed, 0, 8.64e15, at)), text }]);
+    }
+    // More entries than this build stores can only come from somewhere else.
+    // Delete markers go first, then the oldest — the same order the merge
+    // evicts in, so a round trip through Sync does not change what survives.
+    entries.sort(noteEntryOrder);
+    for (const [id, note] of entries.slice(0, NOTE_SLOTS)) notes[id] = note;
+  }
+  s.notes = notes;
+
   if (typeof s.day !== 'string') s.day = dayKey(Date.now());
   if (typeof s.lastDay !== 'string' || !s.days[s.lastDay]) s.lastDay = null;
   return s;
@@ -327,6 +379,7 @@ function refuseForeignWrite() {
       if (current === 'home') renderHome();
       if (current === 'stats') renderStats();
       if (current === 'browse') renderBrowse();
+      renderNotesIfOpen();
     }
   } catch (e) { /* retain the last readable in-memory state */ }
   toast('Another tab is studying this deck. Finish there before changing progress or settings.');
@@ -473,6 +526,7 @@ addEventListener('storage', (e) => {
   if (current === 'home') renderHome();
   if (current === 'stats') renderStats();
   if (current === 'browse') renderBrowse();
+  renderNotesIfOpen();
 });
 
 /* ─────────────────────────── dates ─────────────────────────── */
@@ -1945,7 +1999,246 @@ function renderHome() {
     }
     list.appendChild(ul);
   }
+  renderNotesRow();
   hydrateSectionArtwork(list);
+}
+
+/* ── notes ── */
+
+/* Your own words about this deck.
+ *
+ * Plain text and nothing else: no markup, no pictures, no links, no markdown.
+ * A note is stored as text and rendered as text, and those are the same fact —
+ * there is no formatting to strip on the way out because none was ever kept on
+ * the way in. That is the whole feature, and it is deliberately the whole
+ * feature: a deck of flashcards is not a place to have built a second editor.
+ *
+ * They live in this deck's own state document, alongside the review history,
+ * because that document is already the per-deck thing. It already survives a
+ * reload and the sanitiser, it already rides along in an exported backup, and
+ * it is already covered by the single-writer rule that stops two tabs
+ * overwriting each other's work. It also answers the question the feature
+ * would otherwise leave open: the shell deletes that document when a deck is
+ * removed (sweepOrphans in munin.js), so a deck's notes are removed with the
+ * deck they were about, and nothing survives it pointing at cards that are
+ * gone. Erasing progress is the one thing that does NOT take them — a note is
+ * not review history, and that button does not offer to destroy one.
+ */
+
+/** Delete markers last, then oldest last. Shared by the sanitiser and, in the
+ *  same shape, by sync.js: both cap the number of stored entries, and two caps
+ *  that evicted different records would make a sync flip the set back and
+ *  forth for ever. Total, including the id, so the order never depends on
+ *  which object the entries were read out of. */
+function noteEntryOrder(a, b) {
+  const liveA = a[1].text ? 0 : 1, liveB = b[1].text ? 0 : 1;
+  if (liveA !== liveB) return liveA - liveB;
+  if (n(a[1].ed) !== n(b[1].ed)) return n(b[1].ed) - n(a[1].ed);
+  return a[0] < b[0] ? -1 : 1;
+}
+
+/** The notes there are, newest written first. */
+function liveNotes() {
+  return Object.entries(state.notes)
+    .filter(([, note]) => !!note.text)
+    // Written order, not edited order. Sorted by the edit stamp instead,
+    // correcting a typo in the oldest note threw it to the top of the list —
+    // the app re-arranging a page in front of someone who only fixed a word.
+    .sort((a, b) => n(b[1].at) - n(a[1].at) || (a[0] < b[0] ? 1 : -1))
+    .map(([id, note]) => Object.assign({ id }, note));
+}
+
+/** Hex, and short. See NOTE_ID: this value becomes an object key, and
+ *  crypto.randomUUID() is undefined outside a secure context — which includes
+ *  the plain-http origin the suites run against. */
+function newNoteId() {
+  const bytes = new Uint8Array(8);
+  crypto.getRandomValues(bytes);
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
+let noteEditing = null;
+
+function noteSays(line) {
+  const el = $('#notes-say');
+  if (el) el.textContent = line || '';
+}
+
+/* Every note write goes through here.
+ *
+ * The review document is one JSON value, so a note is written under the same
+ * single-writer rule as a grade: save() hands back false when another tab holds
+ * the study lease, and by then refuseForeignWrite() has already re-read that
+ * tab's durable copy over this one. Re-drawing from `state` afterwards is not
+ * housekeeping, then — it is how the refused edit disappears from the screen
+ * again, rather than sitting there looking saved. */
+function commitNotes(say) {
+  const wrote = save();
+  renderNotes();
+  renderNotesRow();
+  // The toast for a refused write ranks below this panel, so the panel says it
+  // itself. A message about the thing you just typed belongs next to it anyway.
+  noteSays(wrote ? (say || '') : 'Another tab is studying this deck. Finish there before writing notes.');
+  return wrote;
+}
+
+/** Whatever a person typed, as far as it is a note at all. */
+function noteTextFrom(input) {
+  return String(input == null ? '' : input)
+    .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, '')
+    .trim()
+    .slice(0, NOTE_LEN);
+}
+
+function addNote(input) {
+  const text = noteTextFrom(input);
+  if (!text) return false;
+  if (liveNotes().length >= NOTE_MAX) {
+    noteSays(`This deck already holds ${NOTE_MAX} notes. Delete one to write another.`);
+    return false;
+  }
+  const now = Date.now();
+  state.notes[newNoteId()] = { at: now, ed: now, text };
+  return commitNotes('Note added.');
+}
+
+function editNote(id, input) {
+  const note = state.notes[id];
+  if (!note || !note.text) return false;
+  const text = noteTextFrom(input);
+  // Emptying a note is not a note. An empty record is what a delete looks like
+  // in storage (see sync.js), so an empty edit is offered as a delete rather
+  // than quietly performing one.
+  if (!text) {
+    noteSays('A note needs some words. Use Delete to take it away.');
+    return false;
+  }
+  if (text === note.text) return true;
+  note.text = text;
+  note.ed = Date.now();
+  return commitNotes('Note saved.');
+}
+
+function deleteNote(id) {
+  const note = state.notes[id];
+  if (!note || !note.text) return false;
+  // Emptied, not removed. The record is the evidence that the note was deleted
+  // here; drop it entirely and the next sync with a device that still has it
+  // hands it straight back.
+  note.text = '';
+  note.ed = Date.now();
+  return commitNotes('Note deleted.');
+}
+
+/** The row on Home that opens the panel, in this deck's numbers. */
+function renderNotesRow() {
+  const row = $('#notes-row-say');
+  if (!row) return;
+  const count = liveNotes().length;
+  row.textContent = count
+    ? `${count} note${count === 1 ? '' : 's'} on this deck`
+    : 'Anything about this deck the cards do not say';
+}
+
+function renderNotes() {
+  const list = $('#notes-list');
+  if (!list) return;
+  const notes = liveNotes();
+  $('#notes-empty').hidden = notes.length > 0;
+  // escapeHtml, not innerHTML with the raw string: this is the one text in the
+  // app that a person typed into it, so it is also the one text that is theirs
+  // to type "<img onerror=…>" into. Whitespace is preserved by .note-text's
+  // pre-wrap — the line breaks are the only shape plain text has.
+  list.innerHTML = notes.map((note) => `<li data-note="${escapeHtml(note.id)}">
+      <p class="note-text">${escapeHtml(note.text)}</p>
+      <div class="note-foot">
+        <span class="note-when">${escapeHtml(noteWhen(note))}</span>
+        <button class="link-btn" type="button" data-note-edit
+          aria-label="Edit this note">Edit</button>
+        <button class="link-btn" type="button" data-note-delete
+          aria-label="Delete this note">Delete</button>
+      </div>
+    </li>`).join('');
+  // `saveBtn`, not `save`: there is a save() in this file that writes the whole
+  // document, and a local const of that name inside a render function is a trap
+  // for whoever adds the next line to it.
+  const saveBtn = $('#notes-save');
+  const editing = noteEditing && state.notes[noteEditing] && state.notes[noteEditing].text;
+  if (!editing) noteEditing = null;
+  saveBtn.textContent = editing ? 'Save note' : 'Add note';
+  $('#notes-cancel').hidden = !editing;
+  $('#notes-text').setAttribute('aria-label', editing ? 'Edit note' : 'New note');
+}
+
+/** When it was written, and whether it has been changed since. */
+function noteWhen(note) {
+  const written = new Date(n(note.at)).toLocaleDateString(undefined,
+    { day: 'numeric', month: 'short', year: 'numeric' });
+  // A minute's slack: `ed` is stamped by the same clock a moment after `at`,
+  // and a note created and never touched again must not claim it was edited.
+  return n(note.ed) - n(note.at) > 60000 ? `${written} · edited` : written;
+}
+
+function startNoteEdit(id) {
+  const note = state.notes[id];
+  if (!note || !note.text) return;
+  noteEditing = id;
+  const box = $('#notes-text');
+  box.value = note.text;
+  renderNotes();
+  box.focus({ preventScroll: true });
+  // The caret at the end, not at the start: this is the note you already wrote,
+  // and what you came to do is add to it or fix the end of it.
+  box.setSelectionRange(box.value.length, box.value.length);
+  noteSays('Editing a note.');
+}
+
+function cancelNoteEdit() {
+  noteEditing = null;
+  $('#notes-text').value = '';
+  renderNotes();
+  noteSays('');
+}
+
+let notesOpener = null;
+
+function openNotes(opener) {
+  const panel = $('#notes');
+  if (!panel.hidden) return;
+  notesOpener = opener || null;
+  noteEditing = null;
+  $('#notes-text').value = '';
+  noteSays('');
+  renderNotes();
+  panel.hidden = false;
+  document.body.style.overflow = 'hidden';
+  // The same containment the lightbox uses, for the same reason: aria-modal
+  // says the rest of the page is not there, and only inert makes that true for
+  // the Tab key. The panel is a sibling of #app so it is not inerting itself.
+  setBackgroundInert(true);
+  $('#notes-text').focus({ preventScroll: true });
+  pushStop('notes');
+}
+
+function closeNotes(fromHistory) {
+  const panel = $('#notes');
+  if (panel.hidden) return;
+  panel.hidden = true;
+  document.body.style.overflow = '';
+  setBackgroundInert(false);
+  noteEditing = null;
+  $('#notes-text').value = '';
+  if (notesOpener && notesOpener.isConnected && notesOpener.focus) {
+    notesOpener.focus({ preventScroll: true });
+  }
+  notesOpener = null;
+  if (!fromHistory && stops[stops.length - 1] === 'notes') history.back();
+}
+
+/** Re-draw the panel when the state under it was replaced by another tab or by
+ *  a sync, rather than leaving a list of notes that are no longer there. */
+function renderNotesIfOpen() {
+  if (!$('#notes').hidden) renderNotes();
 }
 
 /* ── study ── */
@@ -3100,6 +3393,7 @@ function adoptSynced(merged) {
   if (current === 'home') renderHome();
   if (current === 'stats') renderStats();
   if (current === 'browse') renderBrowse();
+  renderNotesIfOpen();
 }
 
 let syncBusy = false;
@@ -3423,6 +3717,7 @@ addEventListener('popstate', () => {
   if (document.querySelector('.imp, .shelf.on[role="dialog"]')) return;
   const top = stops.pop();
   if (top === 'lightbox') return closeLightbox(true);
+  if (top === 'notes') return closeNotes(true);
   if (top === 'study') return leaveStudy(true);
   // A tab is one press above the course's home screen, however many tabs you
   // walked through to get to this one.
@@ -3432,6 +3727,7 @@ addEventListener('popstate', () => {
   // whatever is actually open rather than doing nothing, which reads as a Back
   // press that the app swallowed.
   if (!$('#lightbox').hidden) return closeLightbox(true);
+  if (!$('#notes').hidden) return closeNotes(true);
   if (current === 'study' || current === 'done') return leaveStudy(true);
   // Nothing of ours is open, so this was one of those leftovers. Step past it —
   // and past any others under it, which `history.state` names — so that one
@@ -3760,6 +4056,51 @@ function wire() {
   $('#theme-btn').addEventListener('click', () => {
     MuninTheme.cycle();
     applyTheme();
+  });
+
+  $('#notes-open').addEventListener('click', (e) => openNotes(e.currentTarget));
+  $('#notes-close').addEventListener('click', () => closeNotes(false));
+  // Off the card closes it, the way the course picker does — and the test is
+  // "this click landed on the backdrop", not "this click did not land inside
+  // the card". They are the same sentence until a handler further down redraws
+  // the list: Edit and Delete both replace the row they are in, and the click
+  // then finishes bubbling from a node with no parent, whose closest('.notes-
+  // card') is honestly null. Pressing Edit shut the whole panel.
+  $('#notes').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) closeNotes(false);
+  });
+  $('#notes-write').addEventListener('submit', (e) => {
+    // A <form> so that the phone keyboard offers a submit key and Enter on a
+    // desktop does the obvious thing. Nothing here is going anywhere over HTTP.
+    e.preventDefault();
+    const box = $('#notes-text');
+    const done = noteEditing ? editNote(noteEditing, box.value) : addNote(box.value);
+    if (!done) return;
+    noteEditing = null;
+    box.value = '';
+    renderNotes();
+    box.focus({ preventScroll: true });
+  });
+  $('#notes-cancel').addEventListener('click', cancelNoteEdit);
+  // Delegated: the list is re-drawn on every change, and per-row listeners
+  // would be re-attached each time to elements that are already gone.
+  $('#notes-list').addEventListener('click', (e) => {
+    const row = e.target.closest('[data-note]');
+    if (!row) return;
+    const id = row.dataset.note;
+    if (e.target.closest('[data-note-edit]')) {
+      startNoteEdit(id);
+      return;
+    }
+    if (!e.target.closest('[data-note-delete]')) return;
+    // Asked for, like every other destructive thing in this app: there is no
+    // undo behind it, and the words were somebody's to write.
+    if (!confirm('Delete this note?\n\nThere is no undo, and deleting it here deletes it on your other devices too.')) return;
+    // Editing the note that is being deleted leaves the box holding words with
+    // nothing to save them to.
+    if (noteEditing === id) cancelNoteEdit();
+    deleteNote(id);
+    $('#notes-text').focus({ preventScroll: true });
   });
 
   /* A changed result set is a different list, so it starts at the top. Without
@@ -4147,18 +4488,26 @@ function wire() {
       toast('Copy your Sync key and turn Sync off before erasing this device, or the shared copy would return.', true);
       return;
     }
-    if (!confirm('Erase all review history on this device? Export a backup first if you might want it back.')) return;
+    const kept = liveNotes().length;
+    if (!confirm('Erase all review history on this device? Export a backup first if you might want it back.'
+      + (kept ? `\n\nYour ${kept} note${kept === 1 ? '' : 's'} on this deck are kept.` : ''))) return;
+    // The notes come across to the fresh state on purpose. This button offers
+    // to erase review history, and it says so in the sentence above; taking
+    // somebody's writing with it would be destroying a thing nobody was asked
+    // about. Removing the deck itself is the way to remove its notes, and that
+    // one takes the whole document with it.
+    const notes = state.notes;
     try {
       publishStateReset();
     } catch (e) {
       toast('Progress could not be erased because device storage is blocked.', true);
       return;
     }
-    state = freshState();
+    state = Object.assign(freshState(), { notes });
     if (!writeNow()) return;
     applyTheme();
     renderStats();
-    toast('Progress erased.');
+    toast(kept ? 'Progress erased. Your notes are still here.' : 'Progress erased.');
   });
 
   addEventListener('keydown', (e) => {
@@ -4191,6 +4540,31 @@ function wire() {
       }
       if (e.key === '+' || e.key === '=') zoomAt(innerWidth / 2, innerHeight / 2, clamp(lb.scale * 1.25, lb.fit, 6));
       if (e.key === '-') zoomAt(innerWidth / 2, innerHeight / 2, clamp(lb.scale / 1.25, lb.fit, 6));
+      return;
+    }
+    /* The notes panel, contained the same way and for the same reason. Escape
+       closes the panel rather than cancelling an edit in progress: it is the
+       one key every dialog in the app answers to, and Cancel is on screen. */
+    if (!$('#notes').hidden) {
+      if (e.key === 'Escape') { e.preventDefault(); closeNotes(false); return; }
+      if (e.key === 'Tab') {
+        const box = $('#notes');
+        const focusable = Array.from(box.querySelectorAll(
+          'button:not([disabled]), a[href], textarea:not([disabled]),'
+            + ' input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        )).filter((el) => !el.hidden && el.getClientRects().length);
+        if (focusable.length) {
+          const first = focusable[0], last = focusable[focusable.length - 1];
+          if (e.shiftKey && (document.activeElement === first || !box.contains(document.activeElement))) {
+            e.preventDefault();
+            last.focus();
+          } else if (!e.shiftKey
+              && (document.activeElement === last || !box.contains(document.activeElement))) {
+            e.preventDefault();
+            first.focus();
+          }
+        }
+      }
       return;
     }
     if (typing) return;
