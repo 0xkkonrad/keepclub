@@ -219,10 +219,46 @@ const rec = (overrides = {}) => Object.assign({
   for (let i = 0; i < 250; i++) {
     many['n' + i.toString(36)] = { at: i, ed: i, text: 'kept ' + i };
   }
+  S.takeNoteDrops();
   const merged = mergeState(state({ notes: many }), state());
   const kept = Object.values(merged.notes);
-  ok(kept.length === 400 && kept.filter((value) => value.text).length === 250,
-    'an over-long note set is capped, and delete markers go before anyone\'s words');
+  ok(kept.length === 400 && kept.filter((value) => value.text).length === S.NOTE_LIVE,
+    `an over-long note set is capped at ${S.NOTE_LIVE} live notes, and delete markers`
+    + ' take only what is left of the entry budget');
+  ok(S.takeNoteDrops() === 50 && S.takeNoteDrops() === 0,
+    'the words the cap could not keep are counted once, for the app to say so');
+}
+
+/* Three devices at the live ceiling merge to the ceiling, not to three times
+ * it — the count app.js enforces as you type is the count the merge arrives at
+ * — and the same set whichever pair meets first. Eviction inside the ceiling is
+ * by the edit stamp, so a device can lose everything it wrote to two devices
+ * that wrote later; that is why the drops are counted rather than left silent. */
+{
+  const deck = (prefix, base) => {
+    const notes = {};
+    for (let i = 0; i < 150; i++) {
+      notes[prefix + i.toString(36).padStart(3, '0')] =
+        { at: base + i, ed: base + i, text: prefix + ' note ' + i };
+    }
+    return state({ notes });
+  };
+  const phone = deck('a', 1000);
+  const laptop = deck('b', 5000);
+  const tablet = deck('c', 9000);
+
+  const left = mergeState(mergeState(phone, laptop), tablet);
+  const right = mergeState(phone, mergeState(laptop, tablet));
+  const other = mergeState(tablet, mergeState(laptop, phone));
+  const live = Object.values(left.notes).filter((note) => note.text);
+  ok(same(left, right) && same(left, other),
+    'three devices over the live ceiling converge whatever order they meet in');
+  ok(live.length === S.NOTE_LIVE,
+    `450 live notes across three devices become ${S.NOTE_LIVE} (${live.length})`);
+  ok(live.every((note) => !note.text.startsWith('a')),
+    'the ceiling evicts by the edit stamp, so the oldest writing goes first');
+  ok(same(left, mergeState(left, phone)) && same(left, mergeState(left, tablet)),
+    'a capped set stays put when the same devices sync again');
 }
 
 {

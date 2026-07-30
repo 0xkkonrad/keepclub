@@ -54,8 +54,14 @@ and the load sanitiser, markup typed into a note staying characters, a
 deliberately corrupt notes block still opening the deck, the panel's history
 entry and Tab containment, an idle tab refused while another studies, notes
 swept with the deck they belong to, and notes kept by the erase that only
-offered to take review history. The merge algebra behind them — commutative,
-idempotent, and a delete that is not resurrected — is in `sync-merge.mjs`.
+offered to take review history. Then backup and restore: a file from before
+notes existed that must not take them, two note sets merged rather than one
+clobbering the other, a notes-only backup that exports and restores, a foreign
+file still refused, the scrim darkening in both themes, and a document over the
+live ceiling coming back at it with the app saying what it cost. The merge
+algebra behind them — commutative, idempotent, a delete that is not
+resurrected, and a live ceiling that three devices converge on — is in
+`sync-merge.mjs`.
 
 `deploy-script.mjs` — destructive deployment preflights in disposable Git
 repositories: wrong branches, dirty Pages work and an unexpected remote are

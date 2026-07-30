@@ -286,12 +286,37 @@ function mergeSettings(x, y) {
  * was deleted more than NOTE_SLOTS entries ago, on a device that has been away
  * across all of them; an unbounded set on a bounded server blob is the worse
  * failure, because it takes the review history down with it.
+ *
+ * Live notes are capped separately, and lower. Capping the entries alone was
+ * not the same promise: app.js refuses the 201st note on one device, but three
+ * devices holding 200 each merged to 600 live notes inside the entry budget, so
+ * a deck could arrive back over a limit the app had already told the person
+ * about — and then lose 200 of them to the next delete marker instead. The two
+ * numbers are the same number in both files. Words that go are counted, because
+ * the one thing this must never be is quiet: see takeNoteDrops().
  */
 const NOTE_SLOTS = 400;
+// Live notes one deck may hold. Must match app.js's NOTE_MAX — the app enforces
+// it as you type and the merge enforces it as devices meet, and two different
+// ceilings would mean a note accepted here and dropped one sync later.
+const NOTE_LIVE = 200;
 // An id is used as an object key, here and in app.js's sanitiser, which is the
 // one thing about it that has to be true. Hex is what app.js writes; anything
 // else came from somewhere else and is not stored under a key of its choosing.
 const NOTE_ID = /^[a-z0-9]{1,64}$/;
+// Live notes the merges since the last reading had to drop. A merge happens
+// where nobody is looking — in the middle of a sync round, several times over —
+// so it cannot speak for itself; it counts instead, and the app asks afterwards.
+let noteDrops = 0;
+
+/** How many of somebody's words the merge dropped, once. Read and cleared
+ *  together: this exists so the app can say it happened, and saying it twice
+ *  for one loss would be its own kind of wrong. */
+function takeNoteDrops() {
+  const total = noteDrops;
+  noteDrops = 0;
+  return total;
+}
 
 function pickNote(x, y) {
   if (!x) return y;
@@ -325,8 +350,21 @@ function mergeNotes(a, b) {
     if (num(x[1].ed) !== num(y[1].ed)) return num(y[1].ed) - num(x[1].ed);
     return x[0] < y[0] ? -1 : 1;
   });
+  // Both ceilings are read off that one order, which is what keeps the merge
+  // associative: whether an entry survives depends only on the entries ahead of
+  // it, and every live note is ahead of every marker. The markers then fill
+  // whatever the live notes left of the entry budget.
   const out = {};
-  for (const [id, note] of entries.slice(0, NOTE_SLOTS)) out[id] = note;
+  let kept = 0, live = 0;
+  for (const [id, note] of entries) {
+    if (kept >= NOTE_SLOTS) break;
+    if (note.text) {
+      if (live >= NOTE_LIVE) { noteDrops++; continue; }
+      live++;
+    }
+    out[id] = note;
+    kept++;
+  }
   return out;
 }
 
@@ -567,6 +605,8 @@ root.DSSync = {
   mergeState,
   mergeSettings,
   mergeNotes,
+  takeNoteDrops,
+  NOTE_LIVE,
   pickRec,
   pickNote,
   streakFrom,

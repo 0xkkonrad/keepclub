@@ -38,7 +38,9 @@ const AHEAD_BATCH = 20;
 // review history is in the same document and would go down with it.
 const NOTE_LEN = 2000;
 // Live notes one deck may hold. Past this the panel says so rather than
-// silently dropping the oldest, which is somebody's writing.
+// silently dropping the oldest, which is somebody's writing. Must match
+// sync.js's NOTE_LIVE: this is the number a person is told about while they
+// type, and the merge has to arrive at the same one when devices meet.
 const NOTE_MAX = 200;
 // Stored entries: live notes plus the emptied records that record a delete.
 // Must match sync.js's NOTE_SLOTS — the merge caps to the same number, and a
@@ -217,6 +219,11 @@ const isPlainObject = (v) => !!v && typeof v === 'object' && !Array.isArray(v);
 /** "1 day", not "1 days" — the app counts down to a date, so it hits 1 often. */
 const plural = (v, word) => `${n(v)} ${n(v) === 1 ? word : word + 's'}`;
 
+/* Live notes the sanitiser has dropped and nobody has been told about yet. The
+ * sanitiser runs before there is a screen to say it on — it is the first thing
+ * boot() does — so it counts, and the places that can speak ask. */
+let notesDropped = 0;
+
 /** Make any stored or imported blob safe to run on.
  *
  * Everything here has been seen to break the app for real: a value missing
@@ -341,8 +348,21 @@ function sanitise(raw) {
     // More entries than this build stores can only come from somewhere else.
     // Delete markers go first, then the oldest — the same order the merge
     // evicts in, so a round trip through Sync does not change what survives.
+    // Both ceilings are applied here for the same reason and in the same way as
+    // in sync.js's mergeNotes: the live one is the promise the panel makes while
+    // somebody types, and a document arriving from a file or a database is
+    // exactly where more than that can turn up.
     entries.sort(noteEntryOrder);
-    for (const [id, note] of entries.slice(0, NOTE_SLOTS)) notes[id] = note;
+    let kept = 0, live = 0;
+    for (const [id, note] of entries) {
+      if (kept >= NOTE_SLOTS) break;
+      if (note.text) {
+        if (live >= NOTE_MAX) { notesDropped++; continue; }
+        live++;
+      }
+      notes[id] = note;
+      kept++;
+    }
   }
   s.notes = notes;
 
@@ -2057,6 +2077,23 @@ function noteEntryOrder(a, b) {
   return a[0] < b[0] ? -1 : 1;
 }
 
+/** Two sets of notes, kept together.
+ *
+ * Restoring a backup is the one place outside Sync where two of these meet, and
+ * it is the same meeting: two documents that each hold words somebody wrote,
+ * and deletes on both sides that must not be undone by the other side's copy.
+ * So it is settled by the same algebra, called rather than copied — a second
+ * implementation would be a second answer to the tombstone question, and only
+ * one of them could be right. */
+function mergedNotes(mine, theirs) {
+  if (globalThis.DSSync && DSSync.mergeNotes) return DSSync.mergeNotes(mine, theirs);
+  // With sync.js missing there is no pickNote to call, and a restore is not the
+  // moment to improvise one. Keep every record this device holds and take the
+  // ids only the file has: nothing anybody can currently read goes away, which
+  // is the whole reason this function exists.
+  return Object.assign({}, theirs, mine);
+}
+
 /** The notes there are, newest written first. */
 function liveNotes() {
   return Object.entries(state.notes)
@@ -2259,6 +2296,26 @@ function closeNotes(fromHistory) {
  *  a sync, rather than leaving a list of notes that are no longer there. */
 function renderNotesIfOpen() {
   if (!$('#notes').hidden) renderNotes();
+}
+
+/* Say that words went, on the one occasion they can.
+ *
+ * Both places that hold this deck to NOTE_MAX live notes — the sanitiser here
+ * and the merge in sync.js — run where there is nothing to say it on: one
+ * before the app is drawn, the other several times inside a sync round. They
+ * count instead. This is the other half, and it is the whole point of counting:
+ * a note is the one thing in this document that nothing else can reproduce, so
+ * losing one silently is the failure, not the drop itself. Sticky, because the
+ * sentence is the only record of it there will ever be; read once and cleared,
+ * so a second screen does not repeat a loss that already happened. */
+function sayIfNotesDropped() {
+  const merged = (globalThis.DSSync && DSSync.takeNoteDrops)
+    ? DSSync.takeNoteDrops() : 0;
+  const dropped = notesDropped + merged;
+  notesDropped = 0;
+  if (!dropped) return;
+  toast(`This deck keeps ${NOTE_MAX} notes at most, so ${plural(dropped, 'note')} `
+    + `— the ones untouched for longest — could not be kept.`, true);
 }
 
 /* ── study ── */
@@ -3375,9 +3432,19 @@ function renderBackupState() {
     return;
   }
   const withHistory = Object.keys(state.recs).length;
-  el.textContent = withHistory
-    ? `A backup right now would hold ${withHistory} of ${DECK.cards.length} cards, `
-      + `${state.streak} day${state.streak === 1 ? '' : 's'} of streak and your settings.`
+  // The notes are in the file whether or not this line used to mention them,
+  // and a deck someone has written about but not yet studied had a backup worth
+  // taking while this said there was nothing to take. What the export holds is
+  // the whole of what this sentence is for.
+  const notes = liveNotes().length;
+  const alsoNotes = notes ? `your ${plural(notes, 'note')} and ` : '';
+  if (withHistory) {
+    el.textContent = `A backup right now would hold ${withHistory} of ${DECK.cards.length} cards, `
+      + `${state.streak} day${state.streak === 1 ? '' : 's'} of streak, ${alsoNotes}your settings.`;
+    return;
+  }
+  el.textContent = notes
+    ? `No cards studied yet — a backup right now would hold ${plural(notes, 'note')} and your settings.`
     : 'Nothing to back up yet — study some cards first.';
 }
 
@@ -3431,7 +3498,13 @@ function runSync(loud) {
   // A function, not a value: a queued sync must read the state as it is when
   // its turn comes, and adoptSynced replaces the object wholesale.
   return DSSync.sync(() => state)
-    .then((merged) => { if (loud && merged !== undefined) toast('Synced.'); })
+    .then((merged) => {
+      if (loud && merged !== undefined) toast('Synced.');
+      // After the "Synced." line, not before it: a round trip that had to drop
+      // somebody's writing is not a successful sync with a footnote, and the
+      // sentence about it is the one that has to be left on the screen.
+      sayIfNotesDropped();
+    })
     .catch((e) => { if (loud) toast(`Could not sync: ${e.message || 'no connection'}.`); });
 }
 
@@ -4411,7 +4484,15 @@ function wire() {
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-    toast(`Exported ${payload.cardsWithHistory} cards of history.`);
+    // The same accounting as the line above the button: a file that holds only
+    // notes is still a file, and saying "0 cards" about it reads as a failure.
+    const notes = liveNotes().length;
+    toast(payload.cardsWithHistory
+      ? `Exported ${payload.cardsWithHistory} cards of history`
+        + (notes ? ` and ${plural(notes, 'note')}.` : '.')
+      : (notes
+        ? `Exported ${plural(notes, 'note')} and your settings.`
+        : 'Exported your settings — there is nothing else in this deck yet.'));
     renderBackupState();
   });
 
@@ -4445,19 +4526,52 @@ function wire() {
     const incoming = sanitise(s);
     const ids = Object.keys(incoming.recs);
     const known = ids.filter((id) => byId.has(id));
-    if (!known.length) {
-      toast('None of the cards in that file are in this deck. Nothing restored.');
+    const theirNotes = Object.values(incoming.notes).filter((note) => note.text).length;
+    // A file can be worth restoring for its notes alone. Somebody who has
+    // written about a deck on another device and studied it there hardly at all
+    // has a backup with no card ids to recognise, and refusing on that count
+    // was the app declining to restore the only thing in the file it had. A
+    // file with neither is still refused: that one really is somebody else's.
+    if (!known.length && !theirNotes) {
+      toast('Nothing in that file belongs to this deck — no cards of its own, and no notes. Nothing restored.');
       return;
     }
 
     const mine = Object.keys(state.recs).length;
+    const myNotes = liveNotes().length;
     const when = s.exportedAt ? ` from ${longDate(String(s.exportedAt).slice(0, 10))}` : '';
     const lost = ids.length - known.length;
+    const head = known.length
+      ? `Restore ${plural(known.length, 'card')} of history${when}?`
+      : `Restore the notes in this backup${when}? It holds no card history for this deck.`;
     const warn = mine
-      ? `\n\nThis replaces the ${mine} cards of history already on this device.`
+      ? `\n\nThis ${known.length ? 'replaces' : 'erases'} the ${mine} cards of history already on this device.`
       : '';
-    if (!confirm(`Restore ${known.length} cards of history${when}?${warn}`)) return;
+    // What happens to the notes is said out loud, because it is not what the
+    // rest of the sentence implies: everything else in this document is being
+    // replaced, and these are not.
+    let noteLine = '';
+    if (myNotes && theirNotes) {
+      noteLine = `\n\nNotes are merged, not replaced: your ${plural(myNotes, 'note')} here`
+        + ` and the ${plural(theirNotes, 'note')} in the file are all kept.`;
+    } else if (myNotes) {
+      noteLine = `\n\nYour ${plural(myNotes, 'note')} on this deck`
+        + ` ${myNotes === 1 ? 'is' : 'are'} kept — the file has none.`;
+    } else if (theirNotes) {
+      noteLine = `\n\nThe ${plural(theirNotes, 'note')} in the file`
+        + ` ${theirNotes === 1 ? 'is' : 'are'} added to this deck.`;
+    }
+    if (!confirm(head + warn + noteLine)) return;
 
+    // Settled before the document is replaced, out of the state that is about
+    // to be overwritten. Restore replaces review history — that is what the
+    // sentence above offers, and all of what it offers. Notes are not review
+    // history: a backup exported before this app had notes carries no `notes`
+    // key at all, so handing the file's document over whole answered "put my
+    // reviews back" by deleting every word the person had written since. The
+    // two sets meet under the same tombstone algebra a sync uses rather than a
+    // second one invented here, so a note deleted on either side stays deleted.
+    const notes = mergedNotes(state.notes, incoming.notes);
     try {
       publishStateReset();
     } catch (e) {
@@ -4465,6 +4579,7 @@ function wire() {
       return;
     }
     state = incoming;
+    state.notes = notes;
     // Drop history for cards that are no longer in the deck here rather than at
     // the next boot, so the number in the message is the truth.
     for (const id of ids) if (!byId.has(id)) delete state.recs[id];
@@ -4473,9 +4588,17 @@ function wire() {
     applyTheme();
     applyFontSize();
     renderStats();
-    toast(lost
-      ? `Restored ${known.length} cards. ${lost} were from an older deck and were dropped.`
-      : `Restored ${known.length} cards of history.`);
+    renderNotesRow();
+    const nowNotes = liveNotes().length;
+    const cards = known.length
+      ? (lost
+        ? `Restored ${known.length} cards. ${lost} were from an older deck and were dropped.`
+        : `Restored ${plural(known.length, 'card')} of history.`)
+      : 'Restored the backup — it held no card history for this deck.';
+    toast(cards + (nowNotes ? ` ${plural(nowNotes, 'note')} on this deck.` : ''));
+    // A restore is one of the two ways two note sets can meet, so it is one of
+    // the two places the ceiling can bite.
+    sayIfNotesDropped();
   });
 
   // beforeinstallprompt and appinstalled are listened for in munin.js instead:
@@ -4900,6 +5023,10 @@ async function boot() {
   // paths above return before this line, so a deck that could not be read
   // keeps the screen — and its explanation — up.
   MuninBoot.dismiss().catch(console.error);
+  // The document this deck opened on has already been through the sanitiser,
+  // and if it was carrying more notes than this build keeps, that is the first
+  // moment there is anywhere to say so.
+  sayIfNotesDropped();
 
   if (globalThis.DSSync) {
     DSSync.init({

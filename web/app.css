@@ -71,6 +71,12 @@
   --sh: 4px 4px 0 var(--stroke);
   --sh-sm: 3px 3px 0 var(--stroke);
   --fig-blu: #1f5fa8;             /* water and wind, the one colour the app lacks */
+  /* The dimming layer behind a panel. Its own variable rather than a mix of
+     --stroke, which is the ink colour and is nearly white in the dark theme:
+     derived from that, the backdrop came out a 55% white wash, brighter than
+     the panel it was meant to be sitting behind. A scrim is darkness in both
+     themes — the only thing that changes between them is how much. */
+  --scrim: rgba(18, 18, 20, .55);
   --mono: "DM Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   --hand: "Architects Daughter", "Bradley Hand", cursive;
   /* The one number the whole type scale is measured from. Every size in this
@@ -108,6 +114,7 @@
   --text: #121214; --muted: #55555e; --accent: #0e3f39; --accent-ink: #fffdf7;
   --g1: #b8371f; --g2: #8f5a10; --g3: #276e46; --g4: #0e3f39; --warn: #a4581a;
   --fig-blu: #1f5fa8;
+  --scrim: rgba(18, 18, 20, .55);
   color-scheme: light;
 }
 :root[data-theme="dark"] {
@@ -116,6 +123,10 @@
   --text: #f1efe8; --muted: #a6a7b2; --accent: #35917f; --accent-ink: #141519;
   --g1: #ff8a75; --g2: #f0b64a; --g3: #5ed49a; --g4: #35917f; --warn: #f0b64a;
   --fig-blu: #6fb2ff;
+  /* Darker and more opaque than the light theme's: the page behind it is
+     already dark, so it takes more to read as "that is not the thing you are
+     using now" and there is no bright paper left for it to soften. */
+  --scrim: rgba(6, 6, 9, .72);
   color-scheme: dark;
 }
 
@@ -1352,7 +1363,7 @@ mark {
    itself, and .notes-say is where every message it has goes. */
 .notes {
   position: fixed; inset: 0; z-index: 82;
-  background: color-mix(in srgb, var(--stroke) 55%, transparent);
+  background: var(--scrim);
   display: flex; align-items: flex-end; justify-content: center;
 }
 .notes[hidden] { display: none; }

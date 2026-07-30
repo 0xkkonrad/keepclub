@@ -201,6 +201,13 @@ answer "none of them exist".
   is a delete, which is what stops a sync handing back a note you deleted on
   the other device — `mergeNotes` in `sync.js` says why at length. Erasing
   progress does *not* take them: that button offers to erase review history.
+  Neither does restoring a backup: it replaces the review history and *merges*
+  the notes through that same `mergeNotes`, because a file exported before this
+  feature existed has no `notes` key and taking its document whole deleted
+  every word on the device. A deck keeps 200 live notes (`NOTE_MAX`, and
+  `NOTE_LIVE` in `sync.js` — one number, two files) inside 400 stored entries;
+  both the sanitiser and the merge count what the ceiling costs, and
+  `sayIfNotesDropped()` is the sentence that says so.
 - Deck/media fetches go through `COURSE.base`.
 - **Sync is on for built-in courses** — `sync.js` uses one device key across
   course-specific progress blobs. The merge is commutative and idempotent;

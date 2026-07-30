@@ -22,12 +22,15 @@ async function coursePage(options = {}, id = 'day-skipper') {
   });
   const page = await ctx.newPage();
   const errors = [];
+  const dialogs = [];
   page.on('pageerror', (e) => errors.push(String(e)));
-  // Deleting a note asks first, like every other destructive control here.
-  page.on('dialog', (d) => d.accept());
+  // Deleting a note asks first, like every other destructive control here. The
+  // wording is kept as well as accepted: what a confirm box promises about the
+  // notes is half of what restore is being tested for below.
+  page.on('dialog', (d) => { dialogs.push(d.message()); d.accept(); });
   await page.goto(URL + '?course=' + id, { waitUntil: 'networkidle' });
   await page.waitForFunction(() => document.getElementById('boot').hidden);
-  return { ctx, page, errors };
+  return { ctx, page, errors, dialogs };
 }
 
 /* State writes are debounced, so anything that reads localStorage has to flush
@@ -40,6 +43,60 @@ const write = async (page, text) => {
   await page.click('#notes-save');
   await flush(page);
 };
+
+/** Add a note and then delete it, and hand back the id of the marker it left.
+ *  A delete is what the tombstone half of the merge is about, so a restore that
+ *  cannot be shown one has not been tested. */
+async function writeAndDelete(page, text) {
+  await write(page, text);
+  const id = await page.evaluate((words) => Object.entries(state.notes)
+    .find(([, note]) => note.text === words)[0], text);
+  await page.click(`[data-note="${id}"] [data-note-delete]`);
+  await page.waitForFunction((value) => !state.notes[value].text, id);
+  await flush(page);
+  return id;
+}
+
+/** Hand a JSON document to the restore <input>, which is what picking a file in
+ *  the dialog resolves to. The toast is emptied first so waiting for one is
+ *  waiting for this restore rather than seeing the last one's. */
+async function restore(page, payload) {
+  await page.evaluate(() => { document.getElementById('toast').textContent = ''; });
+  await page.setInputFiles('#import-file', {
+    name: 'backup.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify(payload)),
+  });
+  await page.waitForFunction(
+    () => document.getElementById('toast').textContent.length > 0);
+  await flush(page);
+}
+
+/** A backup of this deck holding whatever is passed in, stamped the way the
+ *  exporter stamps one. `notes` is deliberately absent unless asked for: a file
+ *  written before this app had notes is the case that lost them. */
+const backupOf = (page, extra) => page.evaluate((over) => Object.assign({
+  app: EXPORT_APP,
+  format: 1,
+  exportedAt: '2026-07-01T00:00:00.000Z',
+  v: 1,
+  day: '2026-07-01',
+  days: { '2026-07-01': 3 },
+  lastDay: '2026-07-01',
+  streak: 1,
+  answers: 3,
+  revTotal: 3,
+  revGood: 3,
+  newDone: 3,
+  revDone: 0,
+  bestClean: 3,
+  ach: {},
+  settings: { newPerDay: 20, maxRev: 120, shuffle: true },
+  recs: Object.fromEntries(DECK.cards.slice(0, 3).map((card) => [card.cardId, {
+    st: 'r', step: 0, ivl: 4, ea: 2.5, due: Date.now() + 4 * 86400000,
+    rp: 2, lp: 0, pv: 0,
+  }])),
+}, over), extra || {});
 
 /* Add, read back, edit, delete — the whole tool, through the controls. */
 {
@@ -418,6 +475,222 @@ const write = async (page, text) => {
       && after.stored.join() === 'Kept across an erase',
   'erasing review history keeps the notes it never offered to destroy');
   ok(errors.length === 0, `erase-with-notes raises no page errors (${errors.join(' | ') || 'none'})`);
+  await ctx.close();
+}
+
+/* Restoring a backup replaces review history. It does not replace notes, and
+ * the older the file the more that matters: a backup exported before this app
+ * had notes carries no `notes` key at all, so a restore that took the file's
+ * document whole answered "put my reviews back" by deleting every word written
+ * since. */
+{
+  const { ctx, page, errors, dialogs } = await coursePage({}, 'competent-crew');
+  await page.click('#notes-open');
+  await write(page, 'Kept across a restore');
+  const deletedId = await writeAndDelete(page, 'Deleted here, and it stays deleted');
+  await page.click('#notes-close');
+  await page.waitForTimeout(200);
+
+  const legacy = await backupOf(page);
+  ok(!('notes' in legacy), 'the file under test carries no notes key at all');
+  await restore(page, legacy);
+  const after = await page.evaluate(() => ({
+    records: Object.keys(state.recs).length,
+    notes: liveNotes().map((note) => note.text),
+    stored: JSON.parse(localStorage.getItem(KEY)).notes,
+    row: document.getElementById('notes-row-say').textContent,
+    toast: document.getElementById('toast').textContent,
+  }));
+  ok(after.records === 3, `the review history in the file is restored (${after.records})`);
+  ok(after.notes.join() === 'Kept across a restore',
+    `a backup from before notes existed does not take this device's (${after.notes.length} left)`);
+  ok(after.stored[deletedId] && after.stored[deletedId].text === '',
+    'and the delete marker crosses the restore with them, so a sync cannot undo the delete');
+  ok(/1 note\b/.test(after.row) && /1 note\b/.test(after.toast),
+    `Home and the message both count the notes that are still here (${after.toast})`);
+  ok(/note/i.test(dialogs.join(' ')) && /kept/i.test(dialogs.join(' ')),
+    `the confirm says what the restore does to the notes (${dialogs.join(' | ')})`);
+  ok(errors.length === 0, `restoring over notes raises no page errors (${errors.join(' | ') || 'none'})`);
+  await ctx.close();
+}
+
+/* Two sets of notes meeting is the same meeting a sync is, so it is settled the
+ * same way: words from both sides survive, and a delete on either side is not
+ * undone by the copy the other side still has. */
+{
+  const { ctx, page, errors, dialogs } = await coursePage({}, 'competent-crew');
+  await page.click('#notes-open');
+  await write(page, 'Only on this device');
+  const deletedId = await writeAndDelete(page, 'Deleted on this device');
+  await page.click('#notes-close');
+  await page.waitForTimeout(200);
+
+  const file = await backupOf(page, {
+    notes: {
+      ff11: { at: 1000, ed: 1000, text: 'Only in the file' },
+      // The same note, alive in a file written before it was deleted here.
+      [deletedId]: { at: 500, ed: 500, text: 'The file has not heard about the delete' },
+    },
+  });
+  await restore(page, file);
+  const after = await page.evaluate(() => ({
+    notes: liveNotes().map((note) => note.text).sort(),
+    marker: JSON.parse(localStorage.getItem(KEY)).notes,
+  }));
+  ok(after.notes.join(' | ') === 'Only in the file | Only on this device',
+    `a restore keeps the words on both sides (${after.notes.join(' | ')})`);
+  ok(after.marker[deletedId] && after.marker[deletedId].text === '',
+    'an older live copy in the file does not resurrect a note deleted on this device');
+  ok(/merged/i.test(dialogs.join(' ')),
+    `and the confirm said the notes would be merged rather than replaced (${dialogs.join(' | ')})`);
+  ok(errors.length === 0, `merging notes on restore raises no page errors (${errors.join(' | ') || 'none'})`);
+  await ctx.close();
+}
+
+/* A deck somebody has written about but not yet studied is worth backing up,
+ * the app says so, and the file it produces can be restored on the next device.
+ * All three used to fail at a different point: the line said there was nothing
+ * to back up, the message said nought cards were exported, and restore refused
+ * a file with no card ids it recognised. */
+{
+  const { ctx, page, errors } = await coursePage({}, 'day-skipper');
+  await page.click('#notes-open');
+  await write(page, 'A deck I have only written about');
+  await write(page, 'Second thought');
+  await page.click('#notes-close');
+  await page.waitForTimeout(200);
+  await page.click('[data-go="stats"]');
+  const offer = await page.evaluate(() =>
+    document.getElementById('backup-state').textContent);
+  ok(/2 notes/.test(offer) && !/nothing to back up/i.test(offer),
+    `the backup line counts the notes it would hold (${offer})`);
+
+  // The anchor's click is stubbed rather than the Blob URL: the file the app
+  // hands the browser is exactly what is read back here, which is the point.
+  const exported = await page.evaluate(async () => {
+    let captured = null;
+    const create = URL.createObjectURL;
+    const click = HTMLAnchorElement.prototype.click;
+    URL.createObjectURL = (blob) => { captured = blob; return create.call(URL, blob); };
+    HTMLAnchorElement.prototype.click = function () {};
+    document.getElementById('export-btn').click();
+    URL.createObjectURL = create;
+    HTMLAnchorElement.prototype.click = click;
+    return {
+      text: await captured.text(),
+      toast: document.getElementById('toast').textContent,
+      line: document.getElementById('backup-state').textContent,
+    };
+  });
+  const payload = JSON.parse(exported.text);
+  const written = Object.values(payload.notes || {}).filter((note) => note.text);
+  ok(Object.keys(payload.recs).length === 0 && written.length === 2,
+    `an unstudied deck exports the notes it does have (${written.length})`);
+  ok(/2 notes/.test(exported.toast) && !/^Exported 0/.test(exported.toast),
+    `and the app says that is what it exported (${exported.toast})`);
+  ok(errors.length === 0, `exporting notes raises no page errors (${errors.join(' | ') || 'none'})`);
+  await ctx.close();
+
+  const next = await coursePage({}, 'day-skipper');
+  await restore(next.page, payload);
+  const landed = await next.page.evaluate(() => ({
+    notes: liveNotes().map((note) => note.text).sort(),
+    toast: document.getElementById('toast').textContent,
+  }));
+  ok(landed.notes.join(' | ') === 'A deck I have only written about | Second thought',
+    `a notes-only backup restores onto a deck with no history (${landed.notes.length})`);
+  ok(!/nothing/i.test(landed.toast) && /2 notes/.test(landed.toast),
+    `and is not refused as somebody else's file (${landed.toast})`);
+  ok(next.errors.length === 0,
+    `restoring a notes-only backup raises no page errors (${next.errors.join(' | ') || 'none'})`);
+  await next.ctx.close();
+}
+
+/* A file with neither cards of this deck nor notes is still somebody else's. */
+{
+  const { ctx, page } = await coursePage({}, 'competent-crew');
+  const foreign = await backupOf(page, { recs: { 'not-a-card-here': {
+    st: 'r', step: 0, ivl: 4, ea: 2.5, due: 100, rp: 2, lp: 0, pv: 0,
+  } } });
+  await restore(page, foreign);
+  const said = await page.evaluate(() => ({
+    toast: document.getElementById('toast').textContent,
+    records: Object.keys(state.recs).length,
+  }));
+  ok(/nothing/i.test(said.toast) && said.records === 0,
+    `a file with nothing of this deck in it is still refused (${said.toast})`);
+  await ctx.close();
+}
+
+/* The scrim is a dimming layer, and it has to dim in both themes. Derived from
+ * --stroke it was not: that variable is the ink colour, and the ink is nearly
+ * white in the dark theme, so the backdrop came out brighter than the panel it
+ * was sitting behind. */
+{
+  const { ctx, page, errors } = await coursePage();
+  const read = () => page.evaluate(() => {
+    const parse = (value) => (value.match(/[\d.]+/g) || []).map(Number);
+    const lum = (c) => 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+    const scrim = parse(getComputedStyle(document.getElementById('notes')).backgroundColor);
+    const card = parse(getComputedStyle(document.querySelector('.notes-card')).backgroundColor);
+    return {
+      theme: document.documentElement.dataset.theme || 'light',
+      scrim: lum(scrim),
+      card: lum(card),
+      alpha: scrim.length > 3 ? scrim[3] : 1,
+    };
+  });
+  await page.click('#notes-open');
+  await page.waitForSelector('#notes:not([hidden])');
+  const light = await read();
+  await page.click('#notes-close');
+  await page.waitForTimeout(200);
+  await page.click('#theme-btn');
+  await page.click('#notes-open');
+  await page.waitForSelector('#notes:not([hidden])');
+  const dark = await read();
+  ok(light.scrim < light.card && light.alpha > 0 && light.alpha < 1,
+    `the light theme's scrim is a partly transparent darkening (${light.scrim.toFixed(0)} behind ${light.card.toFixed(0)})`);
+  ok(dark.theme === 'dark' && dark.scrim < dark.card && dark.alpha > 0 && dark.alpha < 1,
+    `the dark theme's scrim darkens rather than washing the page white (${dark.scrim.toFixed(0)} behind ${dark.card.toFixed(0)})`);
+  ok(errors.length === 0, `the scrim raises no page errors (${errors.join(' | ') || 'none'})`);
+  await ctx.close();
+}
+
+/* The panel refuses the 201st note, so nothing that arrives holding more than
+ * 200 may be kept quietly at whatever number it came in at — and nothing that
+ * arrives holding more than 200 may lose the difference without a word. */
+{
+  const { ctx, page, errors } = await coursePage({}, 'competent-crew');
+  await page.evaluate(() => {
+    const now = Date.now();
+    state.notes = {};
+    for (let i = 0; i < 250; i++) {
+      // Newest edit first, so what the ceiling drops is the oldest writing.
+      state.notes['n' + i.toString(36).padStart(4, '0')] =
+        { at: now - i * 1000, ed: now - i * 1000, text: 'note ' + i };
+    }
+    writeNow();
+  });
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.waitForFunction(() => document.getElementById('boot').hidden);
+  await page.waitForFunction(() =>
+    /notes at most/i.test(document.getElementById('toast').textContent));
+  const capped = await page.evaluate(() => {
+    const live = liveNotes();
+    return {
+      count: live.length,
+      newest: live[0].text,
+      oldest: live[live.length - 1].text,
+      toast: document.getElementById('toast').textContent,
+      away: document.getElementById('toast').classList.contains('away'),
+    };
+  });
+  ok(capped.count === 200 && capped.newest === 'note 0' && capped.oldest === 'note 199',
+    `a document over the live ceiling comes back at it (${capped.count})`);
+  ok(/50 notes/.test(capped.toast) && !capped.away,
+    `and the app says the words went instead of losing them quietly (${capped.toast})`);
+  ok(errors.length === 0, `the note ceiling raises no page errors (${errors.join(' | ') || 'none'})`);
   await ctx.close();
 }
 
