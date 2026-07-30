@@ -2692,10 +2692,21 @@ async function applyCardLayer() {
   const per = new Map();
   for (const card of cards) per.set(card.sectionId, (per.get(card.sectionId) || 0) + 1);
   for (const section of sections) section.cardCount = per.get(section.sectionId) || 0;
+  // A section with nothing left in it is not a section. The course reader
+  // refuses a declared section with no cards, and it is right: an empty tile
+  // reading "0 cards" is a promise of something to read that opens on nothing.
+  // Taking the last card out of a section takes the section, which is what the
+  // sheet says before it lets you do it.
+  const live = sections.filter((section) => section.cardCount > 0);
   for (const group of groups) {
+    group.sectionIds = group.sectionIds.filter((id) => (per.get(id) || 0) > 0);
     group.cardCount = group.sectionIds.reduce((total, id) => total + (per.get(id) || 0), 0);
   }
-  DECK = Object.assign({}, shippedCourse, { cards, sections, groups });
+  DECK = Object.assign({}, shippedCourse, {
+    cards,
+    sections: live,
+    groups: groups.filter((group) => group.sectionIds.length > 0),
+  });
   await indexRuntimeDeck();
 }
 
@@ -2770,14 +2781,62 @@ async function commitCards(id, say) {
   return { ok: wrote.ok, id, say: wrote.ok ? say : wrote.say, diagnostics: [] };
 }
 
-/** The deck grew, shrank or changed a word. Everything counted off it moves. */
+/** "537 cards is more than you can cram" is true of a syllabus and false of a
+ *  deck someone imported on the bus. Say the thing that is true of this deck —
+ *  and re-say it, because the number moves the moment a card is written. */
+function renderAskWhy() {
+  const cram = $('#ask-why');
+  if (!cram || !DECK) return;
+  cram.textContent = DECK.cards.length > 120
+    ? `${DECK.cards.length} cards is more than you can cram. Give the app a date and it works out how many new cards a day you need, and stops scheduling anything for after you have sat it.`
+    : `Give the app a date and it works out how many of these ${DECK.cards.length} cards a day you need, and stops scheduling anything for after you have sat it.`;
+}
+
+/** The deck grew, shrank or changed a word. Everything counted off it moves.
+ *
+ * Home, Browse and Progress derive every number they print from DECK on each
+ * draw — the counts, the pacing, the frieze, the forecast, the per-section
+ * denominators the achievements are measured against — so re-drawing the screen
+ * that is up is the whole of it. What does not is here: the search placeholder,
+ * the exam pitch, the card on the study screen and the sheet itself. */
 function renderDeckChanged() {
   if (!DECK) return;
   const search = $('#search');
   if (search) search.placeholder = `Search ${DECK.cards.length} cards…`;
+  renderAskWhy();
+  // Browse's index of section tiles is built once and kept, because it is
+  // twenty-four buttons that only ever appear while nothing is narrowed. A card
+  // written into a section moves the number printed on its tile, so the cached
+  // copy has to go with it — otherwise the tile says 21 cards and opens on 22.
+  const index = $('#browse-index');
+  if (index) index.innerHTML = '';
   if (current === 'home') renderHome();
   if (current === 'browse') renderBrowse();
   if (current === 'stats') renderStats();
+  renderStudyCardAgain();
+  renderCardSheetIfOpen();
+}
+
+/** The card on screen is drawn out of DECK, and DECK has just been rebuilt.
+ *
+ * Before the answer is up, the whole card is re-drawn: it is the same card, so
+ * showCard() is exactly right. After it, only the two sides are replaced —
+ * showCard() would hide the answer somebody is in the middle of reading and
+ * take the grade buttons away with it. */
+function renderStudyCardAgain() {
+  if (current !== 'study' || !session) return;
+  const card = currentCard();
+  if (!card) return;
+  if (!session.revealed) { showCard(); return; }
+  $('#card-q').innerHTML = card.front || '';
+  hydrateMedia($('#card-q'));
+  const answer = $('#card-a');
+  if (hasBackContent(card) && typeof card.back === 'string') {
+    answer.innerHTML = card.back;
+    hydrateMedia(answer);
+  } else {
+    answer.replaceChildren();
+  }
 }
 
 /** Write a card of your own into this deck. */
@@ -2921,6 +2980,36 @@ function shippedCard(cardId) {
   return shippedById.get(cardId) || null;
 }
 
+/** Keep your version of a card the author has rewritten under you.
+ *
+ * Not an edit: not a word changes. What changes is the answer to "is this still
+ * the card I edited?", which after this is yes — measured against the card as
+ * the course ships it now, so the line offering the choice stops offering it.
+ * The edit stamp moves with it, or a device that never saw the choice would win
+ * the merge with the older record and put the question back. */
+async function keepYourCard(cardId) {
+  const record = cardRecord(cardId);
+  const shipped = shippedById.get(cardId);
+  if (!record || !record.front || !shipped) {
+    return { ok: false, say: 'That card is not in this deck.', diagnostics: [] };
+  }
+  record.was = cardFingerprint(shipped);
+  record.ed = Date.now();
+  return commitCards(cardId, 'Yours stays.');
+}
+
+/** The course cards you have hidden, in the order the course ships them.
+ *
+ * Off the shipped deck rather than off the layer, because a hidden card is by
+ * definition not in DECK.cards: hiding it is what took it out. */
+function hiddenCards() {
+  if (!shippedCourse) return [];
+  return shippedCourse.cards.filter((card) => {
+    const record = cardRecord(card.cardId);
+    return !!(record && record.hidden);
+  });
+}
+
 /** Review history for cards this deck does not have any more.
  *
  * DELETING IS ONLY EVER DONE FROM A LIST WE ACTUALLY HAVE, the rule sweepOrphans
@@ -2950,6 +3039,445 @@ function sayIfCardsDropped() {
   if (!dropped) return;
   toast(`This deck keeps ${CARD_MAX} cards of your own at most, so ${plural(dropped, 'card')} `
     + `— the ones untouched for longest — could not be kept.`, true);
+}
+
+/* ── the card sheet ── */
+
+/* Two boxes, and a select only where the deck has more than one section.
+ *
+ * There is no preview and no mode switch, because the preview is the card. What
+ * the small Markdown subset does is one muted line under the boxes, and what it
+ * refuses is said after Save in the sheet's own status line, in the words the
+ * parser already produced — the same diagnostics the importer prints, from the
+ * same reader, because the validation here is a round trip through it rather
+ * than a second opinion about what a card is.
+ *
+ * The modal contract is the notes panel's, cloned: markup outside #app, a
+ * pushed history entry so Android Back closes one level, the background inert,
+ * Tab contained, Escape, focus back to whatever opened it, and a re-render hook
+ * for the moment another tab changes the deck underneath.
+ */
+
+/** One side of a card as Markdown that would produce it again.
+ *
+ * A card you have edited is stored as the Markdown you typed, so this is only
+ * ever asked about a card nobody has touched: what the course shipped, as
+ * sanitized HTML, with no Markdown behind it to hand back.
+ *
+ * Only the constructs the subset can write are converted. EVERYTHING ELSE IS
+ * NAMED IN `lost` RATHER THAN DROPPED QUIETLY — an imported card carries its
+ * picture as an <img> inside its own HTML, and a converter that stepped over
+ * one would delete somebody's picture the moment they fixed a typo under it.
+ * The sheet says so before the first such edit; see cardLostSay(). */
+function cardSourceText(value) {
+  // The characters that would otherwise come back as formatting. A word in
+  // *asterisks* on a shipped card is a word in asterisks, not emphasis, and it
+  // has to still be one after a round trip through this box.
+  return String(value).replace(/[\\`*_[\]]/g, (ch) => '\\' + ch);
+}
+
+function htmlToCardSource(html) {
+  const lost = new Set();
+  const host = document.createElement('template');
+  host.innerHTML = String(html == null ? '' : html);
+
+  const inline = (node) => {
+    let text = '';
+    for (const child of node.childNodes) text += inlineOne(child);
+    return text;
+  };
+
+  function inlineOne(child) {
+    if (child.nodeType === 3) return cardSourceText(child.nodeValue);
+    if (child.nodeType !== 1) return '';
+    const tag = child.tagName.toLowerCase();
+    // Two trailing spaces, which is a hard break. A bare newline is a soft one
+    // and comes back out of the renderer as a space, so the line the author
+    // broke would silently join up again.
+    if (tag === 'br') return '  \n';
+    if (tag === 'em' || tag === 'i') return '*' + inline(child) + '*';
+    if (tag === 'strong' || tag === 'b') return '**' + inline(child) + '**';
+    if (tag === 'a') {
+      const href = child.getAttribute('href') || '';
+      const label = inline(child);
+      if (/^(https|mailto):/i.test(href)) {
+        return label && label !== href ? `[${label}](${href})` : `<${href}>`;
+      }
+      // A destination the subset will not take. The words stay; the link does
+      // not, and that is a loss worth naming.
+      lost.add('link');
+      return label;
+    }
+    if (tag === 'img' || tag === 'audio' || tag === 'video' || tag === 'source') {
+      lost.add('media');
+      return '';
+    }
+    // A <span> carries no shape of its own once the sanitiser has been over it,
+    // so passing straight through one is not a loss — and calling it one would
+    // put the warning over most of an imported deck.
+    if (tag !== 'span') lost.add(tag);
+    return inline(child);
+  }
+
+  /* Runs of inline content become one line; a block element ends the run it was
+   * standing after. Without the run, `Word <b>bold</b> more` — an Anki card that
+   * was never wrapped in a paragraph — came back as three paragraphs. */
+  const out = [];
+  let run = '';
+  const flush = () => {
+    const text = run.trim();
+    if (text) out.push(text);
+    run = '';
+  };
+  for (const child of host.content.childNodes) {
+    const tag = child.nodeType === 1 ? child.tagName.toLowerCase() : '';
+    // A <div> is a paragraph here, not a loss. It is the wrapper every second
+    // Anki card is built out of, and calling it lost would put the "this will be
+    // simplified" warning over almost every imported card in the deck.
+    if (tag === 'p' || tag === 'div') {
+      flush();
+      const text = inline(child).trim();
+      if (text) out.push(text);
+      continue;
+    }
+    if (tag === 'ul' || tag === 'ol') {
+      flush();
+      const items = [];
+      for (const li of child.children) {
+        if (li.tagName.toLowerCase() !== 'li') { lost.add(li.tagName.toLowerCase()); continue; }
+        // One line per item: a break inside one would end the list.
+        const text = inline(li).trim().replace(/\s*\n\s*/g, ' ');
+        if (text) items.push((tag === 'ul' ? '- ' : `${items.length + 1}. `) + text);
+      }
+      if (items.length) out.push(items.join('\n'));
+      continue;
+    }
+    run += inlineOne(child);
+  }
+  flush();
+  return { text: out.join('\n\n'), lost: [...lost] };
+}
+
+/** What the boxes could not hold, said before the first edit rather than found
+ *  out from the result. */
+function cardLostSay(lost) {
+  if (!lost.length) return '';
+  if (lost.includes('media')) {
+    return 'This card keeps a picture inside its words, and these boxes hold text. '
+      + 'Save and your words replace the card, without it.';
+  }
+  return 'Part of this card is written in markup these boxes cannot write, '
+    + 'so saving simplifies that part.';
+}
+
+/* The sheet's own state: which card it is on, what opened it, and what the
+ * first fill could not carry. Null while it is closed. */
+let cardSheet = null;
+
+function cardSays(line) {
+  const el = $('#card-say');
+  if (el) el.textContent = line || '';
+}
+
+/** Which of the two boxes a diagnostic is about. */
+function cardDiagnosticSide(item) {
+  return /\.back\b/.test(String((item && item.path) || '')) ? 'Answer' : 'Question';
+}
+
+const cardErrors = (list) => (Array.isArray(list) ? list : [])
+  .filter((item) => item && item.severity === 'error');
+
+/** The status line, in the parser's own message and correction — with the box
+ *  named, which is the one thing the parser cannot know to say. */
+function cardSayFor(result) {
+  const errors = cardErrors(result && result.diagnostics);
+  if (errors.length !== 1 || !result.say) return (result && result.say) || '';
+  return `${cardDiagnosticSide(errors[0])} — ${result.say}`;
+}
+
+/** The rest of the diagnostics, in the shape the importer prints them.
+ *
+ * Only from the second one: a single error is already the whole of the status
+ * line above, and printing it twice under itself is the sheet shouting. Where
+ * there are several, each needs its own box, its own place in the text and its
+ * own correction, and the status line has room for exactly one of them. */
+function cardDiagnostics(list) {
+  const host = $('#card-diags');
+  if (!host) return;
+  const errors = cardErrors(list).slice(0, 8);
+  host.hidden = errors.length < 2;
+  host.innerHTML = host.hidden ? '' : errors.map((item) => `<li>
+      <code>${escapeHtml(item.code || 'error')}</code>
+      <span>${escapeHtml(cardDiagnosticSide(item))} — ${escapeHtml(item.message || '')}</span>
+      ${item.line ? `<small>line ${n(item.line)}, column ${n(item.column)}</small>` : ''}
+      <small>${escapeHtml(item.correction || '')}</small></li>`).join('');
+}
+
+/** Whether this card is in the session that is open, which is the one thing
+ *  that makes removing it unsafe: the queue holds ids, and an id that no longer
+ *  resolves through byId ends the session at the moment it comes up. */
+function cardInOpenSession(cardId) {
+  return !!(session && session.queue.includes(cardId));
+}
+
+/** Why this card cannot leave the deck, or what it will cost if it does.
+ *
+ * Both structural cases are hard errors in the course reader — a course holds
+ * at least one card, a declared section at least one — so they are refused here
+ * rather than discovered as a deck that will not open next time. */
+function cardRemovalCost(cardId) {
+  if (cardInOpenSession(cardId)) {
+    return { refuse: 'This card is in the session you have open. End the session first.' };
+  }
+  if (DECK.cards.length <= 1) {
+    return {
+      refuse: 'This is the only card in this deck. A deck needs at least one, so remove '
+        + 'the whole deck from the courses screen instead.',
+    };
+  }
+  const card = byId.get(cardId);
+  const section = card && sectionOf.get(card.sectionId);
+  if (section && section.cardCount <= 1) {
+    return { warn: `This is the last card in ${section.title}, so the section goes with it.` };
+  }
+  return {};
+}
+
+/** The card the sheet is on, whichever half of the deck it came from. */
+function sheetCard() {
+  if (!cardSheet || !cardSheet.cardId) return null;
+  return byId.get(cardSheet.cardId) || shippedCard(cardSheet.cardId);
+}
+
+/** Everything about the sheet that is read off state rather than typed into it.
+ *
+ * Never the two textareas. This also runs when another tab writes the layer
+ * underneath, and taking somebody's half-written question away to replace it
+ * with the stored one is the worst thing this function could do. */
+function renderCardSheet() {
+  if (!cardSheet) return;
+  const editing = !!cardSheet.cardId;
+  const yours = editing && CARD_ID.test(cardSheet.cardId);
+  const record = editing ? cardRecord(cardSheet.cardId) : null;
+  const gone = editing && !sheetCard();
+  $('#card-sheet-h').textContent = editing ? 'Edit card' : 'New card';
+  $('#card-save').textContent = editing ? 'Save card' : 'Write card';
+  $('#card-save').disabled = gone;
+
+  // The select is the deck's, and only where the deck has more than one section
+  // to choose between. Never for a course card: an override replaces the words
+  // on a shipped card and the shipped card is what says where it lives.
+  const where = $('#card-where');
+  const select = $('#card-section');
+  const offer = DECK.sections.length > 1 && (!editing || yours);
+  where.hidden = !offer;
+  if (offer) {
+    // The card's live section, not the one its record names: a card whose
+    // section the course has since dropped is in the synthetic one, and that is
+    // where it still is until somebody moves it.
+    const live = editing ? byId.get(cardSheet.cardId) : null;
+    const keep = select.value || (live && live.sectionId) || (record && record.section) || '';
+    select.innerHTML = DECK.sections.map((section) =>
+      `<option value="${escapeHtml(section.sectionId)}">${escapeHtml(section.title)}</option>`).join('');
+    if (keep && sectionOf.has(keep)) select.value = keep;
+    else select.value = sectionForInput({ section: cardSheet.section });
+  }
+
+  const warn = $('#card-warn');
+  const say = gone
+    ? 'This card is not in this deck any more. Another tab may have removed it.'
+    : cardLostSay(cardSheet.lost || []);
+  warn.hidden = !say;
+  warn.textContent = say;
+
+  const more = $('#card-more');
+  if (!editing || gone) {
+    more.hidden = true;
+    more.innerHTML = '';
+    return;
+  }
+  const takeAway = yours
+    ? '<button class="link-btn danger-link" type="button" data-card-delete>Delete this card</button>'
+    : '<button class="link-btn" type="button" data-card-hide>Hide this card</button>';
+  // Only where there is a layer over a shipped card to take off. A card you
+  // wrote has no course card underneath it, which is why deleting is the only
+  // way it goes and why deleting is the one thing here behind a confirm.
+  const revert = !yours && record && (record.front || record.hidden)
+    ? '<button class="link-btn" type="button" data-card-revert>Show the original</button>'
+    : '';
+  more.innerHTML = takeAway + revert;
+  more.hidden = false;
+}
+
+/** Re-draw the sheet when the deck under it was rebuilt by another tab or by a
+ *  merge, rather than leaving controls for a card that is no longer there. */
+function renderCardSheetIfOpen() {
+  if (cardSheet) renderCardSheet();
+}
+
+function openCardSheet(opts) {
+  const panel = $('#card-sheet');
+  if (!panel.hidden) return;
+  const options = opts || {};
+  const cardId = typeof options.cardId === 'string' ? options.cardId : '';
+  cardSheet = {
+    cardId,
+    section: typeof options.section === 'string' ? options.section : '',
+    opener: options.opener || null,
+    lost: [],
+  };
+  const record = cardId ? cardRecord(cardId) : null;
+  const shipped = cardId ? shippedCard(cardId) : null;
+  let front = '', back = '';
+  if (record && record.front) {
+    // Already yours: the Markdown you typed is what is stored, so it comes back
+    // exactly as you left it.
+    front = record.front;
+    back = record.back || '';
+  } else if (shipped) {
+    // Nobody has touched this one, so there is no Markdown behind it. What
+    // comes back is written from the shipped HTML, and what could not be
+    // written is named on the way through.
+    const q = htmlToCardSource(shipped.front);
+    const a = htmlToCardSource(shipped.back);
+    front = q.text;
+    back = a.text;
+    cardSheet.lost = [...new Set(q.lost.concat(a.lost))];
+  }
+  $('#card-front').value = front;
+  $('#card-back').value = back;
+  $('#card-section').value = '';
+  cardSays('');
+  cardDiagnostics([]);
+  renderCardSheet();
+  panel.hidden = false;
+  document.body.style.overflow = 'hidden';
+  // The same containment the notes panel uses, for the same reason: aria-modal
+  // says the rest of the page is not there, and only inert makes that true for
+  // the Tab key. The sheet is a sibling of #app so it is not inerting itself.
+  setBackgroundInert(true);
+  $('#card-front').focus({ preventScroll: true });
+  pushStop('card-sheet');
+}
+
+function closeCardSheet(fromHistory) {
+  const panel = $('#card-sheet');
+  if (panel.hidden) return;
+  const opener = cardSheet && cardSheet.opener;
+  panel.hidden = true;
+  document.body.style.overflow = '';
+  setBackgroundInert(false);
+  cardSheet = null;
+  $('#card-front').value = '';
+  $('#card-back').value = '';
+  cardSays('');
+  cardDiagnostics([]);
+  // The control that opened this is often a button on a row the save has just
+  // rebuilt or taken away. Focus would then drop to <body>, which is the far end
+  // of the document from the list somebody is reading, so the screen's own
+  // heading is the floor — the same place arriving by Tab lands.
+  if (opener && opener.isConnected && opener.focus) opener.focus({ preventScroll: true });
+  else focusScreen(current);
+  if (!fromHistory && stops[stops.length - 1] === 'card-sheet') history.back();
+}
+
+/** Save, through the same reader every course in this app goes through.
+ *
+ * A new card leaves the sheet open with the boxes cleared, the way the notes
+ * panel does: writing one card is usually writing three. An edit closes,
+ * because you came here to fix the card you were looking at. */
+async function saveCardSheet() {
+  if (!cardSheet) return { ok: false };
+  const button = $('#card-save');
+  if (button.disabled) return { ok: false };
+  const input = {
+    front: $('#card-front').value,
+    back: $('#card-back').value,
+    section: $('#card-where').hidden ? '' : $('#card-section').value,
+  };
+  const editing = cardSheet.cardId;
+  button.disabled = true;
+  let result;
+  try {
+    result = editing ? await editCard(editing, input) : await writeCard(input);
+  } catch (e) {
+    console.error(e);
+    result = { ok: false, say: 'This card could not be read.', diagnostics: [] };
+  }
+  // The sheet may have been closed while the reader was working, which is one
+  // dynamic import and a parse away from instant on a cold cache.
+  if (!cardSheet) return result;
+  button.disabled = false;
+  cardDiagnostics(result.diagnostics);
+  cardSays(cardSayFor(result));
+  if (!result.ok) return result;
+  if (editing) {
+    closeCardSheet(false);
+    toast(result.say);
+    return result;
+  }
+  $('#card-front').value = '';
+  $('#card-back').value = '';
+  renderCardSheet();
+  $('#card-front').focus({ preventScroll: true });
+  return result;
+}
+
+/** Take this card out of the deck: a delete for one of yours, a hide for one
+ *  the course ships. Both go through the same refusals, and only the permanent
+ *  one asks first. */
+async function removeCardFromSheet() {
+  if (!cardSheet || !cardSheet.cardId) return { ok: false };
+  const cardId = cardSheet.cardId;
+  const yours = CARD_ID.test(cardId);
+  const cost = cardRemovalCost(cardId);
+  if (cost.refuse) {
+    cardSays(cost.refuse);
+    return { ok: false, say: cost.refuse };
+  }
+  if (yours) {
+    // Asked for, like every other permanent thing in this app, and the question
+    // carries the number that makes it a decision: the review history goes too,
+    // and nothing anywhere can put it back.
+    const answered = n(state.recs[cardId] && state.recs[cardId].rp);
+    const history = answered
+      ? ` You have answered it ${plural(answered, 'time')}, and that history goes with it.`
+      : '';
+    const also = cost.warn ? `\n\n${cost.warn}` : '';
+    if (!confirm(`Delete this card?\n\nThere is no undo.${history}${also}`)) {
+      return { ok: false, say: '' };
+    }
+  } else if (cost.warn && !confirm(`Hide this card?\n\n${cost.warn}`)) {
+    return { ok: false, say: '' };
+  }
+  const result = yours ? await deleteCard(cardId) : await hideCard(cardId);
+  if (!result.ok) {
+    cardSays(result.say);
+    return result;
+  }
+  closeCardSheet(false);
+  toast(yours ? result.say
+    : 'Card hidden. Browse offers it back under the cards you hid.');
+  return result;
+}
+
+/** Drop your layer off a course card. Free, and permanent for the words you
+ *  wrote — which is the one thing worth asking about. */
+async function revertCardFrom(cardId) {
+  const record = cardRecord(cardId);
+  if (record && record.front
+      && !confirm('Show the original card?\n\nYour version of it goes, and there is no undo.')) {
+    return { ok: false, say: '' };
+  }
+  const result = await revertCard(cardId);
+  if (!result.ok) {
+    if (cardSheet) cardSays(result.say);
+    else toast(result.say);
+    return result;
+  }
+  if (cardSheet) closeCardSheet(false);
+  toast(result.say || 'The card the course ships is back.');
+  return result;
 }
 
 /* ── study ── */
@@ -3725,6 +4253,38 @@ function sayCount(text) {
   sayTimer = setTimeout(() => { $('#browse-say').textContent = text; }, 700);
 }
 
+/** What this row offers to do to its card, and what it has to say about it
+ *  first.
+ *
+ * Edit is on every row, because §4b is "you can fix a card from wherever you hit
+ * it" and this is the list of every card there is. Taking a card out is not
+ * here: that lives in the sheet, so there is one confirm, one refusal and one
+ * place that knows a session is open.
+ *
+ * The line above the buttons is the layer speaking. A card the author has
+ * rewritten since you edited it is the one case with a choice in it, and the
+ * choice is offered here rather than resolved silently either way. */
+function browseCardActs(card) {
+  const yours = CARD_ID.test(card.cardId);
+  let notice = '';
+  if (authorRewroteCard(card.cardId)) {
+    notice = `<span class="b-mine b-moved">The author rewrote this card after you edited it.</span>
+      <button class="link-btn" type="button" data-card-keep
+        aria-label="Keep your version of this card">Keep yours</button>
+      <button class="link-btn" type="button" data-card-revert
+        aria-label="Take the author's version of this card">Take theirs</button>`;
+  } else if (card._edited === true) {
+    notice = `<span class="b-mine">Edited by you.</span>
+      <button class="link-btn" type="button" data-card-revert
+        aria-label="Show the original of this card">Show the original</button>`;
+  } else if (yours) {
+    notice = '<span class="b-mine">Written by you.</span>';
+  }
+  return `<div class="b-acts">${notice}
+    <button class="link-btn" type="button" data-card-edit
+      aria-label="Edit this card">Edit</button></div>`;
+}
+
 function browseRow(hit, terms, withSection) {
   const c = hit.c;
   const sect = sectionOf.get(c.sectionId);
@@ -3738,15 +4298,18 @@ function browseRow(hit, terms, withSection) {
   li.dataset.sect = c.sectionId;
   const prompt = `<span class="b-head"><span class="b-where" hidden></span>`
     + `<span class="b-q"></span><span class="b-why" hidden></span></span>`;
+  const acts = browseCardActs(c);
   const answer = `<div class="browse-ans"><span class="b-text">${c.back || ''}</span>
       ${image ? `<button class="plate b-plate" aria-label="Enlarge the diagram: ${escAttr(promptText)}"><img src="${escAttr(courseMediaUrl(image))}" alt="Diagram: ${escapeHtml(promptText)}" loading="lazy"${image.width && image.height ? ` width="${n(image.width)}" height="${n(image.height)}"` : ''}></button><span class="b-zoom">Tap the diagram to enlarge</span>` : ''}
       ${hasFig ? `<button class="plate b-fig" aria-label="Enlarge the drawing: ${escAttr(promptText)}">${figureSVG(c)}</button><span class="b-zoom">Tap the drawing to enlarge</span>` : ''}
       <div class="b-back-media"></div>
-      <span class="b-sect">${escapeHtml(sect ? sect.title : c.sectionId)} · ${STATE_WORDS[stateOf(c.cardId)]}</span></div>`;
+      <span class="b-sect">${escapeHtml(sect ? sect.title : c.sectionId)} · ${STATE_WORDS[stateOf(c.cardId)]}</span>
+      ${acts}</div>`;
   if (!backed) {
     li.innerHTML = `<article class="browse-static" tabindex="-1">${prompt}
       <div class="b-front-media"></div>
       <span class="b-sect">${escapeHtml(sect ? sect.title : c.sectionId)} · ${STATE_WORDS[stateOf(c.cardId)]}</span>
+      ${acts}
     </article>`;
   } else if (hasFrontMedia) {
     li.innerHTML = `<div class="browse-prompt">${prompt}</div>
@@ -3899,7 +4462,10 @@ function renderBrowse() {
   // dropping the option under a live selection silently reverted the view to
   // all 537 cards with nothing on screen to say why.
   const wantLeech = lc > 0 || sel.value === LEECH_FILTER;
-  const shape = `${lc}/${wantLeech}`;
+  // The section count is in the shape too: hiding the last card in a section
+  // takes the section, and an option for a section that is not there any more
+  // filters to an empty list with nothing on screen to explain it.
+  const shape = `${lc}/${wantLeech}/${DECK.sections.length}`;
   // Rebuilt only when that changes, so the open dropdown does not reset itself
   // while you are choosing from it.
   if (sel.dataset.leeches !== shape) {
@@ -4017,6 +4583,8 @@ function renderBrowse() {
     back.dataset.to = up.to;
   }
 
+  renderHiddenCards();
+
   // Reading position survives a re-render: this also runs when a sync lands or
   // another tab writes, and having the answer you were reading snap shut
   // underneath you is worse than being slightly out of date.
@@ -4053,6 +4621,47 @@ function renderBrowse() {
     if (details && open.has(li.dataset.card)) details.open = true;
   }
   if (body) body.scrollTop = Math.min(wasAt, body.scrollHeight);
+}
+
+/* Cards you hid, and the way to change your mind.
+ *
+ * A hidden card is not in DECK.cards — hiding it is exactly what took it out —
+ * so it is in none of the lists above and there would be nowhere to undo it
+ * from. Its own list, off until you ask for it, is that place. Off by default
+ * because a card you hid is a card you decided not to see. */
+let showingHidden = false;
+
+function renderHiddenCards() {
+  const button = $('#browse-hidden');
+  const list = $('#hidden-list');
+  if (!button || !list) return;
+  const hidden = hiddenCards();
+  button.hidden = hidden.length === 0;
+  if (!hidden.length) showingHidden = false;
+  button.textContent = showingHidden
+    ? 'Close the cards you hid'
+    : `Cards you hid (${n(hidden.length)})`;
+  button.setAttribute('aria-expanded', showingHidden ? 'true' : 'false');
+  list.hidden = !showingHidden || !hidden.length;
+  if (list.hidden) { list.innerHTML = ''; return; }
+  list.innerHTML = hidden.map((card) => `<li data-card="${escAttr(card.cardId)}">
+      <article class="browse-static">
+        <span class="b-head"><span class="b-q"></span></span>
+        <div class="b-acts"><span class="b-mine">Hidden by you.</span>
+          <button class="link-btn" type="button" data-card-revert
+            aria-label="Bring this card back into the deck">Bring it back</button></div>
+      </article>
+    </li>`).join('');
+  // The question is the course's own sanitized HTML, so it is set as markup
+  // exactly as a row in the list above sets it — and through the same media
+  // hydration, or an imported card's picture is a broken image here.
+  const rows = list.querySelectorAll('li');
+  hidden.forEach((card, i) => {
+    const q = rows[i] && rows[i].querySelector('.b-q');
+    if (!q) return;
+    q.innerHTML = card.front || '';
+    hydrateMedia(q);
+  });
 }
 
 /* ── stats ── */
@@ -4447,6 +5056,7 @@ addEventListener('popstate', () => {
   const top = stops.pop();
   if (top === 'lightbox') return closeLightbox(true);
   if (top === 'notes') return closeNotes(true);
+  if (top === 'card-sheet') return closeCardSheet(true);
   if (top === 'study') return leaveStudy(true);
   // A tab is one press above the course's home screen, however many tabs you
   // walked through to get to this one.
@@ -4457,6 +5067,7 @@ addEventListener('popstate', () => {
   // press that the app swallowed.
   if (!$('#lightbox').hidden) return closeLightbox(true);
   if (!$('#notes').hidden) return closeNotes(true);
+  if (!$('#card-sheet').hidden) return closeCardSheet(true);
   if (current === 'study' || current === 'done') return leaveStudy(true);
   // Nothing of ours is open, so this was one of those leftovers. Step past it —
   // and past any others under it, which `history.state` names — so that one
@@ -4468,6 +5079,28 @@ addEventListener('popstate', () => {
 });
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+/* Tab, contained inside one dialog. aria-modal says the rest of the page is not
+ * there; inert makes that true for the Tab key on the way out of the dialog,
+ * and this is what makes it true on the way round the end of it. Hidden and
+ * zero-box elements are left out: a control in a closed branch of the sheet is
+ * not a stop, and landing on one is a Tab that appears to do nothing. */
+function containTab(box, e) {
+  const focusable = Array.from(box.querySelectorAll(
+    'button:not([disabled]), a[href], textarea:not([disabled]),'
+      + ' select:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+  )).filter((el) => !el.hidden && el.getClientRects().length);
+  if (!focusable.length) return;
+  const first = focusable[0], last = focusable[focusable.length - 1];
+  const inside = box.contains(document.activeElement);
+  if (e.shiftKey && (document.activeElement === first || !inside)) {
+    e.preventDefault();
+    last.focus();
+  } else if (!e.shiftKey && (document.activeElement === last || !inside)) {
+    e.preventDefault();
+    first.focus();
+  }
+}
 
 function setBackgroundInert(on) {
   $('#app').inert = on;
@@ -4848,6 +5481,63 @@ function wire() {
     deleteNote(id);
     $('#notes-text').focus({ preventScroll: true });
   });
+
+  $('#card-close').addEventListener('click', () => closeCardSheet(false));
+  $('#card-cancel').addEventListener('click', () => closeCardSheet(false));
+  // Off the sheet closes it, and the test is "this click landed on the
+  // backdrop" rather than "this click did not land inside the card": Save
+  // redraws the sheet under the press, and the click then finishes bubbling
+  // from a node whose closest('.sheet-card') is honestly null.
+  $('#card-sheet').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) closeCardSheet(false);
+  });
+  // A <form> so the phone keyboard offers a submit key and Enter does the
+  // obvious thing on a desktop. Nothing here goes anywhere over HTTP.
+  $('#card-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    saveCardSheet().catch(console.error);
+  });
+  // Delegated: this row is rebuilt whenever the sheet re-renders, and per-button
+  // listeners would be re-attached each time to elements that are already gone.
+  $('#card-more').addEventListener('click', (e) => {
+    if (!cardSheet) return;
+    if (e.target.closest('[data-card-delete], [data-card-hide]')) {
+      removeCardFromSheet().catch(console.error);
+      return;
+    }
+    if (e.target.closest('[data-card-revert]')) revertCardFrom(cardSheet.cardId).catch(console.error);
+  });
+  $('#browse-write').addEventListener('click', (e) => {
+    openCardSheet({ opener: e.currentTarget, section: $('#sect-filter').value });
+  });
+  $('#browse-hidden').addEventListener('click', () => {
+    showingHidden = !showingHidden;
+    renderHiddenCards();
+  });
+  $('#fix-btn').addEventListener('click', (e) => {
+    const card = currentCard();
+    if (!card) return;
+    openCardSheet({ cardId: card.cardId, opener: e.currentTarget });
+  });
+  // One listener for every row, in both lists, because both are rebuilt whole.
+  const cardRowActs = (e) => {
+    const row = e.target.closest('li[data-card]');
+    if (!row) return;
+    const cardId = row.dataset.card;
+    if (e.target.closest('[data-card-edit]')) {
+      openCardSheet({ cardId, opener: e.target.closest('button') });
+      return;
+    }
+    if (e.target.closest('[data-card-keep]')) {
+      keepYourCard(cardId).then((result) => {
+        if (result.say) toast(result.say);
+      }).catch(console.error);
+      return;
+    }
+    if (e.target.closest('[data-card-revert]')) revertCardFrom(cardId).catch(console.error);
+  };
+  $('#browse-list').addEventListener('click', cardRowActs);
+  $('#hidden-list').addEventListener('click', cardRowActs);
 
   /* A changed result set is a different list, so it starts at the top. Without
      this, narrowing a search while scrolled 1,200px down leaves you in the
@@ -5357,24 +6047,15 @@ function wire() {
        one key every dialog in the app answers to, and Cancel is on screen. */
     if (!$('#notes').hidden) {
       if (e.key === 'Escape') { e.preventDefault(); closeNotes(false); return; }
-      if (e.key === 'Tab') {
-        const box = $('#notes');
-        const focusable = Array.from(box.querySelectorAll(
-          'button:not([disabled]), a[href], textarea:not([disabled]),'
-            + ' input:not([disabled]), [tabindex]:not([tabindex="-1"])'
-        )).filter((el) => !el.hidden && el.getClientRects().length);
-        if (focusable.length) {
-          const first = focusable[0], last = focusable[focusable.length - 1];
-          if (e.shiftKey && (document.activeElement === first || !box.contains(document.activeElement))) {
-            e.preventDefault();
-            last.focus();
-          } else if (!e.shiftKey
-              && (document.activeElement === last || !box.contains(document.activeElement))) {
-            e.preventDefault();
-            first.focus();
-          }
-        }
-      }
+      if (e.key === 'Tab') containTab($('#notes'), e);
+      return;
+    }
+    /* The card sheet, the same dialog contract again. Escape closes the sheet
+       rather than cancelling a field: it is the one key every dialog in this app
+       answers to, and Cancel is on screen beside Save. */
+    if (!$('#card-sheet').hidden) {
+      if (e.key === 'Escape') { e.preventDefault(); closeCardSheet(false); return; }
+      if (e.key === 'Tab') containTab($('#card-sheet'), e);
       return;
     }
     if (typing) return;
@@ -5587,14 +6268,7 @@ async function boot() {
   loadCardLayer();
   await applyCardLayer();
 
-  // "537 cards is more than you can cram" is true of a syllabus and false of a
-  // deck someone imported on the bus. Say the thing that is true of this deck.
-  const cram = $('#ask-why');
-  if (cram) {
-    cram.textContent = DECK.cards.length > 120
-      ? `${DECK.cards.length} cards is more than you can cram. Give the app a date and it works out how many new cards a day you need, and stops scheduling anything for after you have sat it.`
-      : `Give the app a date and it works out how many of these ${DECK.cards.length} cards a day you need, and stops scheduling anything for after you have sat it.`;
-  }
+  renderAskWhy();
   // Drop history for cards that no longer exist — but only when the layer that
   // says which cards exist could actually be read. See sweepUnknownRecords().
   sweepUnknownRecords();

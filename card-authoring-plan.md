@@ -267,6 +267,38 @@ document did not settle, decided in the build:
   outside a secure context and would put a promise per card on the boot path. It is a
   change detector and is asked to be nothing else.
 
+Items 3 and 4 — **the sheet and the entry points** — are in `web/app.js` under *the card
+sheet*, with `#card-sheet` beside the notes panel in `web/index.html` and a `.sheet` block
+in `web/app.css` drawn entirely from the theme variables. `Write a card` and `Edit` are in
+Browse, `Fix this card` is in the study dock, and the sheet owns Delete, Hide and
+`Show the original`. Four more things this document did not settle, decided in that build:
+
+- **The first fill for an untouched course card is a down-converter that names what it
+  cannot carry.** `htmlToCardSource()` writes back only the constructs the subset has —
+  emphasis, strong, breaks, lists, https and mailto links, `<p>` and `<div>` as paragraphs,
+  `<span>` as nothing — and returns everything else in `lost`. The sheet then says it
+  before the first save: a card whose picture lives inside its own HTML as
+  `munin-media:<n>` gets *"This card keeps a picture inside its words, and these boxes hold
+  text. Save and your words replace the card, without it."* A converter that stepped over
+  the `<img>` in silence would delete somebody's picture the moment they fixed a typo
+  underneath it. Card-level media and figures are untouched either way: `cardsWithLayer()`
+  spreads the shipped card and replaces only the two sides.
+- **Taking a card out lives in the sheet, not on the Browse row.** One confirm, one set of
+  refusals, and one place that knows a session is open. The row carries Edit and the layer's
+  own line — *Written by you.* / *Edited by you. Show the original.* / *The author rewrote
+  this card after you edited it. Keep yours · Take theirs.*
+- **`Keep yours` re-stamps `was` and bumps `ed`.** Not a word changes; what changes is the
+  answer to "is this still the card I edited?". The edit stamp has to move with it or the
+  device that never saw the choice wins the merge and puts the question back.
+- **A hidden card needs a list of its own.** Hiding takes the card out of `DECK.cards`, so
+  it is in no list Browse draws and there would be nowhere to undo it from — and hiding is
+  only free if undoing it is reachable. `Cards you hid (n)` in the browse actions opens a
+  list directly under them, each row offering `Bring it back`.
+- **A section that ends up empty is dropped from `DECK`.** The course reader refuses a
+  declared section with no cards; `applyCardLayer()` now agrees with it, so hiding the last
+  card in a section takes the section, as the copy says it will. The filter's rebuild key
+  includes the section count for the same reason.
+
 **Tests.** A new `tests/authoring.mjs` built on `notes.mjs`'s shape (write → read back →
 reload → sanitiser → corrupt block still boots → foreign tab refused → modal history and
 Tab containment), plus the override and revert cases and the author-rewrote-it detection.
