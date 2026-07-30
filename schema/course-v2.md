@@ -43,6 +43,9 @@ front-only and proceed directly to self-grading.
   subsequent characters may also be dot, underscore, or hyphen. Allowing a
   trailing hyphen preserves IDs produced for duplicate legacy Anki rows. IDs
   are opaque: never derive meaning, ordering, or storage paths from them.
+- IDs beginning `u.` are reserved for the cards a person writes in the app and
+  are refused with `course.reserved_id`. A course that shipped one would take
+  over the review history of a card someone had written for themselves.
 - Array order is presentation order. Counts, numeric order, and build
   fingerprints are derived and are not author fields.
 - Every object is strict. Unknown fields are errors except below `extensions`.

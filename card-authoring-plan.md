@@ -250,6 +250,23 @@ Roughly in dependency order; the first item gates the sync design.
 7. **Deck creation**: the second path on the pick screen, a media-safe `store.put` call
    site, the re-import warning line.
 
+**Built so far.** Item 2, the layer, is in `web/app.js` under *cards you write*, with
+`MUNIN.cardsKey` in `web/munin.js` and the reader's half of the reserved-prefix rule in
+`web/lib/legacy-course.js` (`RESERVED_ID_PREFIX`, `isReservedId`) and `web/lib/course.js`
+(`validId`, diagnostic `course.reserved_id`, documented in `schema/diagnostics.md`).
+Ceilings: 2,000 characters a side, 200 live records per deck, 400 stored entries —
+conservative, because item 1 above is still the number nobody has. Two things this
+document did not settle, decided in the build:
+
+- **Revert needed a representation of its own.** An emptied record means the layer
+  contributes nothing for that id: for a card you wrote that is the delete, and for a
+  course card it is the revert — the shipped card coming back. Hiding a course card is a
+  different outcome from reverting one, so a hide is an emptied record carrying
+  `hidden: true`. Both settle under the notes algebra, newest `ed` winning.
+- **`was` is a 32-bit hash and a length, not a digest.** `crypto.subtle` does not exist
+  outside a secure context and would put a promise per card on the boot path. It is a
+  change detector and is asked to be nothing else.
+
 **Tests.** A new `tests/authoring.mjs` built on `notes.mjs`'s shape (write → read back →
 reload → sanitiser → corrupt block still boots → foreign tab refused → modal history and
 Tab containment), plus the override and revert cases and the author-rewrote-it detection.

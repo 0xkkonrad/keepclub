@@ -27,6 +27,13 @@ const MUNIN = {
    * is three chances to change one of them and not the others. */
   stateKey: (id) => 'munin/' + id + '/state/v1',
   resetKey: (id) => 'munin/' + id + '/state/v1/reset',
+  /* The cards a person wrote into this deck, and their edits to the deck's
+   * own cards. A sibling of the state document rather than a key inside it:
+   * mergeState() in sync.js builds a fresh object and copies only the keys it
+   * knows, so a key it has never heard of is not skipped but dropped, and the
+   * adopted result is then written back over the original. Cards kept in there
+   * would be destroyed by a mistake in a file that is not about cards. */
+  cardsKey: (id) => 'munin/' + id + '/cards/v1',
   bootKey: (id) => 'munin/boot/' + id,
   registry: 'courses/index.json',
 

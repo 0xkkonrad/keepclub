@@ -63,6 +63,17 @@ algebra behind them — commutative, idempotent, a delete that is not
 resurrected, and a live ceiling that three devices converge on — is in
 `sync-merge.mjs`.
 
+`authoring.mjs` — the layer under the card editor: a card of your own written
+into a shipped course, an edit over a course card with the fingerprint that
+notices the author rewriting it afterwards, a hide and a revert, a delete that
+leaves a marker rather than a hole, both halves of the reserved `u.` namespace
+(the layer accepts nothing else, the course readers refuse a shipped course
+that uses it), a deliberately corrupt cards document still opening the deck,
+Markdown rendered to sanitized HTML in a deck that is already sanitized HTML,
+the ceiling and what it costs — and the one that matters most: a cards document
+that will not parse stops the boot orphan sweep instead of feeding it, because
+the sweep deletes review history for every card it cannot find.
+
 `deploy-script.mjs` — destructive deployment preflights in disposable Git
 repositories: wrong branches, dirty Pages work and an unexpected remote are
 all refused before the copy begins.

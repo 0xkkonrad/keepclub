@@ -17,6 +17,9 @@
 'use strict';
 
 const KEY = MUNIN.stateKey(COURSE.id);
+// The cards you wrote and the edits you made, in their own document beside the
+// review history rather than inside it. See MUNIN.cardsKey for why.
+const CARDS_KEY = MUNIN.cardsKey(COURSE.id);
 const STUDY_LOCK_KEY = KEY + '/study-lock';
 const RESET_KEY = MUNIN.resetKey(COURSE.id);
 // An active queue is tab-local, not account progress. sessionStorage survives
@@ -51,6 +54,37 @@ const NOTE_SLOTS = 400;
 // sets a prototype instead of a property — a restored file or a synced blob is
 // exactly where a key like that would arrive from.
 const NOTE_ID = /^[a-z0-9]{1,64}$/;
+// A card side is Markdown a person typed, bounded on the way in and again on
+// the way back out of storage, exactly as a note is. The longest side any
+// shipped course uses is 922 characters, so this ceiling is a long way past the
+// card anybody is fixing when they meet it.
+const CARD_LEN = 2000;
+// Live records one deck's card layer may hold: the cards you wrote and the
+// course cards you edited, counted together, because they cost the same to
+// store and are capped for the same reason. Deliberately conservative. The
+// sync blob's real size bound is not established anywhere in this repo yet —
+// establishing it is the first task of the sync phase — and the review history
+// travels in the same round, so the phase that finds that number may lower
+// both of these. Raising a ceiling later costs nobody anything.
+const CARD_MAX = 200;
+// Stored entries: live records plus the emptied ones that record a delete, a
+// hide or a revert. NOTE_SLOTS to CARD_MAX's NOTE_MAX, and for the same reason
+// — the marker is what stops another device handing a deleted card back.
+const CARD_SLOTS = 400;
+// A card you write takes a reserved id, and the layer accepts nothing else
+// under that prefix. Checked rather than trusted because it becomes an object
+// key, the same argument as NOTE_ID; and reserved in both directions, because
+// the course readers refuse a shipped course that uses the prefix
+// (RESERVED_ID_PREFIX in web/lib/legacy-course.js).
+const CARD_ID = /^u\.[a-f0-9]{1,32}$/;
+// A card the course shipped keeps the id the course gave it, which is the
+// stable-id grammar the readers enforce (web/lib/course.js). An override is
+// keyed by that id, so this is the other shape the layer accepts.
+const COURSE_CARD_ID = /^[a-z0-9][a-z0-9._-]{0,127}$/;
+// Where a card you wrote goes when the section it named is not in the deck any
+// more — a course update that dropped that section, or a document edited by
+// hand. A card is never dropped for it; see cardsWithLayer().
+const LOOSE_SECTION = 'u.loose';
 // Stamped into every exported file so restore can tell a real backup from any
 // other JSON someone happens to pick.
 const EXPORT_APP = 'munin/' + COURSE.id;
@@ -411,7 +445,7 @@ function refuseForeignWrite() {
     const raw = localStorage.getItem(KEY);
     state = sanitise(raw ? JSON.parse(raw) : null);
     if (DECK) {
-      for (const id of Object.keys(state.recs)) if (!byId.has(id)) delete state.recs[id];
+      sweepUnknownRecords();
       settingsShape = JSON.stringify(Object.assign({}, state.settings, { at: 0 }));
       applyTheme();
       applyFontSize();
@@ -550,6 +584,21 @@ addEventListener('storage', (e) => {
     location.reload();
     return;
   }
+  if (e.key === CARDS_KEY) {
+    // Two idle tabs can both write cards: the study lease is only held while
+    // somebody is answering. Take the other tab's document rather than drawing
+    // a deck that no longer exists — but not mid-session, where the deck would
+    // change under the card on screen. No sweep either: a card deleted over
+    // there must not take its review history here in the same tick.
+    if (!shippedCourse) return;
+    if (session) {
+      toast('Another tab is changing the cards in this deck. Close one, or the deck will not add up.');
+      return;
+    }
+    loadCardLayer();
+    applyCardLayer().then(renderDeckChanged).catch(console.error);
+    return;
+  }
   if (e.key !== KEY || !e.newValue || !DECK) return;
   let incoming;
   try { incoming = JSON.parse(e.newValue); } catch (err) { return; }
@@ -558,7 +607,7 @@ addEventListener('storage', (e) => {
     return;
   }
   state = sanitise(incoming);
-  for (const id of Object.keys(state.recs)) if (!byId.has(id)) delete state.recs[id];
+  sweepUnknownRecords();
   // This was another tab's write, not a fresh local settings decision.
   settingsShape = JSON.stringify(Object.assign({}, state.settings, { at: 0 }));
   applyTheme();
@@ -2318,6 +2367,591 @@ function sayIfNotesDropped() {
     + `— the ones untouched for longest — could not be kept.`, true);
 }
 
+/* ── cards you write ── */
+
+/* Your own cards, and your edits to the deck's own, as a layer over what the
+ * course ships.
+ *
+ * Nothing here changes the deck. A built-in course's cards.json, or the record
+ * an import wrote into the database, is read exactly as it was shipped; this
+ * layer goes over the top on the way to DECK.cards, on every boot. That is what
+ * makes an edit to a course card free to take back — drop the record and the
+ * shipped card is there again — and it is what lets a course be updated
+ * underneath you without touching a word you wrote.
+ *
+ * It lives in its own document beside the review history, not inside it. See
+ * MUNIN.cardsKey: the state document is rebuilt key by key when devices meet,
+ * and a key that file has never heard of is dropped rather than skipped.
+ *
+ * Three kinds of record, one shape, keyed by card id, {at, ed, …} like a note:
+ *
+ *   written   an id of your own — CARD_ID — carrying front, back and section.
+ *   override  keyed by a shipped card's own id, carrying front, back and `was`:
+ *             a fingerprint of the official text at the moment you edited it,
+ *             so the app can tell later that the author has rewritten it under
+ *             you. That field is the one that cannot be added afterwards —
+ *             every override written before it existed would have an unknown
+ *             provenance for ever.
+ *   emptied   no front. The layer contributes nothing for this id: for a card
+ *             you wrote that is the delete, and for a course card it is the
+ *             revert, the shipped card coming back. `hidden` on an emptied
+ *             record is the third case — a course card that should not exist.
+ *             Emptied rather than removed, with a newer `ed`, exactly as a
+ *             deleted note is: a record that is simply dropped is handed
+ *             straight back by the next device that still has it.
+ *
+ * Both sides are Markdown, in the small subset the course format already
+ * supports, rendered to sanitized HTML when they are saved and again every time
+ * they are loaded. That is the whole reason a card can be written into an Anki
+ * import: what the layer produces is the representation every deck in this app
+ * is already made of, so nothing downstream has to know which kind of deck it
+ * is reading, and `**bold**` cannot come out as four asterisks on a card.
+ */
+
+let cardLayer = {};              // card id -> {at, ed, front, back, section, was, hidden}
+let cardLayerLoaded = false;     // whether this tab knows what that document holds
+let cardsDropped = 0;            // live records the sanitiser dropped, unspoken
+let shippedCourse = null;        // the deck as the course reader produced it
+let shippedById = new Map();     // the cards it shipped, before the layer
+
+/** Delete markers last, then oldest last — noteEntryOrder, on the field that
+ *  makes a card record live. Total, including the id, so what survives a cap
+ *  never depends on which object the entries were read out of. */
+function cardEntryOrder(a, b) {
+  const liveA = a[1].front ? 0 : 1, liveB = b[1].front ? 0 : 1;
+  if (liveA !== liveB) return liveA - liveB;
+  if (n(a[1].ed) !== n(b[1].ed)) return n(b[1].ed) - n(a[1].ed);
+  return a[0] < b[0] ? -1 : 1;
+}
+
+/** An id this layer will store a record under, in the one namespace it owns or
+ *  the one the course owns — and nothing in between. */
+function cardIdOk(id) {
+  return id.startsWith('u.') ? CARD_ID.test(id) : COURSE_CARD_ID.test(id);
+}
+
+/** `u.` and hex. See CARD_ID: this becomes an object key, and it is written
+ *  into a document another device will read. crypto.randomUUID() is undefined
+ *  outside a secure context, which is why this counts its own bytes. */
+function newCardId() {
+  const bytes = new Uint8Array(6);
+  crypto.getRandomValues(bytes);
+  return 'u.' + Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
+/** Whatever a person typed, as far as it is a card side at all. */
+function cardTextFrom(input) {
+  return String(input == null ? '' : input)
+    .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, '')
+    .trim()
+    .slice(0, CARD_LEN);
+}
+
+/** A record this layer holds for a card, or null. Object.hasOwn, because an id
+ *  like "constructor" passes the course's own id grammar and would otherwise
+ *  come back off the prototype as something truthy that is not a record. */
+function cardRecord(cardId) {
+  return Object.hasOwn(cardLayer, cardId) ? cardLayer[cardId] : null;
+}
+
+/** The cards of your own this deck is holding, live ones only. */
+function writtenCardCount() {
+  return Object.entries(cardLayer)
+    .filter(([id, rec]) => CARD_ID.test(id) && !!rec.front).length;
+}
+
+function liveCardCount() {
+  return Object.values(cardLayer).filter((rec) => !!rec.front).length;
+}
+
+/** A short fingerprint of a card's official text, for `was`.
+ *
+ * A change detector and nothing else — it answers "is this still the card I
+ * edited?" — so it is a plain 32-bit hash with the length beside it rather than
+ * anything that needs crypto.subtle, which does not exist outside a secure
+ * context and would make the boot path wait on a promise per card. */
+function cardFingerprint(card) {
+  const text = (card && typeof card.front === 'string' ? card.front : '')
+    + '\u0000' + (card && typeof card.back === 'string' ? card.back : '');
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < text.length; i++) {
+    hash ^= text.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  return (hash >>> 0).toString(16).padStart(8, '0') + '.' + text.length.toString(36);
+}
+
+/** Make any stored, restored or synced card layer safe to merge.
+ *
+ * The same discipline as sanitise(), for the same reasons and against the same
+ * arrivals: a document written by an older build, one that spent time in a
+ * database, one somebody edited by hand. Nothing is trusted, everything is
+ * clamped, and a block that is nonsense becomes no cards rather than something
+ * that throws on the boot path. */
+function sanitiseCardLayer(block) {
+  const records = {};
+  if (!isPlainObject(block)) return records;
+  const num = (value, lo, hi, dflt) => {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? Math.min(hi, Math.max(lo, parsed)) : dflt;
+  };
+  const entries = [];
+  for (const [id, raw] of Object.entries(block)) {
+    if (!cardIdOk(id) || !isPlainObject(raw)) continue;
+    const front = cardTextFrom(typeof raw.front === 'string' ? raw.front : '');
+    const at = Math.round(num(raw.at, 0, 8.64e15, 0));
+    // A missing edit stamp falls back to the written one rather than to zero,
+    // which would lose every merge against a device holding the same card.
+    const record = { at, ed: Math.round(num(raw.ed, 0, 8.64e15, at)), front, back: '' };
+    if (front) {
+      record.back = cardTextFrom(typeof raw.back === 'string' ? raw.back : '');
+      if (CARD_ID.test(id)) {
+        // A section that is not a section is not a reason to drop somebody's
+        // card. cardsWithLayer() resolves an unplaceable one instead.
+        record.section = typeof raw.section === 'string'
+          && COURSE_CARD_ID.test(raw.section) ? raw.section : '';
+      } else if (typeof raw.was === 'string') {
+        record.was = raw.was.slice(0, 32);
+      }
+    } else if (raw.hidden === true) {
+      record.hidden = true;
+    }
+    entries.push([id, record]);
+  }
+  // More entries than this build stores can only have come from somewhere else.
+  // Both ceilings are read off one order, the same way and for the same reason
+  // as the notes block above: whether a record survives depends only on the
+  // records ahead of it, so a round trip through storage cannot change the set.
+  entries.sort(cardEntryOrder);
+  let kept = 0, live = 0;
+  for (const [id, record] of entries) {
+    if (kept >= CARD_SLOTS) break;
+    if (record.front) {
+      if (live >= CARD_MAX) { cardsDropped++; continue; }
+      live++;
+    }
+    records[id] = record;
+    kept++;
+  }
+  return records;
+}
+
+/** Read the layer, and say whether the answer can be relied on.
+ *
+ * The return value is the whole point. `false` does not mean "no cards" — it
+ * means the question could not be answered, which is the distinction
+ * sweepOrphans states in munin.js and the one this feature cannot get wrong:
+ * the boot sweep deletes review history for every card it cannot find, so a
+ * document that would not open would take every written card's history with it,
+ * silently, on the boot after the failure. No document at all IS an answer;
+ * a document that will not parse, or whose block is not a block, is not. */
+function loadCardLayer() {
+  let raw;
+  try {
+    const text = localStorage.getItem(CARDS_KEY);
+    raw = text === null ? {} : JSON.parse(text);
+  } catch (e) {
+    console.warn('cards unreadable, leaving them out of this boot', e);
+    cardLayer = {};
+    cardLayerLoaded = false;
+    return false;
+  }
+  if (!isPlainObject(raw) || (raw.cards !== undefined && !isPlainObject(raw.cards))) {
+    console.warn('cards document is not a cards document, leaving it alone');
+    cardLayer = {};
+    cardLayerLoaded = false;
+    return false;
+  }
+  cardLayer = sanitiseCardLayer(raw.cards);
+  cardLayerLoaded = true;
+  return true;
+}
+
+/** Every write to the layer goes through here.
+ *
+ * The single-writer rule covers this document too. It is not the document the
+ * study lease guards — that one is the review history — but the two are edited
+ * from the same screens, and a card written from an idle tab would land in a
+ * deck the studying tab is answering out of. refuseForeignWrite() has already
+ * put that tab's durable review document back by the time this returns; re-
+ * reading the layer here is the other half of the same move, so what the screen
+ * redraws is what is actually on the device. */
+function writeCardLayer() {
+  if (refuseForeignWrite()) {
+    loadCardLayer();
+    return { ok: false, say: 'Another tab is studying this deck. Finish there before changing cards.' };
+  }
+  try {
+    localStorage.setItem(CARDS_KEY, JSON.stringify({ v: 1, cards: cardLayer }));
+  } catch (e) {
+    // Put the document that is actually on the device back in front of the
+    // person. A deck showing a card that no storage anywhere holds is the worst
+    // of the two outcomes: they would stop writing it down somewhere else.
+    loadCardLayer();
+    return {
+      ok: false,
+      say: 'The card could not be saved: the browser is out of space for this site. '
+        + 'Removing a deck you no longer study will free it.',
+    };
+  }
+  // Whatever that document held before this, the layer in memory is now what is
+  // in it — including after a failed read, which is the only way out of one.
+  cardLayerLoaded = true;
+  return { ok: true, say: '' };
+}
+
+let courseMarkdownModule = null;
+let courseRuntimeModule = null;
+const courseMarkdown = () =>
+  (courseMarkdownModule ||= import('./lib/course-markdown.js'));
+const courseRuntime = () =>
+  (courseRuntimeModule ||= import('./lib/course-runtime.js'));
+
+/** One stored side, as the sanitized HTML the rest of the app draws.
+ *
+ * A side that will not render is still something somebody wrote, so it comes
+ * back as the characters they typed rather than as a blank card. The save path
+ * refuses what does not render; this path is what happens to a document written
+ * by a build whose subset was wider, and losing the words is not the answer. */
+async function renderCardSide(source, path) {
+  if (!source) return '';
+  const { renderCourseMarkdown } = await courseMarkdown();
+  const rendered = await renderCourseMarkdown(source, { path });
+  if (rendered.html) return rendered.html;
+  return '<p>' + escapeHtml(source).replace(/\n/g, '<br>') + '</p>';
+}
+
+/** The deck as it is after your cards: what the course ships, minus what you
+ *  hid, with your edits over the top, plus what you wrote. */
+async function cardsWithLayer(shipped, sectionIds) {
+  const out = [];
+  for (const card of shipped) {
+    const rec = cardRecord(card.cardId);
+    if (!rec || !rec.front) {
+      // No record, an emptied one — your edit taken back — or a hide.
+      if (!(rec && rec.hidden)) out.push(card);
+      continue;
+    }
+    const front = await renderCardSide(rec.front, '$.cards[0].front');
+    const back = await renderCardSide(rec.back, '$.cards[0].back');
+    // Spread, not rebuilt: the shipped card's media, figure and tags are still
+    // the card's. Changing the wording of a card must not take its picture off.
+    const yours = Object.assign({}, card, { front, _yours: true, _edited: true, _was: rec.was || '' });
+    if (back) yours.back = back; else delete yours.back;
+    out.push(yours);
+  }
+  // Written order, oldest first, so the list a section draws does not
+  // rearrange itself the day you correct a typo in the first card you wrote.
+  const written = Object.entries(cardLayer)
+    .filter(([id, rec]) => CARD_ID.test(id) && !!rec.front)
+    .sort((a, b) => n(a[1].at) - n(b[1].at) || (a[0] < b[0] ? -1 : 1));
+  for (const [id, rec] of written) {
+    const front = await renderCardSide(rec.front, '$.cards[0].front');
+    const back = await renderCardSide(rec.back, '$.cards[0].back');
+    // A section this deck no longer declares is not a reason to lose a card:
+    // it goes to a section synthesised for it, the same answer boot() reaches
+    // for a deck that declares no groups. Dropping the card would take its
+    // review history with it at the next sweep.
+    const card = {
+      cardId: id,
+      sectionId: sectionIds.has(rec.section) ? rec.section : LOOSE_SECTION,
+      front,
+      _yours: true,
+    };
+    if (back) card.back = back;
+    out.push(card);
+  }
+  return out;
+}
+
+/** Rebuild DECK, and every index over it, from the course plus the layer.
+ *
+ * Called on boot and again after every write: a card that has just been written
+ * has to be in byId before anything draws the screen it appears on. */
+async function applyCardLayer() {
+  const sections = shippedCourse.sections.map((s) => Object.assign({}, s, { cardCount: 0 }));
+  const sectionIds = new Set(sections.map((s) => s.sectionId));
+  const groups = (shippedCourse.groups || []).map((g) =>
+    Object.assign({}, g, { sectionIds: [...g.sectionIds], cardCount: 0 }));
+  const cards = await cardsWithLayer(shippedCourse.cards, sectionIds);
+  if (!sectionIds.has(LOOSE_SECTION)
+      && cards.some((card) => card.sectionId === LOOSE_SECTION)) {
+    sections.push({ sectionId: LOOSE_SECTION, title: 'Cards you wrote', cardCount: 0 });
+    sectionIds.add(LOOSE_SECTION);
+    // A section in no group is a section Browse never draws, so the synthetic
+    // one brings a group of its own — untitled, like the fallback group below,
+    // so it appears as tiles under no heading rather than as a second name for
+    // the same thing.
+    if (groups.length) {
+      groups.push({ groupId: LOOSE_SECTION, title: '', sectionIds: [LOOSE_SECTION], cardCount: 0 });
+    }
+  }
+  // Counts are derived here exactly as they are in the reader. A section that
+  // gained a card you wrote, or lost one you hid, says so everywhere it is
+  // counted — the tiles, the filter, the section rows on Home.
+  const per = new Map();
+  for (const card of cards) per.set(card.sectionId, (per.get(card.sectionId) || 0) + 1);
+  for (const section of sections) section.cardCount = per.get(section.sectionId) || 0;
+  for (const group of groups) {
+    group.cardCount = group.sectionIds.reduce((total, id) => total + (per.get(id) || 0), 0);
+  }
+  DECK = Object.assign({}, shippedCourse, { cards, sections, groups });
+  await indexRuntimeDeck();
+}
+
+/** The indexes every screen reads, rebuilt from DECK. */
+async function indexRuntimeDeck() {
+  byId = new Map(DECK.cards.map((c) => [c.cardId, c]));
+  sectionOf = new Map(DECK.sections.map((s) => [s.sectionId, s]));
+  // An older cards.json in the cache has no groups. The index falls back to one
+  // unnamed group holding everything, which is the flat list of sections — worse
+  // than the grouping, but not a blank Browse screen while the worker catches up.
+  const gs = DECK.groups && DECK.groups.length
+    ? DECK.groups
+    : [{
+        groupId: 'all',
+        title: '',
+        sectionIds: DECK.sections.map((s) => s.sectionId),
+        cardCount: DECK.cards.length,
+      }];
+  groupOf = new Map(gs.map((g) => [g.groupId, g]));
+  groupFor = new Map();
+  for (const g of gs) {
+    for (const sectionId of g.sectionIds) groupFor.set(sectionId, g.groupId);
+  }
+  await indexDeck();
+}
+
+/* Validation is not hand-written.
+ *
+ * The sides go through the same reader every course in this app goes through,
+ * as a one-card document, and what comes back is both the verdict and the
+ * diagnostics — message and correction — that the sheet puts in its status
+ * line. web/lib/validate.js is a standing note about what happened the last
+ * time a second hand-written validator existed in this repo. */
+async function checkCard(input) {
+  const front = cardTextFrom(input && input.front);
+  const back = cardTextFrom(input && input.back);
+  if (!front) return { ok: false, say: 'A card needs a question.', diagnostics: [] };
+  const card = { cardId: 'card', front };
+  if (back) card.back = back;
+  const runtime = await courseRuntime();
+  const result = await runtime.readCourseForRuntime({
+    schemaVersion: 2, courseId: 'a-card-you-wrote', cards: [card],
+  });
+  const errors = result.diagnostics.filter((item) => item.severity === 'error');
+  if (!result.course || errors.length) {
+    const first = errors[0];
+    return {
+      ok: false,
+      say: first ? `${first.message} ${first.correction}` : 'This card could not be read.',
+      diagnostics: result.diagnostics,
+    };
+  }
+  return { ok: true, front, back, diagnostics: result.diagnostics };
+}
+
+/** The section a new card goes in: the one asked for while it is still a
+ *  section of this deck, and otherwise the deck's first. */
+function sectionForInput(input) {
+  const asked = input && typeof input.section === 'string' ? input.section : '';
+  if (asked && sectionOf.has(asked)) return asked;
+  return (DECK.sections[0] && DECK.sections[0].sectionId) || LOOSE_SECTION;
+}
+
+/** Every write ends here: store the document, rebuild the deck from it, redraw.
+ *
+ * Redrawing after a refused write is not housekeeping — it is how an edit that
+ * did not land leaves the screen, rather than sitting there looking saved. */
+async function commitCards(id, say) {
+  const wrote = writeCardLayer();
+  await applyCardLayer();
+  renderDeckChanged();
+  return { ok: wrote.ok, id, say: wrote.ok ? say : wrote.say, diagnostics: [] };
+}
+
+/** The deck grew, shrank or changed a word. Everything counted off it moves. */
+function renderDeckChanged() {
+  if (!DECK) return;
+  const search = $('#search');
+  if (search) search.placeholder = `Search ${DECK.cards.length} cards…`;
+  if (current === 'home') renderHome();
+  if (current === 'browse') renderBrowse();
+  if (current === 'stats') renderStats();
+}
+
+/** Write a card of your own into this deck. */
+async function writeCard(input) {
+  const checked = await checkCard(input);
+  if (!checked.ok) return checked;
+  if (liveCardCount() >= CARD_MAX) {
+    return {
+      ok: false,
+      say: `This deck already holds ${CARD_MAX} cards of your own. `
+        + 'Delete one to write another.',
+      diagnostics: [],
+    };
+  }
+  const now = Date.now();
+  const id = newCardId();
+  cardLayer[id] = {
+    at: now, ed: now, front: checked.front, back: checked.back, section: sectionForInput(input),
+  };
+  return commitCards(id, 'Card written.');
+}
+
+/** Change a card: one of yours in place, or a course card as an override over
+ *  the shipped one, which is why editing a course card is free to take back. */
+async function editCard(cardId, input) {
+  const record = cardRecord(cardId);
+  const shipped = shippedById.get(cardId);
+  const own = CARD_ID.test(cardId) && record && !!record.front;
+  if (!own && !shipped) {
+    return { ok: false, say: 'That card is not in this deck.', diagnostics: [] };
+  }
+  const checked = await checkCard(input);
+  if (!checked.ok) return checked;
+  if (!record && liveCardCount() >= CARD_MAX) {
+    return {
+      ok: false,
+      say: `This deck already holds ${CARD_MAX} cards of your own, and an edit is one of them. `
+        + 'Take one back to make this one.',
+      diagnostics: [],
+    };
+  }
+  const now = Date.now();
+  if (own) {
+    record.front = checked.front;
+    record.back = checked.back;
+    record.ed = now;
+    if (input && typeof input.section === 'string') record.section = sectionForInput(input);
+  } else {
+    // `was` is stamped on every save, not only the first: it is the answer to
+    // "is this still the card I edited?", and after this save it is.
+    cardLayer[cardId] = {
+      at: record && record.at ? record.at : now,
+      ed: now,
+      front: checked.front,
+      back: checked.back,
+      was: cardFingerprint(shipped),
+    };
+  }
+  return commitCards(cardId, 'Card saved.');
+}
+
+/** Delete a card you wrote. Permanent, which is why the sheet asks first and
+ *  says how many times it has been answered. */
+async function deleteCard(cardId) {
+  if (!CARD_ID.test(cardId)) {
+    return {
+      ok: false,
+      say: 'The course ships this card, so it cannot be deleted. Hide it instead — '
+        + 'hiding is free to undo.',
+      diagnostics: [],
+    };
+  }
+  const record = cardRecord(cardId);
+  if (!record || !record.front) {
+    return { ok: false, say: 'That card is not here any more.', diagnostics: [] };
+  }
+  // Emptied, not removed. The record is the evidence that the card was deleted
+  // here; drop it and the next device that still has it hands it back.
+  record.front = '';
+  record.back = '';
+  record.ed = Date.now();
+  delete record.section;
+  delete record.was;
+  return commitCards(cardId, 'Card deleted.');
+}
+
+/** Take a course card out of the deck. Reversible, because the shipped card is
+ *  still shipped — this is a record saying you do not want it. */
+async function hideCard(cardId) {
+  if (CARD_ID.test(cardId)) return deleteCard(cardId);
+  const shipped = shippedById.get(cardId);
+  if (!shipped) return { ok: false, say: 'That card is not in this deck.', diagnostics: [] };
+  const record = cardRecord(cardId);
+  cardLayer[cardId] = {
+    at: record && record.at ? record.at : Date.now(),
+    ed: Date.now(),
+    front: '',
+    back: '',
+    hidden: true,
+  };
+  return commitCards(cardId, 'Card hidden.');
+}
+
+/** Take your layer off a course card, whether it was an edit or a hide. */
+async function revertCard(cardId) {
+  if (CARD_ID.test(cardId)) {
+    return {
+      ok: false,
+      say: 'You wrote this card, so there is no course card underneath it. '
+        + 'Deleting it is how it goes.',
+      diagnostics: [],
+    };
+  }
+  if (!shippedById.has(cardId)) {
+    return { ok: false, say: 'That card is not in this deck.', diagnostics: [] };
+  }
+  const record = cardRecord(cardId);
+  if (!record) return { ok: true, id: cardId, say: '', diagnostics: [] };
+  // An emptied record, not a removed one, for the same reason a deleted note is
+  // emptied: a record that is simply gone is handed straight back by the next
+  // device that still holds the edit.
+  cardLayer[cardId] = { at: record.at || Date.now(), ed: Date.now(), front: '', back: '' };
+  return commitCards(cardId, 'The card the course ships is back.');
+}
+
+/** Whether the deck's author has rewritten a card since you edited it.
+ *
+ * Without `was` there is no way to ask: your override would quietly pin you to
+ * a card the author has since fixed, which is a bitter outcome for a feature
+ * about fixing wrong cards. */
+function authorRewroteCard(cardId) {
+  const record = cardRecord(cardId);
+  const shipped = shippedById.get(cardId);
+  if (!record || !record.front || !record.was || !shipped) return false;
+  return record.was !== cardFingerprint(shipped);
+}
+
+/** The card the course ships, whatever your layer says about it — for the
+ *  "show the original" line, and for taking theirs over yours. */
+function shippedCard(cardId) {
+  return shippedById.get(cardId) || null;
+}
+
+/** Review history for cards this deck does not have any more.
+ *
+ * DELETING IS ONLY EVER DONE FROM A LIST WE ACTUALLY HAVE, the rule sweepOrphans
+ * states in munin.js, and this is the sharpest instance of it in the app: the
+ * records are keyed by card id, so a boot where the cards document could not be
+ * read — quota, corruption, a private window — would find every card somebody
+ * wrote missing from byId and delete its history for ever, silently.
+ *
+ * A card you hid is not missing either. Its record is still here, so its
+ * history stays, and un-hiding it is what the layer promises it is: free. */
+function sweepUnknownRecords() {
+  if (!cardLayerLoaded) return false;
+  for (const id of Object.keys(state.recs)) {
+    if (!byId.has(id) && !Object.hasOwn(cardLayer, id)) delete state.recs[id];
+  }
+  return true;
+}
+
+/* Say that cards went, on the one occasion they can. The sanitiser runs before
+ * there is a screen to say it on, so it counts and this asks — the same half of
+ * the same bargain sayIfNotesDropped() makes, for the same reason: a card
+ * somebody wrote is the one thing in this document nothing else can reproduce.
+ */
+function sayIfCardsDropped() {
+  const dropped = cardsDropped;
+  cardsDropped = 0;
+  if (!dropped) return;
+  toast(`This deck keeps ${CARD_MAX} cards of your own at most, so ${plural(dropped, 'card')} `
+    + `— the ones untouched for longest — could not be kept.`, true);
+}
+
 /* ── study ── */
 
 function startSession(sectionKey, opts) {
@@ -3469,7 +4103,7 @@ function adoptSynced(merged) {
   if (!DECK || session) return;
   if (DSSync.stable(merged) === DSSync.stable(state)) return;
   state = sanitise(merged);
-  for (const id of Object.keys(state.recs)) if (!byId.has(id)) delete state.recs[id];
+  sweepUnknownRecords();
   // Adopting is not a local settings change. Without this the write below
   // re-stamps the block with this device's clock, and a device that merely
   // received someone else's settings would outrank them at the next merge.
@@ -4582,7 +5216,7 @@ function wire() {
     state.notes = notes;
     // Drop history for cards that are no longer in the deck here rather than at
     // the next boot, so the number in the message is the truth.
-    for (const id of ids) if (!byId.has(id)) delete state.recs[id];
+    sweepUnknownRecords();
     rollDay();
     if (!writeNow()) return;
     applyTheme();
@@ -4938,13 +5572,20 @@ async function boot() {
       bootEscape();
       return;
     }
-    DECK = result.course;
+    shippedCourse = result.course;
+    shippedById = new Map(shippedCourse.cards.map((c) => [c.cardId, c]));
   } catch (e) {
     console.error(e);
     bootSays('This deck could not be read. Its course reader did not load.');
     bootEscape();
     return;
   }
+
+  // Your own cards go on before anything is counted or indexed, because from
+  // here down the deck is the deck: the card count in the copy below, byId, the
+  // sections, the search index and the sweep are all built off the one list.
+  loadCardLayer();
+  await applyCardLayer();
 
   // "537 cards is more than you can cram" is true of a syllabus and false of a
   // deck someone imported on the bus. Say the thing that is true of this deck.
@@ -4954,28 +5595,9 @@ async function boot() {
       ? `${DECK.cards.length} cards is more than you can cram. Give the app a date and it works out how many new cards a day you need, and stops scheduling anything for after you have sat it.`
       : `Give the app a date and it works out how many of these ${DECK.cards.length} cards a day you need, and stops scheduling anything for after you have sat it.`;
   }
-  byId = new Map(DECK.cards.map((c) => [c.cardId, c]));
-  sectionOf = new Map(DECK.sections.map((s) => [s.sectionId, s]));
-  // An older cards.json in the cache has no groups. The index falls back to one
-  // unnamed group holding everything, which is the flat list of sections — worse
-  // than the grouping, but not a blank Browse screen while the worker catches up.
-  const gs = DECK.groups && DECK.groups.length
-    ? DECK.groups
-    : [{
-        groupId: 'all',
-        title: '',
-        sectionIds: DECK.sections.map((s) => s.sectionId),
-        cardCount: DECK.cards.length,
-      }];
-  groupOf = new Map(gs.map((g) => [g.groupId, g]));
-  groupFor = new Map();
-  for (const g of gs) {
-    for (const sectionId of g.sectionIds) groupFor.set(sectionId, g.groupId);
-  }
-  await indexDeck();
-
-  // drop history for cards that no longer exist
-  for (const id of Object.keys(state.recs)) if (!byId.has(id)) delete state.recs[id];
+  // Drop history for cards that no longer exist — but only when the layer that
+  // says which cards exist could actually be read. See sweepUnknownRecords().
+  sweepUnknownRecords();
 
   // Optional, and deliberately not awaited with the deck: no video map, or a
   // stale one, must never stop the cards loading.
@@ -5027,6 +5649,7 @@ async function boot() {
   // and if it was carrying more notes than this build keeps, that is the first
   // moment there is anywhere to say so.
   sayIfNotesDropped();
+  sayIfCardsDropped();
 
   if (globalThis.DSSync) {
     DSSync.init({

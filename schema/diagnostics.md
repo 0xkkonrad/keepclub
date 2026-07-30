@@ -39,6 +39,7 @@ to the Legacy compatibility section of the built error reference.
 | `course.unsupported_schema_version` | `schemaVersion` is missing or is not `2`. Set it to the documented major version. |
 | `course.missing_id` | `courseId` is missing. Add a stable ID that you control. |
 | `course.invalid_id` | An ID is blank or does not follow the lowercase stable-ID format. Correct it; importers must not generate one automatically. |
+| `course.reserved_id` | An ID begins with `u.`, the prefix reserved for cards a person writes in the app. Rename it; a course may not ship an identity in that namespace. |
 | `course.cards_required` | `cards` is missing, empty, not a list, or has more than 50,000 entries. Add at least one card, or split a course above the limit. |
 | `card.missing_id` | A card has no `cardId`. Give it a stable ID before importing. |
 | `field.unknown` | An object contains an unknown field. Use a documented field or a namespaced extension. |
