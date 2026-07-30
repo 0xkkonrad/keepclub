@@ -75,6 +75,30 @@ function keepReceipt(result) {
   };
 }
 
+/* How many cards a person has written into a deck, or edited in it.
+ *
+ * The receipt's promise about progress reads as a promise about everything of
+ * theirs in the deck, and the cards they wrote are the part of it that no file
+ * being imported can put back. So the count is taken before the replace button
+ * is drawn, and the receipt says what happens to them.
+ *
+ * Read straight off the layer's document rather than through app.js: this
+ * screen runs over the shelf, where no deck is open and app.js may not be
+ * loaded at all. A document that will not parse counts as none, which is not a
+ * guess — a cards document the app cannot read contributes no cards to the
+ * deck either, so nought is exactly what the person is looking at. */
+function writtenInto(id) {
+  try {
+    const raw = localStorage.getItem(globalThis.MUNIN.cardsKey(id));
+    const cards = raw === null ? null : JSON.parse(raw).cards;
+    if (!cards || typeof cards !== 'object') return 0;
+    return Object.values(cards)
+      .filter((rec) => !!rec && typeof rec === 'object' && !!rec.front).length;
+  } catch (e) {
+    return 0;
+  }
+}
+
 /* ── the screen ───────────────────────────────────────────────────────────── */
 
 export function openImporter() {
@@ -358,6 +382,11 @@ export function openImporter() {
         'private windows and some managed browsers block the local database keep club keeps decks in.');
       return;
     }
+    // What the person has written into the deck this file would replace. Read
+    // here rather than inside the receipt, which renders and does not go
+    // looking: the count is a fact about the device, and the receipt's job is
+    // to say it.
+    if (existing) existing.written = writtenInto(existing.id);
     body.innerHTML = receiptHtml(built.receipt, existing);
     body.querySelector('.imp-h').focus();
     body.querySelector('[data-cancel]').addEventListener('click', () => close(false));
@@ -465,12 +494,23 @@ export function openImporter() {
         localStorage.setItem(globalThis.MUNIN.resetKey(id),
           Date.now().toString(36) + '-' + Math.random().toString(36).slice(2));
         localStorage.removeItem(globalThis.MUNIN.stateKey(id));
+        // The layer goes with the history, and only here. Its records are keyed
+        // by the OLD deck's card ids, so what would be left of it over a deck of
+        // different cards is edits that override nothing and cards written into
+        // a deck that is not on this device any more. The same replace onto the
+        // same deck keeps both, which is the whole point of an override
+        // surviving a course update. The line above the button says which of
+        // the two this one is before it is pressed.
+        localStorage.removeItem(globalThis.MUNIN.cardsKey(id));
         globalThis.MUNIN.abandonState?.(id);
       } catch (e) {
         saving = false;
         x.disabled = false;
         fail('the deck was replaced, but its old progress could not be cleared',
-          'device storage is blocked. Reload, then use Progress → erase review history before studying it.');
+          'device storage is blocked. Reload, then use Progress → erase review history before studying it.'
+          + (replacing.written
+            ? ' The cards you wrote into the old deck are still on this device too, to keep or to delete.'
+            : ''));
         return;
       }
     }

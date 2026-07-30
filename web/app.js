@@ -248,6 +248,16 @@ const n = (v) => (Number.isFinite(Number(v)) ? Number(v) : 0);
 const isPlainObject = (v) => !!v && typeof v === 'object' && !Array.isArray(v);
 /** "1 day", not "1 days" — the app counts down to a date, so it hits 1 often. */
 const plural = (v, word) => `${n(v)} ${n(v) === 1 ? word : word + 's'}`;
+/** "a", "a and b", "a, b and c".
+ *
+ * Three things can be in this deck's backup — review history, notes, and the
+ * cards somebody wrote — and any one of them can be the only one there is. The
+ * sentences that name them were each built by hand out of nested conditionals,
+ * which is how the export toast came to tell a deck full of hand-written cards
+ * that it held nothing but settings. */
+const listWords = (parts) => (parts.length < 2
+  ? (parts[0] || '')
+  : parts.slice(0, -1).join(', ') + ' and ' + parts[parts.length - 1]);
 
 /* Live notes the sanitiser has dropped and nobody has been told about yet. The
  * sanitiser runs before there is a screen to say it on — it is the first thing
@@ -2506,6 +2516,23 @@ function capWrittenBlocks() {
   state.notes = capped.notes;
   cardLayer = capped.cards;
   return moved;
+}
+
+/** Two layers, kept together.
+ *
+ * The meeting mergedNotes() settles, on the other block. A restored backup and
+ * a synced blob are the two places two layers meet, and both are the same
+ * question: which record is the current one, and does a delete recorded on one
+ * side survive the other side's copy of the card. Called rather than copied for
+ * the reason written above mergedNotes() — a second implementation would be a
+ * second answer to the tombstone question, and only one of them could be
+ * right. */
+function mergedCards(mine, theirs) {
+  if (globalThis.DSSync && DSSync.mergeCards) return DSSync.mergeCards(mine, theirs);
+  // With sync.js missing there is no pickWritten to call, and a restore is not
+  // the moment to improvise one. Keep every record this device holds and take
+  // the ids only the file has: nothing anybody can currently read goes away.
+  return Object.assign({}, theirs, mine);
 }
 
 /** A short fingerprint of a card's official text, for `was`.
@@ -4786,19 +4813,29 @@ function renderBackupState() {
     return;
   }
   const withHistory = Object.keys(state.recs).length;
-  // The notes are in the file whether or not this line used to mention them,
-  // and a deck someone has written about but not yet studied had a backup worth
-  // taking while this said there was nothing to take. What the export holds is
+  // Everything in the file, whether or not this line used to mention it. A deck
+  // someone has written about but not yet studied had a backup worth taking
+  // while this said there was nothing to take, and a deck someone has written
+  // cards into is the same case with more at stake: for a deck of your own the
+  // file is the only copy those cards will ever have. What the export holds is
   // the whole of what this sentence is for.
   const notes = liveNotes().length;
-  const alsoNotes = notes ? `your ${plural(notes, 'note')} and ` : '';
+  // Every live record in the layer, not only the cards with no shipped card
+  // under them. A deck whose whole history with this person is five cards of it
+  // they fixed has a file worth taking, and counting the written ones alone
+  // said there was nothing here to back up while the file held all five.
+  const written = liveCardCount();
+  const also = [];
+  if (notes) also.push(`your ${plural(notes, 'note')}`);
+  if (written) also.push(`the ${plural(written, 'card')} you have written or edited`);
+  also.push('your settings');
   if (withHistory) {
     el.textContent = `A backup right now would hold ${withHistory} of ${DECK.cards.length} cards, `
-      + `${state.streak} day${state.streak === 1 ? '' : 's'} of streak, ${alsoNotes}your settings.`;
+      + `${state.streak} day${state.streak === 1 ? '' : 's'} of streak, ${listWords(also)}.`;
     return;
   }
-  el.textContent = notes
-    ? `No cards studied yet — a backup right now would hold ${plural(notes, 'note')} and your settings.`
+  el.textContent = notes || written
+    ? `No cards studied yet — a backup right now would hold ${listWords(also)}.`
     : 'Nothing to back up yet — study some cards first.';
 }
 
@@ -5993,15 +6030,34 @@ function wire() {
 
   $('#export-btn').addEventListener('click', () => {
     writeNow();
+    // The whole layer, because the whole layer is what goes in the file: an
+    // edit over a course card is as much somebody's writing as a card of their
+    // own, and neither has any other copy on this device.
+    const written = liveCardCount();
     // The file is stamped so restore can tell a real backup from any other
     // JSON, and so a human opening it can see what it is and how old it is.
+    // `cardsWritten` counts only the cards that exist because somebody typed
+    // them — the header is read by a person in a text editor, and "how many
+    // cards in here were written by hand" is the question they have.
+    //
+    // Both documents go, the way a sync sends both: what this deck holds is a
+    // review history and a layer of cards beside it, and a file with only the
+    // first in it is not a backup of the deck. It matters most where Sync never
+    // runs — a deck of your own does not sync at all, and the creation copy
+    // says in as many words that this file is how you move one.
+    //
+    // The layer is assigned after `state` rather than into the header, because
+    // `state` is spread over the header: a `cards` key that ever appeared on
+    // that object — which sanitise() exists to make sure it does not — would
+    // silently win over the layer this line is putting in.
     const payload = Object.assign({
       app: EXPORT_APP,
       format: EXPORT_FORMAT,
       exportedAt: new Date(Date.now()).toISOString(),
       deckBuild: DECK.buildFingerprint,
       cardsWithHistory: Object.keys(state.recs).length,
-    }, state);
+      cardsWritten: writtenCardCount(),
+    }, state, { cards: cardLayer });
     const blob = new Blob([JSON.stringify(payload, null, 1)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -6010,15 +6066,20 @@ function wire() {
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-    // The same accounting as the line above the button: a file that holds only
-    // notes is still a file, and saying "0 cards" about it reads as a failure.
+    // The same accounting as the line above the button, and for the same
+    // reason: any one of the three can be the only thing in the file, and
+    // saying "0 cards" — or "nothing but settings" — about a file holding the
+    // only copy of somebody's cards reads as a failure to export them.
     const notes = liveNotes().length;
-    toast(payload.cardsWithHistory
-      ? `Exported ${payload.cardsWithHistory} cards of history`
-        + (notes ? ` and ${plural(notes, 'note')}.` : '.')
-      : (notes
-        ? `Exported ${plural(notes, 'note')} and your settings.`
-        : 'Exported your settings — there is nothing else in this deck yet.'));
+    const held = [];
+    if (payload.cardsWithHistory) {
+      held.push(`${plural(payload.cardsWithHistory, 'card')} of history`);
+    }
+    if (notes) held.push(plural(notes, 'note'));
+    if (written) held.push(`${plural(written, 'card')} you have written or edited`);
+    toast(held.length
+      ? `Exported ${listWords(held)}.`
+      : 'Exported your settings — there is nothing else in this deck yet.');
     renderBackupState();
   });
 
@@ -6049,22 +6110,43 @@ function wire() {
       return;
     }
 
+    // Both counters are taken before the file is read and put back on every way
+    // out below. The sanitisers count what they had to drop so that a screen
+    // can say it later, and a file somebody looked at and declined must not
+    // leave a number behind for the next toast to report as a loss that
+    // happened.
+    const droppedBefore = { notes: notesDropped, cards: cardsDropped };
+    const putDropsBack = () => {
+      notesDropped = droppedBefore.notes;
+      cardsDropped = droppedBefore.cards;
+    };
     const incoming = sanitise(s);
+    // Through the same front door the synced blob goes through: the cards block
+    // is the other half of the file, sanitise() drops it on purpose, and the
+    // count below has to be the count that would actually land rather than
+    // whatever the file claims.
+    const theirCards = sanitiseCardLayer(isPlainObject(s) ? s.cards : null);
     const ids = Object.keys(incoming.recs);
     const known = ids.filter((id) => byId.has(id));
     const theirNotes = Object.values(incoming.notes).filter((note) => note.text).length;
-    // A file can be worth restoring for its notes alone. Somebody who has
-    // written about a deck on another device and studied it there hardly at all
-    // has a backup with no card ids to recognise, and refusing on that count
-    // was the app declining to restore the only thing in the file it had. A
-    // file with neither is still refused: that one really is somebody else's.
-    if (!known.length && !theirNotes) {
-      toast('Nothing in that file belongs to this deck — no cards of its own, and no notes. Nothing restored.');
+    const theirWritten = Object.values(theirCards).filter((rec) => !!rec.front).length;
+    // A file can be worth restoring for its notes alone, or for its cards
+    // alone. Somebody who has written about a deck on another device and
+    // studied it there hardly at all has a backup with no card ids to
+    // recognise, and refusing on that count was the app declining to restore
+    // the only thing in the file it had — and a deck of your own, which never
+    // syncs, can hold nothing but the cards you wrote into it. A file with none
+    // of the three is still refused: that one really is somebody else's.
+    if (!known.length && !theirNotes && !theirWritten) {
+      putDropsBack();
+      toast('Nothing in that file belongs to this deck — no cards of its own, no notes, '
+        + 'and no cards written into it. Nothing restored.');
       return;
     }
 
     const mine = Object.keys(state.recs).length;
     const myNotes = liveNotes().length;
+    const myCards = liveCardCount();
     const when = s.exportedAt ? ` from ${longDate(String(s.exportedAt).slice(0, 10))}` : '';
     const lost = ids.length - known.length;
     const head = known.length
@@ -6087,7 +6169,26 @@ function wire() {
       noteLine = `\n\nThe ${plural(theirNotes, 'note')} in the file`
         + ` ${theirNotes === 1 ? 'is' : 'are'} added to this deck.`;
     }
-    if (!confirm(head + warn + noteLine)) return;
+    // And the same for the cards, for the same reason. A card somebody wrote is
+    // the one thing in this file nothing else can reproduce, so a sentence that
+    // left them out while offering to replace the deck's history would be the
+    // sentence they read before losing them.
+    let cardLine = '';
+    if (myCards && theirWritten) {
+      cardLine = '\n\nYour own cards are merged too: the '
+        + `${plural(myCards, 'card')} you have written or edited here and the `
+        + `${plural(theirWritten, 'card')} in the file are all kept.`;
+    } else if (myCards) {
+      cardLine = `\n\nThe ${plural(myCards, 'card')} you have written or edited in this deck`
+        + ` ${myCards === 1 ? 'is' : 'are'} kept — the file has none.`;
+    } else if (theirWritten) {
+      cardLine = `\n\nThe ${plural(theirWritten, 'card')} written or edited in the file`
+        + ` ${theirWritten === 1 ? 'is' : 'are'} added to this deck.`;
+    }
+    if (!confirm(head + warn + noteLine + cardLine)) {
+      putDropsBack();
+      return;
+    }
 
     // Settled before the document is replaced, out of the state that is about
     // to be overwritten. Restore replaces review history — that is what the
@@ -6098,39 +6199,78 @@ function wire() {
     // two sets meet under the same tombstone algebra a sync uses rather than a
     // second one invented here, so a note deleted on either side stays deleted.
     const notes = mergedNotes(state.notes, incoming.notes);
+    // The cards are the other document and never travelled inside this one, so
+    // there is nothing here to replace them with even if replacing were the
+    // offer. They meet the same way, under the same algebra.
+    const cards = mergedCards(cardLayer, theirCards);
     try {
       publishStateReset();
     } catch (e) {
+      putDropsBack();
       toast('The backup could not be restored because device storage is blocked.', true);
       return;
     }
     state = incoming;
     state.notes = notes;
-    // Two sets of notes met, and the cards on this device did not move. The
-    // ceiling they share is the one thing about that meeting the file cannot
-    // know, so it is applied here rather than discovered at the next sync.
+    cardLayer = cards;
+    // Four sets met, two apiece. The ceiling all of them share is the one thing
+    // about that meeting the file cannot know, so it is applied here rather
+    // than discovered at the next sync.
     capWrittenBlocks();
+    // Before anything is counted or swept: the cards from the file are not in
+    // the deck until this rebuilds it, and a sweep that ran first would read
+    // every one of them as a card that does not exist and delete the history
+    // this restore had just put back.
+    await applyCardLayer();
     // Drop history for cards that are no longer in the deck here rather than at
     // the next boot, so the number in the message is the truth.
     sweepUnknownRecords();
+    // And the history of a card the file records as deleted, which is the one
+    // thing the merge above deliberately will not do — see
+    // sweepDeletedCardHistory(). Said out loud below rather than found later.
+    historyDropped += sweepDeletedCardHistory();
     rollDay();
     if (!writeNow()) return;
+    // After the review document, not before: writeCardLayer() re-reads what is
+    // durable when it cannot write, and refuseForeignWrite() inside it would
+    // re-read a review document that publishStateReset() has just removed.
+    // Past writeNow() the lease is known free, so the only way this fails is
+    // room, and the deck on screen is rebuilt from whatever it put back.
+    const layer = writeCardLayer();
+    if (!layer.ok) await applyCardLayer();
     applyTheme();
     applyFontSize();
-    renderStats();
+    // The deck itself may have grown or lost a card, so every number derived
+    // off it moves with it — the search placeholder, the browse counts, the
+    // section tiles.
+    renderDeckChanged();
     renderNotesRow();
     const nowNotes = liveNotes().length;
-    const cards = known.length
+    const said = known.length
       ? (lost
         ? `Restored ${known.length} cards. ${lost} were from an older deck and were dropped.`
         : `Restored ${plural(known.length, 'card')} of history.`)
       : 'Restored the backup — it held no card history for this deck.';
-    toast(cards + (nowNotes ? ` ${plural(nowNotes, 'note')} on this deck.` : ''));
-    // A restore is one of the two ways two note sets can meet, so it is one of
-    // the two places the ceiling can bite — and the ceiling is shared, so what
-    // it bit may have been a card rather than a note.
+    const nowCards = liveCardCount();
+    const also = [];
+    if (nowNotes) also.push(plural(nowNotes, 'note'));
+    if (nowCards) also.push(`${plural(nowCards, 'card')} you have written or edited`);
+    toast(said + (also.length ? ` ${listWords(also)} on this deck.` : ''));
+    // A restore is one of the two ways two sets of writing can meet, so it is
+    // one of the two places the ceiling can bite — and the ceiling is shared,
+    // so what it bit may have been a card rather than a note.
     sayIfNotesDropped();
     sayIfCardsDropped();
+    sayIfHistoryDropped();
+    if (!layer.ok) {
+      // Last, because it is the costliest sentence on this path: the history
+      // landed and the layer did not, so something the restore was asked for
+      // did not happen at all. The importer's words for a full browser, because
+      // it is the same browser and the same way out of it.
+      toast('The history in that backup was restored, but the cards in it were not: '
+        + 'the browser is out of space for this site. Removing a deck you no longer '
+        + 'study will free it.', true);
+    }
   });
 
   // beforeinstallprompt and appinstalled are listened for in munin.js instead:
@@ -6195,14 +6335,31 @@ function wire() {
       toast('Copy your Sync key and turn Sync off before erasing this device, or the shared copy would return.', true);
       return;
     }
-    const kept = liveNotes().length;
+    const keptNotes = liveNotes().length;
+    // The cards you wrote are in a document this button does not touch at all
+    // — publishStateReset() removes the review history and nothing else — so
+    // they survive whatever this sentence says. Which is exactly why it has to
+    // say it: a person about to erase a deck cannot be left guessing whether
+    // the cards they wrote into it are review history.
+    const keptCards = liveCardCount();
+    const kept = [];
+    if (keptNotes) kept.push(`your ${plural(keptNotes, 'note')}`);
+    if (keptCards) kept.push(`the ${plural(keptCards, 'card')} you have written or edited`);
+    // Sentence case at the front of a sentence: the list begins "your…" or
+    // "the…", and both sentences below open with it.
+    const keptSays = kept.length
+      ? listWords(kept).charAt(0).toUpperCase() + listWords(kept).slice(1)
+      : '';
+    // One thing, not one kind of thing: "your 1 note are kept" was what
+    // counting the kinds produced, and it was what the old sentence said.
+    const keptIs = keptNotes + keptCards === 1 ? 'is' : 'are';
     if (!confirm('Erase all review history on this device? Export a backup first if you might want it back.'
-      + (kept ? `\n\nYour ${kept} note${kept === 1 ? '' : 's'} on this deck are kept.` : ''))) return;
+      + (kept.length ? `\n\n${keptSays} on this deck ${keptIs} kept.` : ''))) return;
     // The notes come across to the fresh state on purpose. This button offers
     // to erase review history, and it says so in the sentence above; taking
     // somebody's writing with it would be destroying a thing nobody was asked
-    // about. Removing the deck itself is the way to remove its notes, and that
-    // one takes the whole document with it.
+    // about. Removing the deck itself is the way to remove its notes and its
+    // cards, and that one takes both documents with it.
     const notes = state.notes;
     try {
       publishStateReset();
@@ -6215,7 +6372,9 @@ function wire() {
     applyTheme();
     applyFontSize();
     renderStats();
-    toast(kept ? 'Progress erased. Your notes are still here.' : 'Progress erased.');
+    toast(kept.length
+      ? `Progress erased. ${keptSays} ${keptIs} still here.`
+      : 'Progress erased.');
   });
 
   addEventListener('keydown', (e) => {

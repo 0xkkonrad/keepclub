@@ -358,6 +358,33 @@ things this document left open, settled in that build:
   straight into the document this design keeps them out of, and left there as a staler
   second copy.
 
+Item 6, **the lifecycle**, is the cards block in the exported payload and in restore, the
+erase confirm, `sweepOrphans()` in `web/munin.js`, `remove()` in `web/lib/store.js`, and
+the replace path in `web/import.js` with its line in `web/lib/receipt.js`. Three things
+this document did not settle, decided in that build:
+
+- **Every sentence about the file counts the whole layer, not the cards with no shipped
+  card under them.** A deck whose entire history with a person is five of its own cards
+  they fixed has a file worth taking, and the earlier count said there was nothing here to
+  back up while the file held all five. `liveCardCount()` therefore drives the backup line,
+  the export message, the restore message and the erase confirm, all in one phrase — *the
+  N cards you have written or edited* — because four sentences about one thing that count
+  it differently are four chances to be wrong. `writtenCardCount()` survives as the file
+  header's `cardsWritten`, where "how many of these were typed by hand" is the question a
+  person opening the JSON actually has.
+- **Re-import is two rulings, not one.** *This deck again* keeps the layer — that is the
+  whole reason an edit is a layer over the deck rather than a change to it, and it is what
+  makes a course update replace the official half and leave yours alone. *A different deck
+  under the same name*, which is the explicit start-over path, takes it: the records are
+  keyed by the outgoing deck's card ids, so what would survive is overrides that apply to
+  nothing and cards written into a deck that is not on the device any more. The receipt
+  says which of the two this one is before the button, and names the backup file as the way
+  out of the second.
+- **Removing a deck is the one thing that takes both documents; erasing progress is the one
+  thing that keeps one.** `store.remove()` deletes the layer beside the history, and
+  `sweepOrphans()` catches either of them written back by a tab that was still open —
+  from a list it actually has, never from an empty one.
+
 **Tests.** A new `tests/authoring.mjs` built on `notes.mjs`'s shape (write → read back →
 reload → sanitiser → corrupt block still boots → foreign tab refused → modal history and
 Tab containment), plus the override and revert cases and the author-rewrote-it detection.
@@ -365,4 +392,9 @@ Tab containment), plus the override and revert cases and the author-rewrote-it d
 migration gate on the byte bound, and the refusal above it.
 `course-schema-v2.mjs` for the reserved prefix, with a gate that no shipped course uses it.
 `qa-regressions.mjs` for single-writer and modal behaviour. `achievements.mjs` for moving
-denominators. `importer-ui.mjs` for creation, re-import and removal.
+denominators. `importer-ui.mjs` for creation, re-import and removal — including the layer
+kept by one replace, taken by the other, and the deck's two documents going together.
+`authoring.mjs` for the lifecycle: the file carrying the layer as its own block, a restore
+merging rather than clobbering, an older file that cannot resurrect a deleted card but
+whose review history for it goes and is said, erase keeping the layer, and the shelf's
+orphan sweep.

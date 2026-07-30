@@ -1548,6 +1548,231 @@ cards:
   await ctx.close();
 }
 
+/* ── the layer's lifecycle ── */
+
+/** Hand a JSON document to the restore <input>, which is what picking a file in
+ *  the dialog resolves to. The toast is emptied first so waiting for one is
+ *  waiting for this restore rather than seeing the last one's — and the wait
+ *  after it is for the sentences a restore says on top of its own, which are
+ *  the costly ones. */
+async function restore(page, payload) {
+  await page.evaluate(() => { document.getElementById('toast').textContent = ''; });
+  await page.setInputFiles('#import-file', {
+    name: 'backup.json',
+    mimeType: 'application/json',
+    buffer: Buffer.from(JSON.stringify(payload)),
+  });
+  await page.waitForFunction(
+    () => document.getElementById('toast').textContent.length > 0);
+  await page.waitForTimeout(300);
+  await page.evaluate(() => writeNow());
+}
+
+/* The backup file is the whole of what this deck holds, and since the layer
+ * exists that is two documents. It matters most where Sync never runs: for a
+ * deck of your own the file is the only copy the cards in it will ever have. */
+{
+  const { ctx, page, errors } = await coursePage();
+  const wrote = await page.evaluate(async () => {
+    const shipped = DECK.cards[0].cardId;
+    const mine = await writeCard({ front: 'A card only the file has' });
+    await editCard(shipped, { front: 'Edited only in the file' });
+    const doomed = await writeCard({ front: 'Answered here, deleted later' });
+    // Answered, so the file carries a review record for a card of somebody's
+    // own — which is what the tombstone case below turns on.
+    state.recs[doomed.id] = {
+      st: 'r', step: 0, ivl: 4, ea: 2.5, due: Date.now() + 4 * 86400000, rp: 2, lp: 0, pv: 0,
+    };
+    writeNow();
+    return { shipped, mine: mine.id, doomed: doomed.id };
+  });
+  // A note beside them, because the sentence has to name three things at once
+  // and it used to be built out of nested conditionals — which is how a deck
+  // full of hand-written cards came to be told it held nothing but settings.
+  await page.click('#notes-open');
+  await page.fill('#notes-text', 'A note beside the cards');
+  await page.click('#notes-save');
+  await page.click('#notes-close');
+  await page.click('[data-go="stats"]');
+  const offer = await page.evaluate(() =>
+    document.getElementById('backup-state').textContent);
+  ok(/your 1 note, the 3 cards you have written or edited and your settings\./.test(offer),
+    `the line above the button counts the whole layer, edits and all (${offer})`);
+  ok(await page.evaluate(() => /your own\s+cards are merged/.test(
+    document.getElementById('backup-state').previousElementSibling.textContent)),
+  'and the standing copy above it does not promise a restore replaces them');
+
+  // The anchor's click is stubbed rather than the Blob URL, the way notes.mjs
+  // does it: the file the app hands the browser is exactly what is read here.
+  const exported = await page.evaluate(async () => {
+    let captured = null;
+    const create = URL.createObjectURL;
+    const click = HTMLAnchorElement.prototype.click;
+    URL.createObjectURL = (blob) => { captured = blob; return create.call(URL, blob); };
+    HTMLAnchorElement.prototype.click = function () {};
+    document.getElementById('export-btn').click();
+    URL.createObjectURL = create;
+    HTMLAnchorElement.prototype.click = click;
+    return {
+      text: await captured.text(),
+      toast: document.getElementById('toast').textContent,
+      stateDoc: localStorage.getItem(KEY),
+    };
+  });
+  const payload = JSON.parse(exported.text);
+  const live = Object.entries(payload.cards || {}).filter(([, rec]) => rec.front);
+  ok(live.length === 3 && payload.cards[wrote.mine].front === 'A card only the file has'
+      && payload.cards[wrote.shipped].was,
+  `the file carries the layer as its own block, fingerprints and all (${live.length} records)`);
+  ok(payload.cardsWritten === 2 && payload.cardsWithHistory === 1,
+    `and is stamped with what a person opening it would want to know (${payload.cardsWritten} written)`);
+  ok(!('cards' in JSON.parse(exported.stateDoc)),
+    'while the review document on the device still holds no cards key of its own');
+  ok(exported.toast === 'Exported 1 card of history, 1 note and '
+      + '3 cards you have written or edited.',
+  `and the app says that is what it exported, in one sentence (${exported.toast})`);
+  ok(errors.length === 0, `exporting a layer raises no page errors (${errors.join(' | ') || 'none'})`);
+  await ctx.close();
+
+  /* Restore merges the two layers, exactly as it merges the two sets of notes.
+   * Replacing would be the wrong answer twice over: the cards are the other
+   * document and never travelled inside this one, and a card somebody wrote is
+   * the one thing in the file nothing else can reproduce. */
+  const next = await coursePage();
+  const dialogs = watchDialogs(next.page);
+  const here = await next.page.evaluate(async () => {
+    const own = await writeCard({ front: 'Only on the restoring device' });
+    writeNow();
+    return own.id;
+  });
+  await next.page.click('[data-go="stats"]');
+  await restore(next.page, payload);
+  const landed = await next.page.evaluate((ids) => ({
+    mine: !!byId.get(ids.mine),
+    here: !!byId.get(ids.here),
+    doomed: !!byId.get(ids.doomed),
+    shipped: byId.get(ids.shipped)?.front,
+    records: Object.keys(state.recs).length,
+    written: liveCardCount(),
+    toast: document.getElementById('toast').textContent,
+  }), Object.assign({ here }, wrote));
+  ok(landed.mine && landed.here && landed.doomed,
+    'a restore keeps the cards on both sides, the way it keeps the notes');
+  ok(/Edited only in the file/.test(landed.shipped || ''),
+    `and an edit over a course card arrives applied to the card it is about (${landed.shipped})`);
+  ok(landed.records === 1 && landed.written === 4,
+    `the review history in the file lands on the card it belongs to (${landed.records} records, ${landed.written} cards)`);
+  ok(/merged too/.test(dialogs.asked.join(' ')) && /are all kept/.test(dialogs.asked.join(' ')),
+    `the confirm said what would happen to them before it happened (${dialogs.asked.join(' | ')})`);
+  ok(/4 cards you have written or edited/.test(landed.toast),
+    `and the message afterwards counts them (${landed.toast})`);
+
+  /* The sharp edge, on the restore path. The same file again, over a device
+   * that has since deleted one of its cards: the delete is the newer record and
+   * it stands, so the history the file is putting back has nothing left to be
+   * about. It goes, and it is said — a number on Progress falling on its own is
+   * exactly what somebody notices a week later and cannot explain. */
+  await next.page.evaluate((id) => deleteCard(id), wrote.doomed);
+  await restore(next.page, payload);
+  const after = await next.page.evaluate((id) => ({
+    inDeck: !!byId.get(id),
+    record: Object.hasOwn(state.recs, id),
+    stored: Object.hasOwn(
+      JSON.parse(localStorage.getItem(KEY)).recs, id),
+    toast: document.getElementById('toast').textContent,
+  }), wrote.doomed);
+  ok(!after.inDeck,
+    'an older file does not resurrect a card deleted on this device');
+  ok(!after.record && !after.stored,
+    'and the review history it brought back for that card does not stay behind it');
+  ok(/history went with it/.test(after.toast),
+    `said out loud rather than found later (${after.toast})`);
+  ok(next.errors.length === 0,
+    `restoring a layer raises no page errors (${next.errors.join(' | ') || 'none'})`);
+  await next.ctx.close();
+}
+
+/* Erasing progress offers to erase review history, and that is all it takes.
+ * The cards are in a document that button never touches — which is exactly why
+ * it has to say so, because a person about to erase a deck cannot be left
+ * guessing whether the cards they wrote into it count as review history. */
+{
+  const { ctx, page, errors } = await coursePage({}, 'competent-crew');
+  const dialogs = watchDialogs(page);
+  const mine = await page.evaluate(async () => {
+    const shipped = DECK.cards[0].cardId;
+    const wrote = await writeCard({ front: 'Kept across an erase' });
+    await editCard(shipped, { front: 'Fixed, and still fixed afterwards' });
+    startSession(null, {});
+    reveal();
+    answer(3);
+    writeNow();
+    leaveStudy(false);
+    return { id: wrote.id, shipped };
+  });
+  await page.click('[data-go="stats"]');
+  await page.click('#reset-btn');
+  await page.waitForFunction(() => state.answers === 0);
+  await page.evaluate(() => writeNow());
+  const kept = await page.evaluate((ids) => ({
+    records: Object.keys(state.recs).length,
+    inDeck: !!byId.get(ids.id),
+    shipped: byId.get(ids.shipped)?.front,
+    stored: Object.values(JSON.parse(localStorage.getItem(CARDS_KEY)).cards)
+      .filter((rec) => rec.front).length,
+    toast: document.getElementById('toast').textContent,
+  }), mine);
+  ok(kept.records === 0, 'erasing progress still erases every review');
+  ok(kept.inDeck && kept.stored === 2 && /still fixed/.test(kept.shipped || ''),
+    `and keeps the layer it never offered to destroy (${kept.stored} records)`);
+  ok(/2 cards you have written or edited/.test(dialogs.asked.join(' '))
+      && /are kept/.test(dialogs.asked.join(' ')),
+  `the confirm says so before it is pressed (${dialogs.asked.join(' | ')})`);
+  ok(/2 cards you have written or edited are still here/.test(kept.toast),
+    `and the message afterwards says it again (${kept.toast})`);
+  ok(errors.length === 0, `erasing with a layer raises no page errors (${errors.join(' | ') || 'none'})`);
+  await ctx.close();
+}
+
+/* Cards go where the deck goes. store.remove() takes both documents as the deck
+ * is removed, and the shell sweeps whatever a still-open tab wrote back, every
+ * time the shelf draws — from a list it actually has, never from an empty one.
+ * The removal itself is in importer-ui.mjs, where there is a real deck to
+ * remove; this is the sweep behind it. */
+{
+  const ctx = await b.newContext({
+    viewport: { width: 390, height: 844 }, serviceWorkers: 'block',
+  });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(String(e)));
+  await page.goto(URL, { waitUntil: 'networkidle' });
+  await page.waitForSelector('.shelf');
+  await page.evaluate(() => {
+    const doc = JSON.stringify({ v: 1, cards: { 'u.aabbccddeeff': {
+      at: 1, ed: 1, front: 'a card in a deck that is going away', back: '',
+    } } });
+    localStorage.setItem('munin/local-abcdef12/cards/v1', doc);
+    localStorage.setItem('munin/day-skipper/cards/v1', doc);
+  });
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.waitForSelector('.shelf');
+  let swept = false;
+  try {
+    await page.waitForFunction(
+      () => localStorage.getItem('munin/local-abcdef12/cards/v1') === null,
+      null, { timeout: 5000 });
+    swept = true;
+  } catch (e) { swept = false; }
+  const builtIn = await page.evaluate(() =>
+    localStorage.getItem('munin/day-skipper/cards/v1'));
+  ok(swept, 'the cards written into a deck that is no longer here go with its progress');
+  ok(builtIn && JSON.parse(builtIn).cards['u.aabbccddeeff'].front,
+    'a course that is still here keeps its layer when the shelf sweeps');
+  ok(errors.length === 0, `the orphan sweep raises no page errors (${errors.join(' | ') || 'none'})`);
+  await ctx.close();
+}
+
 await b.close();
 console.log(out.concat(fails).join('\n'));
 if (fails.length) { console.error(`\n${fails.length} failing`); process.exit(1); }

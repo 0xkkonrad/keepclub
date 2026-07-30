@@ -237,6 +237,28 @@ export function nothingHtml(r) {
     </div>`;
 }
 
+/* What becomes of the cards this person wrote into the deck being replaced.
+ *
+ * Every other sentence on this screen is about the file. "keeping progress" is
+ * about review history and reads as a promise about everything of theirs in the
+ * deck — and the cards they wrote are the one part of it that nothing in the
+ * file can put back, because the file has never heard of them. So the outcome
+ * is stated before the button rather than discovered in Browse afterwards, and
+ * it is a different outcome each way: the same deck again keeps them, which is
+ * the whole reason an edit is a layer over the deck rather than a change to it,
+ * and a different deck under the same name takes them with the progress.
+ *
+ * Silent at nought, like every other line here that has nothing to count. */
+function yours(existing) {
+  const written = Number(existing && existing.written) || 0;
+  if (written < 1) return '';
+  return `<p class="imp-sub">You have written or edited ${plural(written, 'card')
+  } in this deck. ${existing.sameDeck
+    ? 'Yours are kept: this file replaces the deck’s own cards, not the ones you wrote.'
+    : 'Starting over takes them as well as your progress — open the deck and export a '
+      + 'backup from Progress first if you want them back.'}</p>`;
+}
+
 export function receiptHtml(r, existing) {
   if (r.type === 'keep') {
     const delta = existing?.updateDelta;
@@ -253,6 +275,7 @@ export function receiptHtml(r, existing) {
       ${update}
       ${existing && !delta ? `<p class="imp-sub">You already have a course called ${
         esc(existing.title)}. Its stable course ID differs, so replacing it starts over.</p>` : ''}
+      ${yours(existing)}
       <div class="imp-acts">
         ${existing
     ? `<button type="button" class="go" data-keep="replace">${delta
@@ -269,6 +292,7 @@ export function receiptHtml(r, existing) {
       new Date(existing.created).toLocaleDateString('en-GB')}. ${existing.sameDeck
     ? 'It is this same deck, so replacing it keeps what you have answered.'
     : 'Its cards are different ones, so replacing it starts them over.'}</p>` : ''}
+    ${yours(existing)}
     <div class="imp-acts">
       ${existing
     ? `<button type="button" class="go" data-keep="replace">${existing.sameDeck

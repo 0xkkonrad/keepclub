@@ -1215,13 +1215,14 @@ async function courseMeta(id) {
   }
 }
 
-/* Study history, and cached loading screens, for decks that are not here.
+/* Study history, the cards somebody wrote, and cached loading screens, for
+ * decks that are not here.
  *
- * store.remove() deletes the state key as it goes, but the deck being removed
- * may be the one open behind this overlay, and that session writes its state
- * again on the way out — so the key comes back a moment after it was deleted,
- * owned by nothing, for ever. Collecting orphans whenever the shelf draws is
- * the only point where the full list of decks is in hand anyway.
+ * store.remove() deletes both of a deck's documents as it goes, but the deck
+ * being removed may be the one open behind this overlay, and that session
+ * writes its state again on the way out — so the key comes back a moment after
+ * it was deleted, owned by nothing, for ever. Collecting orphans whenever the
+ * shelf draws is the only point where the full list of decks is in hand anyway.
  *
  * DELETING IS ONLY EVER DONE FROM A LIST WE ACTUALLY HAVE. `null` means the
  * question could not be answered — a database that would not open, a registry
@@ -1233,7 +1234,12 @@ function sweepOrphans(decks, courses) {
   if (decks) {
     const live = new Set(decks.map((d) => d.id));
     for (const k of Object.keys(localStorage)) {
-      const s = /^munin\/(local-[a-z0-9]+)\/state\/v1$/.exec(k);
+      // Both of a deck's documents, not only its review history: the cards
+      // somebody wrote into it live in a sibling key (MUNIN.cardsKey) and are
+      // as orphaned by the deck going as the history is. Swept together
+      // because they are re-created together — an open tab that rewrites one
+      // on the way out is just as able to rewrite the other.
+      const s = /^munin\/(local-[a-z0-9]+)\/(?:state|cards)\/v1$/.exec(k);
       if (s && !live.has(s[1])) localStorage.removeItem(k);
     }
   }

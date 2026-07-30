@@ -224,8 +224,20 @@ ok(/^local-[a-z0-9]+$/.test(id), `the imported deck becomes the resume target ($
 }
 
 /* Re-importing the same deck: your progress is the thing at risk, so it is the
- * thing the screen is about. */
+ * thing the screen is about — along with the other thing in this deck that only
+ * this device has, which no file being imported can put back. */
 {
+  // One of each kind of record, so the layer under this deck holds both a card
+  // that exists because somebody typed it and an edit over a card the file
+  // brought.
+  const mine = await p.evaluate(async () => {
+    const shipped = DECK.cards[0].cardId;
+    const wrote = await writeCard({ front: 'A card I wrote into an imported deck' });
+    const fixed = await editCard(shipped, { front: 'Fixed by me before the re-import' });
+    writeNow();
+    return { ok: wrote.ok && fixed.ok, id: wrote.id, shipped };
+  });
+  ok(mine.ok, 'a card written into the imported deck, and one of its own edited');
   await p.click('.shelf-btn');
   await p.waitForSelector('.shelf.on');
   ok((await p.locator('.shelf-row').count()) === 1, 'the imported deck sits on the shelf');
@@ -234,8 +246,11 @@ ok(/^local-[a-z0-9]+$/.test(id), `the imported deck becomes the resume target ($
   await give(p, 'legacy.apkg');
   await p.waitForSelector('.imp .imp-book', { timeout: 20000 });
   ok(await p.locator('[data-keep="replace"]').isVisible(), 'it recognises a deck you already have');
-  ok((await p.textContent('.imp-inner')).includes('keeping my progress'),
-    'and offers to keep the progress');
+  const said = await p.textContent('.imp-inner');
+  ok(said.includes('keeping my progress'), 'and offers to keep the progress');
+  ok(/written or edited 2 cards in this deck/.test(said) && /Yours are kept/.test(said),
+    `the receipt accounts for the cards only this device has (${
+      /You have written[^.]*\.[^.]*\./.exec(said)?.[0] || said.slice(0, 90)})`);
   await Promise.all([p.waitForEvent('load'), p.click('[data-keep="replace"]')]);
   await p.waitForFunction(() => document.getElementById('boot').hidden, null, { timeout: 20000 });
   const kept = await p.evaluate((k) => {
@@ -243,6 +258,16 @@ ok(/^local-[a-z0-9]+$/.test(id), `the imported deck becomes the resume target ($
     return Object.keys(s.recs || {}).length;
   }, id);
   ok(kept >= 2, `replacing a deck keeps what you had done (${kept} cards still answered)`);
+  const layer = await p.evaluate((k) => {
+    const doc = JSON.parse(localStorage.getItem(`munin/${k}/cards/v1`) || 'null');
+    return doc ? Object.values(doc.cards).filter((rec) => rec.front).length : 0;
+  }, id);
+  const drawn = await p.evaluate((m) => ({
+    written: !!byId.get(m.id),
+    fixed: /Fixed by me/.test(byId.get(m.shipped)?.front || ''),
+  }), mine);
+  ok(layer === 2 && drawn.written && drawn.fixed,
+    `and keeps them, in the deck as well as in the document (${layer} records)`);
   const count = await p.evaluate(async () => (await (await import('./lib/store.js')).list()).length);
   ok(count === 1, 'and does not leave a second copy behind');
 }
@@ -260,10 +285,22 @@ ok(/^local-[a-z0-9]+$/.test(id), `the imported deck becomes the resume target ($
   await p.waitForSelector('#imp-file');
   await give(p, 'replacement.apkg');
   await p.waitForSelector('.imp .imp-book', { timeout: 20000 });
-  ok((await p.textContent('.imp-inner')).includes('start over'),
+  const said = await p.textContent('.imp-inner');
+  ok(said.includes('start over'),
     'a same-title deck with different cards is identified as a fresh start');
+  // The other replace kept them and said so. This one cannot: the records are
+  // keyed by the outgoing deck's card ids, so what would survive is edits over
+  // nothing and cards written into a deck that is not here any more.
+  ok(/written or edited 2 cards in this deck/.test(said)
+      && /Starting over takes them/.test(said) && /export a backup/.test(said),
+  `and says the cards you wrote go with the progress, and where to put them first (${
+    /You have written[^.]*\.[^.]*\./.exec(said)?.[0] || said.slice(0, 90)})`);
   await Promise.all([p.waitForEvent('load'), p.click('[data-keep="replace"]')]);
   await p.waitForFunction(() => document.getElementById('boot').hidden, null, { timeout: 20000 });
+  const layerGone = await p.evaluate((k) =>
+    localStorage.getItem(`munin/${k}/cards/v1`), id);
+  ok(layerGone === null,
+    'start over takes the layer with the account, as the line above the button said');
   const fresh = await p.evaluate(() => ({
     records: Object.keys(state.recs).length,
     answers: state.answers,
@@ -346,8 +383,16 @@ ok(/^local-[a-z0-9]+$/.test(id), `the imported deck becomes the resume target ($
     'held Escape cannot cascade through the underlying shelf');
 }
 
-/* Removing a deck takes two taps and takes its history with it. */
+/* Removing a deck takes two taps and takes both of its documents with it. */
 {
+  // Erasing progress deliberately keeps the layer and says so; removing the
+  // deck is the one thing that takes it, because there is nothing left for it
+  // to be a layer over.
+  const wrote = await p.evaluate(async () => {
+    const card = await writeCard({ front: 'A card in a deck about to go' });
+    return card.ok;
+  });
+  ok(wrote, 'a card written into the deck that is about to be removed');
   const staleRemoval = await ctx.newPage();
   await staleRemoval.goto(URL_, { waitUntil: 'networkidle' });
   await staleRemoval.waitForFunction(() => document.getElementById('boot').hidden);
@@ -376,19 +421,23 @@ ok(/^local-[a-z0-9]+$/.test(id), `the imported deck becomes the resume target ($
   await p.waitForSelector('.shelf.on');
   const gone = await p.evaluate((k) => ({
     state: localStorage.getItem(`munin/${k}/state/v1`),
+    cards: localStorage.getItem(`munin/${k}/cards/v1`),
     last: localStorage.getItem('munin/last-course'),
   }), id);
   ok(gone.state === null, 'the second tap takes the deck and its history');
+  ok(gone.cards === null, 'and the cards written into it, which nothing else now describes');
   ok(gone.last === null, 'and it stops being the deck you resume into');
   const left = await p.evaluate(async () => (await (await import('./lib/store.js')).list()).length);
   ok(left === 0, 'and the database is empty again');
   await staleRemoval.waitForSelector('.shelf.on');
   await staleRemoval.evaluate(() =>
     dispatchEvent(new PageTransitionEvent('pagehide', { persisted: false })));
-  const stayedGone = await p.evaluate((k) =>
-    localStorage.getItem(`munin/${k}/state/v1`), id);
-  ok(stayedGone === null,
-    'an open study tab cannot recreate a removed deck’s orphaned progress');
+  const stayedGone = await p.evaluate((k) => ({
+    state: localStorage.getItem(`munin/${k}/state/v1`),
+    cards: localStorage.getItem(`munin/${k}/cards/v1`),
+  }), id);
+  ok(stayedGone.state === null && stayedGone.cards === null,
+    'an open study tab cannot recreate a removed deck’s orphaned documents');
   await staleRemoval.close();
 }
 
