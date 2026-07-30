@@ -424,6 +424,16 @@ settle, decided in that build:
   shelf row all said "1 cards"; the exam pitch also offered to work out how many of these
   1 cards a day you need. They are counted through `plural()` now, and the pitch has a
   branch for a deck with nothing yet to pace.
+- **The ruling above that "the backup file is the way to move one" is not what shipped, so
+  the copy does not say it.** The backup file is per-course, stamped `munin/<course id>`
+  and refused by any other deck (`web/app.js`, the restore guard), and it carries the
+  review history, the notes and the cards layer — never the deck document, which lives in
+  IndexedDB under an id minted on the device that made it. So a file exported from a deck
+  of your own restores into that deck on that device and nowhere else. Three sentences
+  offered it as the way to move one — the creation blurb, the after-first-save screen and
+  the Sync screen's unavailable line — and all three now say what the file actually holds
+  and that no file holds the deck. Making the promise true is a deck exporter, which is a
+  feature and not a wording, and it is the obvious next thing this release asks for.
 
 **Tests.** A new `tests/authoring.mjs` built on `notes.mjs`'s shape (write → read back →
 reload → sanitiser → corrupt block still boots → foreign tab refused → modal history and

@@ -2502,17 +2502,19 @@ function liveWrittenCount() {
  * mergedNotes() calls into sync.js: two implementations of an eviction order
  * would make a round trip through Sync change what is on the device.
  *
- * Answers whether the card block moved, because the caller that has just been
- * handed another device's cards is the one that has to write this document back
- * — and a ceiling that only ever bit in memory would bite again on every boot,
- * saying so again each time. */
+ * Answers whether it took anything out of either block, because a ceiling that
+ * only ever bit in memory would bite again on every boot — dropping the same
+ * records and saying so again each time — so every caller has to write back
+ * what it was handed. Either block, not only the cards: both documents are
+ * held to the one number, so either of them can be the half that gives. */
 function capWrittenBlocks() {
   // With sync.js missing there is no joint order to call, and the per-block
   // ceilings above still hold each half. Nothing is lost by leaving it: this
   // can only ever remove records, never keep more of them.
   if (!globalThis.DSSync || !DSSync.capWritten) return false;
   const capped = DSSync.capWritten(state.notes, cardLayer);
-  const moved = Object.keys(capped.cards).length !== Object.keys(cardLayer).length;
+  const moved = Object.keys(capped.cards).length !== Object.keys(cardLayer).length
+    || Object.keys(capped.notes).length !== Object.keys(state.notes).length;
   state.notes = capped.notes;
   cardLayer = capped.cards;
   return moved;
@@ -5020,9 +5022,13 @@ function renderSyncState() {
   const s = DSSync.status();
 
   if (s.available === false) {
+    // The backup file below this line holds the review history, the notes and
+    // the cards layer — never the deck. Saying it moves one would be the app
+    // offering a way out that does not exist, on the screen somebody reads
+    // before deciding they can remove the deck.
     line.textContent = 'Built-in courses can sync your progress, your notes and the cards '
-      + 'you write. A deck you import or write stays on this device, and the backup file is '
-      + 'how you move one.';
+      + 'you write. A deck you import or write stays on this device: the backup file below '
+      + 'holds what you have answered and the cards you wrote, and no file holds the deck.';
     keyEl.hidden = true;
     acts.innerHTML = '';
     return;
@@ -6069,9 +6075,13 @@ function wire() {
     //
     // Both documents go, the way a sync sends both: what this deck holds is a
     // review history and a layer of cards beside it, and a file with only the
-    // first in it is not a backup of the deck. It matters most where Sync never
-    // runs — a deck of your own does not sync at all, and the creation copy
-    // says in as many words that this file is how you move one.
+    // first in it is not a backup of what somebody has done with this deck. It
+    // matters most where Sync never runs — a deck you imported or wrote never
+    // syncs at all, so this file is the only copy its layer will ever have.
+    //
+    // What does NOT go is the deck: its own cards live in the database, keyed
+    // by an id minted on this device, and restore refuses a file stamped for
+    // any other. No screen may offer this file as the way to move a deck.
     //
     // The layer is assigned after `state` rather than into the header, because
     // `state` is spread over the header: a `cards` key that ever appeared on
@@ -6661,8 +6671,14 @@ async function boot() {
   // sections, the search index and the sweep are all built off the one list.
   loadCardLayer();
   // The first moment both documents are in hand, and so the first moment the
-  // ceiling they share can be applied to them together.
-  capWrittenBlocks();
+  // ceiling they share can be applied to them together — and written back where
+  // it bit, both documents, because the two blocks arrive here having been
+  // capped only against their own half. A ceiling that held in memory alone
+  // would drop the same records on the next boot and say so again each time.
+  if (capWrittenBlocks()) {
+    writeCardLayer();
+    save();
+  }
   await applyCardLayer();
 
   renderAskWhy();

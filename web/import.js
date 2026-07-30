@@ -115,11 +115,6 @@ function writtenInto(id) {
  * document is what the deck ships, and your layer goes over the top of it.
  */
 
-/* The cap on a card side in the layer app.js keeps — CARD_LEN there, and the
- * maxlength on the two boxes this screen borrows. The reader would take a
- * longer one, but a first card that could not survive its own first edit is
- * not a first card worth writing. */
-const CARD_LEN = 2000;
 const DECK_NAME_LEN = 120;
 
 /* Control characters out, ends trimmed, length capped: the same discipline
@@ -129,6 +124,16 @@ const typed = (value, limit) => String(value == null ? '' : value)
   .replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, '')
   .trim()
   .slice(0, limit);
+
+/* Whatever is in a box, held to that box's own maxlength.
+ *
+ * The number is not written here. The two card boxes are a clone of the card
+ * sheet's, whose cap is app.js's CARD_LEN written once into index.html, and a
+ * second copy of it in this file is a second copy to drift — this screen would
+ * go on taking two thousand characters the day the sheet stopped. The reader
+ * would take a longer side than either, but a first card that could not
+ * survive its own first edit is not a first card worth writing. */
+const typedIn = (input) => typed(input.value, input.maxLength > 0 ? input.maxLength : Infinity);
 
 /* The shape a course's own card ids have: ten lowercase hex characters, which
  * is what the RYA courses' build script produces and what the id grammar
@@ -403,9 +408,15 @@ export function openImporter() {
         'keep club is part-way through an update. Reload the page and try again.');
       return;
     }
+    /* Said before the boxes rather than found out later, and said exactly: the
+       backup file on a deck's Progress screen holds what you have answered and
+       the cards you add to the deck, and no file anywhere holds the deck
+       itself. Offering it as the way to move one would be this screen making a
+       promise the app does not keep — and the promise somebody would rely on
+       just before removing the deck. */
     body.innerHTML = `<p class="imp-sub">A deck is made by its first card, so this asks for
-      both. A deck you write stays on this device: it does not sync, and the backup file on
-      its Progress screen is how you move it or keep a second copy.</p>`;
+      both. A deck you write stays on this device: it does not sync, and no backup file holds
+      the deck itself, so what you write here is written nowhere else.</p>`;
     body.appendChild(sheet);
     const form = body.querySelector('#byo-card-form');
     // Above the two boxes, because the deck is the thing being made and the
@@ -429,9 +440,9 @@ export function openImporter() {
   async function create() {
     const save = body.querySelector('#byo-card-save');
     if (!save || save.disabled) return;
-    const title = typed(body.querySelector('#byo-deck-name').value, DECK_NAME_LEN);
-    const front = typed(body.querySelector('#byo-card-front').value, CARD_LEN);
-    const back = typed(body.querySelector('#byo-card-back').value, CARD_LEN);
+    const title = typedIn(body.querySelector('#byo-deck-name'));
+    const front = typedIn(body.querySelector('#byo-card-front'));
+    const back = typedIn(body.querySelector('#byo-card-back'));
     ownDiagnostics([]);
     if (!title) {
       ownSays('A deck needs a name.');
@@ -550,8 +561,9 @@ export function openImporter() {
                there. -->
           <li class="said"><b></b><span>Browse is where you write the next card, and every
             card after it — “Write a card” is at the top of the list</span></li>
-          <li class="said"><b></b><span>a deck you wrote does not sync. Progress → export a
-            backup is how you move it, or keep a second copy of it</span></li>
+          <li class="said"><b></b><span>a deck you wrote does not sync, and this device is
+            the only place it exists — Progress → export a backup keeps what you have
+            answered and the cards you add next, not the deck</span></li>
           <li class="said"><b></b><span>removing it from the courses screen takes the deck,
             what you have answered and every card in it</span></li>
         </ul>
