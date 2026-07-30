@@ -34,6 +34,20 @@ export const CSS = `
     text-transform: lowercase; cursor: pointer; border: var(--bw) solid var(--stroke);
     border-radius: var(--r-sm); box-shadow: var(--sh-sm); }
   .imp-file small { display: block; margin-top: 3px; font-size: .74rem; opacity: .8; }
+  /* Beside choosing a file, not instead of it. The same shape as the button
+     above so it is plainly the other half of one question, in the surface
+     colours rather than the accent so that only one of the two reads as the
+     thing this screen is mainly for. */
+  .imp-mine { margin-top: 10px; min-height: var(--tap); width: 100%; padding: 12px;
+    background: var(--surface); color: var(--text); font: inherit; font-size: .9rem;
+    text-transform: lowercase; cursor: pointer; border: var(--bw) solid var(--stroke);
+    border-radius: var(--r-sm); box-shadow: var(--sh-sm); }
+  .imp-mine small { display: block; margin-top: 3px; font-size: .74rem; color: var(--muted); }
+  /* The card sheet's own form, cloned into this screen — see cardBoxes() in
+     import.js. Everything inside it is already drawn by app.css's .sheet-*
+     rules; what the clone must not bring with it is .sheet-card, which is the
+     bottom-sheet panel those rules pin to the edge of the screen. */
+  .imp-own { margin-top: 4px; }
   .imp-how { margin-top: 22px; color: var(--muted); font-size: .78rem; line-height: 1.6; }
   .imp-how b { color: var(--text); font-weight: 500; }
   .imp-work { text-align: center; padding: 40px 0; }

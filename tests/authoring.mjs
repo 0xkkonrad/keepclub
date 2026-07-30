@@ -1734,6 +1734,183 @@ async function restore(page, payload) {
   await ctx.close();
 }
 
+/* ── a deck of your own ───────────────────────────────────────────────────
+ *
+ * A deck nobody shipped. Its own card is in its own document, because a course
+ * with no cards is not a document the reader will take and so the deck had to
+ * be created by that card; every card after it is in the layer, exactly as in
+ * any other deck. Two homes for a card somebody wrote, and the point of this
+ * section is that the app has one model for them: the deck's document is what
+ * this deck ships, and the layer goes over the top of it.
+ *
+ * Made through the screen a person makes one on, rather than by writing a
+ * document into the database: what the creation path stores is half of what is
+ * being asserted here. */
+async function ownDeckPage(name, front, back) {
+  const ctx = await b.newContext({ viewport: { width: 390, height: 844 } });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(String(e)));
+  await page.goto(URL, { waitUntil: 'networkidle' });
+  await page.waitForSelector('.shelf.on');
+  await page.click('[data-byo]');
+  await page.waitForSelector('#imp-mine');
+  await page.click('#imp-mine');
+  await page.waitForSelector('#byo-deck-name');
+  await page.fill('#byo-deck-name', name);
+  await page.fill('#byo-card-front', front);
+  if (back) await page.fill('#byo-card-back', back);
+  await page.click('#byo-card-save');
+  await page.waitForSelector('[data-open]', { timeout: 15000 });
+  await Promise.all([page.waitForEvent('load'), page.click('[data-open]')]);
+  await page.waitForFunction(() => document.getElementById('boot').hidden,
+    null, { timeout: 20000 });
+  return { ctx, page, errors };
+}
+
+{
+  const { ctx, page, errors } = await ownDeckPage(
+    'Ropework', 'What knot **joins** two ropes of a size?', 'A sheet bend.');
+  const dialogs = watchDialogs(page);
+
+  const alone = await page.evaluate(async () => {
+    const only = DECK.cards[0].cardId;
+    openCardSheet({ cardId: only });
+    const refused = await removeCardFromSheet();
+    const said = document.getElementById('card-say').textContent;
+    closeCardSheet(false);
+    return {
+      only,
+      inLayer: Object.keys(JSON.parse(localStorage.getItem(CARDS_KEY) || '{"cards":{}}').cards).length,
+      yours: DECK.cards[0]._yours === true,
+      ok: refused.ok,
+      said,
+    };
+  });
+  ok(!alone.ok && /only card in this deck/.test(alone.said)
+      && /courses screen/.test(alone.said),
+  `the card that made the deck cannot leave it while it is the only one (${alone.said})`);
+  ok(alone.inLayer === 0,
+    'and until something is written the layer over this deck holds nothing at all');
+  ok(alone.yours, 'the card in the deck’s own document still reads as a card you wrote');
+
+  const both = await page.evaluate(async () => {
+    const wrote = await writeCard({ front: 'What knot makes a fixed loop?', back: 'A bowline.' });
+    startSession(null, {});
+    reveal();
+    answer(3);
+    reveal();
+    answer(3);
+    writeNow();
+    leaveStudy(false);
+    go('browse');
+    document.querySelector('.btile')?.click();
+    return { id: wrote.id, answered: Object.keys(state.recs).length };
+  });
+  await page.waitForTimeout(200);
+  const notices = await page.$$eval('.b-mine', (nodes) => nodes.map((node) => node.textContent));
+  ok(notices.length === 2 && notices.every((t) => /Written by you/.test(t)),
+    `Browse says who wrote each of them, wherever it lives (${notices.join(' | ')})`);
+  ok(both.answered === 2, 'both are answered like any other card');
+
+  /* The two of them go different ways, and that is the difference the two homes
+   * make. The card in the deck's own document is hidden — taken out of the
+   * deck, its record kept, its history kept, free to bring back. The one in the
+   * layer is deleted, which is permanent and takes the answers with it. */
+  const hidden = await page.evaluate(async (only) => {
+    openCardSheet({ cardId: only });
+    const result = await removeCardFromSheet();
+    return {
+      ok: result.ok,
+      cards: DECK.cards.length,
+      records: Object.keys(state.recs).length,
+      list: hiddenCards().length,
+    };
+  }, alone.only);
+  ok(hidden.ok && hidden.cards === 1 && hidden.list === 1,
+    `the card the deck was made by is hidden rather than deleted (${hidden.cards} card left)`);
+  ok(hidden.records === 2, 'so the history of answering it stays, because bringing it back is free');
+
+  const back = await page.evaluate(async (only) => {
+    const result = await revertCard(only);
+    return { ok: result.ok, cards: DECK.cards.length, front: byId.get(only)?.front || '' };
+  }, alone.only);
+  ok(back.ok && back.cards === 2 && /<strong>joins<\/strong>/.test(back.front),
+    'and bringing it back is one press, on the card that was written');
+
+  const deleted = await page.evaluate(async (ids) => {
+    openCardSheet({ cardId: ids.id });
+    const gone = await removeCardFromSheet();
+    openCardSheet({ cardId: ids.only });
+    const refused = await removeCardFromSheet();
+    const said = document.getElementById('card-say').textContent;
+    closeCardSheet(false);
+    return {
+      gone: gone.ok,
+      cards: DECK.cards.length,
+      records: Object.keys(state.recs).length,
+      refused: refused.ok,
+      said,
+    };
+  }, { id: both.id, only: alone.only });
+  ok(deleted.gone && deleted.cards === 1 && deleted.records === 1,
+    'the one in the layer is deleted for good, and takes the history of answering it');
+  ok(dialogs.asked.some((m) => /answered it 1 time/.test(m)),
+    `having asked first, with the number that makes it a decision (${dialogs.asked.join(' | ')})`);
+  ok(!deleted.refused && /only card in this deck/.test(deleted.said),
+    'and the last card standing is refused again, however it got to be the last one');
+
+  await reload(page);
+  const after = await page.evaluate(() => ({
+    cards: DECK.cards.length,
+    yours: DECK.cards.filter((c) => c._yours === true).length,
+    front: DECK.cards[0].front,
+  }));
+  ok(after.cards === 1 && after.yours === 1 && /<strong>joins<\/strong>/.test(after.front),
+    'and a cold open reads the deck’s own document back the same way');
+  ok(errors.length === 0,
+    `a deck of your own raises no page errors (${errors.slice(0, 2).join(' | ') || 'none'})`);
+  await ctx.close();
+}
+
+/* Editing the card a deck was made by is an override, like any other edit over
+ * a card a deck ships — which is what makes it free to take back. There is no
+ * second write path into the document, and there had better not be: store.put()
+ * clears a deck's whole media range before it rewrites it. */
+{
+  const { ctx, page, errors } = await ownDeckPage('Tides', 'What is a spring tide?');
+  const edited = await page.evaluate(async () => {
+    const only = DECK.cards[0].cardId;
+    await editCard(only, { front: 'What is a **spring** tide?', back: 'The biggest of the month.' });
+    return {
+      only,
+      front: byId.get(only).front,
+      record: JSON.parse(localStorage.getItem(CARDS_KEY)).cards[only],
+      inDocument: 1,
+    };
+  });
+  ok(/<strong>spring<\/strong>/.test(edited.front),
+    'the card the deck was made by can be fixed from inside the deck');
+  ok(!!edited.record && !!edited.record.was,
+    'as an override in the layer, fingerprinted against what the document holds');
+  const stored_ = await page.evaluate(async () => {
+    const id = localStorage.getItem('munin/last-course');
+    const deck = (await (await import('./lib/store.js')).get(id)).deck;
+    return { cards: deck.cards.length, front: deck.cards[0].front };
+  });
+  ok(stored_.cards === 1 && stored_.front === 'What is a spring tide?',
+    'the deck’s own document is untouched by it, which is what makes the edit free to undo');
+  const reverted = await page.evaluate(async (only) => {
+    await revertCard(only);
+    return byId.get(only).front;
+  }, edited.only);
+  ok(!/<strong>/.test(reverted) && /spring tide/.test(reverted),
+    `and showing the original brings back the card that was written (${reverted})`);
+  ok(errors.length === 0,
+    `editing a deck of your own raises no page errors (${errors.slice(0, 2).join(' | ') || 'none'})`);
+  await ctx.close();
+}
+
 /* Cards go where the deck goes. store.remove() takes both documents as the deck
  * is removed, and the shell sweeps whatever a still-open tab wrote back, every
  * time the shelf draws — from a list it actually has, never from an empty one.

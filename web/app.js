@@ -2002,7 +2002,7 @@ function renderHome() {
   const homeSub = $('#home-sub');
   homeSub.textContent = COURSE.publicPresentation && COURSE.tagline
     ? COURSE.tagline
-    : `${DECK.cards.length} cards · ${DECK.sections.length} sections`;
+    : `${plural(DECK.cards.length, 'card')} · ${plural(DECK.sections.length, 'section')}`;
   homeSub.hidden = false;
 
   // On day one every one of these reads as zero or nonsense — "0 to review" and
@@ -2696,11 +2696,24 @@ async function renderCardSide(source, path) {
  *  hid, with your edits over the top, plus what you wrote. */
 async function cardsWithLayer(shipped, sectionIds) {
   const out = [];
+  /* A deck whose document you wrote here rather than imported. Its own cards
+   * are cards you wrote too — the first of them is what made the deck, because
+   * a course with no cards is not a document this app will read — so they are
+   * marked like the ones in the layer.
+   *
+   * This is the only place the two homes for a card of your own meet, and it
+   * exists so that nothing downstream has to know about them: everything else
+   * asks one question, which is whether you wrote this card, and gets one
+   * answer. What still differs is what taking one out means — the card that
+   * made the deck can be hidden, and the deck itself is what you remove. */
+  const deckIsYours = !!(globalThis.COURSE && COURSE.own);
   for (const card of shipped) {
     const rec = cardRecord(card.cardId);
     if (!rec || !rec.front) {
       // No record, an emptied one — your edit taken back — or a hide.
-      if (!(rec && rec.hidden)) out.push(card);
+      if (!(rec && rec.hidden)) {
+        out.push(deckIsYours ? Object.assign({}, card, { _yours: true }) : card);
+      }
       continue;
     }
     const front = await renderCardSide(rec.front, '$.cards[0].front');
@@ -2858,9 +2871,14 @@ async function commitCards(id, say) {
 function renderAskWhy() {
   const cram = $('#ask-why');
   if (!cram || !DECK) return;
+  // And a deck of one card counts nothing at all: "how many of these 1 card a
+  // day" is a sentence about a workload that does not exist yet. A deck you
+  // wrote here starts at exactly one, so this is the state it opens in.
   cram.textContent = DECK.cards.length > 120
     ? `${DECK.cards.length} cards is more than you can cram. Give the app a date and it works out how many new cards a day you need, and stops scheduling anything for after you have sat it.`
-    : `Give the app a date and it works out how many of these ${DECK.cards.length} cards a day you need, and stops scheduling anything for after you have sat it.`;
+    : DECK.cards.length < 2
+      ? 'Give the app a date and it paces the deck to it, however big the deck gets, and stops scheduling anything for after you have sat it.'
+      : `Give the app a date and it works out how many of these ${plural(DECK.cards.length, 'card')} a day you need, and stops scheduling anything for after you have sat it.`;
 }
 
 /** The deck grew, shrank or changed a word. Everything counted off it moves.
@@ -2873,7 +2891,7 @@ function renderAskWhy() {
 function renderDeckChanged() {
   if (!DECK) return;
   const search = $('#search');
-  if (search) search.placeholder = `Search ${DECK.cards.length} cards…`;
+  if (search) search.placeholder = `Search ${plural(DECK.cards.length, 'card')}…`;
   renderAskWhy();
   // Browse's index of section tiles is built once and kept, because it is
   // twenty-four buttons that only ever appear while nothing is narrowed. A card
@@ -4403,7 +4421,12 @@ function sayCount(text) {
  * rewritten since you edited it is the one case with a choice in it, and the
  * choice is offered here rather than resolved silently either way. */
 function browseCardActs(card) {
-  const yours = CARD_ID.test(card.cardId);
+  // Off the card rather than off its id: a card of your own carries a reserved
+  // id, and so does an edit of a course card, but the cards in a deck you wrote
+  // here are in that deck's own document and carry ordinary ones. Whether you
+  // wrote it is a fact about the card, and cardsWithLayer() is where it is
+  // settled for both.
+  const yours = card._yours === true;
   let notice = '';
   if (authorRewroteCard(card.cardId)) {
     notice = `<span class="b-mine b-moved">The author rewrote this card after you edited it.</span>
@@ -4569,7 +4592,8 @@ function renderBrowseIndex() {
         ${doodle(GROUP_ART[g.groupId] || COURSE.fallback, 'bgroup-art')}
         <span class="bgroup-t">${escapeHtml(g.title)}</span>
         <button class="bgroup-all" data-scope="${escapeHtml(GROUP_AT + g.groupId)}"
-          aria-label="Read all ${n(g.cardCount)} cards in ${escAttr(g.title)}">${n(g.cardCount)} cards →</button>
+          aria-label="Read all ${plural(g.cardCount, 'card')} in ${escAttr(g.title)}">${
+  plural(g.cardCount, 'card')} →</button>
       </h2>` : '')
       + '<ul class="btiles"></ul>';
     const ul = sec.querySelector('.btiles');
@@ -4579,11 +4603,12 @@ function renderBrowseIndex() {
       const m = SECT_NO.exec(s.title);
       const li = document.createElement('li');
       li.innerHTML = `<button class="btile" data-scope="${escapeHtml(sectionId)}"
-          aria-label="${escAttr(s.title)}, ${n(s.cardCount)} cards. Read them.">
+          aria-label="${escAttr(s.title)}, ${plural(s.cardCount, 'card')}. ${
+  s.cardCount === 1 ? 'Read it' : 'Read them'}.">
         ${sectionMark(sectionId, 'btile-art')}
         ${m ? `<span class="btile-no">${escapeHtml(m[1])}</span>` : ''}
         <span class="btile-name">${escapeHtml(m ? m[2] : s.title)}</span>
-        <span class="btile-n">${n(s.cardCount)} cards</span>
+        <span class="btile-n">${plural(s.cardCount, 'card')}</span>
       </button>`;
       ul.appendChild(li);
     }
@@ -4653,7 +4678,8 @@ function renderBrowse() {
   browseTerms = terms;
 
   const all = DECK.cards.length;
-  $('#search').placeholder = sk ? `Search ${n(scope)} cards…` : `Search ${n(all)} cards…`;
+  $('#search').placeholder = sk
+    ? `Search ${plural(scope, 'card')}…` : `Search ${plural(all, 'card')}…`;
 
   // Say what was actually searched. "4 of 537" while a 21-card section is
   // selected reads like the search swept the deck and nearly nothing matched.
@@ -4665,15 +4691,15 @@ function renderBrowse() {
         ? 'No cards are slipping yet.'
         : `No cards in ${scopeName(sk)}.`);
   } else if (terms.length && sk) {
-    count = `${n(hits.length)} of the ${n(scope)} cards in ${scopeName(sk)}`;
+    count = `${n(hits.length)} of the ${plural(scope, 'card')} in ${scopeName(sk)}`;
   } else if (terms.length) {
-    count = `${n(hits.length)} of ${n(all)} cards`;
+    count = `${n(hits.length)} of ${plural(all, 'card')}`;
   } else if (sk) {
-    count = `${n(scope)} cards in ${scopeName(sk)}`;
+    count = `${plural(scope, 'card')} in ${scopeName(sk)}`;
   } else {
     // Nothing narrowed: the index is on screen, so the honest count is of the
     // things you can actually see and press, not of the cards behind them.
-    count = `${n(all)} cards in ${n(DECK.sections.length)} sections`;
+    count = `${plural(all, 'card')} in ${plural(DECK.sections.length, 'section')}`;
   }
   // "showing 40" is about a paged list. On the index every section is on screen,
   // and saying otherwise sent people looking for a Show more button that is not
@@ -5164,7 +5190,8 @@ function renderStats() {
   $('#set-exam').value = state.settings.examDate || '';
   const d = daysToExam();
   $('#exam-hint').textContent = d === null
-    ? `Add your exam date and the app works out how many new cards a day you need to see all ${DECK.cards.length} in time.`
+    ? `Add your exam date and the app works out how many new cards a day you need to see ${
+      DECK.cards.length === 1 ? 'it' : `all ${n(DECK.cards.length)}`} in time.`
     : d < 0 ? 'That date has passed. Clear it to go back to normal spacing.'
       : `${longDate(state.settings.examDate)}. No card will be left longer than ${fmtDays(ceiling())} between reviews.`;
   const auto = newBudget();
@@ -6683,7 +6710,7 @@ async function boot() {
     .then((f) => { if (f) { FIGURES = f; const c = currentCard(); if (c) renderCardFigure(c); } })
     .catch(() => {});
 
-  $('#search').placeholder = `Search ${DECK.cards.length} cards…`;
+  $('#search').placeholder = `Search ${plural(DECK.cards.length, 'card')}…`;
   renderNotice();
   renderOffline();
   wire();

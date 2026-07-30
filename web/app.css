@@ -1462,7 +1462,10 @@ mark {
   display: block; margin: 14px 0 6px;
   font-size: .78rem; font-weight: 500; text-transform: lowercase;
 }
-.sheet-form textarea, .sheet-where select {
+/* The text input is the deck name on the importer's creation screen, which
+   borrows this form wholesale. Named here rather than there so the three boxes
+   somebody fills in are drawn by one rule. */
+.sheet-form textarea, .sheet-form input[type="text"], .sheet-where select {
   display: block; width: 100%; padding: 12px 14px;
   background: var(--surface); color: var(--text);
   border: var(--bw) solid var(--stroke); border-radius: var(--r-sm);

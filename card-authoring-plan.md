@@ -385,6 +385,46 @@ this document did not settle, decided in that build:
   `sweepOrphans()` catches either of them written back by a tab that was still open —
   from a list it actually has, never from an empty one.
 
+Item 7, **deck creation**, is the second path on the importer's pick screen in
+`web/import.js` under *a deck of your own*, with `own` carried through `bootLocal()` in
+`web/munin.js` and read once in `cardsWithLayer()`. Four things this document did not
+settle, decided in that build:
+
+- **The card that made the deck stays in the deck's document, and every card after it is
+  in the layer.** That is not two models: the deck's document is what this deck *ships*,
+  the same way `cards.json` is what Day Skipper ships, and the layer goes over the top of
+  it exactly as it does anywhere else. What it costs is one honest asymmetry — the card
+  the deck was made by is taken out by hiding it, not by deleting it, because it is still
+  in the document underneath and bringing it back is therefore free. What it buys is that
+  no screen, no count, no sweep and no sync path has a branch in it for a deck of your
+  own. `cardsWithLayer()` is the one place the two homes meet, and all it does there is
+  answer the only question the screens actually ask, which is whether you wrote this card.
+- **`store.put` is called once, ever, on a deck that does not exist yet.** It clears a
+  deck's whole media range before it writes, and the creation path hands it an empty media
+  list — which is safe *by construction* and only by construction: the id was minted a
+  moment earlier and checked against every deck in the database, so the range being
+  cleared is empty. The constraint is written above the call in capitals, because a second
+  save path into an existing deck added underneath it would delete every picture in that
+  deck the first time somebody fixed a typo.
+- **The sheet is the card sheet's, cloned.** `#card-sheet .sheet-card` is copied out of
+  `index.html`, its ids renamed, and the three parts that are about a card which already
+  exists removed. The labels, the 2,000-character cap, the placeholder for a card you
+  grade yourself and the line naming what Markdown does are one definition, and a second
+  copy of them in `import.js` is a second copy to drift. The node itself cannot be
+  borrowed: the shelf opens over a course whose `app.js` is loaded and still listening to
+  that sheet.
+- **Validation is the reader, one level up.** The screen builds a one-card v2 course and
+  runs it through `readCourseForRuntime` — the whole document, not the card, because the
+  document is what is being made — and prints the reader's own message and correction with
+  the box named. What is stored is the document as it was typed, not what the reader
+  returned: boot owns the one render pass, and the reader's output carries derived fields
+  a later boot would hand back to a validator that has never heard of them.
+- **A deck of one card made every "N cards" in the app reachable at one.** Home's subtitle,
+  the Browse count and its section tiles, the search placeholder, the exam pitch and the
+  shelf row all said "1 cards"; the exam pitch also offered to work out how many of these
+  1 cards a day you need. They are counted through `plural()` now, and the pitch has a
+  branch for a deck with nothing yet to pace.
+
 **Tests.** A new `tests/authoring.mjs` built on `notes.mjs`'s shape (write → read back →
 reload → sanitiser → corrupt block still boots → foreign tab refused → modal history and
 Tab containment), plus the override and revert cases and the author-rewrote-it detection.
@@ -397,4 +437,11 @@ kept by one replace, taken by the other, and the deck's two documents going toge
 `authoring.mjs` for the lifecycle: the file carrying the layer as its own block, a restore
 merging rather than clobbering, an older file that cannot resurrect a deleted card but
 whose review history for it goes and is said, erase keeping the layer, and the shelf's
-orphan sweep.
+orphan sweep. Both files again for a deck of your own — `importer-ui.mjs` for the making
+of one (the second path on the pick screen, a creation called off leaving no tile, the
+reader's refusals, the neighbouring imported deck keeping every picture across the save,
+studying it immediately, the second card landing in the layer while the document keeps
+its one, and removal taking both documents), and `authoring.mjs` for the model over it
+(one card refused outright, hide-and-bring-back on the deck's own card against
+delete-for-good on the layer's, Browse naming the writer of each wherever it lives, and an
+edit of the card the deck was made by leaving that document untouched).

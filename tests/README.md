@@ -19,7 +19,13 @@ device, re-importing over the top with progress kept, the refusals, and
 removing the deck again. It also covers unrelated same-title replacement,
 lazy media and BFCache restoration, native audio controls, modal history/focus
 containment, recoverable storage failures, and stale-tab safety after reset or
-deck removal.
+deck removal. Then the other path on that screen: a deck of your own, made by
+its first card — the card sheet's own boxes borrowed without two elements ever
+sharing an id, a creation called off leaving no deck and no tile, the reader's
+refusals in the reader's own words, an imported deck standing beside it keeping
+every picture across the save that makes the new one, studying it straight away,
+the second card landing in the layer while the deck's document keeps its one,
+and removal taking both documents.
 
 `qa-regressions.mjs` — cross-surface browser regressions from the deep QA pass:
 single-writer study tabs, midnight and DST scheduling, held keys, session
@@ -102,7 +108,14 @@ once — said by the adoption itself, because most syncs are not asked for — a
 card only hidden over there keeping it, the ceiling notes and cards share
 counted from both sides, a merge arriving while another tab studies refused
 whole rather than in pieces, and a deck that stays on this device where the
-sync path is inert and the screen says why.
+sync path is inert and the screen says why. Last of all, a deck of your own
+made through the screen a person makes one on, because a card written into one
+has two homes and the app has one model for them: the card that made the deck
+lives in the deck's own document and every card after it in the layer, both
+read as cards you wrote, the document's one is hidden and brought back for free
+while the layer's is deleted for good, the last card standing is refused
+whichever of the two it is, and an edit of the card the deck was made by is an
+override that leaves that document alone.
 
 `deploy-script.mjs` — destructive deployment preflights in disposable Git
 repositories: wrong branches, dirty Pages work and an unexpected remote are

@@ -1015,6 +1015,11 @@ async function bootLocal(id) {
     sectionArt: rec.sectionArt || {},
     groupArt: rec.groupArt || {},
     deck: rec.deck,
+    // A deck whose document somebody wrote here, rather than one that came out
+    // of a file. app.js needs it for one thing: the cards in that document are
+    // cards a person wrote, and every screen that says who wrote a card should
+    // say so about those too.
+    own: rec.importFormat === 'own',
     mediaUrl,
     resolveMediaSource,
   }), async () => { globalThis.DOODLE = MUNIN_DOODLE; });
@@ -1342,7 +1347,8 @@ function localTile(d) {
         style="--tile-accent:${escHtml(MUNIN.theme.accent.light)}">
       ${emblem}
       <span><b>${escHtml(d.title)}</b><small>your deck · ${Number(d.cards).toLocaleString('en-GB')
-      } cards · ${new Date(d.created).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+      } ${Number(d.cards) === 1 ? 'card' : 'cards'} · ${
+  new Date(d.created).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
       }${done ? ' · ' + done : ''}</small></span>
     </button>
     <button type="button" class="shelf-del" data-del="${escHtml(d.id)}"
