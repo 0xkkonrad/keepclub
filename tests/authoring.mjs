@@ -1299,6 +1299,255 @@ const stored = (page) => page.evaluate(() =>
   await ctx.close();
 }
 
+/* ── the cards you write, crossing between devices ── */
+
+/* The blob is assembled here and taken apart here, and the two halves have to
+ * agree: the cards go out as their own block beside the state, and the state
+ * document on this device still holds none of them. A cards key inside the
+ * document mergeState rebuilds key by key is the one shape this feature was
+ * designed away from. */
+{
+  const { ctx, page, errors } = await coursePage();
+  const wrote = await page.evaluate(() => writeCard({ front: 'A card to carry' }));
+  const wire = await page.evaluate(() => {
+    addNote('a note to carry');
+    writeNow();
+    const payload = syncPayload();
+    return {
+      cards: Object.keys(payload.cards),
+      notes: Object.keys(payload.notes).length,
+      recs: Object.keys(payload.cards).length,
+      stateDoc: JSON.parse(localStorage.getItem(KEY)),
+      cardsDoc: JSON.parse(localStorage.getItem(CARDS_KEY)),
+    };
+  });
+  ok(wire.cards.length === 1 && wire.cards[0] === wrote.id && wire.notes === 1,
+    'what goes on the wire carries both documents as two blocks in one blob');
+  ok(wire.stateDoc.cards === undefined && !!wire.cardsDoc.cards[wrote.id],
+    'and the state document on the device still holds no cards key');
+  // The blob comes back through the sanitiser the transport was given, not
+  // through sanitise(), which knows nothing about a cards block and would drop
+  // the other device's cards on the way in.
+  const roundTrip = await page.evaluate(() => {
+    const raw = JSON.parse(JSON.stringify(syncPayload()));
+    return {
+      plain: sanitise(raw).cards,
+      synced: Object.keys(sanitiseSynced(raw).cards).length,
+      hostile: Object.keys(sanitiseSynced({ recs: {}, cards: 'not a block' }).cards).length,
+    };
+  });
+  ok(roundTrip.plain === undefined && roundTrip.synced === 1,
+    'the blob arrives through a sanitiser that knows both blocks');
+  ok(roundTrip.hostile === 0, 'and a cards block that is not a block becomes no cards');
+  ok(errors.length === 0, `the sync payload raises no page errors (${errors.join(' | ') || 'none'})`);
+  await ctx.close();
+}
+
+/* A card written on another device arrives, and the deck it lands in is the
+ * deck: indexed, counted, and stored where the next boot will read it. */
+{
+  const { ctx, page, errors } = await coursePage();
+  const landed = await page.evaluate(async () => {
+    const merged = Object.assign({}, syncPayload(), {
+      cards: {
+        'u.abcdef012345': {
+          at: 1000, ed: 1000, front: 'Written on the phone', back: 'And answered here',
+        },
+      },
+      notes: { aa11: { at: 900, ed: 900, text: 'and a note with it' } },
+    });
+    adoptSynced(merged);
+    await adopting;
+    const card = byId.get('u.abcdef012345');
+    return {
+      front: card && card.front,
+      yours: !!(card && card._yours),
+      cards: DECK.cards.length,
+      placeholder: document.getElementById('search').placeholder,
+      notes: liveNotes().length,
+      stored: JSON.parse(localStorage.getItem(CARDS_KEY)).cards['u.abcdef012345'].front,
+    };
+  });
+  ok(landed.front === '<p>Written on the phone</p>' && landed.yours,
+    `a card from another device is rendered into this deck (${landed.front})`);
+  ok(landed.cards === 538 && /Search 538 cards/.test(landed.placeholder),
+    `and every number counted off the deck moves with it (${landed.placeholder})`);
+  ok(landed.notes === 1 && landed.stored === 'Written on the phone',
+    'both blocks are adopted, and the cards block is written to its own document');
+  ok(errors.length === 0, `adopting a merged deck raises no page errors (${errors.join(' | ') || 'none'})`);
+  await ctx.close();
+}
+
+/* The sharp edge. A card you had answered was deleted on the other device, so
+ * the card goes and its history goes with it — but said out loud, once, rather
+ * than discovered as a number that fell on its own. A card merely hidden is not
+ * that: hiding is free to undo, which it would not be if the history had gone.
+ */
+{
+  const { ctx, page, errors } = await coursePage();
+  const shipped = await page.evaluate(() => DECK.cards[0].cardId);
+  const swept = await page.evaluate(async (shippedId) => {
+    const wrote = await writeCard({ front: 'A card I have answered' });
+    state.recs[wrote.id] = { st: 'r', step: 0, ivl: 4, ea: 2.5, due: 1, rp: 14, lp: 0, pv: 0 };
+    state.recs[shippedId] = { st: 'r', step: 0, ivl: 4, ea: 2.5, due: 1, rp: 9, lp: 0, pv: 0 };
+    writeNow();
+    const merged = Object.assign({}, syncPayload(), {
+      cards: {
+        [wrote.id]: { at: 1, ed: Date.now() + 1000, front: '', back: '' },
+        [shippedId]: { at: 1, ed: Date.now() + 1000, front: '', back: '', hidden: true },
+      },
+    });
+    adoptSynced(merged);
+    // Nothing said out loud here: the adoption itself has to say it. Most syncs
+    // are not asked for by anybody, and a sentence that only a button could
+    // print would leave the commonest case silent.
+    await adopting;
+    return {
+      gone: !byId.has(wrote.id) && !Object.hasOwn(state.recs, wrote.id),
+      hiddenGone: !byId.has(shippedId),
+      hiddenHistory: Object.hasOwn(state.recs, shippedId),
+      hidden: hiddenCards().length,
+      toast: document.getElementById('toast').textContent,
+      sticky: !document.getElementById('toast').classList.contains('away'),
+    };
+  }, shipped);
+  ok(swept.gone, 'a card deleted on another device takes its review history here too');
+  ok(/deleted on another device/.test(swept.toast) && swept.sticky,
+    `and the app says so rather than letting the number fall quietly (${swept.toast})`);
+  ok(swept.hiddenGone && swept.hiddenHistory && swept.hidden === 1,
+    'a card only hidden over there keeps its history, because bringing it back is free');
+  ok(errors.length === 0, `the history sweep raises no page errors (${errors.join(' | ') || 'none'})`);
+  await ctx.close();
+}
+
+/* One ceiling, shared. The number the app quotes while somebody types is the
+ * number the merge arrives at, and it counts both of the things they write. */
+{
+  const { ctx, page, errors } = await coursePage();
+  const full = await page.evaluate(async () => {
+    const now = Date.now();
+    state.notes = {};
+    for (let i = 0; i < 199; i++) {
+      state.notes['n' + i.toString(36).padStart(4, '0')] =
+        { at: now - i, ed: now - i, text: 'note ' + i };
+    }
+    const first = await writeCard({ front: 'The two hundredth thing I have written' });
+    const second = await writeCard({ front: 'And the two hundred and first' });
+    return {
+      first: first.ok,
+      second,
+      note: addNote('one note too many'),
+      agreed: WRITTEN_LIVE === DSSync.WRITTEN_LIVE
+        && WRITTEN_SLOTS === DSSync.WRITTEN_SLOTS,
+    };
+  });
+  ok(full.agreed,
+    'the app and the merge hold the same two numbers, which is the whole point of them');
+  ok(full.first && !full.second.ok,
+    'the two hundredth thing written is kept and the next one is refused');
+  ok(/notes and cards of your own/.test(full.second.say)
+      && /200/.test(full.second.say),
+  `and the refusal names the ceiling they share (${full.second.say})`);
+  ok(full.note === false,
+    'the ceiling is the same one from the notes side: a card fills the slot a note wanted');
+  ok(errors.length === 0, `the shared ceiling raises no page errors (${errors.join(' | ') || 'none'})`);
+  await ctx.close();
+}
+
+/* The single-writer rule covers a merge as much as it covers a keystroke. An
+ * idle tab that adopted one would swap the deck out from under the tab actually
+ * answering cards — and it would do it in pieces, the review document refused
+ * and put back while the cards document went in. Nothing is lost by refusing:
+ * the server still holds the merge. */
+{
+  const { ctx, page, errors } = await coursePage();
+  const held = await page.evaluate(async () => {
+    const wrote = await writeCard({ front: 'A card I have answered' });
+    state.recs[wrote.id] = { st: 'r', step: 0, ivl: 4, ea: 2.5, due: 1, rp: 6, lp: 0, pv: 0 };
+    writeNow();
+    const before = DECK.cards.length;
+    // The other tab takes the deck, the way it does — over storage.
+    localStorage.setItem(STUDY_LOCK_KEY,
+      JSON.stringify({ owner: 'the-other-tab', at: Date.now() }));
+    adoptSynced(Object.assign({}, syncPayload(), {
+      cards: { [wrote.id]: { at: 1, ed: Date.now() + 1000, front: '', back: '' } },
+      notes: { bb22: { at: 1, ed: Date.now(), text: 'and a note with it' } },
+    }));
+    await adopting;
+    const stored = JSON.parse(localStorage.getItem(CARDS_KEY)).cards[wrote.id];
+    return {
+      deck: DECK.cards.length === before && byId.has(wrote.id),
+      layer: !!(cardRecord(wrote.id) || {}).front && !!stored.front,
+      notes: liveNotes().length,
+      history: Object.hasOwn(state.recs, wrote.id),
+      toast: document.getElementById('toast').textContent,
+    };
+  });
+  ok(held.deck && held.layer,
+    'a merge arriving while another tab studies is not adopted, in either document');
+  ok(held.notes === 0 && held.history,
+    'and it takes nothing with it: no note lands, and no review record goes');
+  ok(/another tab is studying/i.test(held.toast),
+    `the refusal says which tab has the deck (${held.toast})`);
+  ok(errors.length === 0, `the refused adoption raises no page errors (${errors.join(' | ') || 'none'})`);
+  await ctx.close();
+}
+
+/* A deck that is not a built-in course does not sync, and the screen a person
+ * would ask on says so in words rather than by having no button.
+ *
+ * Driven through an import, because the pick screen's own second path is a
+ * later item — but it is the same deck to this half: both take a `local-` id,
+ * and every part of the layer's sync path hangs off that one test. */
+{
+  const ctx = await b.newContext({ viewport: { width: 390, height: 844 } });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(String(e)));
+  await page.goto(URL, { waitUntil: 'networkidle' });
+  await page.waitForSelector('.shelf.on');
+  await page.click('[data-byo]');
+  await page.waitForSelector('#imp-input', { state: 'attached' });
+  await page.setInputFiles('#imp-input', {
+    name: 'mine.keep.yml',
+    mimeType: 'text/yaml',
+    buffer: Buffer.from(`schemaVersion: 2
+courseId: a-deck-of-my-own
+title: A deck of my own
+cards:
+  - cardId: only
+    front: The only card in it.
+`),
+  });
+  await page.waitForSelector('.imp-book:visible');
+  await Promise.all([page.waitForEvent('load'), page.click('[data-keep="new"]')]);
+  await page.waitForFunction(() => document.getElementById('boot').hidden,
+    null, { timeout: 20000 });
+  const local = await page.evaluate(async () => {
+    const wrote = await writeCard({ front: 'A card in a deck of my own' });
+    const before = DSSync.status();
+    await runSync();
+    go('stats');
+    return {
+      id: COURSE.id,
+      wrote: wrote.ok,
+      available: before.available,
+      on: before.on,
+      line: document.getElementById('sync-state').textContent,
+      actions: document.getElementById('sync-actions').innerHTML,
+    };
+  });
+  ok(/^local-[a-z0-9]+$/.test(local.id) && local.wrote,
+    `a card can be written into a deck that stays on this device (${local.id})`);
+  ok(local.available === false && local.on === false,
+    'and the sync path is inert there: there is no identity to sync it under');
+  ok(/stays on this device/.test(local.line) && /backup file/.test(local.line)
+      && local.actions === '',
+  `the screen says so where somebody would ask (${local.line})`);
+  ok(errors.length === 0, `a local deck raises no page errors (${errors.join(' | ') || 'none'})`);
+  await ctx.close();
+}
+
 await b.close();
 console.log(out.concat(fails).join('\n'));
 if (fails.length) { console.error(`\n${fails.length} failing`); process.exit(1); }

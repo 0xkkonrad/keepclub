@@ -675,7 +675,8 @@ const backupOf = (page, extra) => page.evaluate((over) => Object.assign({
   await page.reload({ waitUntil: 'networkidle' });
   await page.waitForFunction(() => document.getElementById('boot').hidden);
   await page.waitForFunction(() =>
-    /notes at most/i.test(document.getElementById('toast').textContent));
+    /notes and cards of your own together at most/i
+      .test(document.getElementById('toast').textContent));
   const capped = await page.evaluate(() => {
     const live = liveNotes();
     return {

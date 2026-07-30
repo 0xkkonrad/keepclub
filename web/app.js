@@ -40,15 +40,23 @@ const AHEAD_BATCH = 20;
 // bounded at the far end, and one deck's notes must not be what fills it — the
 // review history is in the same document and would go down with it.
 const NOTE_LEN = 2000;
-// Live notes one deck may hold. Past this the panel says so rather than
+// The two things a person writes into a deck — notes, and cards — share one
+// ceiling rather than holding one each. What bounds them is the sync blob, and
+// the blob is one document: two independent ceilings would describe far more
+// writing than it can hold, and what loses when it will not fit is the review
+// history travelling beside it. The arithmetic, and the byte bound it is cut
+// from, are written out in sync.js above MAX_BYTES.
+//
+// Live records this deck may hold. Past this the app says so rather than
 // silently dropping the oldest, which is somebody's writing. Must match
-// sync.js's NOTE_LIVE: this is the number a person is told about while they
+// sync.js's WRITTEN_LIVE: this is the number a person is told about while they
 // type, and the merge has to arrive at the same one when devices meet.
-const NOTE_MAX = 200;
-// Stored entries: live notes plus the emptied records that record a delete.
-// Must match sync.js's NOTE_SLOTS — the merge caps to the same number, and a
-// sanitiser with a lower cap would throw away what the merge just kept.
-const NOTE_SLOTS = 400;
+const WRITTEN_LIVE = 200;
+// Stored entries: the live records plus the emptied ones that record a delete,
+// a hide or a revert. Must match sync.js's WRITTEN_SLOTS — the merge caps to
+// the same number, and a sanitiser with a lower cap would throw away what the
+// merge just kept.
+const WRITTEN_SLOTS = 400;
 // Ids are written by newNoteId() and are hex. They are checked rather than
 // trusted because a note id is used as an object key, and `{}['__proto__'] = v`
 // sets a prototype instead of a property — a restored file or a synced blob is
@@ -59,18 +67,6 @@ const NOTE_ID = /^[a-z0-9]{1,64}$/;
 // shipped course uses is 922 characters, so this ceiling is a long way past the
 // card anybody is fixing when they meet it.
 const CARD_LEN = 2000;
-// Live records one deck's card layer may hold: the cards you wrote and the
-// course cards you edited, counted together, because they cost the same to
-// store and are capped for the same reason. Deliberately conservative. The
-// sync blob's real size bound is not established anywhere in this repo yet —
-// establishing it is the first task of the sync phase — and the review history
-// travels in the same round, so the phase that finds that number may lower
-// both of these. Raising a ceiling later costs nobody anything.
-const CARD_MAX = 200;
-// Stored entries: live records plus the emptied ones that record a delete, a
-// hide or a revert. NOTE_SLOTS to CARD_MAX's NOTE_MAX, and for the same reason
-// — the marker is what stops another device handing a deleted card back.
-const CARD_SLOTS = 400;
 // A card you write takes a reserved id, and the layer accepts nothing else
 // under that prefix. Checked rather than trusted because it becomes an object
 // key, the same argument as NOTE_ID; and reserved in both directions, because
@@ -269,6 +265,14 @@ function sanitise(raw) {
   const base = freshState();
   if (!isPlainObject(raw)) return base;
   const s = Object.assign(base, raw);
+  // Everything this function does not name is carried through, which is how a
+  // key from a newer build survives an older one. The cards you write are the
+  // exception, and they are the exception on purpose: they live in a document
+  // of their own beside this one (MUNIN.cardsKey), a merged blob carries both,
+  // and this is the sanitiser the state half of it goes through. Left on the
+  // object, the block would be written into the document that must not hold it
+  // and would sit there as a second, staler copy of somebody's cards.
+  delete s.cards;
   s.settings = Object.assign(freshState().settings, isPlainObject(raw.settings) ? raw.settings : {});
 
   const num = (v, lo, hi, dflt) => {
@@ -389,9 +393,9 @@ function sanitise(raw) {
     entries.sort(noteEntryOrder);
     let kept = 0, live = 0;
     for (const [id, note] of entries) {
-      if (kept >= NOTE_SLOTS) break;
+      if (kept >= WRITTEN_SLOTS) break;
       if (note.text) {
-        if (live >= NOTE_MAX) { notesDropped++; continue; }
+        if (live >= WRITTEN_LIVE) { notesDropped++; continue; }
         live++;
       }
       notes[id] = note;
@@ -509,7 +513,7 @@ function writeNow() {
   }
   // Never mid-session: adopting a merged state would swap the deck out from
   // under the card on screen. The upload waits for the walk back to Progress.
-  if (globalThis.DSSync && !session) DSSync.schedule(() => state);
+  if (globalThis.DSSync && !session) DSSync.schedule(syncPayload);
   return wrote;
 }
 function flushAndReleaseStudyLock() {
@@ -2199,8 +2203,9 @@ function noteTextFrom(input) {
 function addNote(input) {
   const text = noteTextFrom(input);
   if (!text) return false;
-  if (liveNotes().length >= NOTE_MAX) {
-    noteSays(`This deck already holds ${NOTE_MAX} notes. Delete one to write another.`);
+  if (liveWrittenCount() >= WRITTEN_LIVE) {
+    noteSays(`This deck already holds ${WRITTEN_LIVE} notes and cards of your own. `
+      + 'Delete one to write another.');
     return false;
   }
   const now = Date.now();
@@ -2349,22 +2354,27 @@ function renderNotesIfOpen() {
 
 /* Say that words went, on the one occasion they can.
  *
- * Both places that hold this deck to NOTE_MAX live notes — the sanitiser here
- * and the merge in sync.js — run where there is nothing to say it on: one
+ * Both places that hold this deck to WRITTEN_LIVE live records — the sanitiser
+ * here and the merge in sync.js — run where there is nothing to say it on: one
  * before the app is drawn, the other several times inside a sync round. They
  * count instead. This is the other half, and it is the whole point of counting:
  * a note is the one thing in this document that nothing else can reproduce, so
  * losing one silently is the failure, not the drop itself. Sticky, because the
  * sentence is the only record of it there will ever be; read once and cleared,
- * so a second screen does not repeat a loss that already happened. */
+ * so a second screen does not repeat a loss that already happened.
+ *
+ * Answers whether it spoke. Two callers ask a sync round what it cost, and the
+ * one with a cheerier line to print has to know not to print it over the top. */
 function sayIfNotesDropped() {
   const merged = (globalThis.DSSync && DSSync.takeNoteDrops)
     ? DSSync.takeNoteDrops() : 0;
   const dropped = notesDropped + merged;
   notesDropped = 0;
-  if (!dropped) return;
-  toast(`This deck keeps ${NOTE_MAX} notes at most, so ${plural(dropped, 'note')} `
-    + `— the ones untouched for longest — could not be kept.`, true);
+  if (!dropped) return false;
+  toast(`This deck keeps ${WRITTEN_LIVE} notes and cards of your own together at most, `
+    + `so ${plural(dropped, 'note')} — the ones untouched for longest — could not be kept.`,
+  true);
+  return true;
 }
 
 /* ── cards you write ── */
@@ -2464,6 +2474,40 @@ function liveCardCount() {
   return Object.values(cardLayer).filter((rec) => !!rec.front).length;
 }
 
+/** Everything you have written into this deck, against the one ceiling it all
+ *  shares. A note and a card are the same thing to the blob that has to carry
+ *  them, so they are the same thing to the number that says when it is full. */
+function liveWrittenCount() {
+  return liveNotes().length + liveCardCount();
+}
+
+/** Hold both documents to the ceiling they share, wherever they are both in
+ *  hand: after a boot has read them, after a sync has merged them, after a
+ *  restore has replaced one.
+ *
+ * Each sanitiser already caps its own block against the same two numbers, which
+ * cannot change what survives here — the order over one kind is the joint order
+ * with the other kind taken out — so this is what the two of them add up to
+ * rather than a third opinion. Called rather than copied for the same reason
+ * mergedNotes() calls into sync.js: two implementations of an eviction order
+ * would make a round trip through Sync change what is on the device.
+ *
+ * Answers whether the card block moved, because the caller that has just been
+ * handed another device's cards is the one that has to write this document back
+ * — and a ceiling that only ever bit in memory would bite again on every boot,
+ * saying so again each time. */
+function capWrittenBlocks() {
+  // With sync.js missing there is no joint order to call, and the per-block
+  // ceilings above still hold each half. Nothing is lost by leaving it: this
+  // can only ever remove records, never keep more of them.
+  if (!globalThis.DSSync || !DSSync.capWritten) return false;
+  const capped = DSSync.capWritten(state.notes, cardLayer);
+  const moved = Object.keys(capped.cards).length !== Object.keys(cardLayer).length;
+  state.notes = capped.notes;
+  cardLayer = capped.cards;
+  return moved;
+}
+
 /** A short fingerprint of a card's official text, for `was`.
  *
  * A change detector and nothing else — it answers "is this still the card I
@@ -2525,9 +2569,9 @@ function sanitiseCardLayer(block) {
   entries.sort(cardEntryOrder);
   let kept = 0, live = 0;
   for (const [id, record] of entries) {
-    if (kept >= CARD_SLOTS) break;
+    if (kept >= WRITTEN_SLOTS) break;
     if (record.front) {
-      if (live >= CARD_MAX) { cardsDropped++; continue; }
+      if (live >= WRITTEN_LIVE) { cardsDropped++; continue; }
       live++;
     }
     records[id] = record;
@@ -2843,10 +2887,10 @@ function renderStudyCardAgain() {
 async function writeCard(input) {
   const checked = await checkCard(input);
   if (!checked.ok) return checked;
-  if (liveCardCount() >= CARD_MAX) {
+  if (liveWrittenCount() >= WRITTEN_LIVE) {
     return {
       ok: false,
-      say: `This deck already holds ${CARD_MAX} cards of your own. `
+      say: `This deck already holds ${WRITTEN_LIVE} notes and cards of your own. `
         + 'Delete one to write another.',
       diagnostics: [],
     };
@@ -2870,11 +2914,11 @@ async function editCard(cardId, input) {
   }
   const checked = await checkCard(input);
   if (!checked.ok) return checked;
-  if (!record && liveCardCount() >= CARD_MAX) {
+  if (!record && liveWrittenCount() >= WRITTEN_LIVE) {
     return {
       ok: false,
-      say: `This deck already holds ${CARD_MAX} cards of your own, and an edit is one of them. `
-        + 'Take one back to make this one.',
+      say: `This deck already holds ${WRITTEN_LIVE} notes and cards of your own, and an `
+        + 'edit is one of them. Take one back to make this one.',
       diagnostics: [],
     };
   }
@@ -2920,7 +2964,19 @@ async function deleteCard(cardId) {
   record.ed = Date.now();
   delete record.section;
   delete record.was;
-  return commitCards(cardId, 'Card deleted.');
+  const done = await commitCards(cardId, 'Card deleted.');
+  if (!done.ok) return done;
+  // The confirm names the answers that go with it; here is where they go. A
+  // record left behind would be swept on the next device the marker reaches and
+  // not on this one, which is two devices disagreeing about how much history a
+  // deck holds — and it would be waiting to be adopted by a future card that
+  // happened to take the same id.
+  if (Object.hasOwn(state.recs, cardId)) {
+    delete state.recs[cardId];
+    save();
+    renderDeckChanged();
+  }
+  return done;
 }
 
 /** Take a course card out of the deck. Reversible, because the shipped card is
@@ -3028,17 +3084,72 @@ function sweepUnknownRecords() {
   return true;
 }
 
+/** Review history for cards that were deleted somewhere else.
+ *
+ * A card you delete on your phone is a delete marker by the time it reaches
+ * your laptop, and the card is then gone from both. The history of answering it
+ * goes too — that is what the confirm on the phone said would happen — but it
+ * must not go inside the merge. Records are keyed by card id, and the merge is
+ * the one place that cannot tell "this card was deleted" from "the cards
+ * document did not load" — the distinction sweepUnknownRecords() exists for. So
+ * the merge never touches a record, and this does: local, bounded by the
+ * records this deck actually holds, and counted so that the app can say it out
+ * loud rather than let somebody find a number has fallen at the next boot.
+ *
+ * Only a card of your own, and only one whose record says deleted. A hidden
+ * course card keeps its history, because un-hiding it is free and would be a
+ * lie if the history had gone; a reverted override keeps it because the shipped
+ * card is back and it is the same card. */
+function sweepDeletedCardHistory() {
+  if (!cardLayerLoaded) return 0;
+  let gone = 0;
+  for (const id of Object.keys(state.recs)) {
+    if (!CARD_ID.test(id)) continue;
+    const record = cardRecord(id);
+    if (!record || record.front || record.hidden) continue;
+    delete state.recs[id];
+    gone++;
+  }
+  return gone;
+}
+
+// Cards whose review history that sweep took, unspoken. Counted rather than
+// said on the spot for the same reason the drops are: the sweep runs on the
+// boot path and in the middle of a sync round.
+let historyDropped = 0;
+
+/* Say that a card's history went with the card, once.
+ *
+ * The device that did the deleting was told at the confirm; this is the other
+ * device, where it happens without anybody asking for it. Sticky, because a
+ * number on the Progress screen falling on its own is exactly the kind of thing
+ * somebody notices a week later and cannot explain. */
+function sayIfHistoryDropped() {
+  const gone = historyDropped;
+  historyDropped = 0;
+  if (!gone) return false;
+  toast(gone === 1
+    ? 'A card you had answered was deleted on another device, so its history went with it.'
+    : `${gone} cards you had answered were deleted on another device, so their history `
+      + 'went with them.', true);
+  return true;
+}
+
 /* Say that cards went, on the one occasion they can. The sanitiser runs before
  * there is a screen to say it on, so it counts and this asks — the same half of
  * the same bargain sayIfNotesDropped() makes, for the same reason: a card
  * somebody wrote is the one thing in this document nothing else can reproduce.
  */
 function sayIfCardsDropped() {
-  const dropped = cardsDropped;
+  const merged = (globalThis.DSSync && DSSync.takeCardDrops)
+    ? DSSync.takeCardDrops() : 0;
+  const dropped = cardsDropped + merged;
   cardsDropped = 0;
-  if (!dropped) return;
-  toast(`This deck keeps ${CARD_MAX} cards of your own at most, so ${plural(dropped, 'card')} `
-    + `— the ones untouched for longest — could not be kept.`, true);
+  if (!dropped) return false;
+  toast(`This deck keeps ${WRITTEN_LIVE} notes and cards of your own together at most, `
+    + `so ${plural(dropped, 'card')} — the ones untouched for longest — could not be kept.`,
+  true);
+  return true;
 }
 
 /* ── the card sheet ── */
@@ -3539,7 +3650,7 @@ function leaveStudy(fromHistory) {
   flushAndReleaseStudyLock();
   clearStudySession();
   session = null;
-  if (globalThis.DSSync) DSSync.schedule(() => state);
+  if (globalThis.DSSync) DSSync.schedule(syncPayload);
   if (current !== 'home') go('home');
   $('#study-all').focus({ preventScroll: true });
   if (!fromHistory && stops[stops.length - 1] === 'study') history.back();
@@ -3956,7 +4067,7 @@ function finish() {
   flushAndReleaseStudyLock();
   clearStudySession();
   session = null;
-  if (globalThis.DSSync) DSSync.schedule(() => state);
+  if (globalThis.DSSync) DSSync.schedule(syncPayload);
   go('done');
   $('#done-home').focus({ preventScroll: true });
 }
@@ -4703,28 +4814,108 @@ function agoText(ts) {
   return `${Math.round(hrs / 24)} days ago`;
 }
 
+/** What this device puts on the wire.
+ *
+ * Two documents, two blocks, one blob. The cards are assembled here and never
+ * into `state` itself: that object is written to storage exactly as it stands,
+ * and a `cards` key inside it would land in the document that must not hold one
+ * — see MUNIN.cardsKey for why the two are apart in the first place.
+ *
+ * A deck of your own never reaches this function: DSSync.init() is told such a
+ * course is unsupported, so enabled() is false and nothing schedules a round.
+ * That is the whole of "a deck you write stays on this device", and the Sync
+ * screen says it in words. */
+function syncPayload() {
+  return Object.assign({}, state, { cards: cardLayer });
+}
+
+/** What comes back off the wire, before anything is believed.
+ *
+ * The blob has been through a network and a database since we wrote it, so it
+ * arrives through the same front door as a restored backup file — both of its
+ * blocks. sanitise() builds a fresh object out of the keys it knows and would
+ * drop a cards block handed to it, which on this path would mean the other
+ * device's cards never arrived at all. */
+function sanitiseSynced(raw) {
+  const clean = sanitise(raw);
+  clean.cards = sanitiseCardLayer(isPlainObject(raw) ? raw.cards : null);
+  return clean;
+}
+
+// The adoption a merge started, resolving to whether it already said what the
+// round cost. Rebuilding the deck around a card that arrived is asynchronous, so
+// a caller with something to print has to wait for it — and then has to know
+// whether the sentence it was going to print has already been said better.
+let adopting = Promise.resolve(false);
+
 /** Take a state the server merged for us.
  *
  * Silent when nothing changed, which is also what stops this looping: adopting
  * writes, writing schedules another sync, and that sync would adopt again. The
  * second round produces the same state, so it stops here instead. */
 function adoptSynced(merged) {
+  adopting = adoptMerged(merged)
+    .then((said) => !!said)
+    .catch((e) => { console.error(e); return false; });
+}
+
+async function adoptMerged(merged) {
   if (!DECK || session) return;
-  if (DSSync.stable(merged) === DSSync.stable(state)) return;
+  // Both documents move together or neither does, so the lease is asked once,
+  // here, rather than by each write in turn. Refused halfway is the bad shape:
+  // writeNow() puts the review document back and says so, and writeCardLayer()
+  // would then say the same sentence again over a sweep that had already
+  // counted a card's history against a state which never landed. Nothing is
+  // lost by waiting — the server is still holding the merge, and the round
+  // after the other tab stops studying takes it.
+  if (refuseForeignWrite()) return;
+  if (DSSync.stable(merged) === DSSync.stable(syncPayload())) return;
   state = sanitise(merged);
-  sweepUnknownRecords();
+  // A merge that carried no cards block is not a merge saying there are none:
+  // an older sync.js, or a course this build has never uploaded cards for,
+  // both look like this, and leaving the layer alone is the only answer that
+  // cannot delete a card nobody asked to delete.
+  const theirs = isPlainObject(merged && merged.cards)
+    ? sanitiseCardLayer(merged.cards)
+    : null;
+  if (theirs) cardLayer = theirs;
+  // Two blocks that have never met before, held to the ceiling they share.
+  const capped = capWrittenBlocks();
+  // Not sweepUnknownRecords(): the deck has not been rebuilt around the cards
+  // that just arrived, so byId is still the old deck and every card in the
+  // merge would look like a card that does not exist. What a delete marker
+  // costs is settled below, once, by the sweep that can say so.
+  historyDropped += sweepDeletedCardHistory();
   // Adopting is not a local settings change. Without this the write below
   // re-stamps the block with this device's clock, and a device that merely
   // received someone else's settings would outrank them at the next merge.
   settingsShape = JSON.stringify(Object.assign({}, state.settings, { at: 0 }));
   rollDay();
   writeNow();
+  // `capped` as well as `theirs`: a ceiling that bit only in memory would leave
+  // the deck on screen holding cards the layer no longer does, and bite again
+  // on the next boot.
+  const layerMoved = !!theirs || capped;
+  if (layerMoved) writeCardLayer();
   applyTheme();
   applyFontSize();
-  if (current === 'home') renderHome();
-  if (current === 'stats') renderStats();
-  if (current === 'browse') renderBrowse();
+  if (layerMoved) {
+    // The deck itself may have changed, so every number derived off it moves,
+    // which is the whole of renderDeckChanged().
+    await applyCardLayer();
+    renderDeckChanged();
+  } else {
+    if (current === 'home') renderHome();
+    if (current === 'stats') renderStats();
+    if (current === 'browse') renderBrowse();
+  }
   renderNotesIfOpen();
+  // Said here rather than only where a button asked for a sync, because most
+  // syncs are not asked for: writeNow() schedules one five seconds after a
+  // session ends, and a card whose history that round quietly took would
+  // otherwise be a number nobody could account for a week later.
+  return [sayIfNotesDropped(), sayIfCardsDropped(), sayIfHistoryDropped()]
+    .some(Boolean);
 }
 
 let syncBusy = false;
@@ -4738,16 +4929,25 @@ let syncBusy = false;
 function runSync(loud) {
   if (!globalThis.DSSync || !DSSync.enabled()) return Promise.resolve();
   writeNow();
+  // Nothing has been said about this round yet, whatever the last one cost.
+  adopting = Promise.resolve(false);
   // A function, not a value: a queued sync must read the state as it is when
   // its turn comes, and adoptSynced replaces the object wholesale.
-  return DSSync.sync(() => state)
-    .then((merged) => {
-      if (loud && merged !== undefined) toast('Synced.');
-      // After the "Synced." line, not before it: a round trip that had to drop
+  return DSSync.sync(syncPayload)
+    // Whatever the merge started has to finish first: the cards it brought are
+    // put into the deck asynchronously, and the sentences below are about what
+    // that cost.
+    .then((merged) => adopting.then((said) => {
+      // What the adoption did not reach. A merge that changed nothing on this
+      // device can still have dropped what the other device sent, and that
+      // round adopts nothing and so says nothing on its own.
+      const cost = [sayIfNotesDropped(), sayIfCardsDropped(), sayIfHistoryDropped()]
+        .some(Boolean) || said;
+      // And no "Synced." over the top of it: a round trip that had to drop
       // somebody's writing is not a successful sync with a footnote, and the
-      // sentence about it is the one that has to be left on the screen.
-      sayIfNotesDropped();
-    })
+      // sentence about what it cost is the one that has to be left on screen.
+      if (loud && merged !== undefined && !cost) toast('Synced.');
+    }))
     .catch((e) => { if (loud) toast(`Could not sync: ${e.message || 'no connection'}.`); });
 }
 
@@ -4757,7 +4957,9 @@ function renderSyncState() {
   const s = DSSync.status();
 
   if (s.available === false) {
-    line.textContent = 'Built-in courses can sync progress. Imported decks stay on this device.';
+    line.textContent = 'Built-in courses can sync your progress, your notes and the cards '
+      + 'you write. A deck you import or write stays on this device, and the backup file is '
+      + 'how you move one.';
     keyEl.hidden = true;
     acts.innerHTML = '';
     return;
@@ -5904,6 +6106,10 @@ function wire() {
     }
     state = incoming;
     state.notes = notes;
+    // Two sets of notes met, and the cards on this device did not move. The
+    // ceiling they share is the one thing about that meeting the file cannot
+    // know, so it is applied here rather than discovered at the next sync.
+    capWrittenBlocks();
     // Drop history for cards that are no longer in the deck here rather than at
     // the next boot, so the number in the message is the truth.
     sweepUnknownRecords();
@@ -5921,8 +6127,10 @@ function wire() {
       : 'Restored the backup — it held no card history for this deck.';
     toast(cards + (nowNotes ? ` ${plural(nowNotes, 'note')} on this deck.` : ''));
     // A restore is one of the two ways two note sets can meet, so it is one of
-    // the two places the ceiling can bite.
+    // the two places the ceiling can bite — and the ceiling is shared, so what
+    // it bit may have been a card rather than a note.
     sayIfNotesDropped();
+    sayIfCardsDropped();
   });
 
   // beforeinstallprompt and appinstalled are listened for in munin.js instead:
@@ -6266,12 +6474,23 @@ async function boot() {
   // here down the deck is the deck: the card count in the copy below, byId, the
   // sections, the search index and the sweep are all built off the one list.
   loadCardLayer();
+  // The first moment both documents are in hand, and so the first moment the
+  // ceiling they share can be applied to them together.
+  capWrittenBlocks();
   await applyCardLayer();
 
   renderAskWhy();
   // Drop history for cards that no longer exist — but only when the layer that
   // says which cards exist could actually be read. See sweepUnknownRecords().
   sweepUnknownRecords();
+  // And the history of a card another device deleted, which the marker for it
+  // is still holding here. Written back straight away: a sweep that is only
+  // ever in memory says the same sentence again on every boot.
+  const swept = sweepDeletedCardHistory();
+  if (swept) {
+    historyDropped += swept;
+    save();
+  }
 
   // Optional, and deliberately not awaited with the deck: no video map, or a
   // stale one, must never stop the cards loading.
@@ -6324,14 +6543,17 @@ async function boot() {
   // moment there is anywhere to say so.
   sayIfNotesDropped();
   sayIfCardsDropped();
+  sayIfHistoryDropped();
 
   if (globalThis.DSSync) {
     DSSync.init({
       app: COURSE.id,
+      // A deck you wrote or imported has a local- id and does not sync: its
+      // cards and media live in a database and are unbounded, which is a
+      // different problem from carrying a layer of edits. Everything about the
+      // cards layer's sync path hangs off this one line being false there.
       supported: !/^local-[a-z0-9]+$/.test(COURSE.id),
-      // The blob has been through a network and a database since we wrote it,
-      // so it comes in through the same front door as a restored backup file.
-      sanitise,
+      sanitise: sanitiseSynced,
       onMerged: adoptSynced,
       onStatus: (s) => {
         syncBusy = !!s.busy;

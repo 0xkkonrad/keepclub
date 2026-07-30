@@ -46,7 +46,17 @@ Day Skipper app's key, asserted UNTOUCHED) → cold open resumes the course.
 
 `sync-merge.mjs` — the cross-device merge algebra without a server:
 commutativity, idempotence, monotonic review history, streak reconstruction,
-key validation, and the guarantee that only a SHA-256 hash is transported.
+key validation, and the guarantee that only a SHA-256 hash is transported. Then
+the two blocks a person writes: notes and cards travelling as separately
+stamped records, tombstones that beat older words in either direction, a card
+written again after a delete, three devices converging whatever order they meet
+in, the one ceiling notes and cards share evicting by one total order across
+both, and the rule the feature turns on — a card tombstone arriving from
+another device deletes no review record in the merge. The blob's byte bound is
+gated rather than assumed: the client's number is read out of the backend's own
+migration, the measurement is asserted against the jsonb text form the server
+actually counts rather than against our own JSON, and a blob over it is refused
+before it is sent.
 
 `notes.mjs` — the per-deck notes tool as a person meets it: add, read back,
 edit and delete through the panel's own controls, the words surviving a reload
@@ -70,7 +80,7 @@ leaves a marker rather than a hole, both halves of the reserved `u.` namespace
 (the layer accepts nothing else, the course readers refuse a shipped course
 that uses it), a deliberately corrupt cards document still opening the deck,
 Markdown rendered to sanitized HTML in a deck that is already sanitized HTML,
-the ceiling and what it costs — and the one that matters most: a cards document
+the shared ceiling and what it costs — and the one that matters most: a cards document
 that will not parse stops the boot orphan sweep instead of feeding it, because
 the sweep deletes review history for every card it cannot find. Then the editor
 over the top of it, driven the way a person meets it: writing a card from Browse
@@ -84,7 +94,15 @@ keep-yours/take-theirs choice that follows, a hidden card found again from its
 own list, the first fill for a card written in markup the two boxes cannot
 write, and every number the app counts off the deck moving when the deck does.
 The structural cases substitute one course of our own at the fetch boundary, the
-way `front-only-ui.mjs` does.
+way `front-only-ui.mjs` does. Last, the half that crosses between devices: the
+blob assembled as two blocks with the state document still holding no cards key,
+a card arriving from another device and landing in the deck and its indexes, a
+card deleted over there taking its review history here and saying so out loud
+once — said by the adoption itself, because most syncs are not asked for — a
+card only hidden over there keeping it, the ceiling notes and cards share
+counted from both sides, a merge arriving while another tab studies refused
+whole rather than in pieces, and a deck that stays on this device where the
+sync path is inert and the screen says why.
 
 `deploy-script.mjs` — destructive deployment preflights in disposable Git
 repositories: wrong branches, dirty Pages work and an unexpected remote are

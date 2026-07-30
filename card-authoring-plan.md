@@ -299,10 +299,70 @@ Browse, `Fix this card` is in the study dock, and the sheet owns Delete, Hide an
   card in a section takes the section, as the copy says it will. The filter's rebuild key
   includes the section count for the same reason.
 
+Item 5, **sync**, is in `web/sync.js` under *what you write* and in `web/app.js` in
+`syncPayload()`, `sanitiseSynced()`, `adoptMerged()` and `sweepDeletedCardHistory()`. Seven
+things this document left open, settled in that build:
+
+- **The blob's size bound was discoverable after all, and it is 262,144 bytes.** It is in
+  this repo: `sync.apps.max_bytes` in
+  `content/day-skipper/supabase/migrations/20260727080812_sync_blobs.sql`, the migration
+  that defines the backend `web/sync.js` talks to, enforced by `sync_put` as
+  `octet_length(p_data::text) > v_max` with SQLSTATE 22023. Both built-in courses are
+  inserted at the column default, so it is the number and not an assumption.
+  `tests/sync-merge.mjs` reads the migration and fails if the client's copy drifts from it.
+- **One budget, and it had to be a count.** Day Skipper fully answered is 57 KB of review
+  records and the calendar another 6 KB, so about 66 KB of the blob is spoken for before
+  anybody writes anything. Notes and cards therefore share the 200 live records and 400
+  stored entries the notes had to themselves — `WRITTEN_LIVE` and `WRITTEN_SLOTS`, the same
+  numbers in both files — rather than holding 200 each, because two independent ceilings
+  describe far more writing than the blob can carry and what loses when it will not fit is
+  the review history beside it. Nothing on any device today is dropped by the change: 200
+  notes still fit exactly, and no cards have ever been uploaded.
+- **The ceiling cannot be a byte ceiling.** Eviction has to be a prefix of a total order or
+  a three-device merge stops converging — drop a long record and a shorter one behind it
+  moves up into the space, so merging a with b then c can keep a different set from merging
+  b with c then a. Records are counted; the bytes are enforced once, exactly, in
+  `syncOnce()`, which refuses to send a blob over the bound and says which way out there
+  is. A count cap and a length cap cannot bound bytes on their own, and pretending
+  otherwise is how you find out in the field.
+- **What the server counts is not `JSON.stringify`.** `p_data::text` is the *jsonb* text
+  form: Postgres parses the document and writes it back with a space after every colon and
+  every comma, so a blob of five thousand keys measures five thousand bytes larger there
+  than here. `blobBytes()` therefore renders the document the way Postgres does rather
+  than the way we sent it. It errs towards refusing slightly early, which costs nobody
+  anything — the refusal is local and every word is still on the device — where the other
+  direction costs a round trip and returns a sentence nobody can act on.
+- **The single-writer lease covers a merge, not only a keystroke.** `adoptMerged()` asks it
+  once, at the top, instead of letting each write ask in turn. Refused halfway was the bad
+  shape: `writeNow()` put the review document back and said why, `writeCardLayer()` then
+  said the same sentence again, and the deleted-history sweep between them had already
+  counted against a state that never landed. Nothing is lost by refusing — the server is
+  still holding the merge.
+- **A tombstone never takes review history inside the merge.** `mergeState` does not touch
+  `recs` for any reason, because it is the one place that cannot tell a deleted card from a
+  cards document that failed to load. The history goes locally instead, in
+  `sweepDeletedCardHistory()`: bounded by the records this deck holds, only for a card of
+  your own whose record says deleted, and spoken once in a sticky toast — *A card you had
+  answered was deleted on another device, so its history went with it.* A hidden course
+  card keeps its history, because otherwise un-hiding it would not be the free thing the
+  layer promises. `deleteCard()` now takes the record on the device that did the deleting,
+  which is what its confirm has always said it would. The sentence is said by the adoption
+  itself, not by the button that asked for a sync: most syncs are not asked for — one is
+  scheduled five seconds after every session — and a sentence only a button could print
+  would leave the commonest case silent. `runSync()` therefore withholds *Synced.* when
+  something costlier has been said, because a round trip that had to drop somebody's
+  writing is not a successful sync with a footnote.
+- **`sanitise()` had to be taught to drop one key.** It copies everything it does not name,
+  which is how a key from a newer build survives an older one — and it is the sanitiser the
+  state half of a merged blob goes through, so a `cards` key would have been written
+  straight into the document this design keeps them out of, and left there as a staler
+  second copy.
+
 **Tests.** A new `tests/authoring.mjs` built on `notes.mjs`'s shape (write → read back →
 reload → sanitiser → corrupt block still boots → foreign tab refused → modal history and
 Tab containment), plus the override and revert cases and the author-rewrote-it detection.
-`sync-merge.mjs` for the cards block, joint budget and three-device convergence.
+`sync-merge.mjs` for the cards block, the shared budget, three-device convergence, the
+migration gate on the byte bound, and the refusal above it.
 `course-schema-v2.mjs` for the reserved prefix, with a gate that no shipped course uses it.
 `qa-regressions.mjs` for single-writer and modal behaviour. `achievements.mjs` for moving
 denominators. `importer-ui.mjs` for creation, re-import and removal.
