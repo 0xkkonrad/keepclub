@@ -21056,14 +21056,4198 @@
           "derivedCardCount": 31
         }
       ]
+    },
+    {
+      "courseId": "git-101",
+      "normalizedCourseId": "git-101",
+      "courseIdUnchanged": true,
+      "cardCount": 142,
+      "sectionCount": 15,
+      "groupCount": 4,
+      "cards": [
+        {
+          "index": 0,
+          "oldCardId": "5850c0cd63",
+          "newCardId": "5850c0cd63",
+          "idUnchanged": true,
+          "oldSectionId": "mental-model",
+          "newSectionId": "mental-model",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "95fda9b8499a2662a50bc64cd4e3c68d8d710d4b72ea7608e210a37dde67bc8d",
+            "newSha256": "95fda9b8499a2662a50bc64cd4e3c68d8d710d4b72ea7608e210a37dde67bc8d",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "f0197b18b0eacf474b4a75ef2afcf3f8ff2de97c2f7cf53f06842e331a58b4cf",
+            "newSha256": "f0197b18b0eacf474b4a75ef2afcf3f8ff2de97c2f7cf53f06842e331a58b4cf",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "three-areas",
+              "on": [
+                "working",
+                "staging",
+                "repository"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "three-areas",
+              "highlightedLabels": [
+                "working",
+                "staging",
+                "repository"
+              ]
+            }
+          }
+        },
+        {
+          "index": 1,
+          "oldCardId": "875d5abfb2",
+          "newCardId": "875d5abfb2",
+          "idUnchanged": true,
+          "oldSectionId": "mental-model",
+          "newSectionId": "mental-model",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "bbedc9688cf840bd6ef81d09619a882320270a0d41955eb14a2b8e4207c38248",
+            "newSha256": "bbedc9688cf840bd6ef81d09619a882320270a0d41955eb14a2b8e4207c38248",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "2452e869a186ea7f86f84b935791ede9401fa240ba491410221bfbfafd027c60",
+            "newSha256": "2452e869a186ea7f86f84b935791ede9401fa240ba491410221bfbfafd027c60",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 2,
+          "oldCardId": "6a56b48c24",
+          "newCardId": "6a56b48c24",
+          "idUnchanged": true,
+          "oldSectionId": "mental-model",
+          "newSectionId": "mental-model",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "e0fa19b4b58caa0bffabd2571801fa953c0a8266e4629918ff0b4ef02fd77e84",
+            "newSha256": "e0fa19b4b58caa0bffabd2571801fa953c0a8266e4629918ff0b4ef02fd77e84",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "cb544b11b604630d0035cb695bed3934003dc5e6fa0a61e10ec628811f6b5d2e",
+            "newSha256": "cb544b11b604630d0035cb695bed3934003dc5e6fa0a61e10ec628811f6b5d2e",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 3,
+          "oldCardId": "5d4b59286a",
+          "newCardId": "5d4b59286a",
+          "idUnchanged": true,
+          "oldSectionId": "mental-model",
+          "newSectionId": "mental-model",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "19b65eae7493dbb6bda727d8b2c07fa919be640ea35e2736f799e609ec4ec5a2",
+            "newSha256": "19b65eae7493dbb6bda727d8b2c07fa919be640ea35e2736f799e609ec4ec5a2",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "7205f86c0b8885e299f3edba15f2fe671363aa4e477860b0524774a8d709ad6a",
+            "newSha256": "7205f86c0b8885e299f3edba15f2fe671363aa4e477860b0524774a8d709ad6a",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "snapshots",
+              "on": [
+                "commits"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "snapshots",
+              "highlightedLabels": [
+                "commits"
+              ]
+            }
+          }
+        },
+        {
+          "index": 4,
+          "oldCardId": "0dd1157d0e",
+          "newCardId": "0dd1157d0e",
+          "idUnchanged": true,
+          "oldSectionId": "mental-model",
+          "newSectionId": "mental-model",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "d3cba905279a91299c6e1032b662b09270042673fc5ad5a2f7b10efb0057f36f",
+            "newSha256": "d3cba905279a91299c6e1032b662b09270042673fc5ad5a2f7b10efb0057f36f",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "054f92232e109c4dba9ba9bccfe5668ca562bd4d027e5837d3087c0f1350e258",
+            "newSha256": "054f92232e109c4dba9ba9bccfe5668ca562bd4d027e5837d3087c0f1350e258",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 5,
+          "oldCardId": "dd525fe6ed",
+          "newCardId": "dd525fe6ed",
+          "idUnchanged": true,
+          "oldSectionId": "mental-model",
+          "newSectionId": "mental-model",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "c37eb8427d14418e9886e21dfe3c71adc313dded264575a9fdff110019163be7",
+            "newSha256": "c37eb8427d14418e9886e21dfe3c71adc313dded264575a9fdff110019163be7",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "f29bd0d2f1443b3e53d594081917241288684b13e79ec352117fb570b4eea9bb",
+            "newSha256": "f29bd0d2f1443b3e53d594081917241288684b13e79ec352117fb570b4eea9bb",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 6,
+          "oldCardId": "520dbd0a64",
+          "newCardId": "520dbd0a64",
+          "idUnchanged": true,
+          "oldSectionId": "mental-model",
+          "newSectionId": "mental-model",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "91047defacad61b831b68523c55b774a26aacc408814a13469eee41eea66b08e",
+            "newSha256": "91047defacad61b831b68523c55b774a26aacc408814a13469eee41eea66b08e",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "925f914aa6b681ad6d63de6215f2cf1c0906c57abb3e47a36f10c7418cf56fd6",
+            "newSha256": "925f914aa6b681ad6d63de6215f2cf1c0906c57abb3e47a36f10c7418cf56fd6",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "three-areas",
+              "on": [
+                "working"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "three-areas",
+              "highlightedLabels": [
+                "working"
+              ]
+            }
+          }
+        },
+        {
+          "index": 7,
+          "oldCardId": "39cbd0f027",
+          "newCardId": "39cbd0f027",
+          "idUnchanged": true,
+          "oldSectionId": "setup",
+          "newSectionId": "setup",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "059b0ba2ee7cd34642129ef217c76d138621fe65239550a7d555e393bf1b6b27",
+            "newSha256": "059b0ba2ee7cd34642129ef217c76d138621fe65239550a7d555e393bf1b6b27",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "51763a948b8e48699dd1bf0f50bfa720587bf11b2a7fc06e1844077507b8c2fa",
+            "newSha256": "51763a948b8e48699dd1bf0f50bfa720587bf11b2a7fc06e1844077507b8c2fa",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 8,
+          "oldCardId": "1c0f90e09e",
+          "newCardId": "1c0f90e09e",
+          "idUnchanged": true,
+          "oldSectionId": "setup",
+          "newSectionId": "setup",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "7ddb2463e8b479517842e059f64a207681feeadade787ee2151ab5556307a9fd",
+            "newSha256": "7ddb2463e8b479517842e059f64a207681feeadade787ee2151ab5556307a9fd",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "1a03d144ebb7ce4fa2feb11c8df03297de37050596502ec49270955c3cddb9f0",
+            "newSha256": "1a03d144ebb7ce4fa2feb11c8df03297de37050596502ec49270955c3cddb9f0",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 9,
+          "oldCardId": "6fd7c537ab",
+          "newCardId": "6fd7c537ab",
+          "idUnchanged": true,
+          "oldSectionId": "setup",
+          "newSectionId": "setup",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "05396a059ffbe33a4c9fc72bff862de1b599adedba6971ba9d3119dbd220d832",
+            "newSha256": "05396a059ffbe33a4c9fc72bff862de1b599adedba6971ba9d3119dbd220d832",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "9294d03deceac36f9f0a8cffa98d04c9cddc7ea9dba040b4d22e18817a54ec0c",
+            "newSha256": "9294d03deceac36f9f0a8cffa98d04c9cddc7ea9dba040b4d22e18817a54ec0c",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 10,
+          "oldCardId": "e7d8f62a88",
+          "newCardId": "e7d8f62a88",
+          "idUnchanged": true,
+          "oldSectionId": "setup",
+          "newSectionId": "setup",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "2fcd055c21055ced2565a44c1574f4814cbddfb4500332d85ef6b8b4ae32cd3e",
+            "newSha256": "2fcd055c21055ced2565a44c1574f4814cbddfb4500332d85ef6b8b4ae32cd3e",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "e6fd00b1e1a5529a23405cecff44c82e4ace2682cf9460a7f8ce8efb94c21417",
+            "newSha256": "e6fd00b1e1a5529a23405cecff44c82e4ace2682cf9460a7f8ce8efb94c21417",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 11,
+          "oldCardId": "66fd319503",
+          "newCardId": "66fd319503",
+          "idUnchanged": true,
+          "oldSectionId": "setup",
+          "newSectionId": "setup",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "6403d3e2b26765a2f1162fde4f65bc657c32e297223e5fe54b071e0a513e8ac2",
+            "newSha256": "6403d3e2b26765a2f1162fde4f65bc657c32e297223e5fe54b071e0a513e8ac2",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "f3b363fe495e935ac6905f8a562de3cf6b85d301ffccf1a460ccf1a6cd398457",
+            "newSha256": "f3b363fe495e935ac6905f8a562de3cf6b85d301ffccf1a460ccf1a6cd398457",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 12,
+          "oldCardId": "44c4710d98",
+          "newCardId": "44c4710d98",
+          "idUnchanged": true,
+          "oldSectionId": "setup",
+          "newSectionId": "setup",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "2d51f4c71856c24e0edde06469bd36f98722c9c6ed134fb00ed88057c111434f",
+            "newSha256": "2d51f4c71856c24e0edde06469bd36f98722c9c6ed134fb00ed88057c111434f",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "97008ed1a7e143a979225d91bf35783d6a5882522080b18b672bf5e437b51f05",
+            "newSha256": "97008ed1a7e143a979225d91bf35783d6a5882522080b18b672bf5e437b51f05",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 13,
+          "oldCardId": "ba6e9f10d2",
+          "newCardId": "ba6e9f10d2",
+          "idUnchanged": true,
+          "oldSectionId": "setup",
+          "newSectionId": "setup",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "21e45d0629b6ce2df478c5c159f173c30498470f86d0fb043e3dbf6276befcb9",
+            "newSha256": "21e45d0629b6ce2df478c5c159f173c30498470f86d0fb043e3dbf6276befcb9",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "6b2c1422f99548d6a18ef4e1ee0ecfdfde978ecece607b4a287f8ba4ce3cd929",
+            "newSha256": "6b2c1422f99548d6a18ef4e1ee0ecfdfde978ecece607b4a287f8ba4ce3cd929",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 14,
+          "oldCardId": "26f5e5e7de",
+          "newCardId": "26f5e5e7de",
+          "idUnchanged": true,
+          "oldSectionId": "setup",
+          "newSectionId": "setup",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "3e200d56adc07382e6db48528351b76f5fdfd40dca7de17ac88ab8d3bb68029d",
+            "newSha256": "3e200d56adc07382e6db48528351b76f5fdfd40dca7de17ac88ab8d3bb68029d",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "8703a7856af497f423f26a38d517fa03af8caa6645a838e64f2bd0d8459ca579",
+            "newSha256": "8703a7856af497f423f26a38d517fa03af8caa6645a838e64f2bd0d8459ca579",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 15,
+          "oldCardId": "c538d8f122",
+          "newCardId": "c538d8f122",
+          "idUnchanged": true,
+          "oldSectionId": "everyday-loop",
+          "newSectionId": "everyday-loop",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "8198235bcdc2437137f4e5f6271569f41c2443399e16f0c990ecd4d39dfcbc85",
+            "newSha256": "8198235bcdc2437137f4e5f6271569f41c2443399e16f0c990ecd4d39dfcbc85",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "2020006cbb737330aaaa377a76ea748b3f4e25386f4d3d0a4b60e7d04e6e651b",
+            "newSha256": "2020006cbb737330aaaa377a76ea748b3f4e25386f4d3d0a4b60e7d04e6e651b",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "three-areas",
+              "on": [
+                "working",
+                "staging",
+                "repository"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "three-areas",
+              "highlightedLabels": [
+                "working",
+                "staging",
+                "repository"
+              ]
+            }
+          }
+        },
+        {
+          "index": 16,
+          "oldCardId": "89d3f03d76",
+          "newCardId": "89d3f03d76",
+          "idUnchanged": true,
+          "oldSectionId": "everyday-loop",
+          "newSectionId": "everyday-loop",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "0ed992acf69c051a429e2bf6a5ab06a579d6e5351f00f34864c4127175b65eba",
+            "newSha256": "0ed992acf69c051a429e2bf6a5ab06a579d6e5351f00f34864c4127175b65eba",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "521a32347039fcfe7bbf9ddc07a41d67ef9ef3803b4fba4755b6776e7f6d95a5",
+            "newSha256": "521a32347039fcfe7bbf9ddc07a41d67ef9ef3803b4fba4755b6776e7f6d95a5",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "three-areas",
+              "on": [
+                "add"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "three-areas",
+              "highlightedLabels": [
+                "add"
+              ]
+            }
+          }
+        },
+        {
+          "index": 17,
+          "oldCardId": "5dc3f5f572",
+          "newCardId": "5dc3f5f572",
+          "idUnchanged": true,
+          "oldSectionId": "everyday-loop",
+          "newSectionId": "everyday-loop",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "4c2b96883bf943356f90c9e104893f26a428b5fcf5187e8831ab24bdaa0e042e",
+            "newSha256": "4c2b96883bf943356f90c9e104893f26a428b5fcf5187e8831ab24bdaa0e042e",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "119f10f551919879cef7b9ca13c0f3cd02b5b7dc61ab45635cf8483effefd2b4",
+            "newSha256": "119f10f551919879cef7b9ca13c0f3cd02b5b7dc61ab45635cf8483effefd2b4",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "three-areas",
+              "on": [
+                "commit"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "three-areas",
+              "highlightedLabels": [
+                "commit"
+              ]
+            }
+          }
+        },
+        {
+          "index": 18,
+          "oldCardId": "42892ee6bd",
+          "newCardId": "42892ee6bd",
+          "idUnchanged": true,
+          "oldSectionId": "everyday-loop",
+          "newSectionId": "everyday-loop",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "c9b20ea2612de54935c4a06b38cc32bbcee2dcdda2a66d5e3496725313c225d3",
+            "newSha256": "c9b20ea2612de54935c4a06b38cc32bbcee2dcdda2a66d5e3496725313c225d3",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "848d3d3ba556b4e91e6736e85ec99b2907696e28cdc3412373f89a279f9a3467",
+            "newSha256": "848d3d3ba556b4e91e6736e85ec99b2907696e28cdc3412373f89a279f9a3467",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "remote-loop",
+              "on": [
+                "push"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "remote-loop",
+              "highlightedLabels": [
+                "push"
+              ]
+            }
+          }
+        },
+        {
+          "index": 19,
+          "oldCardId": "82f1b541f2",
+          "newCardId": "82f1b541f2",
+          "idUnchanged": true,
+          "oldSectionId": "everyday-loop",
+          "newSectionId": "everyday-loop",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "dd3b1dc7c5a4447d35f71251cd4f41692a6851c5586414409c8171347cfc0557",
+            "newSha256": "dd3b1dc7c5a4447d35f71251cd4f41692a6851c5586414409c8171347cfc0557",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "25be08b8df98e5a3865f542825354aacd5b8dc3ee9ac1ac9c00cf262ed6c268b",
+            "newSha256": "25be08b8df98e5a3865f542825354aacd5b8dc3ee9ac1ac9c00cf262ed6c268b",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 20,
+          "oldCardId": "0732b3cf61",
+          "newCardId": "0732b3cf61",
+          "idUnchanged": true,
+          "oldSectionId": "everyday-loop",
+          "newSectionId": "everyday-loop",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "c2f96fbcd6d783880f005979e1f4aad4c6c2dae2697da5739181c1969c3c74ee",
+            "newSha256": "c2f96fbcd6d783880f005979e1f4aad4c6c2dae2697da5739181c1969c3c74ee",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "38da2ba2f39e50408a4eae5a7cb631edf5043f0c2e6b21f16a9332935bd7c3ba",
+            "newSha256": "38da2ba2f39e50408a4eae5a7cb631edf5043f0c2e6b21f16a9332935bd7c3ba",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 21,
+          "oldCardId": "8066262265",
+          "newCardId": "8066262265",
+          "idUnchanged": true,
+          "oldSectionId": "everyday-loop",
+          "newSectionId": "everyday-loop",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "79c774c872f543e67232bbe36586ed04a3c23f64415e2f924cf24eeb546d7c5f",
+            "newSha256": "79c774c872f543e67232bbe36586ed04a3c23f64415e2f924cf24eeb546d7c5f",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "26c3c1e79c5532817c98440804933b35f02584ffe7a94e1b0f623bd7698f3409",
+            "newSha256": "26c3c1e79c5532817c98440804933b35f02584ffe7a94e1b0f623bd7698f3409",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 22,
+          "oldCardId": "f364e16d3a",
+          "newCardId": "f364e16d3a",
+          "idUnchanged": true,
+          "oldSectionId": "everyday-loop",
+          "newSectionId": "everyday-loop",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "ac808d0a072332e0dc057101cebd0e4b3e33fb2131b613c5b059b283bed9822c",
+            "newSha256": "ac808d0a072332e0dc057101cebd0e4b3e33fb2131b613c5b059b283bed9822c",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "88b6478e873c3e856b1df432d9b370a20695965ed49671494bfad6a9d4bc5ff8",
+            "newSha256": "88b6478e873c3e856b1df432d9b370a20695965ed49671494bfad6a9d4bc5ff8",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 23,
+          "oldCardId": "5fd6ca87d7",
+          "newCardId": "5fd6ca87d7",
+          "idUnchanged": true,
+          "oldSectionId": "everyday-loop",
+          "newSectionId": "everyday-loop",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "d670509cb2784adaeeb9b722e1479685aa1ecc5aac57b5969b2cf75d7143198c",
+            "newSha256": "d670509cb2784adaeeb9b722e1479685aa1ecc5aac57b5969b2cf75d7143198c",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "26f21153ffe133d71dcdeef2e23e438de60c4c68b1cd4f7c96f9def1007bada3",
+            "newSha256": "26f21153ffe133d71dcdeef2e23e438de60c4c68b1cd4f7c96f9def1007bada3",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "three-areas",
+              "on": [
+                "working",
+                "staging",
+                "repository"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "three-areas",
+              "highlightedLabels": [
+                "working",
+                "staging",
+                "repository"
+              ]
+            }
+          }
+        },
+        {
+          "index": 24,
+          "oldCardId": "144dfdc6d4",
+          "newCardId": "144dfdc6d4",
+          "idUnchanged": true,
+          "oldSectionId": "see-changes",
+          "newSectionId": "see-changes",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "efbd6d1b0d7486760ac7b1e71aa8a666be199c92d5954363e35db22eb2330cdf",
+            "newSha256": "efbd6d1b0d7486760ac7b1e71aa8a666be199c92d5954363e35db22eb2330cdf",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "c8227314846a3a584f30d9fc170f160c74894a2cd1a4aea0860c62aa829847d3",
+            "newSha256": "c8227314846a3a584f30d9fc170f160c74894a2cd1a4aea0860c62aa829847d3",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 25,
+          "oldCardId": "7b9f83a50f",
+          "newCardId": "7b9f83a50f",
+          "idUnchanged": true,
+          "oldSectionId": "see-changes",
+          "newSectionId": "see-changes",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "04ac1b2902d3d6a6b14ac4650caae28569103de90c3a3827420f848601cbb47e",
+            "newSha256": "04ac1b2902d3d6a6b14ac4650caae28569103de90c3a3827420f848601cbb47e",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "e04f9dcafe873ee3abb67436365224aa2933063405f660be96a1b4290c3a1463",
+            "newSha256": "e04f9dcafe873ee3abb67436365224aa2933063405f660be96a1b4290c3a1463",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 26,
+          "oldCardId": "123edec1aa",
+          "newCardId": "123edec1aa",
+          "idUnchanged": true,
+          "oldSectionId": "see-changes",
+          "newSectionId": "see-changes",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "793d56e47e4cda2a4323d4cd57352968caa89d064be15be584913ae754f10a1c",
+            "newSha256": "793d56e47e4cda2a4323d4cd57352968caa89d064be15be584913ae754f10a1c",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "478bc01beb7e483e0707532ee860911fadc7dd9d56a051ef738094c516569c27",
+            "newSha256": "478bc01beb7e483e0707532ee860911fadc7dd9d56a051ef738094c516569c27",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 27,
+          "oldCardId": "617125b26b",
+          "newCardId": "617125b26b",
+          "idUnchanged": true,
+          "oldSectionId": "see-changes",
+          "newSectionId": "see-changes",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "faf647c280a503ba6d6a5e32cae2ff767310aa029bc27df29f434ba8b3a650cf",
+            "newSha256": "faf647c280a503ba6d6a5e32cae2ff767310aa029bc27df29f434ba8b3a650cf",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "73adc0df01bf2fc721899373b3c780d19ad091a767b199e6138ce41293168dc4",
+            "newSha256": "73adc0df01bf2fc721899373b3c780d19ad091a767b199e6138ce41293168dc4",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "snapshots",
+              "on": [
+                "commits",
+                "head"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "snapshots",
+              "highlightedLabels": [
+                "commits",
+                "head"
+              ]
+            }
+          }
+        },
+        {
+          "index": 28,
+          "oldCardId": "e60812b8b1",
+          "newCardId": "e60812b8b1",
+          "idUnchanged": true,
+          "oldSectionId": "see-changes",
+          "newSectionId": "see-changes",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "c123181300df4cab3d63d8d47c1ff8595fb8ebe77a8c283f3f47be7cd17c061f",
+            "newSha256": "c123181300df4cab3d63d8d47c1ff8595fb8ebe77a8c283f3f47be7cd17c061f",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "8fe05ffd5b5bcc0f8199ff847628cfcaf1bc38c04a80db0c20b19827ed4a6b5c",
+            "newSha256": "8fe05ffd5b5bcc0f8199ff847628cfcaf1bc38c04a80db0c20b19827ed4a6b5c",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "snapshots",
+              "on": [
+                "head",
+                "branch"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "snapshots",
+              "highlightedLabels": [
+                "head",
+                "branch"
+              ]
+            }
+          }
+        },
+        {
+          "index": 29,
+          "oldCardId": "184ccb1e70",
+          "newCardId": "184ccb1e70",
+          "idUnchanged": true,
+          "oldSectionId": "see-changes",
+          "newSectionId": "see-changes",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "d0f78b5e75c8f322b5099777cae85b418c1613cdb566e4783d933c2d78f0ba44",
+            "newSha256": "d0f78b5e75c8f322b5099777cae85b418c1613cdb566e4783d933c2d78f0ba44",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "7df9eee64034e4a234965afcce093f1616a06014485564cf8788cebda3588037",
+            "newSha256": "7df9eee64034e4a234965afcce093f1616a06014485564cf8788cebda3588037",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 30,
+          "oldCardId": "e17286cf71",
+          "newCardId": "e17286cf71",
+          "idUnchanged": true,
+          "oldSectionId": "see-changes",
+          "newSectionId": "see-changes",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "47796aef1a01ed8600f82facd30e060e9aadbf105e076f5da15044a25a94aa83",
+            "newSha256": "47796aef1a01ed8600f82facd30e060e9aadbf105e076f5da15044a25a94aa83",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "8c9665e8a9b3e22b39b41de677c94678b88178446eafdb5086145b115de49490",
+            "newSha256": "8c9665e8a9b3e22b39b41de677c94678b88178446eafdb5086145b115de49490",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 31,
+          "oldCardId": "ca246cb536",
+          "newCardId": "ca246cb536",
+          "idUnchanged": true,
+          "oldSectionId": "see-changes",
+          "newSectionId": "see-changes",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "c2ac44859d0d56aab4ea4775ba424ba92235cf72f7a3ffa4637019281d467c41",
+            "newSha256": "c2ac44859d0d56aab4ea4775ba424ba92235cf72f7a3ffa4637019281d467c41",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "8179e8806fd52d031c51c9f5b8617f3013e77a22e1444d18b234aea9c6c80760",
+            "newSha256": "8179e8806fd52d031c51c9f5b8617f3013e77a22e1444d18b234aea9c6c80760",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 32,
+          "oldCardId": "dda37041e1",
+          "newCardId": "dda37041e1",
+          "idUnchanged": true,
+          "oldSectionId": "see-changes",
+          "newSectionId": "see-changes",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "b671b28a56680e9a395eb6ef6c6450c1feb9df00e1b4813e42124b667ab917ad",
+            "newSha256": "b671b28a56680e9a395eb6ef6c6450c1feb9df00e1b4813e42124b667ab917ad",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "55a5fa304ad872bbb17339819fa9fdc99b576bfc35db29a8a3a69ff8637fbfde",
+            "newSha256": "55a5fa304ad872bbb17339819fa9fdc99b576bfc35db29a8a3a69ff8637fbfde",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 33,
+          "oldCardId": "ef1ccbb045",
+          "newCardId": "ef1ccbb045",
+          "idUnchanged": true,
+          "oldSectionId": "see-changes",
+          "newSectionId": "see-changes",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "4b792b308be2ae214a61f5ecddbcd86d7c82e207908aed36c064f5718360dd47",
+            "newSha256": "4b792b308be2ae214a61f5ecddbcd86d7c82e207908aed36c064f5718360dd47",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "eb128cc794d804731dcf1b8e4434e98b040e2ae6605f351f0223a43564547164",
+            "newSha256": "eb128cc794d804731dcf1b8e4434e98b040e2ae6605f351f0223a43564547164",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 34,
+          "oldCardId": "ff0764d149",
+          "newCardId": "ff0764d149",
+          "idUnchanged": true,
+          "oldSectionId": "see-changes",
+          "newSectionId": "see-changes",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "0637e12e05f4d6a5fcc48125a6a16c56de96c54c1eaa1c884542723f9fff919f",
+            "newSha256": "0637e12e05f4d6a5fcc48125a6a16c56de96c54c1eaa1c884542723f9fff919f",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "723fab99a636695384ce213a38c7f457131aab93284580a5f9d86dbf0d183e9d",
+            "newSha256": "723fab99a636695384ce213a38c7f457131aab93284580a5f9d86dbf0d183e9d",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 35,
+          "oldCardId": "ed97aaa627",
+          "newCardId": "ed97aaa627",
+          "idUnchanged": true,
+          "oldSectionId": "branches",
+          "newSectionId": "branches",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "08087ad5274c080d7ad6094e1020394893c5302abdb693174b67082e661c0aa2",
+            "newSha256": "08087ad5274c080d7ad6094e1020394893c5302abdb693174b67082e661c0aa2",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "b33d3372e80317ec75fbcf15f2952c20c20d9b176d7933f1db6d2174b3f422c8",
+            "newSha256": "b33d3372e80317ec75fbcf15f2952c20c20d9b176d7933f1db6d2174b3f422c8",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "branch-merge",
+              "on": [
+                "main",
+                "feature"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "branch-merge",
+              "highlightedLabels": [
+                "main",
+                "feature"
+              ]
+            }
+          }
+        },
+        {
+          "index": 36,
+          "oldCardId": "0ef9bb5f25",
+          "newCardId": "0ef9bb5f25",
+          "idUnchanged": true,
+          "oldSectionId": "branches",
+          "newSectionId": "branches",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "3d5bfadc84b1c636050a62caf7c12e6a4d4c11998d5e7b092c9284cc78d69a33",
+            "newSha256": "3d5bfadc84b1c636050a62caf7c12e6a4d4c11998d5e7b092c9284cc78d69a33",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "4e313e8792bd2fa59ea670a02075be7ad04f5bac4e26e50253a76dbfe383b179",
+            "newSha256": "4e313e8792bd2fa59ea670a02075be7ad04f5bac4e26e50253a76dbfe383b179",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 37,
+          "oldCardId": "408ae6b9f2",
+          "newCardId": "408ae6b9f2",
+          "idUnchanged": true,
+          "oldSectionId": "branches",
+          "newSectionId": "branches",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "fe9c05375000799c0490faf04bf07602dc531260cc179a6b63914f21c64375ef",
+            "newSha256": "fe9c05375000799c0490faf04bf07602dc531260cc179a6b63914f21c64375ef",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "988e8ab1e991acf9895f957dcefe22c4851b640f09892ca184d112ad0c6de619",
+            "newSha256": "988e8ab1e991acf9895f957dcefe22c4851b640f09892ca184d112ad0c6de619",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 38,
+          "oldCardId": "49d487b066",
+          "newCardId": "49d487b066",
+          "idUnchanged": true,
+          "oldSectionId": "branches",
+          "newSectionId": "branches",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "aa9d39f8e85cca79cf95d5e2a187d158eb9b4fdf72b4fecb2ed52f0962489cb6",
+            "newSha256": "aa9d39f8e85cca79cf95d5e2a187d158eb9b4fdf72b4fecb2ed52f0962489cb6",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "693f6481af419d2d473b9c20635fc2a258b6cd78b4cbfd709ac62ee8f439d453",
+            "newSha256": "693f6481af419d2d473b9c20635fc2a258b6cd78b4cbfd709ac62ee8f439d453",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 39,
+          "oldCardId": "d6f963a2a5",
+          "newCardId": "d6f963a2a5",
+          "idUnchanged": true,
+          "oldSectionId": "branches",
+          "newSectionId": "branches",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "0e04d3650e95d5124afa312404960c6fce687f39a3f2f5119390316468d5be5b",
+            "newSha256": "0e04d3650e95d5124afa312404960c6fce687f39a3f2f5119390316468d5be5b",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "0b98fdafc65a8dba50cb96bf352756548ff8a0bc1b9ff866e160fc0841fe4db7",
+            "newSha256": "0b98fdafc65a8dba50cb96bf352756548ff8a0bc1b9ff866e160fc0841fe4db7",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "snapshots",
+              "on": [
+                "head",
+                "branch"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "snapshots",
+              "highlightedLabels": [
+                "head",
+                "branch"
+              ]
+            }
+          }
+        },
+        {
+          "index": 40,
+          "oldCardId": "179c2d6f27",
+          "newCardId": "179c2d6f27",
+          "idUnchanged": true,
+          "oldSectionId": "branches",
+          "newSectionId": "branches",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "f7e372c6ea0f06660385ebc56c10191a9608524b0e0e604af9d49874ce79f0d9",
+            "newSha256": "f7e372c6ea0f06660385ebc56c10191a9608524b0e0e604af9d49874ce79f0d9",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "72ed4d64bd4a042683b0a4c478d46bd2d219be70c76bfb6ce88590dbc0345390",
+            "newSha256": "72ed4d64bd4a042683b0a4c478d46bd2d219be70c76bfb6ce88590dbc0345390",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 41,
+          "oldCardId": "5174705ded",
+          "newCardId": "5174705ded",
+          "idUnchanged": true,
+          "oldSectionId": "branches",
+          "newSectionId": "branches",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "129c016be3cbbc8f9cf62f8ff91f99c41eff1fec93f8e5eee64e9380df0faacc",
+            "newSha256": "129c016be3cbbc8f9cf62f8ff91f99c41eff1fec93f8e5eee64e9380df0faacc",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "4caa617a1b9e58b7825776344d4afa532e99aaeb53feb1b6710563b559b8f9e9",
+            "newSha256": "4caa617a1b9e58b7825776344d4afa532e99aaeb53feb1b6710563b559b8f9e9",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 42,
+          "oldCardId": "5b9f34f5c0",
+          "newCardId": "5b9f34f5c0",
+          "idUnchanged": true,
+          "oldSectionId": "branches",
+          "newSectionId": "branches",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "bee37874ba07c48945068f621cd25b7ed28d860cdcd5ff07deb79e04dff1ac71",
+            "newSha256": "bee37874ba07c48945068f621cd25b7ed28d860cdcd5ff07deb79e04dff1ac71",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "1cc9b8784fc63b163f952f303ae7d7f514d4556a4d2dc4224cdc925486015cb8",
+            "newSha256": "1cc9b8784fc63b163f952f303ae7d7f514d4556a4d2dc4224cdc925486015cb8",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 43,
+          "oldCardId": "8796e591cc",
+          "newCardId": "8796e591cc",
+          "idUnchanged": true,
+          "oldSectionId": "branches",
+          "newSectionId": "branches",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "fce8296250a1f26657e4ed889cd9bb3a9750d147082bc5773d720b03e522c06c",
+            "newSha256": "fce8296250a1f26657e4ed889cd9bb3a9750d147082bc5773d720b03e522c06c",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "6dd23a1a3958497def3beba636d27896816966ef5650c69de60523d154e9c277",
+            "newSha256": "6dd23a1a3958497def3beba636d27896816966ef5650c69de60523d154e9c277",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 44,
+          "oldCardId": "d1ea5f589e",
+          "newCardId": "d1ea5f589e",
+          "idUnchanged": true,
+          "oldSectionId": "branches",
+          "newSectionId": "branches",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "ea9a2092c055bd5de3f30db9aabf22e668da61410118884237797cbe2281259f",
+            "newSha256": "ea9a2092c055bd5de3f30db9aabf22e668da61410118884237797cbe2281259f",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "0c07a412a728bd28d087dece5949c0ff96ca5aa835c523d2035748570969841e",
+            "newSha256": "0c07a412a728bd28d087dece5949c0ff96ca5aa835c523d2035748570969841e",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 45,
+          "oldCardId": "d31c809402",
+          "newCardId": "d31c809402",
+          "idUnchanged": true,
+          "oldSectionId": "merge-conflicts",
+          "newSectionId": "merge-conflicts",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "980819ad5c3490bc8692f70f3758ad539366c47d55d3e4bc35223e2c66703287",
+            "newSha256": "980819ad5c3490bc8692f70f3758ad539366c47d55d3e4bc35223e2c66703287",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "6f51f1ee138c857dfd0cd5727a40ada62e2dda73da107f600c5c7369999507b8",
+            "newSha256": "6f51f1ee138c857dfd0cd5727a40ada62e2dda73da107f600c5c7369999507b8",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "branch-merge",
+              "on": [
+                "feature",
+                "merge"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "branch-merge",
+              "highlightedLabels": [
+                "feature",
+                "merge"
+              ]
+            }
+          }
+        },
+        {
+          "index": 46,
+          "oldCardId": "534c015395",
+          "newCardId": "534c015395",
+          "idUnchanged": true,
+          "oldSectionId": "merge-conflicts",
+          "newSectionId": "merge-conflicts",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "0eeba2ce18294e11a8ad96cb6c8dda5793c1561f8444bc544e2cdede45caa954",
+            "newSha256": "0eeba2ce18294e11a8ad96cb6c8dda5793c1561f8444bc544e2cdede45caa954",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "8769e2e8fb331decfff2283bb434de1695295f6a8300e1a6ff2ad9804e05dc39",
+            "newSha256": "8769e2e8fb331decfff2283bb434de1695295f6a8300e1a6ff2ad9804e05dc39",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "branch-merge",
+              "on": [
+                "fast-forward"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "branch-merge",
+              "highlightedLabels": [
+                "fast-forward"
+              ]
+            }
+          }
+        },
+        {
+          "index": 47,
+          "oldCardId": "7b1befc07a",
+          "newCardId": "7b1befc07a",
+          "idUnchanged": true,
+          "oldSectionId": "merge-conflicts",
+          "newSectionId": "merge-conflicts",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "5f8f0a41340a3f5df7273291ee99d196397904d11d06ccaeade70e2f73f6e484",
+            "newSha256": "5f8f0a41340a3f5df7273291ee99d196397904d11d06ccaeade70e2f73f6e484",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "70e052be704a5563b58ce428fae14e194f3ed080552d0d2df902fd35f47b96b0",
+            "newSha256": "70e052be704a5563b58ce428fae14e194f3ed080552d0d2df902fd35f47b96b0",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "branch-merge",
+              "on": [
+                "diverge",
+                "merge"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "branch-merge",
+              "highlightedLabels": [
+                "diverge",
+                "merge"
+              ]
+            }
+          }
+        },
+        {
+          "index": 48,
+          "oldCardId": "f3cb9c8cea",
+          "newCardId": "f3cb9c8cea",
+          "idUnchanged": true,
+          "oldSectionId": "merge-conflicts",
+          "newSectionId": "merge-conflicts",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "db909d82d27aaab6328e49f31c515f02c1126bc64c402ca89afc559d3b355d13",
+            "newSha256": "db909d82d27aaab6328e49f31c515f02c1126bc64c402ca89afc559d3b355d13",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "5f7a7b3998956e7c03684cf88fe2be837a3a17822b415c417cd6dd97b882dfcd",
+            "newSha256": "5f7a7b3998956e7c03684cf88fe2be837a3a17822b415c417cd6dd97b882dfcd",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "conflict",
+              "on": [
+                "ours",
+                "theirs",
+                "resolved"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "conflict",
+              "highlightedLabels": [
+                "ours",
+                "theirs",
+                "resolved"
+              ]
+            }
+          }
+        },
+        {
+          "index": 49,
+          "oldCardId": "d410b419e7",
+          "newCardId": "d410b419e7",
+          "idUnchanged": true,
+          "oldSectionId": "merge-conflicts",
+          "newSectionId": "merge-conflicts",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "7dc95ff169b7ff151dccee936dd923b0ae0872fed59a4c1ea91c915a4206fee3",
+            "newSha256": "7dc95ff169b7ff151dccee936dd923b0ae0872fed59a4c1ea91c915a4206fee3",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "9e1e7dbca174c8701e2b902fb224999828aa0ada35126aebf0ce2b372a36b226",
+            "newSha256": "9e1e7dbca174c8701e2b902fb224999828aa0ada35126aebf0ce2b372a36b226",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 50,
+          "oldCardId": "40bea0b509",
+          "newCardId": "40bea0b509",
+          "idUnchanged": true,
+          "oldSectionId": "merge-conflicts",
+          "newSectionId": "merge-conflicts",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "b5a5545a0f0b1f27c9fe20e7bc247c2df58e29e67043c60b81c06d6b97c05337",
+            "newSha256": "b5a5545a0f0b1f27c9fe20e7bc247c2df58e29e67043c60b81c06d6b97c05337",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "342683d94e6c21e6a8cde054c39510948f7a784c798e48b2ead921379ffc9943",
+            "newSha256": "342683d94e6c21e6a8cde054c39510948f7a784c798e48b2ead921379ffc9943",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 51,
+          "oldCardId": "ce42925fd1",
+          "newCardId": "ce42925fd1",
+          "idUnchanged": true,
+          "oldSectionId": "merge-conflicts",
+          "newSectionId": "merge-conflicts",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "1552e740cc4c15a5394bba983c49db6db699cb377ac785a85ae1399438bba189",
+            "newSha256": "1552e740cc4c15a5394bba983c49db6db699cb377ac785a85ae1399438bba189",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "b36d3e9e6b72d5da8d538344713609eac52ea9f4e9682ba951e80df46b0d6579",
+            "newSha256": "b36d3e9e6b72d5da8d538344713609eac52ea9f4e9682ba951e80df46b0d6579",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 52,
+          "oldCardId": "a71e0ada64",
+          "newCardId": "a71e0ada64",
+          "idUnchanged": true,
+          "oldSectionId": "merge-conflicts",
+          "newSectionId": "merge-conflicts",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "ed3a75a5c23cad71a7a7087f4ab25f5cac0917f8bd49fadc930433a204e9061d",
+            "newSha256": "ed3a75a5c23cad71a7a7087f4ab25f5cac0917f8bd49fadc930433a204e9061d",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "a4c5fb79d08ddf50841582498faa1935ac3e84dfaaa2ab370d4d4841aa53edf8",
+            "newSha256": "a4c5fb79d08ddf50841582498faa1935ac3e84dfaaa2ab370d4d4841aa53edf8",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 53,
+          "oldCardId": "5abd0bd745",
+          "newCardId": "5abd0bd745",
+          "idUnchanged": true,
+          "oldSectionId": "merge-conflicts",
+          "newSectionId": "merge-conflicts",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "cb9f5256931b20e84476610853bc4ad870fbfe3495dc7a605a120f5a53efab0d",
+            "newSha256": "cb9f5256931b20e84476610853bc4ad870fbfe3495dc7a605a120f5a53efab0d",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "fe2919d4181364f00ba0a2880b68d7532a751b893e44e9e643e7715805610f89",
+            "newSha256": "fe2919d4181364f00ba0a2880b68d7532a751b893e44e9e643e7715805610f89",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 54,
+          "oldCardId": "945fc2be9e",
+          "newCardId": "945fc2be9e",
+          "idUnchanged": true,
+          "oldSectionId": "merge-conflicts",
+          "newSectionId": "merge-conflicts",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "f7fa95d2e8ef1146cb4361a31628758fabae62573869abd805d819d5afa1f695",
+            "newSha256": "f7fa95d2e8ef1146cb4361a31628758fabae62573869abd805d819d5afa1f695",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "5e2b2778fe9779fb393f3918428167655588a1c719f48fce1bd2c439f6cd50ce",
+            "newSha256": "5e2b2778fe9779fb393f3918428167655588a1c719f48fce1bd2c439f6cd50ce",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 55,
+          "oldCardId": "4ab84717cd",
+          "newCardId": "4ab84717cd",
+          "idUnchanged": true,
+          "oldSectionId": "remotes",
+          "newSectionId": "remotes",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "66ed3c6a2d210607469b23d37a5c1d653c6937e5cd063dc4ef0fc2c971fa5c18",
+            "newSha256": "66ed3c6a2d210607469b23d37a5c1d653c6937e5cd063dc4ef0fc2c971fa5c18",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "ffd05df551cf2d73900a39e4d326b6bc3ad35c66463b67d51df37d6bf9817688",
+            "newSha256": "ffd05df551cf2d73900a39e4d326b6bc3ad35c66463b67d51df37d6bf9817688",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "remote-loop",
+              "on": [
+                "local",
+                "remote"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "remote-loop",
+              "highlightedLabels": [
+                "local",
+                "remote"
+              ]
+            }
+          }
+        },
+        {
+          "index": 56,
+          "oldCardId": "1f3ff1463d",
+          "newCardId": "1f3ff1463d",
+          "idUnchanged": true,
+          "oldSectionId": "remotes",
+          "newSectionId": "remotes",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "3476f3e23b6ee873912bc39ebad1f0dae56b5438158fddad4eb36b82bde96442",
+            "newSha256": "3476f3e23b6ee873912bc39ebad1f0dae56b5438158fddad4eb36b82bde96442",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "24a6582adf00bd09b89a41bf0a97bb0cb97995057aa0c75c90eeaa08f0bb8003",
+            "newSha256": "24a6582adf00bd09b89a41bf0a97bb0cb97995057aa0c75c90eeaa08f0bb8003",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 57,
+          "oldCardId": "9b574946e7",
+          "newCardId": "9b574946e7",
+          "idUnchanged": true,
+          "oldSectionId": "remotes",
+          "newSectionId": "remotes",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "d5bec4cf7aa61dca9e8b62d7453763859eb1323a8a9d5664acf36f1ad90bb7d5",
+            "newSha256": "d5bec4cf7aa61dca9e8b62d7453763859eb1323a8a9d5664acf36f1ad90bb7d5",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "a829d7fba7679566947550aa40c49b62e12d51d662f4b2139602979fb3bd436c",
+            "newSha256": "a829d7fba7679566947550aa40c49b62e12d51d662f4b2139602979fb3bd436c",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "remote-loop",
+              "on": [
+                "fetch"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "remote-loop",
+              "highlightedLabels": [
+                "fetch"
+              ]
+            }
+          }
+        },
+        {
+          "index": 58,
+          "oldCardId": "0acfeb3a93",
+          "newCardId": "0acfeb3a93",
+          "idUnchanged": true,
+          "oldSectionId": "remotes",
+          "newSectionId": "remotes",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "fdc303c046dcc470edaf4ba56d136d4a2fc2fd98aa1370e7fbd831fc5b74289c",
+            "newSha256": "fdc303c046dcc470edaf4ba56d136d4a2fc2fd98aa1370e7fbd831fc5b74289c",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "60de579b23a14f81f82aadf8d94b99ead6956017ee4d5e844ba1da5d7d2f14b6",
+            "newSha256": "60de579b23a14f81f82aadf8d94b99ead6956017ee4d5e844ba1da5d7d2f14b6",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 59,
+          "oldCardId": "4502a286cd",
+          "newCardId": "4502a286cd",
+          "idUnchanged": true,
+          "oldSectionId": "remotes",
+          "newSectionId": "remotes",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "2b69908540a56dcab11afd992fc16b43e5c6d2ec08c3009565f990d321842546",
+            "newSha256": "2b69908540a56dcab11afd992fc16b43e5c6d2ec08c3009565f990d321842546",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "02c5bd4d3bfb37bb8955fe3cfd15b21bc4ce7dadb3e0aba26f2467078e44d0e3",
+            "newSha256": "02c5bd4d3bfb37bb8955fe3cfd15b21bc4ce7dadb3e0aba26f2467078e44d0e3",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 60,
+          "oldCardId": "d8e5558d78",
+          "newCardId": "d8e5558d78",
+          "idUnchanged": true,
+          "oldSectionId": "remotes",
+          "newSectionId": "remotes",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "235f2e4548265eb67725196c703362f04e6dfef926e89e4684b0dbb01d514aa9",
+            "newSha256": "235f2e4548265eb67725196c703362f04e6dfef926e89e4684b0dbb01d514aa9",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "b194f3033cc6b18dc1badf50900a1bb0999a1beb1713175cf2591089d78af493",
+            "newSha256": "b194f3033cc6b18dc1badf50900a1bb0999a1beb1713175cf2591089d78af493",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "remote-loop",
+              "on": [
+                "push"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "remote-loop",
+              "highlightedLabels": [
+                "push"
+              ]
+            }
+          }
+        },
+        {
+          "index": 61,
+          "oldCardId": "6d604c36e6",
+          "newCardId": "6d604c36e6",
+          "idUnchanged": true,
+          "oldSectionId": "remotes",
+          "newSectionId": "remotes",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "3d00636c87b82dfe9771e2d9c8139887cbb2fe0a4c991a4bc583f8f1c2dd5177",
+            "newSha256": "3d00636c87b82dfe9771e2d9c8139887cbb2fe0a4c991a4bc583f8f1c2dd5177",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "19267b6b18df67d58d12cd2d0b0b8de91aea1a10b2f6d4ce432c6fd56c4eaca4",
+            "newSha256": "19267b6b18df67d58d12cd2d0b0b8de91aea1a10b2f6d4ce432c6fd56c4eaca4",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 62,
+          "oldCardId": "27e9201309",
+          "newCardId": "27e9201309",
+          "idUnchanged": true,
+          "oldSectionId": "remotes",
+          "newSectionId": "remotes",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "03876714f5e86167848acf9542929c2577ca32b8c35ea88b7cf58a5299328871",
+            "newSha256": "03876714f5e86167848acf9542929c2577ca32b8c35ea88b7cf58a5299328871",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "02a24543bd80d15edaa067e55393e7f1ed2014a930d5f6a041480644ec07ef7d",
+            "newSha256": "02a24543bd80d15edaa067e55393e7f1ed2014a930d5f6a041480644ec07ef7d",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 63,
+          "oldCardId": "da3e532b0f",
+          "newCardId": "da3e532b0f",
+          "idUnchanged": true,
+          "oldSectionId": "remotes",
+          "newSectionId": "remotes",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "debc22b0cd626be2e2dcf28c11768e33a3776a0defb6f8dbf932743b27ab3e33",
+            "newSha256": "debc22b0cd626be2e2dcf28c11768e33a3776a0defb6f8dbf932743b27ab3e33",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "cfb9de69afe16d85fcfa72693bdd634520fc022ef52c7e40c7a3b6a61bd5c2b9",
+            "newSha256": "cfb9de69afe16d85fcfa72693bdd634520fc022ef52c7e40c7a3b6a61bd5c2b9",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 64,
+          "oldCardId": "23d7baf5c0",
+          "newCardId": "23d7baf5c0",
+          "idUnchanged": true,
+          "oldSectionId": "remotes",
+          "newSectionId": "remotes",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "3a31a16200518a6cf1e294d395a13b3e5b02f563bf7d2d70566c3abb64b54735",
+            "newSha256": "3a31a16200518a6cf1e294d395a13b3e5b02f563bf7d2d70566c3abb64b54735",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "8b0d18cbbdd1e9df590adf27e74e6346f59af05ad6c50e9016f08a1efcd1c69b",
+            "newSha256": "8b0d18cbbdd1e9df590adf27e74e6346f59af05ad6c50e9016f08a1efcd1c69b",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 65,
+          "oldCardId": "a3bcda84d3",
+          "newCardId": "a3bcda84d3",
+          "idUnchanged": true,
+          "oldSectionId": "team-workflow",
+          "newSectionId": "team-workflow",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "5b9c429fbe08a269fe2117843b83e3afba1c0d4bdc22719768e47cd4f6025a74",
+            "newSha256": "5b9c429fbe08a269fe2117843b83e3afba1c0d4bdc22719768e47cd4f6025a74",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "dfd972a3e06e2f4c91e407b38e5a7b8ba3524a4be8a0ef8e581413a8f76ab03c",
+            "newSha256": "dfd972a3e06e2f4c91e407b38e5a7b8ba3524a4be8a0ef8e581413a8f76ab03c",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 66,
+          "oldCardId": "e0f3dcc415",
+          "newCardId": "e0f3dcc415",
+          "idUnchanged": true,
+          "oldSectionId": "team-workflow",
+          "newSectionId": "team-workflow",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "e75a24fb4f56fe156acf480975ea8a62e805628cc7ed6d8c42637638e39e28da",
+            "newSha256": "e75a24fb4f56fe156acf480975ea8a62e805628cc7ed6d8c42637638e39e28da",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "14baa3b742602bbbfd71b7d2bf1eb7b332b2b716531854afd9eb6e9e7e73fe14",
+            "newSha256": "14baa3b742602bbbfd71b7d2bf1eb7b332b2b716531854afd9eb6e9e7e73fe14",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 67,
+          "oldCardId": "5654d5b2a9",
+          "newCardId": "5654d5b2a9",
+          "idUnchanged": true,
+          "oldSectionId": "team-workflow",
+          "newSectionId": "team-workflow",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "11ef91c18a30e35b6074b2430d16eb287c1c5c0f802b62626c3c9e96eceba200",
+            "newSha256": "11ef91c18a30e35b6074b2430d16eb287c1c5c0f802b62626c3c9e96eceba200",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "5dc6b1582b48543677fd096924a178bc06f2abf2178637f745f491ccac149091",
+            "newSha256": "5dc6b1582b48543677fd096924a178bc06f2abf2178637f745f491ccac149091",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 68,
+          "oldCardId": "a633bbe05b",
+          "newCardId": "a633bbe05b",
+          "idUnchanged": true,
+          "oldSectionId": "team-workflow",
+          "newSectionId": "team-workflow",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "29737ac687d55eb8335a899e12b6ca1d183ac807eb2ea8bedd34bc8b2a20a264",
+            "newSha256": "29737ac687d55eb8335a899e12b6ca1d183ac807eb2ea8bedd34bc8b2a20a264",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "7a94f56aede270c4901826ea71be0b0e7adf3e0839b1d83852162b87469bd2f6",
+            "newSha256": "7a94f56aede270c4901826ea71be0b0e7adf3e0839b1d83852162b87469bd2f6",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 69,
+          "oldCardId": "2c89a91a31",
+          "newCardId": "2c89a91a31",
+          "idUnchanged": true,
+          "oldSectionId": "team-workflow",
+          "newSectionId": "team-workflow",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "760083919edcd2c615fb6b9ce53e70a462c6e37a42b33a31e2859959930b4c46",
+            "newSha256": "760083919edcd2c615fb6b9ce53e70a462c6e37a42b33a31e2859959930b4c46",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "e260770b725d08d552e9beebc1bf4ba064088012418dad1ae7ebe75cecb3541a",
+            "newSha256": "e260770b725d08d552e9beebc1bf4ba064088012418dad1ae7ebe75cecb3541a",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 70,
+          "oldCardId": "530af876c5",
+          "newCardId": "530af876c5",
+          "idUnchanged": true,
+          "oldSectionId": "team-workflow",
+          "newSectionId": "team-workflow",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "08cedae10ec388893e1460e9674dba9d15b30982941e837e3a387e9ded4b2f8c",
+            "newSha256": "08cedae10ec388893e1460e9674dba9d15b30982941e837e3a387e9ded4b2f8c",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "e2706f75f7437fca71648ecc087ed69fa04360851f3888547d815a081e34f907",
+            "newSha256": "e2706f75f7437fca71648ecc087ed69fa04360851f3888547d815a081e34f907",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 71,
+          "oldCardId": "7b9034742a",
+          "newCardId": "7b9034742a",
+          "idUnchanged": true,
+          "oldSectionId": "team-workflow",
+          "newSectionId": "team-workflow",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "569b6dc2c5522fe1ce492c1866c996d723d251586e26ab9f2fda85bab8b0261b",
+            "newSha256": "569b6dc2c5522fe1ce492c1866c996d723d251586e26ab9f2fda85bab8b0261b",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "7bedb8ffe5bd5cc2881d34b390c92a7e53fb2c96d32baee1548ae60055c90c60",
+            "newSha256": "7bedb8ffe5bd5cc2881d34b390c92a7e53fb2c96d32baee1548ae60055c90c60",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 72,
+          "oldCardId": "e1ea5ac321",
+          "newCardId": "e1ea5ac321",
+          "idUnchanged": true,
+          "oldSectionId": "team-workflow",
+          "newSectionId": "team-workflow",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "c36fd4ebdbc4f6d0672b8f89b922bacc844af1c8f4c297251b121cf3c8bbc721",
+            "newSha256": "c36fd4ebdbc4f6d0672b8f89b922bacc844af1c8f4c297251b121cf3c8bbc721",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "6ef184c682f31dedf0c320ea9a54ef83c674be168188e2fd9026f778cbc0268e",
+            "newSha256": "6ef184c682f31dedf0c320ea9a54ef83c674be168188e2fd9026f778cbc0268e",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 73,
+          "oldCardId": "f864075bb0",
+          "newCardId": "f864075bb0",
+          "idUnchanged": true,
+          "oldSectionId": "team-workflow",
+          "newSectionId": "team-workflow",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "9b23da17e4845761227e2c9721293463b48f3d87cca4b37cbbc4737067bef8fe",
+            "newSha256": "9b23da17e4845761227e2c9721293463b48f3d87cca4b37cbbc4737067bef8fe",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "a09c3ef62f6191c7b751a11786f838986d6c57b612c5c367d7c97ee01b457e0b",
+            "newSha256": "a09c3ef62f6191c7b751a11786f838986d6c57b612c5c367d7c97ee01b457e0b",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 74,
+          "oldCardId": "60bfac7cc7",
+          "newCardId": "60bfac7cc7",
+          "idUnchanged": true,
+          "oldSectionId": "team-workflow",
+          "newSectionId": "team-workflow",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "23cfdd9daf7fb1103001f438fa41219e90b1cc0ea0ce91ecb015c7f4625d544c",
+            "newSha256": "23cfdd9daf7fb1103001f438fa41219e90b1cc0ea0ce91ecb015c7f4625d544c",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "d18022a3cf15181238f135ff45901d4030b3a823a0544382efeaece131dc0bce",
+            "newSha256": "d18022a3cf15181238f135ff45901d4030b3a823a0544382efeaece131dc0bce",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 75,
+          "oldCardId": "9c67b9734e",
+          "newCardId": "9c67b9734e",
+          "idUnchanged": true,
+          "oldSectionId": "undo",
+          "newSectionId": "undo",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "8411aceec13eb61cb3799df97c70cd6a230b4cb7b8a8222e5b4e49cb753a1cc7",
+            "newSha256": "8411aceec13eb61cb3799df97c70cd6a230b4cb7b8a8222e5b4e49cb753a1cc7",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "b381a778e90bc9056421a0133081f498db5580400fb44dd1297798f281beb42d",
+            "newSha256": "b381a778e90bc9056421a0133081f498db5580400fb44dd1297798f281beb42d",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "undo-map",
+              "on": [
+                "unstage"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "undo-map",
+              "highlightedLabels": [
+                "unstage"
+              ]
+            }
+          }
+        },
+        {
+          "index": 76,
+          "oldCardId": "b439e5dd77",
+          "newCardId": "b439e5dd77",
+          "idUnchanged": true,
+          "oldSectionId": "undo",
+          "newSectionId": "undo",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "0f34df3470f517b1335f6e9c4152b5f81b287fc311c647a4981bc15dc866b3ac",
+            "newSha256": "0f34df3470f517b1335f6e9c4152b5f81b287fc311c647a4981bc15dc866b3ac",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "3bc4a31e2b39f809ed906b9e94e9e5f74bb9a893b3732da2767fc584347e8241",
+            "newSha256": "3bc4a31e2b39f809ed906b9e94e9e5f74bb9a893b3732da2767fc584347e8241",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "undo-map",
+              "on": [
+                "discard"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "undo-map",
+              "highlightedLabels": [
+                "discard"
+              ]
+            }
+          }
+        },
+        {
+          "index": 77,
+          "oldCardId": "f739fb0ceb",
+          "newCardId": "f739fb0ceb",
+          "idUnchanged": true,
+          "oldSectionId": "undo",
+          "newSectionId": "undo",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "87f90be17f771ee1883fef35ed436ece47c6726e4a646e2396af5788617d3a54",
+            "newSha256": "87f90be17f771ee1883fef35ed436ece47c6726e4a646e2396af5788617d3a54",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "a93a3ccddcfda9f7467f1c436867705667830070c37d8a0f418609fbdadf983a",
+            "newSha256": "a93a3ccddcfda9f7467f1c436867705667830070c37d8a0f418609fbdadf983a",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "undo-map",
+              "on": [
+                "revert"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "undo-map",
+              "highlightedLabels": [
+                "revert"
+              ]
+            }
+          }
+        },
+        {
+          "index": 78,
+          "oldCardId": "f682160d02",
+          "newCardId": "f682160d02",
+          "idUnchanged": true,
+          "oldSectionId": "undo",
+          "newSectionId": "undo",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "2ef7ff8ade93a602b81d02d56f5c70d5a1b837ab7522a6ae61b77f4fc822e68e",
+            "newSha256": "2ef7ff8ade93a602b81d02d56f5c70d5a1b837ab7522a6ae61b77f4fc822e68e",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "a0c35826f2e72dc861c2c0c5e9b9367b64fe8edd591f4a611249446bde88e346",
+            "newSha256": "a0c35826f2e72dc861c2c0c5e9b9367b64fe8edd591f4a611249446bde88e346",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 79,
+          "oldCardId": "544f8f1624",
+          "newCardId": "544f8f1624",
+          "idUnchanged": true,
+          "oldSectionId": "undo",
+          "newSectionId": "undo",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "0eb843f0ce98c3df95a5b89f35a8f4b8b0f08b6a2c508da0cb3f9286f0f7c09d",
+            "newSha256": "0eb843f0ce98c3df95a5b89f35a8f4b8b0f08b6a2c508da0cb3f9286f0f7c09d",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "96c46ebbb391ed0178fb9346532167f07587e105bbf2ee6c6dbb20e4685445ec",
+            "newSha256": "96c46ebbb391ed0178fb9346532167f07587e105bbf2ee6c6dbb20e4685445ec",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 80,
+          "oldCardId": "1ba354e8fb",
+          "newCardId": "1ba354e8fb",
+          "idUnchanged": true,
+          "oldSectionId": "undo",
+          "newSectionId": "undo",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "bd9cc87f4b8b258370729f3f70c21b229dd6b659d27acb26316935fa4ae2d6b6",
+            "newSha256": "bd9cc87f4b8b258370729f3f70c21b229dd6b659d27acb26316935fa4ae2d6b6",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "5a5b14161c1ea4a6cdef1d368cf86ed6c589370d6f9c2d7a071c0a9dfbc4af15",
+            "newSha256": "5a5b14161c1ea4a6cdef1d368cf86ed6c589370d6f9c2d7a071c0a9dfbc4af15",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 81,
+          "oldCardId": "b7bf2f1bb2",
+          "newCardId": "b7bf2f1bb2",
+          "idUnchanged": true,
+          "oldSectionId": "undo",
+          "newSectionId": "undo",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "80c1225feadf64b4c64ff18934869f24a5a01a88584382ae0602be757821d7a9",
+            "newSha256": "80c1225feadf64b4c64ff18934869f24a5a01a88584382ae0602be757821d7a9",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "f5490aab5695f492a4984d5d74f16610d9b850d4728ca39564bc9d8e18fd53a2",
+            "newSha256": "f5490aab5695f492a4984d5d74f16610d9b850d4728ca39564bc9d8e18fd53a2",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "undo-map",
+              "on": [
+                "danger"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "undo-map",
+              "highlightedLabels": [
+                "danger"
+              ]
+            }
+          }
+        },
+        {
+          "index": 82,
+          "oldCardId": "9f525b5db2",
+          "newCardId": "9f525b5db2",
+          "idUnchanged": true,
+          "oldSectionId": "undo",
+          "newSectionId": "undo",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "8ef1d416055cfce1755f86499a86064f3bf9d901535370f4c34154ffec030a4f",
+            "newSha256": "8ef1d416055cfce1755f86499a86064f3bf9d901535370f4c34154ffec030a4f",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "e0272cc550ece4d4b38565b4c5efa0aeabd3fdd1f4b416d49d9d93ea91e92c3d",
+            "newSha256": "e0272cc550ece4d4b38565b4c5efa0aeabd3fdd1f4b416d49d9d93ea91e92c3d",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 83,
+          "oldCardId": "892f926a0e",
+          "newCardId": "892f926a0e",
+          "idUnchanged": true,
+          "oldSectionId": "undo",
+          "newSectionId": "undo",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "0b4380f067a9a6aeabf7e0deb87872d49b09f8880439fef38a1393c8a9899c66",
+            "newSha256": "0b4380f067a9a6aeabf7e0deb87872d49b09f8880439fef38a1393c8a9899c66",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "c946bec47434a03206c5ad3cd563e161514dd44cce469be3e3a2de19e4949f4a",
+            "newSha256": "c946bec47434a03206c5ad3cd563e161514dd44cce469be3e3a2de19e4949f4a",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "undo-map",
+              "on": [
+                "reflog"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "undo-map",
+              "highlightedLabels": [
+                "reflog"
+              ]
+            }
+          }
+        },
+        {
+          "index": 84,
+          "oldCardId": "92734fb7f7",
+          "newCardId": "92734fb7f7",
+          "idUnchanged": true,
+          "oldSectionId": "undo",
+          "newSectionId": "undo",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "deaef57ffb6e45c88e6328205e871afd41d3a1cdf5b84ec6e9618a69740afa66",
+            "newSha256": "deaef57ffb6e45c88e6328205e871afd41d3a1cdf5b84ec6e9618a69740afa66",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "7578ae39c3d2557e0cca95929ad2f345e940a61bf36a6f1bfb870e7ccdbe9302",
+            "newSha256": "7578ae39c3d2557e0cca95929ad2f345e940a61bf36a6f1bfb870e7ccdbe9302",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 85,
+          "oldCardId": "a3783e02d5",
+          "newCardId": "a3783e02d5",
+          "idUnchanged": true,
+          "oldSectionId": "undo",
+          "newSectionId": "undo",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "4773ea0b68880979c3db745076954c48a9a5fe7aca4fec4cf31589c4307a37f9",
+            "newSha256": "4773ea0b68880979c3db745076954c48a9a5fe7aca4fec4cf31589c4307a37f9",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "145420d5d584d2e88121ef8632934edc724c5e3503459025fd2196bb3473d4de",
+            "newSha256": "145420d5d584d2e88121ef8632934edc724c5e3503459025fd2196bb3473d4de",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 86,
+          "oldCardId": "7ea29e9686",
+          "newCardId": "7ea29e9686",
+          "idUnchanged": true,
+          "oldSectionId": "advanced-tools",
+          "newSectionId": "advanced-tools",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "e46af1d34f375cd859785fb5d894cd2528892638f8eaa546c64da5b3251d18f9",
+            "newSha256": "e46af1d34f375cd859785fb5d894cd2528892638f8eaa546c64da5b3251d18f9",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "bd53dd9b353539ec8688e0912a87d13b2d3536fe6fc0a25f24d35ca5648ee5a0",
+            "newSha256": "bd53dd9b353539ec8688e0912a87d13b2d3536fe6fc0a25f24d35ca5648ee5a0",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 87,
+          "oldCardId": "79f0038e04",
+          "newCardId": "79f0038e04",
+          "idUnchanged": true,
+          "oldSectionId": "advanced-tools",
+          "newSectionId": "advanced-tools",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "a111b0e69006d85b8dc0d4fe703779997aa38f6ee44fe2864435edae5fc92052",
+            "newSha256": "a111b0e69006d85b8dc0d4fe703779997aa38f6ee44fe2864435edae5fc92052",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "00026de19211c8c8cb495c5f344a9316b997f5d554ec09705876cdc31cc002c6",
+            "newSha256": "00026de19211c8c8cb495c5f344a9316b997f5d554ec09705876cdc31cc002c6",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 88,
+          "oldCardId": "8610263cf4",
+          "newCardId": "8610263cf4",
+          "idUnchanged": true,
+          "oldSectionId": "advanced-tools",
+          "newSectionId": "advanced-tools",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "4d17bd92c0ca862782e29f74e9005494e916b20bf816448413444f24762b68af",
+            "newSha256": "4d17bd92c0ca862782e29f74e9005494e916b20bf816448413444f24762b68af",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "e0d0526ab3aa2a9e2413173109cc61f2068d41cfa6887918cf95ccdab9ba6fba",
+            "newSha256": "e0d0526ab3aa2a9e2413173109cc61f2068d41cfa6887918cf95ccdab9ba6fba",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "branch-merge",
+              "on": [
+                "diverge",
+                "rebase"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "branch-merge",
+              "highlightedLabels": [
+                "diverge",
+                "rebase"
+              ]
+            }
+          }
+        },
+        {
+          "index": 89,
+          "oldCardId": "b201f3f447",
+          "newCardId": "b201f3f447",
+          "idUnchanged": true,
+          "oldSectionId": "advanced-tools",
+          "newSectionId": "advanced-tools",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "1ad3fb79d033182b039ea2109df7366c2fde3b7a03661227f465ed4f236f00e5",
+            "newSha256": "1ad3fb79d033182b039ea2109df7366c2fde3b7a03661227f465ed4f236f00e5",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "a0e3695efc665b160e00085078230945fc1852b884068e43ec81ab516d410456",
+            "newSha256": "a0e3695efc665b160e00085078230945fc1852b884068e43ec81ab516d410456",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 90,
+          "oldCardId": "32518be7df",
+          "newCardId": "32518be7df",
+          "idUnchanged": true,
+          "oldSectionId": "advanced-tools",
+          "newSectionId": "advanced-tools",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "eaca33e4d16124fd5a5e153222db4623a6d1877bf3cd98f710c8e3d0d8c62bf1",
+            "newSha256": "eaca33e4d16124fd5a5e153222db4623a6d1877bf3cd98f710c8e3d0d8c62bf1",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "ec3a8c457cbe5b8e155a4bef282f725f7bb97a87f20439842d59c2cf6c161f8a",
+            "newSha256": "ec3a8c457cbe5b8e155a4bef282f725f7bb97a87f20439842d59c2cf6c161f8a",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 91,
+          "oldCardId": "173704f298",
+          "newCardId": "173704f298",
+          "idUnchanged": true,
+          "oldSectionId": "advanced-tools",
+          "newSectionId": "advanced-tools",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "1e66e7bab961cae642af4b7be1f9e69104aa6c54cbb62f3f38fa5d1ba7190c33",
+            "newSha256": "1e66e7bab961cae642af4b7be1f9e69104aa6c54cbb62f3f38fa5d1ba7190c33",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "b9d6a2963ce94a6a2a79796ca9099db31ff273d30c2973d4c387fa3b102ecde6",
+            "newSha256": "b9d6a2963ce94a6a2a79796ca9099db31ff273d30c2973d4c387fa3b102ecde6",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 92,
+          "oldCardId": "154cfcc05b",
+          "newCardId": "154cfcc05b",
+          "idUnchanged": true,
+          "oldSectionId": "advanced-tools",
+          "newSectionId": "advanced-tools",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "abe450da52244c56bfcfb143e8bb7aa8498ec7c804a386c3450b826efa23fb64",
+            "newSha256": "abe450da52244c56bfcfb143e8bb7aa8498ec7c804a386c3450b826efa23fb64",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "5dd454f3e422af4b4acc168d48b4f5093d2883e7eb470e661c29acedd274ac87",
+            "newSha256": "5dd454f3e422af4b4acc168d48b4f5093d2883e7eb470e661c29acedd274ac87",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 93,
+          "oldCardId": "383f1066ac",
+          "newCardId": "383f1066ac",
+          "idUnchanged": true,
+          "oldSectionId": "advanced-tools",
+          "newSectionId": "advanced-tools",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "38912a9984f943ae62e1c356c25ecec553996ad6133f65c37a0292c39ecb6429",
+            "newSha256": "38912a9984f943ae62e1c356c25ecec553996ad6133f65c37a0292c39ecb6429",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "6ee9926d94441d6fe34576ac8e6e2ce4c120fc0aa65ad3d3579de55e34329683",
+            "newSha256": "6ee9926d94441d6fe34576ac8e6e2ce4c120fc0aa65ad3d3579de55e34329683",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 94,
+          "oldCardId": "5aa36e7507",
+          "newCardId": "5aa36e7507",
+          "idUnchanged": true,
+          "oldSectionId": "advanced-tools",
+          "newSectionId": "advanced-tools",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "831532204e9f0e50822b603be4bf5ad0faa94b161dbac11da2ff68203eaa7709",
+            "newSha256": "831532204e9f0e50822b603be4bf5ad0faa94b161dbac11da2ff68203eaa7709",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "d2913ec7bff960b6e2a2c6a148ce5566bbbfcbd9f5914ef1fa6a9daca3c88bc7",
+            "newSha256": "d2913ec7bff960b6e2a2c6a148ce5566bbbfcbd9f5914ef1fa6a9daca3c88bc7",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 95,
+          "oldCardId": "fa53e7f291",
+          "newCardId": "fa53e7f291",
+          "idUnchanged": true,
+          "oldSectionId": "investigate-release",
+          "newSectionId": "investigate-release",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "1f54c10380b2a63aaaaed6fc05434540f8364f6795e3b9f329c6be5748a992a7",
+            "newSha256": "1f54c10380b2a63aaaaed6fc05434540f8364f6795e3b9f329c6be5748a992a7",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "26a37b27f4117a8741f47321775f10bef8806d242cbd525fc3341db8eaf9cfe4",
+            "newSha256": "26a37b27f4117a8741f47321775f10bef8806d242cbd525fc3341db8eaf9cfe4",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 96,
+          "oldCardId": "11074334a3",
+          "newCardId": "11074334a3",
+          "idUnchanged": true,
+          "oldSectionId": "investigate-release",
+          "newSectionId": "investigate-release",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "5ab06f3fc80aee173d19e56398ccfc22e52ad5453e11997fba69aed4568c2075",
+            "newSha256": "5ab06f3fc80aee173d19e56398ccfc22e52ad5453e11997fba69aed4568c2075",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "e60c71b7444b19bde9310964fa6f0065496ebf5ab6d4dad3e6614bed73072a28",
+            "newSha256": "e60c71b7444b19bde9310964fa6f0065496ebf5ab6d4dad3e6614bed73072a28",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 97,
+          "oldCardId": "eac6e3e51f",
+          "newCardId": "eac6e3e51f",
+          "idUnchanged": true,
+          "oldSectionId": "investigate-release",
+          "newSectionId": "investigate-release",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "5b996fc4ce9e92175b99dec6989f1e8721ce032b2c4ca5c150fe4a99609c1920",
+            "newSha256": "5b996fc4ce9e92175b99dec6989f1e8721ce032b2c4ca5c150fe4a99609c1920",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "5b25c7272b06c9691f8226c3b01e207bff901754b858382e80001e9c28f4d65d",
+            "newSha256": "5b25c7272b06c9691f8226c3b01e207bff901754b858382e80001e9c28f4d65d",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 98,
+          "oldCardId": "f27e56c609",
+          "newCardId": "f27e56c609",
+          "idUnchanged": true,
+          "oldSectionId": "investigate-release",
+          "newSectionId": "investigate-release",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "6b39ba2e977d62e8b4a426d53375aa750defdeae04603e996f9a970c72913da9",
+            "newSha256": "6b39ba2e977d62e8b4a426d53375aa750defdeae04603e996f9a970c72913da9",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "6ece731d715f1011f9cc87b91bd6d38455f781f0b13aca96c2909d8347c885fe",
+            "newSha256": "6ece731d715f1011f9cc87b91bd6d38455f781f0b13aca96c2909d8347c885fe",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 99,
+          "oldCardId": "4a6a7d51f7",
+          "newCardId": "4a6a7d51f7",
+          "idUnchanged": true,
+          "oldSectionId": "investigate-release",
+          "newSectionId": "investigate-release",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "fdfc0f4a10bee7dc16936ccacea4d40c9c4fe8884ebc85f8dfd2b1b28498d524",
+            "newSha256": "fdfc0f4a10bee7dc16936ccacea4d40c9c4fe8884ebc85f8dfd2b1b28498d524",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "af3b189610aa984c7f32d90a7963a057b47cd9f166b6a7f9f2fbc3903e3cff31",
+            "newSha256": "af3b189610aa984c7f32d90a7963a057b47cd9f166b6a7f9f2fbc3903e3cff31",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 100,
+          "oldCardId": "82fb8199bd",
+          "newCardId": "82fb8199bd",
+          "idUnchanged": true,
+          "oldSectionId": "investigate-release",
+          "newSectionId": "investigate-release",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "1ee48bdec03f57f870c3fb4a9bb02d9e8436b84f6a118279b2440e18aca065e4",
+            "newSha256": "1ee48bdec03f57f870c3fb4a9bb02d9e8436b84f6a118279b2440e18aca065e4",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "c4f38e6a51fbd1e8b88a62d0c92d414732480d3b44d7dd6855d8a10e18e27c84",
+            "newSha256": "c4f38e6a51fbd1e8b88a62d0c92d414732480d3b44d7dd6855d8a10e18e27c84",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 101,
+          "oldCardId": "da6a178aef",
+          "newCardId": "da6a178aef",
+          "idUnchanged": true,
+          "oldSectionId": "investigate-release",
+          "newSectionId": "investigate-release",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "9c5f1340d6ea43e8fb00a47016c5b969b5a9b247cd2b2f6ebea546c298a742ab",
+            "newSha256": "9c5f1340d6ea43e8fb00a47016c5b969b5a9b247cd2b2f6ebea546c298a742ab",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "53dad0044ae054344547b051e2dafab5d310883c10c066de78a04adaede8ec78",
+            "newSha256": "53dad0044ae054344547b051e2dafab5d310883c10c066de78a04adaede8ec78",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 102,
+          "oldCardId": "dc02d0efca",
+          "newCardId": "dc02d0efca",
+          "idUnchanged": true,
+          "oldSectionId": "investigate-release",
+          "newSectionId": "investigate-release",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "ea938f599f3814bbecd38529c48ad0a9292af463542ba9e0a7da71895441a6d6",
+            "newSha256": "ea938f599f3814bbecd38529c48ad0a9292af463542ba9e0a7da71895441a6d6",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "86ba9bd588009446ac4a172adb69a34fa0c018fb6353ebc29683973af3fb4a54",
+            "newSha256": "86ba9bd588009446ac4a172adb69a34fa0c018fb6353ebc29683973af3fb4a54",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 103,
+          "oldCardId": "fbbb75b0be",
+          "newCardId": "fbbb75b0be",
+          "idUnchanged": true,
+          "oldSectionId": "agent-contract",
+          "newSectionId": "agent-contract",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "827358d7e62ddbac7d4941bfb4c6225ceaf471f8ca55a089e8491c829fcfeb7a",
+            "newSha256": "827358d7e62ddbac7d4941bfb4c6225ceaf471f8ca55a089e8491c829fcfeb7a",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "7b366abe6575c48a48e5dc8fbb3fdf7667ec006f85bc057df5ed0e961ebdcbce",
+            "newSha256": "7b366abe6575c48a48e5dc8fbb3fdf7667ec006f85bc057df5ed0e961ebdcbce",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "agent-loop",
+              "on": [
+                "branch",
+                "review"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "agent-loop",
+              "highlightedLabels": [
+                "branch",
+                "review"
+              ]
+            }
+          }
+        },
+        {
+          "index": 104,
+          "oldCardId": "7caa1ba363",
+          "newCardId": "7caa1ba363",
+          "idUnchanged": true,
+          "oldSectionId": "agent-contract",
+          "newSectionId": "agent-contract",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "3e852c1a86e448190215319fcc645780a6b7358945d9372d116f8cd9e1415076",
+            "newSha256": "3e852c1a86e448190215319fcc645780a6b7358945d9372d116f8cd9e1415076",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "a47a1dea52cb889f92c1ad71235c54c9b5f54f373db72cbe7f21478665912cab",
+            "newSha256": "a47a1dea52cb889f92c1ad71235c54c9b5f54f373db72cbe7f21478665912cab",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 105,
+          "oldCardId": "027c7f8a0e",
+          "newCardId": "027c7f8a0e",
+          "idUnchanged": true,
+          "oldSectionId": "agent-contract",
+          "newSectionId": "agent-contract",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "6654e6d1ddb15736f7a5b5a92968d336e850569d4b87cc010d1d9355e433d5dc",
+            "newSha256": "6654e6d1ddb15736f7a5b5a92968d336e850569d4b87cc010d1d9355e433d5dc",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "4b18580b0277390ead2f32204a96597db8c6cf8b2fa9fac566654d93c3e8b503",
+            "newSha256": "4b18580b0277390ead2f32204a96597db8c6cf8b2fa9fac566654d93c3e8b503",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 106,
+          "oldCardId": "eef879cb39",
+          "newCardId": "eef879cb39",
+          "idUnchanged": true,
+          "oldSectionId": "agent-contract",
+          "newSectionId": "agent-contract",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "e207f4a6327ca3957ac4b4387526a31a684184febe22f65236413089c2e4e754",
+            "newSha256": "e207f4a6327ca3957ac4b4387526a31a684184febe22f65236413089c2e4e754",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "2f39398733076a7c1852a9be115b189f765b89e1ccb0e35f96ab227d111034eb",
+            "newSha256": "2f39398733076a7c1852a9be115b189f765b89e1ccb0e35f96ab227d111034eb",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "worktrees",
+              "on": [
+                "branches"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "worktrees",
+              "highlightedLabels": [
+                "branches"
+              ]
+            }
+          }
+        },
+        {
+          "index": 107,
+          "oldCardId": "dfa8fd7337",
+          "newCardId": "dfa8fd7337",
+          "idUnchanged": true,
+          "oldSectionId": "agent-contract",
+          "newSectionId": "agent-contract",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "9fa234329073db90482fb5959d9fca43b13a917cf29e5fdedc12bb97c87d72b3",
+            "newSha256": "9fa234329073db90482fb5959d9fca43b13a917cf29e5fdedc12bb97c87d72b3",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "071f481642ba73e9199ec308a5c90f7bd20404374a506b79370f08c05bf9a465",
+            "newSha256": "071f481642ba73e9199ec308a5c90f7bd20404374a506b79370f08c05bf9a465",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 108,
+          "oldCardId": "551c3028c0",
+          "newCardId": "551c3028c0",
+          "idUnchanged": true,
+          "oldSectionId": "agent-contract",
+          "newSectionId": "agent-contract",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "eb9a7fac7e7abf14f71d3e4e3e65c6144392e2ef5154b768ba217f3f55b7a37d",
+            "newSha256": "eb9a7fac7e7abf14f71d3e4e3e65c6144392e2ef5154b768ba217f3f55b7a37d",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "b669328c01afeeff9281d6318ac9745d8b8ae9dc5fe1b4308cac3d3451c602f5",
+            "newSha256": "b669328c01afeeff9281d6318ac9745d8b8ae9dc5fe1b4308cac3d3451c602f5",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 109,
+          "oldCardId": "efdc535b80",
+          "newCardId": "efdc535b80",
+          "idUnchanged": true,
+          "oldSectionId": "agent-contract",
+          "newSectionId": "agent-contract",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "627608c879868437a1cb5319df2db5719ce1de8c0373dbd23afcc374be499fb8",
+            "newSha256": "627608c879868437a1cb5319df2db5719ce1de8c0373dbd23afcc374be499fb8",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "8aaed40b5a40334b5f88dff11a792a077c726095e470ae59a75e5141fadaa54f",
+            "newSha256": "8aaed40b5a40334b5f88dff11a792a077c726095e470ae59a75e5141fadaa54f",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 110,
+          "oldCardId": "c7bd61a0ca",
+          "newCardId": "c7bd61a0ca",
+          "idUnchanged": true,
+          "oldSectionId": "agent-contract",
+          "newSectionId": "agent-contract",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "911254fd9381975062cdbb60a0815384dfc28806c8aadd74ac1b9f8c62d2c092",
+            "newSha256": "911254fd9381975062cdbb60a0815384dfc28806c8aadd74ac1b9f8c62d2c092",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "b55b8bfd593037dd85c0d6687a4fda36dbd51b7b70439fda475dcfd9f05c361f",
+            "newSha256": "b55b8bfd593037dd85c0d6687a4fda36dbd51b7b70439fda475dcfd9f05c361f",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 111,
+          "oldCardId": "392b7a0219",
+          "newCardId": "392b7a0219",
+          "idUnchanged": true,
+          "oldSectionId": "agent-contract",
+          "newSectionId": "agent-contract",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "d6bcafc00d349fe48390dff5990ef35f53929e5ffc4df25008faa3fcba43020b",
+            "newSha256": "d6bcafc00d349fe48390dff5990ef35f53929e5ffc4df25008faa3fcba43020b",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "15efb5e4a223a2b80cecbf00349126adbcf4b9baf0b5b943ddfdc95c2ba9345f",
+            "newSha256": "15efb5e4a223a2b80cecbf00349126adbcf4b9baf0b5b943ddfdc95c2ba9345f",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 112,
+          "oldCardId": "00d5093347",
+          "newCardId": "00d5093347",
+          "idUnchanged": true,
+          "oldSectionId": "agent-context",
+          "newSectionId": "agent-context",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "1517c2e8e113b7c1b243c553cfb32b198e594ba4b6c0e50cc1a18ae3fdd525fa",
+            "newSha256": "1517c2e8e113b7c1b243c553cfb32b198e594ba4b6c0e50cc1a18ae3fdd525fa",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "dd2164f5b7672a4fe88caed6e5df7461c811d598d3d48ff4815815103120c22c",
+            "newSha256": "dd2164f5b7672a4fe88caed6e5df7461c811d598d3d48ff4815815103120c22c",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 113,
+          "oldCardId": "74176889e4",
+          "newCardId": "74176889e4",
+          "idUnchanged": true,
+          "oldSectionId": "agent-context",
+          "newSectionId": "agent-context",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "bbe4992a5ff6040037b7bbaa468c3c9a44ea4af9a4903ce5467cd95bc94cb28a",
+            "newSha256": "bbe4992a5ff6040037b7bbaa468c3c9a44ea4af9a4903ce5467cd95bc94cb28a",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "3729d7fc6ed7ae45edb05a785c45164e4f70501c55c31d14e642c03c2065bb1b",
+            "newSha256": "3729d7fc6ed7ae45edb05a785c45164e4f70501c55c31d14e642c03c2065bb1b",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 114,
+          "oldCardId": "7e73374154",
+          "newCardId": "7e73374154",
+          "idUnchanged": true,
+          "oldSectionId": "agent-context",
+          "newSectionId": "agent-context",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "ec3398516be404149ed09e1b02a7e307bcee1dc198395d3aea8293e9bdec82ed",
+            "newSha256": "ec3398516be404149ed09e1b02a7e307bcee1dc198395d3aea8293e9bdec82ed",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "be20e9fc20b29afbcc567e40f3ef7f67ffef7ac9f3fd553621319bb8eeb09e30",
+            "newSha256": "be20e9fc20b29afbcc567e40f3ef7f67ffef7ac9f3fd553621319bb8eeb09e30",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 115,
+          "oldCardId": "8b14d6eeac",
+          "newCardId": "8b14d6eeac",
+          "idUnchanged": true,
+          "oldSectionId": "agent-context",
+          "newSectionId": "agent-context",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "7f319de89c1afab2bcbe2939bd86482e00e64aafc77875035314602aafc5d542",
+            "newSha256": "7f319de89c1afab2bcbe2939bd86482e00e64aafc77875035314602aafc5d542",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "c732f7e8bad4d2aada92b1a22f4e7ea37d8f7849918a011128a54289cdd26dac",
+            "newSha256": "c732f7e8bad4d2aada92b1a22f4e7ea37d8f7849918a011128a54289cdd26dac",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 116,
+          "oldCardId": "1934952775",
+          "newCardId": "1934952775",
+          "idUnchanged": true,
+          "oldSectionId": "agent-context",
+          "newSectionId": "agent-context",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "fdd5a4f324352cccbfd745c60da8b3fd44db5b52b9f671c8379128ca1ade8565",
+            "newSha256": "fdd5a4f324352cccbfd745c60da8b3fd44db5b52b9f671c8379128ca1ade8565",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "b42f480b78dac97ff7f6727457e30a47b3d86bc2666aa5ba1150bc7a7999fe4c",
+            "newSha256": "b42f480b78dac97ff7f6727457e30a47b3d86bc2666aa5ba1150bc7a7999fe4c",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 117,
+          "oldCardId": "010996f849",
+          "newCardId": "010996f849",
+          "idUnchanged": true,
+          "oldSectionId": "agent-context",
+          "newSectionId": "agent-context",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "f7be7d7b8269f6e2dae16ce827ecfbda31f94b93d9dbbaff93b37659592c3631",
+            "newSha256": "f7be7d7b8269f6e2dae16ce827ecfbda31f94b93d9dbbaff93b37659592c3631",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "15c2d30f3e7d5aff6957440bd5790259b09c9e98a55ca9b421f9a0c4938c9d0b",
+            "newSha256": "15c2d30f3e7d5aff6957440bd5790259b09c9e98a55ca9b421f9a0c4938c9d0b",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 118,
+          "oldCardId": "f180197fc3",
+          "newCardId": "f180197fc3",
+          "idUnchanged": true,
+          "oldSectionId": "agent-context",
+          "newSectionId": "agent-context",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "0e2ec121443fac34a3be1a7ca2a589b69b2cb76169b39a4a0d8641243d0b1f7c",
+            "newSha256": "0e2ec121443fac34a3be1a7ca2a589b69b2cb76169b39a4a0d8641243d0b1f7c",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "b8d3d40c96243f589f4776c7223b13dc0b17777a7c409ac502376fccaff6d4bc",
+            "newSha256": "b8d3d40c96243f589f4776c7223b13dc0b17777a7c409ac502376fccaff6d4bc",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 119,
+          "oldCardId": "d7712a26dd",
+          "newCardId": "d7712a26dd",
+          "idUnchanged": true,
+          "oldSectionId": "agent-context",
+          "newSectionId": "agent-context",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "e68c2c027946fdb74b155cea5e5b33f8f647e351af73fcacf58c64f0a66c398b",
+            "newSha256": "e68c2c027946fdb74b155cea5e5b33f8f647e351af73fcacf58c64f0a66c398b",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "c076125e0edca42b25fa6a9c9b0dc77e89e2f022cd2cb2e083feeee7946a679a",
+            "newSha256": "c076125e0edca42b25fa6a9c9b0dc77e89e2f022cd2cb2e083feeee7946a679a",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 120,
+          "oldCardId": "d4ba3d453d",
+          "newCardId": "d4ba3d453d",
+          "idUnchanged": true,
+          "oldSectionId": "parallel-agents",
+          "newSectionId": "parallel-agents",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "18a6824962163c56a2f6d1b4da2798c9fa03afa41cc238230510deed457fcb4a",
+            "newSha256": "18a6824962163c56a2f6d1b4da2798c9fa03afa41cc238230510deed457fcb4a",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "6aa8980bd7ede95d89ef09f3e31a3531b6acd09eb5fb53f09142551d4918b045",
+            "newSha256": "6aa8980bd7ede95d89ef09f3e31a3531b6acd09eb5fb53f09142551d4918b045",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "worktrees",
+              "on": [
+                "shared",
+                "branches"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "worktrees",
+              "highlightedLabels": [
+                "shared",
+                "branches"
+              ]
+            }
+          }
+        },
+        {
+          "index": 121,
+          "oldCardId": "0de6047977",
+          "newCardId": "0de6047977",
+          "idUnchanged": true,
+          "oldSectionId": "parallel-agents",
+          "newSectionId": "parallel-agents",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "978ce8da6d6079f7c7f3528d162863d848f1328e7d302c7f2e40662b01986d00",
+            "newSha256": "978ce8da6d6079f7c7f3528d162863d848f1328e7d302c7f2e40662b01986d00",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "ac6c3f821825c255776e20852b42ab8ac4598a64dcc2dd55ff9cca11297027f5",
+            "newSha256": "ac6c3f821825c255776e20852b42ab8ac4598a64dcc2dd55ff9cca11297027f5",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 122,
+          "oldCardId": "ba874c563b",
+          "newCardId": "ba874c563b",
+          "idUnchanged": true,
+          "oldSectionId": "parallel-agents",
+          "newSectionId": "parallel-agents",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "7ecf1a6dc0dfcfb5ea7799f7461931ab0879f047c919015250e4f9d5e1c942b6",
+            "newSha256": "7ecf1a6dc0dfcfb5ea7799f7461931ab0879f047c919015250e4f9d5e1c942b6",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "4b5c120b27225152a723d5293cf006c1cd3ff064fe45f49a8d5e1876e7b04549",
+            "newSha256": "4b5c120b27225152a723d5293cf006c1cd3ff064fe45f49a8d5e1876e7b04549",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 123,
+          "oldCardId": "557232757a",
+          "newCardId": "557232757a",
+          "idUnchanged": true,
+          "oldSectionId": "parallel-agents",
+          "newSectionId": "parallel-agents",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "6a356a7e719bb8b17f94ebec14078747e80beefcdecfdff20bb78d2bd8963476",
+            "newSha256": "6a356a7e719bb8b17f94ebec14078747e80beefcdecfdff20bb78d2bd8963476",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "04d8e49e5a44296e13804f635c21c5bc057aaf559cef357394042bf293d2a60e",
+            "newSha256": "04d8e49e5a44296e13804f635c21c5bc057aaf559cef357394042bf293d2a60e",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 124,
+          "oldCardId": "3c6a0a3f2b",
+          "newCardId": "3c6a0a3f2b",
+          "idUnchanged": true,
+          "oldSectionId": "parallel-agents",
+          "newSectionId": "parallel-agents",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "21bcf39ef185877aa954add30978ab2839b3e506d87bd501bbc4e2466142ad23",
+            "newSha256": "21bcf39ef185877aa954add30978ab2839b3e506d87bd501bbc4e2466142ad23",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "c3a10f435ac8e78b95b0c2a30e6a488daed7a38e42bf3a8b9dbb40dcfbd7b96a",
+            "newSha256": "c3a10f435ac8e78b95b0c2a30e6a488daed7a38e42bf3a8b9dbb40dcfbd7b96a",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "worktrees",
+              "on": [
+                "scope"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "worktrees",
+              "highlightedLabels": [
+                "scope"
+              ]
+            }
+          }
+        },
+        {
+          "index": 125,
+          "oldCardId": "1cef295435",
+          "newCardId": "1cef295435",
+          "idUnchanged": true,
+          "oldSectionId": "parallel-agents",
+          "newSectionId": "parallel-agents",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "37bc026640ead2b50428e3185d8837e35a91d10184c521f7fd3450c4fa7bb278",
+            "newSha256": "37bc026640ead2b50428e3185d8837e35a91d10184c521f7fd3450c4fa7bb278",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "a6a9125b8fbd9359b2e7fb59d4adcb7fe751618f611dc732d95f52907183f92e",
+            "newSha256": "a6a9125b8fbd9359b2e7fb59d4adcb7fe751618f611dc732d95f52907183f92e",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 126,
+          "oldCardId": "7a7875c923",
+          "newCardId": "7a7875c923",
+          "idUnchanged": true,
+          "oldSectionId": "parallel-agents",
+          "newSectionId": "parallel-agents",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "681099b698da05bde9940988c07a3a32483ef245128abc6c4f3fa5cd5b836bee",
+            "newSha256": "681099b698da05bde9940988c07a3a32483ef245128abc6c4f3fa5cd5b836bee",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "a0f756df8e8f44388cebdc82e3f64eb2a8984ad8b33e73c987190e117b103d6e",
+            "newSha256": "a0f756df8e8f44388cebdc82e3f64eb2a8984ad8b33e73c987190e117b103d6e",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 127,
+          "oldCardId": "6eb606705c",
+          "newCardId": "6eb606705c",
+          "idUnchanged": true,
+          "oldSectionId": "parallel-agents",
+          "newSectionId": "parallel-agents",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "352772e47b9f0935e65d4bba63ee7e5d5231b50bd03f195177c2c782c4b5dd16",
+            "newSha256": "352772e47b9f0935e65d4bba63ee7e5d5231b50bd03f195177c2c782c4b5dd16",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "a30ed3d75931321aff3823276648b670b22cfbdf688e65f06571a54e2c38233f",
+            "newSha256": "a30ed3d75931321aff3823276648b670b22cfbdf688e65f06571a54e2c38233f",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 128,
+          "oldCardId": "ee21658e1f",
+          "newCardId": "ee21658e1f",
+          "idUnchanged": true,
+          "oldSectionId": "parallel-agents",
+          "newSectionId": "parallel-agents",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "2cc679dc099882e408955dceab8ee0969d6748db93614efdac80b38950cdfa53",
+            "newSha256": "2cc679dc099882e408955dceab8ee0969d6748db93614efdac80b38950cdfa53",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "a5fc46a35dc1a6ce008bc3683f90a8ecd7fd3fb1638394f4af2086942f07c8df",
+            "newSha256": "a5fc46a35dc1a6ce008bc3683f90a8ecd7fd3fb1638394f4af2086942f07c8df",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 129,
+          "oldCardId": "81f295c7d6",
+          "newCardId": "81f295c7d6",
+          "idUnchanged": true,
+          "oldSectionId": "parallel-agents",
+          "newSectionId": "parallel-agents",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "436e2341a60248f7b67e03318dec1b2a699012ca1d08e4c2369f47906cc41f3d",
+            "newSha256": "436e2341a60248f7b67e03318dec1b2a699012ca1d08e4c2369f47906cc41f3d",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "31187b066e84c0dba214a58215cd2ee0a27570831f49daa97431473329c9f116",
+            "newSha256": "31187b066e84c0dba214a58215cd2ee0a27570831f49daa97431473329c9f116",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "worktrees",
+              "on": [
+                "scout",
+                "builder",
+                "reviewer",
+                "integrator"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "worktrees",
+              "highlightedLabels": [
+                "scout",
+                "builder",
+                "reviewer",
+                "integrator"
+              ]
+            }
+          }
+        },
+        {
+          "index": 130,
+          "oldCardId": "86077984c7",
+          "newCardId": "86077984c7",
+          "idUnchanged": true,
+          "oldSectionId": "agent-review",
+          "newSectionId": "agent-review",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "e338eb691de683b9a8f2df04b6f18db5125793c3f639a7306c4b896fee0042d7",
+            "newSha256": "e338eb691de683b9a8f2df04b6f18db5125793c3f639a7306c4b896fee0042d7",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "6c71da3f8b98e78fce9615391f85eb3f34ffe680163f32f18b87e77bceb84480",
+            "newSha256": "6c71da3f8b98e78fce9615391f85eb3f34ffe680163f32f18b87e77bceb84480",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "agent-loop",
+              "on": [
+                "diff",
+                "test",
+                "review"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "agent-loop",
+              "highlightedLabels": [
+                "diff",
+                "test",
+                "review"
+              ]
+            }
+          }
+        },
+        {
+          "index": 131,
+          "oldCardId": "f9add16b60",
+          "newCardId": "f9add16b60",
+          "idUnchanged": true,
+          "oldSectionId": "agent-review",
+          "newSectionId": "agent-review",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "36275fad07b3f03164c9c297de2dc663590c62e67b6bbd82b4e2fdfb1595d64b",
+            "newSha256": "36275fad07b3f03164c9c297de2dc663590c62e67b6bbd82b4e2fdfb1595d64b",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "3e2dbb64e3dd7fb3a6bdb443ddccf7b634f4e086696ca1d3a27f284d4ffb3a21",
+            "newSha256": "3e2dbb64e3dd7fb3a6bdb443ddccf7b634f4e086696ca1d3a27f284d4ffb3a21",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 132,
+          "oldCardId": "65a59c73de",
+          "newCardId": "65a59c73de",
+          "idUnchanged": true,
+          "oldSectionId": "agent-review",
+          "newSectionId": "agent-review",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "1dd51128eaf19a1a0079b32068b73921f8ea84178f720f0604cf05a81a78bb2c",
+            "newSha256": "1dd51128eaf19a1a0079b32068b73921f8ea84178f720f0604cf05a81a78bb2c",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "3c280de30e6aca992eeb04238ebd8be573c187b62df858fa4cca676587b7166d",
+            "newSha256": "3c280de30e6aca992eeb04238ebd8be573c187b62df858fa4cca676587b7166d",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 133,
+          "oldCardId": "e32cbf500f",
+          "newCardId": "e32cbf500f",
+          "idUnchanged": true,
+          "oldSectionId": "agent-review",
+          "newSectionId": "agent-review",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "b5c93af06b428e84a88717a17131e6542b78d56c400acdef876124a5656bf90c",
+            "newSha256": "b5c93af06b428e84a88717a17131e6542b78d56c400acdef876124a5656bf90c",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "e6ed9605f4fc46ec8ce3c5d1194cff42c640450d5fe79a139cdcb5ba5e80dd2d",
+            "newSha256": "e6ed9605f4fc46ec8ce3c5d1194cff42c640450d5fe79a139cdcb5ba5e80dd2d",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 134,
+          "oldCardId": "01a026bf5b",
+          "newCardId": "01a026bf5b",
+          "idUnchanged": true,
+          "oldSectionId": "agent-review",
+          "newSectionId": "agent-review",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "4ef455a25720cef3c3b5f474f163c45415ea17c1872a538b9b412a5ad01d2516",
+            "newSha256": "4ef455a25720cef3c3b5f474f163c45415ea17c1872a538b9b412a5ad01d2516",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "adc9b10f86cc8ed5c3b629d2fcae06997d0fc29fd7acd0d171101bc112a1a93c",
+            "newSha256": "adc9b10f86cc8ed5c3b629d2fcae06997d0fc29fd7acd0d171101bc112a1a93c",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 135,
+          "oldCardId": "2df17ef9c6",
+          "newCardId": "2df17ef9c6",
+          "idUnchanged": true,
+          "oldSectionId": "agent-review",
+          "newSectionId": "agent-review",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "b683ebad7ebe5d2b95ce8fbe93fc6d5f37766d99dc44f276ed4e2f904ed50808",
+            "newSha256": "b683ebad7ebe5d2b95ce8fbe93fc6d5f37766d99dc44f276ed4e2f904ed50808",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "6ea91241133437f4afc88060709c8b8016d829843cd94b0757f9bfa32fc5e124",
+            "newSha256": "6ea91241133437f4afc88060709c8b8016d829843cd94b0757f9bfa32fc5e124",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 136,
+          "oldCardId": "db011a59db",
+          "newCardId": "db011a59db",
+          "idUnchanged": true,
+          "oldSectionId": "agent-review",
+          "newSectionId": "agent-review",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "0c9063511ef7a32556a745e38e6bcba9eeab0b56f43055fdf613cb47280c4277",
+            "newSha256": "0c9063511ef7a32556a745e38e6bcba9eeab0b56f43055fdf613cb47280c4277",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "e6172a96f05dc8cf70bcf67026902a2f5dcaadced2b70874cd2eaf152ca2f17e",
+            "newSha256": "e6172a96f05dc8cf70bcf67026902a2f5dcaadced2b70874cd2eaf152ca2f17e",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "pr-gate",
+              "on": [
+                "diff",
+                "tests",
+                "human",
+                "main"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "pr-gate",
+              "highlightedLabels": [
+                "diff",
+                "tests",
+                "human",
+                "main"
+              ]
+            }
+          }
+        },
+        {
+          "index": 137,
+          "oldCardId": "830b0a716d",
+          "newCardId": "830b0a716d",
+          "idUnchanged": true,
+          "oldSectionId": "agent-review",
+          "newSectionId": "agent-review",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "0e22aa1cd38e80e588cf6893460b334633e5e96aeae45215819fb94be5310792",
+            "newSha256": "0e22aa1cd38e80e588cf6893460b334633e5e96aeae45215819fb94be5310792",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "d5a1b49208d3e13b44853a9e154ff1523f604191600a4eb84608da10e4ccbb07",
+            "newSha256": "d5a1b49208d3e13b44853a9e154ff1523f604191600a4eb84608da10e4ccbb07",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 138,
+          "oldCardId": "5ad93118e3",
+          "newCardId": "5ad93118e3",
+          "idUnchanged": true,
+          "oldSectionId": "agent-review",
+          "newSectionId": "agent-review",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "885f2161f0ebf883e9fc0a1594320d5538f5a91c7c771501db145fa9a9bfd9b6",
+            "newSha256": "885f2161f0ebf883e9fc0a1594320d5538f5a91c7c771501db145fa9a9bfd9b6",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "6be8979143805dd82d3a6c4c07f4c6de944fa2ad1764270f8cd224f4fcce9fb6",
+            "newSha256": "6be8979143805dd82d3a6c4c07f4c6de944fa2ad1764270f8cd224f4fcce9fb6",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 139,
+          "oldCardId": "156b49caf5",
+          "newCardId": "156b49caf5",
+          "idUnchanged": true,
+          "oldSectionId": "agent-review",
+          "newSectionId": "agent-review",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "94fe7ecea86cd4dac2d51bc841277c43233985320b8da5959bdd7a90b58f6556",
+            "newSha256": "94fe7ecea86cd4dac2d51bc841277c43233985320b8da5959bdd7a90b58f6556",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "3f4be167f5b429915192100456fabd3859d5a19b4f25f8f05c30abd12c9152dc",
+            "newSha256": "3f4be167f5b429915192100456fabd3859d5a19b4f25f8f05c30abd12c9152dc",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 140,
+          "oldCardId": "e86491d83c",
+          "newCardId": "e86491d83c",
+          "idUnchanged": true,
+          "oldSectionId": "agent-review",
+          "newSectionId": "agent-review",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "986c3f368593b7f1808deeb7745238dc831b563ae6507134e7567f7836394818",
+            "newSha256": "986c3f368593b7f1808deeb7745238dc831b563ae6507134e7567f7836394818",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "f5b73c5f35e4a36aa5e0d566298a33fb3a7aca20bd64b058416d97bdb17b2e30",
+            "newSha256": "f5b73c5f35e4a36aa5e0d566298a33fb3a7aca20bd64b058416d97bdb17b2e30",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 141,
+          "oldCardId": "308b5f75bb",
+          "newCardId": "308b5f75bb",
+          "idUnchanged": true,
+          "oldSectionId": "agent-review",
+          "newSectionId": "agent-review",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "820b913390426d1c702df39b0d0a77cdd9053041fbe7d65b38c1d21ce887a82f",
+            "newSha256": "820b913390426d1c702df39b0d0a77cdd9053041fbe7d65b38c1d21ce887a82f",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "f8f5adabc04531db0a57df34dd3e58a18d393d5c5734d2b188c61b20d409bbf6",
+            "newSha256": "f8f5adabc04531db0a57df34dd3e58a18d393d5c5734d2b188c61b20d409bbf6",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "agent-loop",
+              "on": [
+                "brief",
+                "branch",
+                "diff",
+                "test",
+                "review",
+                "merge"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "agent-loop",
+              "highlightedLabels": [
+                "brief",
+                "branch",
+                "diff",
+                "test",
+                "review",
+                "merge"
+              ]
+            }
+          }
+        }
+      ],
+      "sections": [
+        {
+          "oldSectionId": "mental-model",
+          "newSectionId": "mental-model",
+          "idUnchanged": true,
+          "oldTitleSha256": "fc3fbb33406f4eca00155b3a87e71f3051cb611aa5bd53dd3756ccd303c8e8b4",
+          "newTitleSha256": "fc3fbb33406f4eca00155b3a87e71f3051cb611aa5bd53dd3756ccd303c8e8b4",
+          "titleUnchanged": true,
+          "oldCardCount": 7,
+          "derivedCardCount": 7
+        },
+        {
+          "oldSectionId": "setup",
+          "newSectionId": "setup",
+          "idUnchanged": true,
+          "oldTitleSha256": "4aacb937d5b648af143ede99eac34499fc245d5ef4553989cf9e5a8e7b5b583e",
+          "newTitleSha256": "4aacb937d5b648af143ede99eac34499fc245d5ef4553989cf9e5a8e7b5b583e",
+          "titleUnchanged": true,
+          "oldCardCount": 8,
+          "derivedCardCount": 8
+        },
+        {
+          "oldSectionId": "everyday-loop",
+          "newSectionId": "everyday-loop",
+          "idUnchanged": true,
+          "oldTitleSha256": "ab3c2f52cd4cebd86f50ab88152c79ba15d0de78b7aaa795bc061c85eeb9ec1e",
+          "newTitleSha256": "ab3c2f52cd4cebd86f50ab88152c79ba15d0de78b7aaa795bc061c85eeb9ec1e",
+          "titleUnchanged": true,
+          "oldCardCount": 9,
+          "derivedCardCount": 9
+        },
+        {
+          "oldSectionId": "see-changes",
+          "newSectionId": "see-changes",
+          "idUnchanged": true,
+          "oldTitleSha256": "4cf14c696203f5bf0f7d49ba5f9635f66332774b327a151521e0fce432425aa2",
+          "newTitleSha256": "4cf14c696203f5bf0f7d49ba5f9635f66332774b327a151521e0fce432425aa2",
+          "titleUnchanged": true,
+          "oldCardCount": 11,
+          "derivedCardCount": 11
+        },
+        {
+          "oldSectionId": "branches",
+          "newSectionId": "branches",
+          "idUnchanged": true,
+          "oldTitleSha256": "409bb2d2893d638f3f99cdeb839246d904cc036049185a08e612f0c4ed900e67",
+          "newTitleSha256": "409bb2d2893d638f3f99cdeb839246d904cc036049185a08e612f0c4ed900e67",
+          "titleUnchanged": true,
+          "oldCardCount": 10,
+          "derivedCardCount": 10
+        },
+        {
+          "oldSectionId": "merge-conflicts",
+          "newSectionId": "merge-conflicts",
+          "idUnchanged": true,
+          "oldTitleSha256": "3b13631d049d19687773287904de79cee6d763c24680988e2a7da08be894bba6",
+          "newTitleSha256": "3b13631d049d19687773287904de79cee6d763c24680988e2a7da08be894bba6",
+          "titleUnchanged": true,
+          "oldCardCount": 10,
+          "derivedCardCount": 10
+        },
+        {
+          "oldSectionId": "remotes",
+          "newSectionId": "remotes",
+          "idUnchanged": true,
+          "oldTitleSha256": "3230ca45014b647205068367994a794dcd5fc57c776fd9a13fa68f5530bfdb9b",
+          "newTitleSha256": "3230ca45014b647205068367994a794dcd5fc57c776fd9a13fa68f5530bfdb9b",
+          "titleUnchanged": true,
+          "oldCardCount": 10,
+          "derivedCardCount": 10
+        },
+        {
+          "oldSectionId": "team-workflow",
+          "newSectionId": "team-workflow",
+          "idUnchanged": true,
+          "oldTitleSha256": "738c78f810b63d14c95fec82099503381453eebdbd8ad0c23834a0089d8e954c",
+          "newTitleSha256": "738c78f810b63d14c95fec82099503381453eebdbd8ad0c23834a0089d8e954c",
+          "titleUnchanged": true,
+          "oldCardCount": 10,
+          "derivedCardCount": 10
+        },
+        {
+          "oldSectionId": "undo",
+          "newSectionId": "undo",
+          "idUnchanged": true,
+          "oldTitleSha256": "7e8e8da805de4bbe188ce55ef95079d6000a36efa801be10295e9e6d3d0f32d0",
+          "newTitleSha256": "7e8e8da805de4bbe188ce55ef95079d6000a36efa801be10295e9e6d3d0f32d0",
+          "titleUnchanged": true,
+          "oldCardCount": 11,
+          "derivedCardCount": 11
+        },
+        {
+          "oldSectionId": "advanced-tools",
+          "newSectionId": "advanced-tools",
+          "idUnchanged": true,
+          "oldTitleSha256": "6f333915b30659386919436c2f1b9756bf8949acec284bb8a032cc9e5f3c94f7",
+          "newTitleSha256": "6f333915b30659386919436c2f1b9756bf8949acec284bb8a032cc9e5f3c94f7",
+          "titleUnchanged": true,
+          "oldCardCount": 9,
+          "derivedCardCount": 9
+        },
+        {
+          "oldSectionId": "investigate-release",
+          "newSectionId": "investigate-release",
+          "idUnchanged": true,
+          "oldTitleSha256": "fd2e015d8a3b71d2a7350ccdd69330554fc2cfde13cbb819ae9f026f4ff3238f",
+          "newTitleSha256": "fd2e015d8a3b71d2a7350ccdd69330554fc2cfde13cbb819ae9f026f4ff3238f",
+          "titleUnchanged": true,
+          "oldCardCount": 8,
+          "derivedCardCount": 8
+        },
+        {
+          "oldSectionId": "agent-contract",
+          "newSectionId": "agent-contract",
+          "idUnchanged": true,
+          "oldTitleSha256": "8d62645539c070a78d2217699a1d8714e0c7e7fd0d7e9cb2b52b1e0a62cf2b7f",
+          "newTitleSha256": "8d62645539c070a78d2217699a1d8714e0c7e7fd0d7e9cb2b52b1e0a62cf2b7f",
+          "titleUnchanged": true,
+          "oldCardCount": 9,
+          "derivedCardCount": 9
+        },
+        {
+          "oldSectionId": "agent-context",
+          "newSectionId": "agent-context",
+          "idUnchanged": true,
+          "oldTitleSha256": "cc69cb7ed83478db418bf4e53c19ea3382e61b4ac50d588b5cbda911c0915cff",
+          "newTitleSha256": "cc69cb7ed83478db418bf4e53c19ea3382e61b4ac50d588b5cbda911c0915cff",
+          "titleUnchanged": true,
+          "oldCardCount": 8,
+          "derivedCardCount": 8
+        },
+        {
+          "oldSectionId": "parallel-agents",
+          "newSectionId": "parallel-agents",
+          "idUnchanged": true,
+          "oldTitleSha256": "f7655f8da0f45a59d9ef525da518190b2267e406c789ae9bb618af23633a713e",
+          "newTitleSha256": "f7655f8da0f45a59d9ef525da518190b2267e406c789ae9bb618af23633a713e",
+          "titleUnchanged": true,
+          "oldCardCount": 10,
+          "derivedCardCount": 10
+        },
+        {
+          "oldSectionId": "agent-review",
+          "newSectionId": "agent-review",
+          "idUnchanged": true,
+          "oldTitleSha256": "ef50c9d6dba90634fcd4166ead01897f18914e67d6d84c7f3fc20570690f75bd",
+          "newTitleSha256": "ef50c9d6dba90634fcd4166ead01897f18914e67d6d84c7f3fc20570690f75bd",
+          "titleUnchanged": true,
+          "oldCardCount": 12,
+          "derivedCardCount": 12
+        }
+      ],
+      "groups": [
+        {
+          "oldGroupId": "foundations",
+          "newGroupId": "foundations",
+          "idUnchanged": true,
+          "oldSectionIds": [
+            "mental-model",
+            "setup",
+            "everyday-loop",
+            "see-changes"
+          ],
+          "newSectionIds": [
+            "mental-model",
+            "setup",
+            "everyday-loop",
+            "see-changes"
+          ],
+          "membershipUnchanged": true,
+          "oldCardCount": 35,
+          "derivedCardCount": 35
+        },
+        {
+          "oldGroupId": "collaboration",
+          "newGroupId": "collaboration",
+          "idUnchanged": true,
+          "oldSectionIds": [
+            "branches",
+            "merge-conflicts",
+            "remotes",
+            "team-workflow"
+          ],
+          "newSectionIds": [
+            "branches",
+            "merge-conflicts",
+            "remotes",
+            "team-workflow"
+          ],
+          "membershipUnchanged": true,
+          "oldCardCount": 40,
+          "derivedCardCount": 40
+        },
+        {
+          "oldGroupId": "recovery",
+          "newGroupId": "recovery",
+          "idUnchanged": true,
+          "oldSectionIds": [
+            "undo",
+            "advanced-tools",
+            "investigate-release"
+          ],
+          "newSectionIds": [
+            "undo",
+            "advanced-tools",
+            "investigate-release"
+          ],
+          "membershipUnchanged": true,
+          "oldCardCount": 28,
+          "derivedCardCount": 28
+        },
+        {
+          "oldGroupId": "agentic",
+          "newGroupId": "agentic",
+          "idUnchanged": true,
+          "oldSectionIds": [
+            "agent-contract",
+            "agent-context",
+            "parallel-agents",
+            "agent-review"
+          ],
+          "newSectionIds": [
+            "agent-contract",
+            "agent-context",
+            "parallel-agents",
+            "agent-review"
+          ],
+          "membershipUnchanged": true,
+          "oldCardCount": 39,
+          "derivedCardCount": 39
+        }
+      ]
     }
   ],
   "summary": {
-    "courses": 2,
-    "cards": 737,
-    "unchangedCardIds": 737,
-    "unchangedRenderedFronts": 737,
-    "unchangedRenderedBacks": 737,
-    "unchangedSectionMemberships": 737
+    "courses": 3,
+    "cards": 879,
+    "unchangedCardIds": 879,
+    "unchangedRenderedFronts": 879,
+    "unchangedRenderedBacks": 879,
+    "unchangedSectionMemberships": 879
   }
 }

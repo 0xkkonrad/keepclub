@@ -21,6 +21,9 @@ DS="${DS:-$HERE/content/day-skipper/build}"
 # against one, so `python3 content/competent-crew/src/build.py` needs that
 # checkout present. Run it before this script, or there is nothing to copy.
 CC="${CC:-$HERE/content/competent-crew/build}"
+# Git 101 is authored here too. Its Markdown build produces the legacy deck
+# plus the labelled, code-native figures that the current runtime reads.
+GIT101="${GIT101:-$HERE/content/git-101/build}"
 FLAG="${1:-}"
 
 copy() { # src dst
@@ -64,6 +67,10 @@ for id in $IDS; do
       # own vocabulary, and the two courses' copies may drift apart on purpose.
       copy "$DS/figures.json" "$DEST/figures.json"
       sync_dir 'img  ' "$CC/media/" "$DEST/img/"
+      ;;
+    git-101)
+      copy "$GIT101/cards.json" "$DEST/cards.json"
+      copy "$GIT101/figures.json" "$DEST/figures.json"
       ;;
     *)
       # Not fatal: a course authored somewhere else — an .apkg-derived deck

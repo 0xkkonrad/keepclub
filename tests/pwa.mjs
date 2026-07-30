@@ -74,7 +74,7 @@ const server = http.createServer(async (req, res) => {
     if (rel === 'sw.js') {
       body = Buffer.from(String(body).replace(
         /^const BUILD = .*;$/m,
-        `const BUILD = { shell: 'qa-${state.gen}', courses: { 'day-skipper': 'qa-${state.gen}', 'competent-crew': 'qa-${state.gen}' } };`,
+        `const BUILD = { shell: 'qa-${state.gen}', courses: { 'day-skipper': 'qa-${state.gen}', 'competent-crew': 'qa-${state.gen}', 'git-101': 'qa-${state.gen}' } };`,
       ));
     }
     res.writeHead(200, {

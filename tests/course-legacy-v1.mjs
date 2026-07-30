@@ -34,11 +34,14 @@ function deepFreeze(value, seen = new Set()) {
   return value;
 }
 
+const builtInCourses = readJson('web', 'courses', 'index.json').courses;
 let builtInCards = 0;
-for (const courseFolder of ['day-skipper', 'competent-crew']) {
+let sourceCards = 0;
+for (const courseFolder of builtInCourses) {
   const meta = readJson('web', 'courses', courseFolder, 'course.json');
   const legacy = readJson('web', 'courses', courseFolder, 'cards.json');
   const before = JSON.stringify(legacy);
+  sourceCards += legacy.cards.length;
   deepFreeze(legacy);
 
   const result = normalizeLegacyCourse(legacy, { courseId: meta.id || courseFolder });
@@ -91,7 +94,8 @@ for (const courseFolder of ['day-skipper', 'competent-crew']) {
   `${courseFolder}: legacy source references use a descriptive compatibility field`);
   builtInCards += normalized.cards.length;
 }
-ok(builtInCards === 737, `all 737 built-in cards cross the adapter (${builtInCards})`);
+ok(builtInCards === sourceCards,
+  `all ${sourceCards} built-in cards cross the adapter (${builtInCards})`);
 
 {
   // Shape produced by the existing Anki importer and stored as the `deck`

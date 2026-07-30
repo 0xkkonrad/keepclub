@@ -256,7 +256,7 @@ history survives — with an explicit "this is a different card now, start it ov
 ever reads. Where the *authoring* source sits depends on whether the course has a
 repo of its own.
 
-Both courses are authored here now.
+All three built-in courses are authored here now.
 
 - **Competent Crew** never had a repo of its own, so its source moved out of
   `_temp` into `content/competent-crew/` on 28 July 2026.
@@ -264,8 +264,12 @@ Both courses are authored here now.
   standalone app was retired and kkonrad.com/day-skipper came down. Its clips
   came with it — `web/courses/day-skipper/` had been shipping a `videos.json`
   naming 54 files nothing had ever copied across.
+- **Git 101** was added on 30 July 2026 under `content/git-101/`: Markdown
+  cards compiled through the shared course parser, plus small labelled SVG
+  figures generated from code.
 
-Both rebuilds reproduce the shipped `cards.json` byte for byte.
+The two sailing rebuilds reproduce their shipped `cards.json` byte for byte;
+Git 101's build is deterministic and owns its shipped output.
 
 `content/*/build/` is gitignored. Competent Crew's cards are pointers into Day
 Skipper's — `ref(section, question_text)`, resolved at build time — which used to

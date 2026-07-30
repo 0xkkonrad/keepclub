@@ -44,6 +44,10 @@ shelf → Day Skipper (indigo) → courses overlay → Competent Crew (slate) �
 two cards answered → per-course storage asserted (and `rya-ds/v1`, the live
 Day Skipper app's key, asserted UNTOUCHED) → cold open resumes the course.
 
+`git-101-ui.mjs` — the Git course's focused mobile smoke: direct deep link,
+burnt-orange theme, four beginner-to-agentic groups, the first labelled
+working-tree/staging/repository figure, responsive width, and page errors.
+
 `sync-merge.mjs` — the cross-device merge algebra without a server:
 commutativity, idempotence, monotonic review history, streak reconstruction,
 key validation, and the guarantee that only a SHA-256 hash is transported.

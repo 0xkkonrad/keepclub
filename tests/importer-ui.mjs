@@ -9,6 +9,9 @@ const EXE = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
   || chromium.executablePath();
 const URL_ = process.env.MUNIN_URL || 'http://127.0.0.1:8777/projects/keepclub/web/';
 const FIX = (n) => new URL(`./fixtures/${n}`, import.meta.url);
+const BUILT_IN_COUNT = JSON.parse(readFileSync(
+  new URL('../web/courses/index.json', import.meta.url), 'utf8',
+)).courses.length;
 
 const out = [], fails = [];
 const ok = (c, m) => (c ? out : fails).push((c ? 'PASS  ' : 'FAIL  ') + m);
@@ -396,7 +399,8 @@ ok(/^local-[a-z0-9]+$/.test(id), `the imported deck becomes the resume target ($
 {
   await p.goto(URL_, { waitUntil: 'networkidle' });
   await p.waitForSelector('.shelf.on');
-  ok((await p.locator('.shelf-tile:not(.byo)').count()) === 2, 'the two courses are still there');
+  ok((await p.locator('.shelf-tile:not(.byo)').count()) === BUILT_IN_COUNT,
+    `all ${BUILT_IN_COUNT} built-in courses are still there`);
   ok((await p.evaluate(() => localStorage.getItem('rya-ds/v1'))) === null,
     "the live Day Skipper app's storage is never touched");
 }

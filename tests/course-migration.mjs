@@ -9,14 +9,17 @@ execFileSync(process.execPath, ['../scripts/build-course-migration-report.mjs', 
 const report = JSON.parse(fs.readFileSync(
   new URL('../schema/built-in-migration-report.json', import.meta.url), 'utf8',
 ));
+const registry = JSON.parse(fs.readFileSync(
+  new URL('../web/courses/index.json', import.meta.url), 'utf8',
+));
 const cards = report.courses.flatMap((course) => course.cards);
 
-assert.equal(report.summary.courses, 2);
-assert.equal(report.summary.cards, 737);
-assert.equal(report.summary.unchangedCardIds, 737);
-assert.equal(report.summary.unchangedRenderedFronts, 737);
-assert.equal(report.summary.unchangedRenderedBacks, 737);
-assert.equal(report.summary.unchangedSectionMemberships, 737);
+assert.equal(report.summary.courses, registry.courses.length);
+assert.equal(report.summary.cards, cards.length);
+assert.equal(report.summary.unchangedCardIds, cards.length);
+assert.equal(report.summary.unchangedRenderedFronts, cards.length);
+assert.equal(report.summary.unchangedRenderedBacks, cards.length);
+assert.equal(report.summary.unchangedSectionMemberships, cards.length);
 assert.ok(report.courses.every((course) =>
   course.courseIdUnchanged
     && course.sections.every((section) =>
