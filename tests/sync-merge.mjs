@@ -415,6 +415,34 @@ const rec = (overrides = {}) => Object.assign({
     'in either direction');
 }
 
+/* The tie-break, on the one field the merge writes itself.
+ *
+ * pickWritten carries the EARLIEST `at` forward so a list does not re-order
+ * after a sync, which makes `at` a value neither device holds — and comparing
+ * the whole record on an `ed` tie fed that derived value straight back into the
+ * comparison. It sorts ahead of `front`, so a rewritten stamp decided which
+ * words won, and the answer then depended on which pair of devices met first.
+ * pickRec settles the same problem one screen up by comparing with the lapse
+ * count blanked; this is the same move for the same reason. */
+{
+  const first = state({ cards: { 'u.c0': { at: 100, ed: 100, front: 'yours', back: '' } } });
+  const kept = state({ cards: { 'u.c0': { at: 100, ed: 200, front: 'yours', back: '' } } });
+  const hidden = state({
+    cards: { 'u.c0': { at: 200, ed: 200, front: '', back: '', hidden: true } },
+  });
+  const left = mergeState(mergeState(first, kept), hidden);
+  const right = mergeState(mergeState(first, hidden), kept);
+  ok(same(left, right),
+    'an exact edit-stamp tie on one card converges whichever pair of devices meets first');
+  ok(!!left.cards['u.c0'].front === !!right.cards['u.c0'].front,
+    'so a hide is not undone, or applied, by the order the devices reached the server');
+  const tie = (a, b) => S.pickWritten(a, b);
+  const x = { at: 1, ed: 5, front: 'x' };
+  const y = { at: 9, ed: 5, front: 'y' };
+  ok(stable(tie(x, y)) === stable(tie(y, x)),
+    'and the tie-break itself gives one answer whichever way round it is asked');
+}
+
 /* Three devices, all of them over the shared ceiling, converging on one set
  * whichever pair meets first. */
 {
@@ -602,6 +630,37 @@ const rec = (overrides = {}) => Object.assign({
     'a concurrent first-write collision retries through the revision conflict');
   ok(merged.recs.phone && merged.recs.laptop && same(merged, adopted),
     'the first-write retry retains progress from both devices');
+  S.turnOff();
+  globalThis.fetch = originalFetch;
+}
+
+/* A blob over the bound is refused before it is sent, and marked as a failure
+ * only the person can clear: every other failure here is worth another go on
+ * its own, and a screen promising that it will try again is a screen telling
+ * somebody to wait for something that cannot happen. */
+{
+  const originalFetch = globalThis.fetch;
+  const big = state({ notes: {} });
+  for (let i = 0; i < 200; i++) {
+    big.notes['n' + i.toString(36).padStart(4, '0')] =
+      { at: 1, ed: 1, text: 'x'.repeat(2000) };
+  }
+  globalThis.fetch = async () => ({
+    ok: true, status: 200, text: async () => JSON.stringify([]),
+  });
+  S.init({ app: 'day-skipper', supported: true, sanitise: (v) => v, onMerged: () => {} });
+  S.turnOn('0123456789ABCDEFGHJKMNPQR');
+  let message = '';
+  try {
+    await S.sync(big);
+  } catch (error) {
+    message = error.message;
+  }
+  const status = S.status();
+  ok(S.blobBytes(big) > S.MAX_BYTES && /more than sync can carry/.test(message),
+    `a blob over the bound is refused before it is sent (${message})`);
+  ok(status.errYours === true,
+    'and recorded as a failure trying again cannot clear');
   S.turnOff();
   globalThis.fetch = originalFetch;
 }

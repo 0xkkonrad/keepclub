@@ -792,6 +792,91 @@ ok(errors.length === 0, `no uncaught errors in the whole run (${errors.slice(0, 
   await cr.close();
 }
 
+/* A deck you wrote here is not something a file replaces.
+ *
+ * Both rulings about replacing are about a deck a file could be another copy
+ * of: the same deck again keeps the layer, a different deck under the same name
+ * takes it and starts over. A deck of your own carries no sourceCourseId — no
+ * file is an update to one — so it could only ever land on the second, and that
+ * one deletes the deck's own document along with the layer. That document IS
+ * the cards, and nothing puts it back: the backup file is per-course and holds
+ * the history, the notes and the layer, never the deck. So a file that merely
+ * shares its name is a different deck, and a different deck is a second row.
+ */
+{
+  const co = await b.newContext({ viewport: { width: 390, height: 844 } });
+  const po = await co.newPage();
+  const oerrors = [];
+  po.on('pageerror', (e) => oerrors.push(String(e)));
+  await po.goto(URL_, { waitUntil: 'networkidle' });
+  await po.waitForSelector('.shelf.on');
+
+  // A deck of your own, named after the deck inside legacy.apkg, with a second
+  // card written into its layer on top of the one that made it.
+  await po.click('[data-byo]');
+  await po.waitForSelector('#imp-mine');
+  await po.click('#imp-mine');
+  await po.waitForSelector('#byo-deck-name');
+  await po.fill('#byo-deck-name', 'Sailing');
+  await po.fill('#byo-card-front', 'The card that made my deck');
+  await po.fill('#byo-card-back', 'Its answer.');
+  await po.click('#byo-card-save');
+  await po.waitForSelector('[data-open]', { timeout: 15000 });
+  await Promise.all([po.waitForEvent('load'), po.click('[data-open]')]);
+  await po.waitForFunction(() => document.getElementById('boot').hidden, null, { timeout: 20000 });
+  await po.evaluate(async () => {
+    await writeCard({ front: 'A second card, in the layer' });
+    writeNow();
+  });
+  const ownId = await po.evaluate(() => COURSE.id);
+
+  // The shelf counts the deck as it is now, not as the record was written. The
+  // deck's own record still says one card and cannot be rewritten — store.put()
+  // clears a deck's whole media range before it writes — so the row reads the
+  // layer beside it.
+  await po.click('.shelf-btn');
+  await po.waitForSelector('.shelf.on');
+  const row = await po.$$eval('.shelf-row .shelf-tile small', (ns) => ns.map((x) => x.textContent));
+  const record = await po.evaluate(async (id) =>
+    (await (await import('./lib/store.js')).get(id)).cards, ownId);
+  ok(row.some((t) => /2 cards/.test(t)),
+    `the shelf row counts the cards written into a deck since (${row.join(' | ')})`);
+  ok(record === 1,
+    `without rewriting the deck record, which would take its pictures with it (${record})`);
+
+  // And now a file called Sailing.
+  await po.click('[data-byo]');
+  await po.waitForSelector('#imp-file');
+  await give(po, 'legacy.apkg');
+  await po.waitForSelector('.imp .imp-book', { timeout: 20000 });
+  const offered = await po.$$eval('.imp-acts button', (ns) => ns.map((x) => x.textContent.trim()));
+  const receipt = await po.evaluate(() => document.querySelector('.imp-body').innerText);
+  ok(!offered.some((t) => /replace/.test(t)),
+    `a file sharing a name with a deck you wrote offers no replace (${offered.join(' | ')})`);
+  ok(!/already have a deck called/.test(receipt),
+    'and does not claim to have seen this deck before');
+
+  await Promise.all([po.waitForEvent('load'), po.click('[data-keep="new"]')]);
+  await po.waitForFunction(() => document.getElementById('boot').hidden, null, { timeout: 20000 });
+  await po.click('.shelf-btn');
+  await po.waitForSelector('.shelf.on');
+  const both = await po.evaluate(async (id) => {
+    const decks = await (await import('./lib/store.js')).list();
+    return {
+      count: decks.length,
+      own: decks.some((d) => d.id === id && d.importFormat === 'own'),
+      layer: localStorage.getItem(`munin/${id}/cards/v1`),
+    };
+  }, ownId);
+  ok(both.count === 2 && both.own,
+    `the deck somebody wrote is still there beside the one just imported (${both.count} decks)`);
+  ok(both.layer && Object.keys(JSON.parse(both.layer).cards).length === 1,
+    'with the card written into it still in its layer');
+  ok(oerrors.length === 0,
+    `a file beside a deck of your own raises no page errors (${oerrors.slice(0, 2).join(' | ') || 'none'})`);
+  await co.close();
+}
+
 await b.close();
 console.log(out.concat(fails).join('\n'));
 if (fails.length) { console.error(`\n${fails.length} failing`); process.exit(1); }

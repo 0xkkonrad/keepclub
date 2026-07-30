@@ -455,3 +455,73 @@ its one, and removal taking both documents), and `authoring.mjs` for the model o
 (one card refused outright, hide-and-bring-back on the deck's own card against
 delete-for-good on the layer's, Browse naming the writer of each wherever it lives, and an
 edit of the card the deck was made by leaving that document untouched).
+
+---
+
+## What four reviews found
+
+Four adversarial passes over the built feature — data loss, merge and sync, security and
+robustness, UX and copy. Nineteen findings, all reproduced before anything was changed.
+Nothing below reopens a ruling above it; every one of them is the ruling not holding.
+
+**The ceiling was the worst of it, three ways.** A cards document over the ceiling on its
+own was never written back — its own sanitiser had already brought the block to 200, so
+the joint pass found nothing left to take and answered "nothing moved" — so the same fifty
+records were dropped and announced on every boot, for ever. When both blocks lost records
+at once, the three sentences saying so wrote over each other on the one toast element, and
+each counter is read and cleared where it is counted, so the notes were never mentioned on
+that boot or on any boot after it. And eviction is by edit stamp across both kinds, while
+a note carries no review history and a card does — so a note edited today beats a card
+written a year ago, and the ceiling whose stated purpose is to protect the review history
+was the thing taking it, through the unspoken orphan sweep. The boot now writes back
+whatever either sanitiser took, one sentence carries every loss a pass had to report, and
+the sweep counts the history an eviction takes so the ceiling's own sentence can say it.
+
+**A count cannot bound bytes.** `WRITTEN_LIVE` is 200 and the blob takes about 50 cards at
+their full length: past that `syncOnce()` threw before the first `sync_put`, so nothing
+crossed again — review history, streak and settings included — and the Sync screen said
+"It will try again", for ever. On a second device the message named cards that device
+could not see. The bound is now asked on the way in as well, where the card is on screen
+and shortening it is one edit, and only where the deck actually syncs; a failure the
+person has to clear is marked as one and does not carry the promise of a retry.
+
+**Two sentences named the wrong cause.** `mergeState` takes the union of the review
+records and never removes one, so the server's copy of a record this device had just
+deleted came straight back on the next round — and the sweep clearing it again told the
+phone that had asked the question that some other device had answered it. A tombstone this
+device has settled is now not news; a restore, which is somebody handing the history back
+on purpose, says what it could not put back and does not blame a device either.
+
+**The first fill escaped the inline markers and no others.** Nothing inside a text node
+can see where a line begins, so a shipped question reading "3. Rule three of the collision
+regulations" came back into the box unchanged and Save — with not a word altered — stored
+an ordered list, which draws as "1.". "- 5 degrees of variation" lost its minus sign the
+same way. `# of crew aboard the yacht` was refused outright, in a message about Markdown,
+to somebody who had never typed any. Escaping is now applied per line as well as per text
+node, and every shipped card round-trips through the boxes word for word.
+
+**The rest, in one line each.** A file merely sharing a name with a deck somebody wrote
+here offered to replace it, which deleted the deck's own document — the cards themselves,
+which no backup file holds; a deck of your own is now never what a file replaces. An
+override outlives a course update that reworded its question, because the built-in ids are
+a hash of that question: the record now counts as no card and pins no history, though it
+still travels. The shelf row read the deck record's card count, written once at import;
+it reads the layer beside it now. A side was cut at 2,000 UTF-16 units, which splits an
+emoji and puts a lone surrogate in a blob the server's JSON parser refuses; it is cut in
+code points. Writing or editing a card never asked for a sync — only the review document
+did — so a card fixed from Browse stayed on the phone. `pickWritten` broke its `ed` ties
+on `at`, a value the merge writes itself, exactly the bug `pickRec` documents and fixes one
+screen up. A cards document that would not parse was never mentioned. `adoptMerged`
+discarded `writeCardLayer()`'s answer and reported the round as a plain success. The
+author-rewrote-it line, the keep-yours choice and `Edit` were inside `<details>` on a
+screen whose rows are closed. "1 cards" survived on Home's section rows, their labels, the
+pacing line and the build line. The cards you hid stayed open across a search, a section
+and leaving Browse. Four row actions dropped focus on `<body>`. The sheet's only
+destructive warning had nothing describing the dialog by it.
+
+**Still open, deliberately.** An override survives a question-side rewrite as a record
+that overrides nothing: it costs nothing now and it is still uploaded, and the person is
+not told their edit went. Telling them needs a fingerprint the ids cannot carry — a
+question-side rewrite never reaches the `was` comparison at all, because it mints a new
+id — so it is a change to how the courses are built, not to this layer. A deck exporter is
+still the obvious next thing this release asks for.

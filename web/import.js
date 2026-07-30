@@ -742,6 +742,17 @@ export function openImporter() {
    * replace silently wipes the lot. Match on the cards, and say which it is. */
   function match(decks, built) {
     const mine = new Set(built.course.cards.map(cardIdentity).filter(Boolean));
+    /* Never a deck somebody wrote here. Both rulings about replacing are about
+     * a deck a file could be another copy of: the same deck again keeps the
+     * layer, a different deck under the same name takes it and starts over. A
+     * deck of your own carries no sourceCourseId — no file is an update to one
+     * — so it could only ever land on the second, which deletes the deck's own
+     * document along with the layer. That document is the cards themselves, and
+     * nothing puts it back: the backup file is per-course and holds the history,
+     * the notes and the layer, never the deck. A file that merely shares its
+     * name is a different deck, and a different deck is a second row.
+     */
+    decks = decks.filter((deck) => deck.importFormat !== 'own');
     const identified = decks.filter((deck) =>
       deck.sourceCourseId && deck.sourceCourseId === built.sourceCourseId);
     if (identified.length) {

@@ -1135,10 +1135,14 @@ mark {
 /* What a row offers to do to its card, and what the layer has to say about it
    first. Wrapping, because "the author rewrote this card after you edited it"
    plus two choices is more than one phone line and pushing the buttons off the
-   edge would hide the choice the sentence exists to offer. */
+   edge would hide the choice the sentence exists to offer.
+
+   On the row rather than inside the answer, so the choice is on screen without
+   opening anything. Sitting under a closed disclosure, it pulls up against the
+   summary; the margin is what keeps it a line of its own. */
 .b-acts {
   display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px;
-  margin-top: 6px; font-weight: 400;
+  margin: 6px 0 4px; font-weight: 400;
 }
 .b-mine { flex: 1 1 100%; font-size: .72rem; color: var(--muted); }
 /* The one line here that is a decision rather than a label. Warn, not the

@@ -1332,6 +1332,35 @@ function deckProgress(id) {
   }
 }
 
+/* How many cards a deck holds, counting the ones written into it since.
+ *
+ * The number on the deck's record is what the file held the day it was read,
+ * and nothing moves it afterwards — the record cannot simply be rewritten,
+ * because store.put() clears a deck's whole media range before it writes and a
+ * shelf that fixed a number would take every picture in the deck off with it.
+ * So the layer is read here instead, the way import.js reads it: a live record
+ * under a written id is a card the deck gained, an emptied one under a shipped
+ * id is a card it lost to hiding. A document that will not parse contributes
+ * nothing, which is exactly what it contributes to the deck. */
+function deckCards(d) {
+  const shipped = Number(d.cards) || 0;
+  let cards = null;
+  try {
+    const raw = localStorage.getItem(MUNIN.cardsKey(d.id));
+    cards = raw === null ? null : JSON.parse(raw).cards;
+  } catch (e) {
+    return shipped;
+  }
+  if (!cards || typeof cards !== 'object') return shipped;
+  let total = shipped;
+  for (const [id, rec] of Object.entries(cards)) {
+    if (!rec || typeof rec !== 'object') continue;
+    if (id.startsWith('u.')) { if (rec.front) total++; }
+    else if (rec.hidden === true) total--;
+  }
+  return Math.max(0, total);
+}
+
 /* An imported deck is titled by whoever made the .apkg, so everything about it
  * on this screen is escaped. */
 function localTile(d) {
@@ -1342,12 +1371,13 @@ function localTile(d) {
         data-local-shelf-art="${escHtml(shelfArtwork)}" data-local-deck="${escHtml(d.id)}"></span>`
     : tileArt(art);
   const done = deckProgress(d.id);
+  const cards = deckCards(d);
   return `<div class="shelf-row">
     <button type="button" class="shelf-tile" data-course="${escHtml(d.id)}"
         style="--tile-accent:${escHtml(MUNIN.theme.accent.light)}">
       ${emblem}
-      <span><b>${escHtml(d.title)}</b><small>your deck · ${Number(d.cards).toLocaleString('en-GB')
-      } ${Number(d.cards) === 1 ? 'card' : 'cards'} · ${
+      <span><b>${escHtml(d.title)}</b><small>your deck · ${cards.toLocaleString('en-GB')
+      } ${cards === 1 ? 'card' : 'cards'} · ${
   new Date(d.created).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
       }${done ? ' · ' + done : ''}</small></span>
     </button>

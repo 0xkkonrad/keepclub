@@ -489,8 +489,12 @@
      There is no preview and no mode switch: the preview is the card itself, and
      what the small Markdown subset does is one muted line under the boxes. The
      card's id is generated and never shown — ids are opaque by contract. -->
+<!-- Described by the warning, so opening the sheet reads it out: it is the only
+     line here that says saving costs something — the picture inside a card's own
+     words goes when your text replaces it — and a hidden element describes
+     nothing, so this is silent on every card that has nothing to warn about. -->
 <div class="sheet" id="card-sheet" hidden role="dialog" aria-modal="true"
-     aria-labelledby="card-sheet-h">
+     aria-labelledby="card-sheet-h" aria-describedby="card-warn">
   <div class="sheet-card">
     <div class="sheet-bar">
       <h2 id="card-sheet-h">New card</h2>

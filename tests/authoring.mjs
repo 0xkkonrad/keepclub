@@ -1685,8 +1685,13 @@ async function restore(page, payload) {
     'an older file does not resurrect a card deleted on this device');
   ok(!after.record && !after.stored,
     'and the review history it brought back for that card does not stay behind it');
-  ok(/history went with it/.test(after.toast),
+  // And said as what it is. The card was deleted HERE, so the sentence about a
+  // card another device deleted is not the one this is: what happened is that a
+  // file offered history back for a card that is not in this deck any more.
+  ok(/deleted on this device/.test(after.toast) && /did not come back/.test(after.toast),
     `said out loud rather than found later (${after.toast})`);
+  ok(!/another device/.test(after.toast),
+    'and not blamed on a device that had nothing to do with it');
   ok(next.errors.length === 0,
     `restoring a layer raises no page errors (${next.errors.join(' | ') || 'none'})`);
   await next.ctx.close();
@@ -1947,6 +1952,550 @@ async function ownDeckPage(name, front, back) {
   ok(builtIn && JSON.parse(builtIn).cards['u.aabbccddeeff'].front,
     'a course that is still here keeps its layer when the shelf sweeps');
   ok(errors.length === 0, `the orphan sweep raises no page errors (${errors.join(' | ') || 'none'})`);
+  await ctx.close();
+}
+
+/* ── what the four reviews found, held down ──────────────────────────────── */
+
+/* A ceiling that only ever bit in memory.
+ *
+ * The cards block arrives at the joint pass already held to 200 by its own
+ * sanitiser, so the joint pass has nothing left to take and answers "nothing
+ * moved" — and nobody wrote the shorter document back over the longer one. The
+ * next boot dropped the same fifty records and said so again, for ever. */
+{
+  const { ctx, page, errors } = await coursePage();
+  await page.evaluate(() => {
+    const cards = {};
+    const now = Date.now();
+    for (let i = 0; i < 250; i++) {
+      cards['u.' + i.toString(16).padStart(8, '0')] = {
+        at: now - i * 1000, ed: now - i * 1000, front: 'q' + i, back: 'a' + i, section: '',
+      };
+    }
+    localStorage.setItem(CARDS_KEY, JSON.stringify({ v: 1, cards }));
+  });
+  await reload(page);
+  await page.waitForFunction(() =>
+    /could not be kept/.test(document.getElementById('toast').textContent));
+  const first = await page.evaluate(() => ({
+    live: liveCardCount(),
+    stored: Object.keys(JSON.parse(localStorage.getItem(CARDS_KEY)).cards).length,
+  }));
+  await reload(page);
+  await page.waitForTimeout(400);
+  const second = await page.evaluate(() => ({
+    toast: document.getElementById('toast').textContent,
+    stored: Object.keys(JSON.parse(localStorage.getItem(CARDS_KEY)).cards).length,
+  }));
+  ok(first.live === 200 && first.stored === 200,
+    `a cards document over the ceiling is written back at the ceiling (${first.stored} stored)`);
+  ok(second.toast === '' && second.stored === 200,
+    `so the next boot has nothing left to drop and says nothing (${second.toast || 'silent'})`);
+  ok(errors.length === 0, `holding the ceiling to disk raises no page errors (${errors.join(' | ') || 'none'})`);
+  await ctx.close();
+}
+
+/* Two blocks losing at once, in one sentence.
+ *
+ * Three toasts in a row wrote over each other on the one element, and each
+ * counter is read and cleared where it is counted — so a boot that dropped
+ * notes AND cards said only the cards, and the notes were never mentioned on
+ * that boot or on any boot after it. */
+{
+  const { ctx, page, errors } = await coursePage();
+  await page.evaluate(() => {
+    const now = Date.now();
+    state.notes = {};
+    const cards = {};
+    for (let i = 0; i < 150; i++) {
+      state.notes['n' + i.toString(36).padStart(4, '0')] =
+        { at: now, ed: now - i * 2, text: 'note ' + i };
+      cards['u.' + i.toString(16).padStart(8, '0')] =
+        { at: now, ed: now - i * 2 - 1, front: 'q' + i, back: 'a' + i, section: '' };
+    }
+    writeNow();
+    localStorage.setItem(CARDS_KEY, JSON.stringify({ v: 1, cards }));
+  });
+  await reload(page);
+  await page.waitForFunction(() =>
+    /could not be kept/.test(document.getElementById('toast').textContent));
+  const said = await page.evaluate(() => ({
+    toast: document.getElementById('toast').textContent,
+    notes: liveNotes().length,
+    cards: liveCardCount(),
+  }));
+  ok(said.notes + said.cards === 200,
+    `two legal blocks meeting one ceiling come down to it together (${said.notes} notes, ${said.cards} cards)`);
+  ok(/50 notes and 50 cards/.test(said.toast),
+    `and one sentence names both, because neither can be said over the other (${said.toast})`);
+  ok(errors.length === 0, `the joint drop raises no page errors (${errors.join(' | ') || 'none'})`);
+  await ctx.close();
+}
+
+/* And what the eviction cost, which is the thing the ceiling exists to protect.
+ *
+ * Eviction is by edit stamp across both kinds, and a note carries no review
+ * history while a card does — so a note edited today beats a card written a
+ * year ago, and the ceiling whose stated purpose is to protect the review
+ * history is the thing that takes it. It goes; it must not go quietly. */
+{
+  const { ctx, page, errors } = await coursePage();
+  await page.evaluate(() => {
+    const now = Date.now();
+    state.notes = {};
+    state.recs = {};
+    const cards = {};
+    for (let i = 0; i < 150; i++) {
+      state.notes['n' + i.toString(36).padStart(4, '0')] = { at: now, ed: now, text: 'note ' + i };
+    }
+    for (let i = 0; i < 100; i++) {
+      const id = 'u.' + i.toString(16).padStart(8, '0');
+      const old = now - 365 * 86400000 - i * 1000;
+      cards[id] = { at: old, ed: old, front: 'q' + i, back: 'a' + i, section: '' };
+      state.recs[id] = {
+        st: 'r', step: 0, ivl: 5, ea: 2.5, due: now, rp: 3, lp: 0, pv: 0,
+      };
+    }
+    writeNow();
+    localStorage.setItem(CARDS_KEY, JSON.stringify({ v: 1, cards }));
+  });
+  await reload(page);
+  await page.waitForFunction(() =>
+    /could not be kept/.test(document.getElementById('toast').textContent));
+  await page.waitForTimeout(400);
+  const cost = await page.evaluate(() => ({
+    toast: document.getElementById('toast').textContent,
+    cards: liveCardCount(),
+    recs: Object.keys(state.recs).filter((id) => id.startsWith('u.')).length,
+    stored: Object.keys(JSON.parse(localStorage.getItem(KEY)).recs)
+      .filter((id) => id.startsWith('u.')).length,
+  }));
+  ok(cost.cards === 50 && cost.recs === 50 && cost.stored === 50,
+    `the history of an evicted card goes with the card, on the device too (${cost.stored} left)`);
+  ok(/50 cards/.test(cost.toast) && /What you had answered of 50 of them went with them/.test(cost.toast),
+    `and the sentence about the ceiling says what it took (${cost.toast})`);
+  ok(errors.length === 0, `the eviction raises no page errors (${errors.join(' | ') || 'none'})`);
+  await ctx.close();
+}
+
+/* An override for a card the course has since dropped.
+ *
+ * Built-in ids are a hash of the question, so rewording a question retires the
+ * old id and mints a new one, and the override is left keyed to a card that is
+ * not in the deck. It is in no list, no screen can reach it, and while it
+ * counted as a live card it held a slot against the ceiling this deck shares
+ * with its notes and exempted a review record from the sweep for ever. */
+{
+  const { ctx, page, errors } = await coursePage();
+  const ghost = await page.evaluate(async () => {
+    const now = Date.now();
+    // What a course update leaves behind: an override keyed by an id the deck
+    // does not ship, with the review history for it still here.
+    cardLayer['deadbeef01'] = { at: now, ed: now, front: 'my fix', back: 'x', was: 'zz.1' };
+    state.recs['deadbeef01'] = {
+      st: 'r', step: 0, ivl: 3, ea: 2.5, due: now, rp: 4, lp: 0, pv: 0,
+    };
+    const before = liveCardCount();
+    sweepUnknownRecords();
+    return {
+      before,
+      after: liveCardCount(),
+      pinned: Object.hasOwn(state.recs, 'deadbeef01'),
+      inDeck: byId.has('deadbeef01'),
+    };
+  });
+  ok(!ghost.inDeck && ghost.before === 0 && ghost.after === 0,
+    `an override for a card the deck does not ship is not a card you have written (${ghost.after})`);
+  ok(!ghost.pinned,
+    'and the review history under it is swept like any other card the deck does not have');
+  ok(errors.length === 0, `the orphaned override raises no page errors (${errors.join(' | ') || 'none'})`);
+  await ctx.close();
+}
+
+/* A hidden card is still the exception, which is what the clause above is for. */
+{
+  const { ctx, page, errors } = await coursePage();
+  const kept = await page.evaluate(async () => {
+    const id = DECK.cards[0].cardId;
+    state.recs[id] = { st: 'r', step: 0, ivl: 3, ea: 2.5, due: Date.now(), rp: 4, lp: 0, pv: 0 };
+    await hideCard(id);
+    sweepUnknownRecords();
+    return { id, inDeck: byId.has(id), kept: Object.hasOwn(state.recs, id) };
+  });
+  ok(!kept.inDeck && kept.kept,
+    'a card you hid keeps what you had answered of it, because bringing it back is free');
+  ok(errors.length === 0, `hiding raises no page errors (${errors.join(' | ') || 'none'})`);
+  await ctx.close();
+}
+
+/* Save on a shipped card nobody has touched must change nothing.
+ *
+ * The first fill escapes the inline markers, and nothing above a text node can
+ * see where a line begins — so a question reading "3. Rule three of the
+ * collision regulations" came back into the box unchanged and Save stored an
+ * ordered list, which draws as "1.". "- 5 degrees of variation" lost its minus
+ * sign the same way. The ones the subset has no construct for were refused
+ * outright, with a message about Markdown to somebody who never typed any. */
+{
+  const { ctx, page, errors } = await coursePage();
+  const round = await page.evaluate(async () => {
+    const shipped = [
+      '<p>3. Rule three of the collision regulations</p>',
+      '<p>- 5 degrees of variation</p>',
+      '<p>+ 5 metres of chain</p>',
+      '<p># of crew aboard the yacht</p>',
+      '<p>&gt; 30 knots means what force?</p>',
+      '<p>---</p>',
+      '<p>1) the first thing you do</p>',
+      '<p>line one<br>- line two</p>',
+      '<ul><li>- not a list inside a list</li><li>plain</li></ul>',
+      '<p>Ordinary <strong>bold</strong> and *stars*</p>',
+    ];
+    const out = [];
+    for (const html of shipped) {
+      const box = htmlToCardSource(html);
+      const checked = await checkCard({ front: box.text });
+      out.push({
+        html,
+        refused: !checked.ok,
+        say: checked.say || '',
+        again: checked.ok ? await renderCardSide(box.text, '$.cards[0].front') : '',
+      });
+    }
+    return out;
+  });
+  // The line breaks between blocks are the renderer's own — the shipped HTML has
+  // none — so they are taken out of both sides. Everything else has to match:
+  // a word, a marker, a tag or a space inside a line.
+  const same = (a, b) => a.replace(/\s*\n\s*/g, '') === b.replace(/\s*\n\s*/g, '');
+  const refused = round.filter((c) => c.refused);
+  const changed = round.filter((c) => !c.refused && !same(c.again, c.html));
+  ok(refused.length === 0,
+    `a card the course ships is not refused by the boxes it is put into (${
+      refused.map((c) => c.html).join(' | ') || 'none refused'})`);
+  ok(changed.length === 0,
+    `and pressing Save on one nobody has edited gives the card back word for word (${
+      changed.map((c) => `${c.html} → ${c.again}`).join(' | ') || 'all identical'})`);
+  ok(errors.length === 0, `the first fill raises no page errors (${errors.join(' | ') || 'none'})`);
+  await ctx.close();
+}
+
+/* Writing a card asks for the round trip that carries it.
+ *
+ * writeNow() schedules a sync after every write to the REVIEW document, and the
+ * cards are the other document — so a card fixed from Browse and then put down
+ * went nowhere until the next grade, the next setting or the next session. The
+ * study dock was covered only by accident, because leaving a session writes
+ * review history. */
+{
+  const { ctx, page, errors } = await coursePage();
+  const asked = await page.evaluate(async () => {
+    let count = 0;
+    const real = DSSync.schedule;
+    DSSync.schedule = (...args) => { count++; return real.apply(DSSync, args); };
+    const wrote = await writeCard({ front: 'A card written from Browse' });
+    const onWrite = count; count = 0;
+    await editCard(wrote.id, { front: 'A card written from Browse, fixed' });
+    const onEdit = count; count = 0;
+    await editCard(DECK.cards[0].cardId, { front: 'An override of a shipped card' });
+    const onOverride = count;
+    DSSync.schedule = real;
+    return { onWrite, onEdit, onOverride, inPayload: !!syncPayload().cards[wrote.id] };
+  });
+  ok(asked.onWrite === 1 && asked.onEdit === 1 && asked.onOverride === 1,
+    `every write to the layer asks for a sync (${asked.onWrite}, ${asked.onEdit}, ${asked.onOverride})`);
+  ok(asked.inPayload, 'and what it would send holds the card');
+  ok(errors.length === 0, `scheduling raises no page errors (${errors.join(' | ') || 'none'})`);
+  await ctx.close();
+}
+
+/* A side cut at the ceiling, in code points.
+ *
+ * An emoji is two code units, so cutting at 2,000 of those can land inside one.
+ * On screen that is a replacement character; in the blob it is a lone
+ * surrogate, which the server's JSON parser refuses — one card written slightly
+ * too long would stop the whole deck syncing. */
+{
+  const { ctx, page, errors } = await coursePage();
+  const cut = await page.evaluate(async () => {
+    const wrote = await writeCard({ front: 'a'.repeat(1999) + '\u{1F600}' + 'and more' });
+    const record = cardRecord(wrote.id);
+    const last = record.front.charCodeAt(record.front.length - 1);
+    return {
+      ok: wrote.ok,
+      points: [...record.front].length,
+      lone: last >= 0xd800 && last <= 0xdbff,
+      whole: record.front.endsWith('\u{1F600}'),
+    };
+  });
+  ok(cut.ok && cut.points === 2000,
+    `a side longer than the ceiling is cut to it, counted in code points (${cut.points})`);
+  ok(!cut.lone && cut.whole,
+    'and the cut never lands inside a character, so no half of one reaches the blob');
+  ok(errors.length === 0, `the long side raises no page errors (${errors.join(' | ') || 'none'})`);
+  await ctx.close();
+}
+
+/* A blob that would not cross is refused where the card is on screen.
+ *
+ * The ceilings are counts and have to be, but a count cannot bound bytes and
+ * bytes are what the server measures: 200 records at their full length is four
+ * times the blob it takes. syncOnce() refuses to send an oversized one, which
+ * is right and is also far too late — that refusal stops the review history
+ * crossing as well as the writing, and on the other device it names cards that
+ * device cannot see. */
+{
+  const { ctx, page, errors } = await coursePage();
+  const full = await page.evaluate(async () => {
+    DSSync.turnOn();
+    const side = 'x'.repeat(1990);
+    let refused = '';
+    for (let i = 0; i < 90 && !refused; i++) {
+      const wrote = await writeCard({ front: `${side} q${i}`, back: `${side} a${i}` });
+      if (!wrote.ok) refused = wrote.say;
+    }
+    return {
+      refused,
+      fits: DSSync.blobBytes(syncPayload()) <= DSSync.MAX_BYTES,
+      live: liveCardCount(),
+      ceiling: DSSync.WRITTEN_LIVE,
+      stored: Object.keys(JSON.parse(localStorage.getItem(CARDS_KEY)).cards).length,
+    };
+  });
+  ok(full.fits && full.live < full.ceiling,
+    `writing stops at the bytes sync carries, well before the count ceiling (${full.live} of ${full.ceiling})`);
+  ok(/as much as sync can carry/.test(full.refused) && /Shorten it/.test(full.refused),
+    `and the refusal names the cause and the way out (${full.refused})`);
+  ok(full.stored === full.live,
+    `while nothing that would not go was stored (${full.stored} stored, ${full.live} live)`);
+  ok(errors.length === 0, `the byte bound raises no page errors (${errors.join(' | ') || 'none'})`);
+  await ctx.close();
+}
+
+/* A deck that does not sync is not held to a server's limit. */
+{
+  const { ctx, page, errors } = await coursePage();
+  const off = await page.evaluate(async () => {
+    const side = 'x'.repeat(1990);
+    for (let i = 0; i < 70; i++) {
+      const wrote = await writeCard({ front: `${side} q${i}`, back: `${side} a${i}` });
+      if (!wrote.ok) return { refused: wrote.say, live: liveCardCount() };
+    }
+    return { refused: '', live: liveCardCount() };
+  });
+  ok(!off.refused && off.live === 70,
+    `with sync off there is no blob to overflow and no refusal to make (${off.live} written)`);
+  ok(errors.length === 0, `writing with sync off raises no page errors (${errors.join(' | ') || 'none'})`);
+  await ctx.close();
+}
+
+/* A cards document that will not parse says so.
+ *
+ * The sweeps already knew the difference between "no cards" and "the question
+ * could not be answered". What nothing did was say it: every card somebody had
+ * written was simply missing from Browse, and the obvious thing to do about
+ * that — write it again — is the one act that replaces the document. */
+{
+  const { ctx, page, errors } = await coursePage();
+  await page.evaluate(() => {
+    localStorage.setItem(CARDS_KEY, '{"v":1,"cards":{"u.aaaa":{');
+  });
+  await reload(page);
+  await page.waitForFunction(() =>
+    /could not be read/.test(document.getElementById('toast').textContent));
+  const unread = await page.evaluate(() => ({
+    toast: document.getElementById('toast').textContent,
+    sticky: !document.getElementById('toast').classList.contains('away'),
+    loaded: cardLayerLoaded,
+  }));
+  ok(!unread.loaded && unread.sticky,
+    'a cards document that will not open leaves the layer unread rather than empty');
+  ok(/could not be read/.test(unread.toast) && /replaces what is stored/.test(unread.toast),
+    `and says so, with what writing a card would cost (${unread.toast})`);
+  ok(errors.length === 0, `the unreadable document raises no page errors (${errors.join(' | ') || 'none'})`);
+  await ctx.close();
+}
+
+/* Deleting a card here is not another device's doing.
+ *
+ * mergeState takes the union of the review records and never removes one, so
+ * the server's copy of a record this device just deleted comes straight back on
+ * the next round — and the sweep that clears it again told the phone that had
+ * asked the question that some other device had answered it. */
+{
+  const { ctx, page, errors } = await coursePage();
+  const blame = await page.evaluate(async () => {
+    const wrote = await writeCard({ front: 'A card about to be deleted' });
+    state.recs[wrote.id] = {
+      st: 'r', step: 0, ivl: 5, ea: 2.5, due: Date.now(), rp: 3, lp: 0, pv: 0,
+    };
+    writeNow();
+    // What the server is holding: this device's own blob, from before the
+    // delete, with the review record still in it.
+    const server = JSON.parse(JSON.stringify(syncPayload()));
+    await deleteCard(wrote.id);
+    const goneHere = !Object.hasOwn(state.recs, wrote.id);
+    const merged = DSSync.mergeState(syncPayload(), server);
+    document.getElementById('toast').textContent = '';
+    adoptSynced(merged);
+    await adopting;
+    return {
+      goneHere,
+      cameBack: Object.hasOwn(merged.recs, wrote.id),
+      toast: document.getElementById('toast').textContent,
+      stillGone: !Object.hasOwn(state.recs, wrote.id),
+    };
+  });
+  ok(blame.goneHere && blame.cameBack && blame.stillGone,
+    'the record a delete took comes back in the union and is taken again');
+  ok(blame.toast === '',
+    `and the device that did the deleting is not told another device did it (${blame.toast || 'silent'})`);
+  ok(errors.length === 0, `the round after a delete raises no page errors (${errors.join(' | ') || 'none'})`);
+  await ctx.close();
+}
+
+/* The layer's line, and Edit, on the row rather than inside the answer.
+ *
+ * Browse opens as an index of sections and a row's answer is a closed
+ * disclosure, so everything inside it needed that specific card's answer opened
+ * to be seen at all. That put "the author rewrote this card after you edited
+ * it" — and the choice between keeping yours and taking theirs — behind a tap
+ * nobody had a reason to make, which is the one outcome `was` exists to
+ * prevent. */
+{
+  const { ctx, page, errors } = await coursePage();
+  const cardId = await page.evaluate(async () => {
+    const card = DECK.cards.find((c) => c.back);
+    await editCard(card.cardId, { front: 'zzq a wording of my own' });
+    // The author rewriting it under you is what the fingerprint notices.
+    cardRecord(card.cardId).was = 'ffffffff.1';
+    await applyCardLayer();
+    return card.cardId;
+  });
+  await browseFor(page, 'zzq');
+  const row = await page.evaluate((id) => {
+    const li = document.querySelector(`#browse-list li[data-card="${CSS.escape(id)}"]`);
+    if (!li) return { missing: true };
+    const notice = li.querySelector('.b-moved');
+    const details = li.querySelector('details');
+    return {
+      open: !!(details && details.open),
+      noticeHidden: !!(notice && notice.closest('details')),
+      keepHidden: !!(li.querySelector('[data-card-keep]')
+        && li.querySelector('[data-card-keep]').closest('details')),
+      editHidden: !!(li.querySelector('[data-card-edit]')
+        && li.querySelector('[data-card-edit]').closest('details')),
+      onScreen: li.innerText,
+    };
+  }, cardId);
+  ok(!row.open && !row.noticeHidden && !row.keepHidden,
+    'the line saying the author rewrote this card is on the row, not behind its answer');
+  // Lowercased by CSS, so read case-insensitively — the gotcha the README
+  // records for every other assertion about the app's own chrome.
+  const shown = row.onScreen.toLowerCase();
+  ok(!row.editHidden && /edit/.test(shown),
+    `and so is Edit, which is what "fix a card from wherever you hit it" means (${
+      row.onScreen.replace(/\s+/g, ' ').slice(0, 120)})`);
+  ok(/rewrote this card/.test(shown) && /keep yours/.test(shown) && /take theirs/.test(shown),
+    'so the choice is on screen without opening anything');
+  ok(errors.length === 0, `the row's own line raises no page errors (${errors.join(' | ') || 'none'})`);
+  await ctx.close();
+}
+
+/* And a row action leaves focus in the page it rebuilt. */
+{
+  const { ctx, page, errors } = await coursePage();
+  const watcher = watchDialogs(page);
+  const cardId = await page.evaluate(async () => {
+    const card = DECK.cards.find((c) => c.back);
+    await editCard(card.cardId, { front: 'zzq a wording of my own' });
+    cardRecord(card.cardId).was = 'ffffffff.1';
+    await applyCardLayer();
+    return card.cardId;
+  });
+  await browseFor(page, 'zzq');
+  const landed = await page.evaluate(async (id) => {
+    const li = document.querySelector(`#browse-list li[data-card="${CSS.escape(id)}"]`);
+    const keep = li.querySelector('[data-card-keep]');
+    keep.focus();
+    keep.click();
+    await new Promise((res) => setTimeout(res, 600));
+    return {
+      tag: document.activeElement.tagName,
+      text: (document.activeElement.textContent || '').trim().slice(0, 20),
+    };
+  }, cardId);
+  ok(landed.tag !== 'BODY',
+    `keeping your version puts focus back on the list it rebuilt (${landed.tag} ${landed.text})`);
+  ok(watcher.asked.length === 0, 'and asks nothing, because nothing about it is permanent');
+  ok(errors.length === 0, `the row action raises no page errors (${errors.join(' | ') || 'none'})`);
+  await ctx.close();
+}
+
+/* The cards you hid belong to the deck, so they close when what is on screen
+ * changes rather than sitting above a count that describes something else. */
+{
+  const { ctx, page, errors } = await coursePage();
+  await page.evaluate(async () => { await hideCard(DECK.cards[0].cardId); });
+  await page.click('[data-go="browse"]');
+  await page.waitForTimeout(200);
+  await page.click('#browse-hidden');
+  await page.waitForSelector('#hidden-list:not([hidden])');
+  const opened = await page.evaluate(() =>
+    document.querySelectorAll('#hidden-list li').length);
+  await page.fill('#search', 'spring tide');
+  await page.waitForTimeout(500);
+  const searched = await page.evaluate(() => ({
+    open: !document.getElementById('hidden-list').hidden,
+    offered: !document.getElementById('browse-hidden').hidden,
+  }));
+  await page.click('[data-go="home"]');
+  await page.waitForTimeout(200);
+  await page.click('[data-go="browse"]');
+  await page.waitForTimeout(300);
+  const returned = await page.evaluate(() =>
+    !document.getElementById('hidden-list').hidden);
+  ok(opened === 1, `the list opens on the cards you hid (${opened})`);
+  ok(!searched.open && searched.offered,
+    'a search closes it, and leaves the way back to it one press away');
+  ok(!returned, 'and leaving Browse does not bring it back open over something else');
+  ok(errors.length === 0, `the hidden list raises no page errors (${errors.join(' | ') || 'none'})`);
+  await ctx.close();
+}
+
+/* A deck of one card, counted in words rather than in numbers.
+ *
+ * A deck written here starts at exactly one card in exactly one section, which
+ * is what made every "N cards" in the app reachable at one. */
+{
+  const { ctx, page, errors } = await fixturePage({
+    format: 1,
+    name: 'One card',
+    course: 'day-skipper',
+    sections: [{ k: 'only', t: 'Only section', n: 1, o: 1 }],
+    cards: [{ i: 'aaaaaaaa01', s: 'only', q: '<p>The only question</p>', a: '<p>The only answer</p>' }],
+  });
+  const said = await page.evaluate(() => {
+    go('home');
+    const row = document.querySelector('#section-list button');
+    go('stats');
+    return {
+      meta: row.querySelector('.sect-meta').textContent,
+      label: row.getAttribute('aria-label'),
+      note: document.getElementById('today-note').textContent,
+      build: document.getElementById('build-line').textContent,
+    };
+  });
+  ok(/\b1 card\b/.test(said.meta) && !/1 cards/.test(said.meta),
+    `Home's section row counts one card as one card (${said.meta})`);
+  ok(!/1 cards/.test(said.label),
+    `and so does the label the button is read out under (${said.label})`);
+  ok(!/all 1 in/.test(said.note),
+    `the pacing does not say "all 1" about a deck of one (${said.note})`);
+  ok(!/1 cards/.test(said.build),
+    `and neither does the build line on Progress (${said.build})`);
+  ok(errors.length === 0, `a deck of one card raises no page errors (${errors.join(' | ') || 'none'})`);
   await ctx.close();
 }
 

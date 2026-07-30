@@ -16,7 +16,10 @@ Also the sanitiser, against a package written to attack the app.
 `importer-ui.mjs` — the importer as a person meets it: the tile, a real file,
 the receipt, keeping it, studying it, the pictures and sound coming off the
 device, re-importing over the top with progress kept, the refusals, and
-removing the deck again. It also covers unrelated same-title replacement,
+removing the deck again, and the deck a file may never replace: one somebody
+wrote here, whose own document is the cards and which no backup file holds, so
+a file that merely shares its name is a second row. It also covers unrelated
+same-title replacement,
 lazy media and BFCache restoration, native audio controls, modal history/focus
 containment, recoverable storage failures, and stale-tab safety after reset or
 deck removal. Then the other path on that screen: a deck of your own, made by
@@ -62,7 +65,10 @@ another device deletes no review record in the merge. The blob's byte bound is
 gated rather than assumed: the client's number is read out of the backend's own
 migration, the measurement is asserted against the jsonb text form the server
 actually counts rather than against our own JSON, and a blob over it is refused
-before it is sent.
+before it is sent — as a failure only the person can clear, because trying
+again produces the same answer for ever. The tie-break is gated too: an exact
+edit-stamp tie converges whichever pair of devices meets first, which it did
+not while it compared the `at` the merge writes itself.
 
 `notes.mjs` — the per-deck notes tool as a person meets it: add, read back,
 edit and delete through the panel's own controls, the words surviving a reload
@@ -115,7 +121,21 @@ lives in the deck's own document and every card after it in the layer, both
 read as cards you wrote, the document's one is hidden and brought back for free
 while the layer's is deleted for good, the last card standing is refused
 whichever of the two it is, and an edit of the card the deck was made by is an
-override that leaves that document alone.
+override that leaves that document alone. Then the nineteen things four
+adversarial reviews found in the built feature, each one reproduced before it
+was fixed and held down here: a ceiling that bit in memory and never wrote
+back, so it dropped the same records and said so on every boot; two blocks
+losing at once with only one of them mentioned, for ever; the review history an
+eviction takes, which is the thing the ceiling exists to protect; an override
+outliving the course update that reworded its question; a shipped card coming
+back through the two boxes word for word rather than as a list nobody typed; a
+write asking for the sync that carries it; a side cut in code points so no half
+a character reaches the blob; the byte bound refused where the card is on
+screen and not where nobody looks; a cards document that will not open saying
+so; a delete on this device not blamed on another one; the author-rewrote-it
+line on the row rather than behind a closed answer; a deck of one card counted
+in words; the cards you hid closing when the screen changes; and focus landing
+somewhere after a row rebuilds itself.
 
 `deploy-script.mjs` — destructive deployment preflights in disposable Git
 repositories: wrong branches, dirty Pages work and an unexpected remote are

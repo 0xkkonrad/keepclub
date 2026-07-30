@@ -132,6 +132,10 @@ function readLocal() {
     rev: num(course && course.rev),
     at: num(course && course.at),
     err: course && course.err ? String(course.err) : '',
+    // Whether the last failure is one only the person can clear. Read back off
+    // the document rather than kept in memory, because the screen that says so
+    // is usually reached on a later load than the round that failed.
+    errYours: !!(course && course.errYours),
   };
 }
 
@@ -145,6 +149,7 @@ function writeLocal(record) {
     rev: num(record.rev),
     at: num(record.at),
     err: record.err || '',
+    errYours: !!record.errYours,
   };
   writeBox(box);
 }
@@ -164,6 +169,7 @@ function status() {
         at: record.at,
         rev: record.rev,
         err: record.err,
+        errYours: record.errYours,
       }
     : { on: false, available: true };
 }
@@ -381,7 +387,16 @@ function pickWritten(x, y) {
   if (!y) return x;
   let winner;
   if (num(x.ed) !== num(y.ed)) winner = num(x.ed) > num(y.ed) ? x : y;
-  else winner = stable(x) <= stable(y) ? x : y;
+  // On a tie, compared with `at` blanked, exactly as pickRec compares with the
+  // lapse count blanked and for the same reason: `at` is derived by the line
+  // below rather than held by either device, so feeding it back into the
+  // comparison made a three-device merge depend on which pair met first — and
+  // it sorts ahead of the words, so a rewritten stamp decided which words won.
+  else {
+    const xa = Object.assign({}, x, { at: 0 });
+    const ya = Object.assign({}, y, { at: 0 });
+    winner = stable(xa) <= stable(ya) ? x : y;
+  }
   // When something was written is a fact about the past, and the earliest claim
   // is the true one — the same rule the milestones keep. Carrying the winner's
   // own stamp instead made a list re-order itself after a sync, which reads as
@@ -641,8 +656,14 @@ async function syncOnce(local, generation) {
     // every word is still on this device — and names the way out. Inside the
     // loop, because a revision conflict merges another device's writing in.
     if (blobBytes(state) > MAX_BYTES) {
-      throw new Error('the notes and cards in this deck are more than sync can '
+      // Marked as the person's to fix, not the network's. Every other failure
+      // here is worth another go on its own; this one produces the same answer
+      // for ever, and a screen promising that it will try again is a screen
+      // telling somebody to wait for something that cannot happen.
+      const full = new Error('the notes and cards in this deck are more than sync can '
         + 'carry, so nothing was sent; deleting some of them lets the rest through');
+      full.yours = true;
+      throw full;
     }
     let result;
     try {
@@ -717,7 +738,8 @@ function sync(source) {
       }
       const record = readLocal();
       if (record) {
-        writeLocal(Object.assign({}, record, { err: error.message || 'failed' }));
+        writeLocal(Object.assign({}, record,
+          { err: error.message || 'failed', errYours: !!error.yours }));
       }
       cfg.onStatus({ busy: false, ok: false, error: error.message || 'failed' });
       throw error;
