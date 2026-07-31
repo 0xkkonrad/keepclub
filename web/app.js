@@ -86,7 +86,7 @@ const LOOSE_SECTION = 'u.loose';
 const EXPORT_APP = 'munin/' + COURSE.id;
 const EXPORT_FORMAT = 1;
 // A course may name the exam it was built for (course.json examDate); a fresh
-// install starts there rather than asking. It is changed in Progress, and
+// install starts there rather than asking. It is changed in Settings, and
 // clearing it goes back to plain spacing. No date in the course → no default.
 const EXAM_DEFAULT = (typeof COURSE.examDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(COURSE.examDate)) ? COURSE.examDate : '';
 // A <input type="date"> fires `change` on every keystroke in the year segment,
@@ -467,6 +467,7 @@ function refuseForeignWrite() {
       if (current === 'stats') renderStats();
       if (current === 'browse') renderBrowse();
       renderNotesIfOpen();
+      renderSetupIfOpen();
     }
   } catch (e) { /* retain the last readable in-memory state */ }
   toast('Another tab is studying this deck. Finish there before changing progress or settings.');
@@ -514,12 +515,12 @@ function writeNow() {
     saveBlocked = false;
     if (wasBlocked) {
       toast('Progress is saving again.');
-      if (current === 'stats') renderBackupState();
+      if (current === 'stats' || !$('#setup').hidden) renderBackupState();
     }
   } catch (e) {
     saveBlocked = true;
-    toast('Progress is not saving — stop here and export a backup from Progress.', true);
-    if (current === 'stats') renderBackupState();
+    toast('Progress is not saving — stop here and export a backup from Settings.', true);
+    if (current === 'stats' || !$('#setup').hidden) renderBackupState();
   }
   // Never mid-session: adopting a merged state would swap the deck out from
   // under the card on screen. The upload waits for the walk back to Progress.
@@ -1955,7 +1956,7 @@ function renderExamBanner(c) {
   el.hidden = false;
   if (d < 0) {
     el.className = 'banner';
-    el.innerHTML = `<b>Exam date has passed.</b> Clear it in Progress → Settings to go back to normal spacing.`;
+    el.innerHTML = `<b>Exam date has passed.</b> Clear it in Settings → Studying to go back to normal spacing.`;
     return;
   }
   const when = d === 0 ? 'today' : d === 1 ? 'tomorrow' : `in ${d} days`;
@@ -1964,7 +1965,7 @@ function renderExamBanner(c) {
   const tight = c.fresh > 0 && introDays > Math.max(1, d);
   el.className = 'banner' + (tight ? ' tight' : '');
   el.innerHTML = tight
-    ? `<b>Exam ${when}.</b> At ${pace} new cards a day, the ${c.fresh} you have not seen take ${introDays} days. You will not get through the deck — raise the daily number in Progress, or accept that you will skip some sections.`
+    ? `<b>Exam ${when}.</b> At ${pace} new cards a day, the ${c.fresh} you have not seen take ${introDays} days. You will not get through the deck — raise the daily number in Settings, or accept that you will skip some sections.`
     : `<b>Exam ${when}.</b> ${c.fresh
         ? `${pace} new cards a day gets you through the remaining ${c.fresh} in time.`
         : 'You have seen every card at least once.'} Every card comes back at least once before you sit it.`;
@@ -1981,7 +1982,7 @@ function renderLeechRow() {
 
 /* ── install ── */
 
-/* This lives in Settings, on the Progress screen, and not on Study.
+/* This lives in Settings, under "this device", and not on Study.
  *
  * It used to be a card on the home screen, which made it a nudge: something you
  * had not asked for, in the way of the button you came for. So it needed a
@@ -2056,7 +2057,7 @@ function renderHome() {
         // below already handles the same sentence about the same number.
         ? `At ${pace} new cards a day you will have seen ${DECK.cards.length === 1
           ? 'it' : `all ${n(DECK.cards.length)}`} in ${plural(daysToSeeAll(c.fresh), 'day')}.`
-        : `New cards are switched off, so ${c.fresh} of ${DECK.cards.length} will stay unseen. Raise the daily number in Progress.`;
+        : `New cards are switched off, so ${c.fresh} of ${DECK.cards.length} will stay unseen. Raise the daily number in Settings.`;
   } else {
     // The size of the session that this button actually starts. Sized from the
     // unseen cards alone it promised twenty and handed over forty, because the
@@ -2069,7 +2070,7 @@ function renderHome() {
     btn.textContent = c.fresh && batch ? `Practise ${batch} now` : 'Practise ahead';
     btn.dataset.mode = 'ahead';
     $('#today-note').textContent = pace === 0 && c.fresh
-      ? `New cards are switched off, so ${c.fresh} of ${DECK.cards.length} will stay unseen. Raise the daily number in Progress.`
+      ? `New cards are switched off, so ${c.fresh} of ${DECK.cards.length} will stay unseen. Raise the daily number in Settings.`
       : c.fresh
         ? `Today's ${pace} are done and nothing is due. You can practise ${batch} now: nothing you answer counts, and nothing moves. ${c.fresh} cards left to see.`
         : 'Nothing is due. Practice pulls forward the cards scheduled soonest and leaves the schedule exactly where it is — worth it the week before the exam, not before.';
@@ -4133,7 +4134,7 @@ function reveal() {
 function answer(g) {
   if (!session || !session.revealed) return;
   if (saveBlocked) {
-    toast('Progress is not saving — export a backup from Progress before answering more.', true);
+    toast('Progress is not saving — export a backup from Settings before answering more.', true);
     return;
   }
   if (!ownsStudyLock()) {
@@ -5455,15 +5456,35 @@ function renderStats() {
       + `<ul class="mastery">${rows}</ul>`;
   }).join('');
 
+  renderClubMoments();
+  renderAch();
+  // The setup sheet is a different room now, but it is still drawn from this
+  // deck's own numbers — the build line counts these cards, the exam hint is
+  // worked out over them — so a visit to Progress refreshes it too. Doing it
+  // here as well as in openSetup() costs a handful of writes to elements
+  // nobody is looking at, and buys the guarantee that what the sheet says is
+  // never older than the last time the deck under it changed.
+  renderSetup();
+}
+
+/* Everything inside the setup sheet, drawn from the state under it.
+ *
+ * Called from openSetup(), because the sheet opens from all three tabs and two
+ * of them never render Progress at all — and from renderStats(), because these
+ * are still the deck's own numbers and Progress is where the deck's numbers
+ * are re-counted. Re-asked rather than done once at boot: on a first load the
+ * service worker registration is still being made when the app finishes
+ * starting, and the answers install/offline give depend on it. */
+function renderSetup() {
   $('#set-new').value = state.settings.newPerDay;
   $('#set-max').value = state.settings.maxRev;
   $('#set-shuffle').checked = state.settings.shuffle;
-  $('#set-font').value = state.settings.fontSize;
   $('#set-exam').value = state.settings.examDate || '';
   const d = daysToExam();
-  $('#exam-hint').textContent = d === null
-    ? `Add your exam date and the app works out how many new cards a day you need to see ${
-      DECK.cards.length === 1 ? 'it' : `all ${n(DECK.cards.length)}`} in time.`
+  // Nothing at all when there is no date. The line that used to stand here was
+  // the exam ask from Home said again in other words, on a control whose own
+  // label already says what it is for.
+  $('#exam-hint').textContent = d === null ? ''
     : d < 0 ? 'That date has passed. Clear it to go back to normal spacing.'
       : `${longDate(state.settings.examDate)}. No card will be left longer than ${fmtDays(ceiling())} between reviews.`;
   const auto = newBudget();
@@ -5475,16 +5496,51 @@ function renderStats() {
   const build = $('#build-line');
   build.textContent = `${plural(DECK.cards.length, 'card')} in this deck.`;
   build.title = `Deck build ${DECK.buildFingerprint || 'unknown'}`;
-  renderClubMoments();
-  renderAch();
-  // Re-asked on every visit rather than once at boot: on a first load the
-  // registration is still being made when the app finishes starting, and the
-  // answer this card gives depends on it.
+  applyFontSize();
   renderOffline();
   renderInstall();
   renderNotifications();
   renderBackupState();
   renderSyncState();
+}
+
+/** Re-draw the sheet when the state under it was replaced by another tab, a
+ *  merge or a restore, rather than leaving settings that are no longer set. */
+function renderSetupIfOpen() {
+  if (!$('#setup').hidden) renderSetup();
+}
+
+/* The dialog contract, copied from the card sheet: role, aria-modal, an inert
+ * background, Tab contained, Escape, a history entry, and focus handed back to
+ * whichever of the three headers opened it. */
+let setupOpener = null;
+
+function openSetup(opener) {
+  const panel = $('#setup');
+  if (!panel.hidden) return;
+  setupOpener = opener || null;
+  renderSetup();
+  panel.hidden = false;
+  document.body.style.overflow = 'hidden';
+  // The sheet is a sibling of #app so it is not inerting itself.
+  setBackgroundInert(true);
+  // The first thing in the sheet rather than its ✕: opening settings lands you
+  // on the group that is open, which is also what says the sheet has groups.
+  $('#setup-display').focus({ preventScroll: true });
+  pushStop('setup');
+}
+
+function closeSetup(fromHistory) {
+  const panel = $('#setup');
+  if (panel.hidden) return;
+  panel.hidden = true;
+  document.body.style.overflow = '';
+  setBackgroundInert(false);
+  if (setupOpener && setupOpener.isConnected && setupOpener.focus) {
+    setupOpener.focus({ preventScroll: true });
+  } else focusScreen(current);
+  setupOpener = null;
+  if (!fromHistory && stops[stops.length - 1] === 'setup') history.back();
 }
 
 /* ─────────────────────────── lightbox ─────────────────────────── */
@@ -5599,6 +5655,7 @@ addEventListener('popstate', () => {
   if (top === 'lightbox') return closeLightbox(true);
   if (top === 'notes') return closeNotes(true);
   if (top === 'card-sheet') return closeCardSheet(true);
+  if (top === 'setup') return closeSetup(true);
   if (top === 'study') return leaveStudy(true);
   // A tab is one press above the course's home screen, however many tabs you
   // walked through to get to this one.
@@ -5610,6 +5667,7 @@ addEventListener('popstate', () => {
   if (!$('#lightbox').hidden) return closeLightbox(true);
   if (!$('#notes').hidden) return closeNotes(true);
   if (!$('#card-sheet').hidden) return closeCardSheet(true);
+  if (!$('#setup').hidden) return closeSetup(true);
   if (current === 'study' || current === 'done') return leaveStudy(true);
   // Nothing of ours is open, so this was one of those leftovers. Step past it —
   // and past any others under it, which `history.state` names — so that one
@@ -5628,10 +5686,22 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
  * zero-box elements are left out: a control in a closed branch of the sheet is
  * not a stop, and landing on one is a Tab that appears to do nothing. */
 function containTab(box, e) {
+  // `summary` is in the list because a dialog may be built out of folded
+  // groups, and a group you cannot Tab onto is a group the keyboard cannot
+  // open. The two sheets that have no summaries are unaffected.
   const focusable = Array.from(box.querySelectorAll(
-    'button:not([disabled]), a[href], textarea:not([disabled]),'
+    'button:not([disabled]), a[href], textarea:not([disabled]), summary,'
       + ' select:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
-  )).filter((el) => !el.hidden && el.getClientRects().length);
+  )).filter((el) => {
+    if (el.hidden || !el.getClientRects().length) return false;
+    // A closed <details> is not "no box" — the browser reports rectangles for
+    // everything inside it and refuses to focus any of it. Left in, the last
+    // control in the last folded group is the one the wrap-around waits for,
+    // which is a wrap-around that never happens and a Tab that walks out of
+    // the dialog. The way into a folded group is its own summary.
+    const folded = el.closest('details:not([open])');
+    return !folded || (el.tagName === 'SUMMARY' && el.parentElement === folded);
+  });
   if (!focusable.length) return;
   const first = focusable[0], last = focusable[focusable.length - 1];
   const inside = box.contains(document.activeElement);
@@ -5886,7 +5956,14 @@ function applyTheme() {
   MuninTheme.apply();
   // What it says, not what was chosen: light is light whether you picked it or
   // simply never picked anything, and the button offers the other one either way.
-  $('#theme-btn').title = `Colour theme: ${MuninTheme.showing()}`;
+  const showing = MuninTheme.showing();
+  $('#theme-btn').title = `Colour theme: ${showing}`;
+  // In the sheet the drawing has room for its own name beside it, so the
+  // control says which colour you are in as well as drawing it. The label the
+  // button is read out under says what pressing it does.
+  $('#theme-name').textContent = showing;
+  $('#theme-btn').setAttribute('aria-label',
+    `Colour theme: ${showing}. Switch to ${showing === 'dark' ? 'light' : 'dark'}.`);
 }
 
 /* Text size, unlike the theme, IS the course's — it rides in the review
@@ -5904,6 +5981,15 @@ function applyTheme() {
  * Setting it any later is a flash of 15px type on a phone that asked for 19. */
 function applyFontSize() {
   document.documentElement.setAttribute('data-font', state.settings.fontSize);
+  // The four buttons are marked from the same value the attribute is written
+  // from, here rather than in the sheet's own render, so the control is
+  // standing on the right step whoever changed it — this tab, another tab, a
+  // merge, a restored backup — and before the sheet has ever been opened.
+  for (const b of $$('#set-font button')) {
+    const on = b.dataset.fontStep === state.settings.fontSize;
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+  }
 }
 
 /* ─────────────────────────── wiring ─────────────────────────── */
@@ -5977,6 +6063,17 @@ function wire() {
   $('#theme-btn').addEventListener('click', () => {
     MuninTheme.cycle();
     applyTheme();
+  });
+
+  // One control, drawn into all three headers, so there is no tab from which
+  // the theme or the text size cannot be reached.
+  $$('.setup-btn').forEach((b) =>
+    b.addEventListener('click', (e) => openSetup(e.currentTarget)));
+  $('#setup-close').addEventListener('click', () => closeSetup(false));
+  // Off the sheet closes it, the same test the card sheet uses: this click
+  // landed on the backdrop, rather than this click did not land inside it.
+  $('#setup').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) closeSetup(false);
   });
 
   $('#notes-open').addEventListener('click', (e) => openNotes(e.currentTarget));
@@ -6229,15 +6326,18 @@ function wire() {
     state.settings.shuffle = e.target.checked;
     save();
   });
-  $('#set-font').addEventListener('change', (e) => {
+  // Delegated across the four steps rather than one listener each: they are one
+  // control with four positions, and the group is what the app names.
+  $('#set-font').addEventListener('click', (e) => {
+    const step = e.target.closest('[data-font-step]');
+    if (!step) return;
     // Applied before the save, not after it: the save is debounced and the
     // refusal path can send it back, and either way this is a control whose
     // whole point is that you see the answer in the same breath as the change.
-    // A value the <select> could not have produced still goes through the same
-    // list the sanitiser uses — nothing writes an attribute unchecked.
-    const want = FONT_SIZES.includes(e.target.value) ? e.target.value : FONT_DEFAULT;
+    // A value no button could have produced still goes through the same list
+    // the sanitiser uses — nothing writes an attribute unchecked.
+    const want = FONT_SIZES.includes(step.dataset.fontStep) ? step.dataset.fontStep : FONT_DEFAULT;
     state.settings.fontSize = want;
-    e.target.value = want;
     applyFontSize();
     save();
   });
@@ -6288,7 +6388,7 @@ function wire() {
     state.settings.examSkipped = true;
     if (save()) {
       renderHome();
-      toast('You can add a date later in Progress.');
+      toast('You can add a date later in Settings.');
     }
   });
   $('#leech-row').addEventListener('click', () => {
@@ -6764,6 +6864,12 @@ function wire() {
       if (e.key === 'Tab') containTab($('#card-sheet'), e);
       return;
     }
+    /* The setup sheet, the same dialog contract once more. */
+    if (!$('#setup').hidden) {
+      if (e.key === 'Escape') { e.preventDefault(); closeSetup(false); return; }
+      if (e.key === 'Tab') containTab($('#setup'), e);
+      return;
+    }
     if (typing) return;
     if (current !== 'study') return;
     // A control that has focus gets its own key. This guard exempted form
@@ -6860,9 +6966,12 @@ function renderOffline() {
   // registration — was told the cards already worked offline, above a button
   // that could not save a thing.
   const say = (worker) => {
+    // The line that used to open this said the cards work offline once you
+    // have opened the app, which is the app describing itself rather than
+    // telling you anything you can act on. What is left is the deck's own
+    // count and the one decision it asks for.
     $('#offline-note').textContent = worker
-      ? `The cards work offline as soon as you have opened the app once. `
-        + `The ${shots.size} diagram${many ? 's are' : ' is'} saved as you meet ${many ? 'them' : 'it'} — `
+      ? `The ${shots.size} diagram${many ? 's are' : ' is'} saved as you meet ${many ? 'them' : 'it'} — `
         + `pull ${many ? 'them all' : 'it'} down now if you are heading somewhere without signal.`
       : `This browser has not stored the app, so the cards and the ${many ? 'diagrams' : 'diagram'} `
         + `need a signal. Open it once more with one — a private window will never keep it. `

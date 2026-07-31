@@ -72,6 +72,8 @@ async function coursePage(options = {}, id = 'day-skipper') {
     'opening Progress moves focus from the last nav control to its heading');
   ok(skipFocus.id === 'stats-main' && skipFocus.screen === 's-stats',
     'Skip to content targets the visible Progress body');
+  await page.click('.setup-btn:visible');
+  await page.click('#setup-studying');
   await page.fill('#set-new', '25');
   await page.dispatchEvent('#set-new', 'change');
   await page.waitForTimeout(300);
@@ -91,14 +93,15 @@ async function coursePage(options = {}, id = 'day-skipper') {
   await page.click('[data-go="stats"]');
   const fresh = await page.evaluate(() => ({
     attr: document.documentElement.dataset.font,
-    picked: document.getElementById('set-font').value,
+    picked: document.querySelector('[data-font-step].on')?.dataset.fontStep,
     root: parseFloat(getComputedStyle(document.documentElement).fontSize),
     at: state.settings.at,
   }));
   ok(fresh.attr === 'default' && fresh.picked === 'default' && fresh.root === 15,
     `a deck nobody has sized opens at the size the app was drawn at (${fresh.attr}, ${fresh.root}px)`);
 
-  await page.selectOption('#set-font', 'xlarge');
+  await page.click('.setup-btn:visible');
+  await page.click('[data-font-step="xlarge"]');
   await page.evaluate(() => writeNow());
   const bigger = await page.evaluate(() => ({
     attr: document.documentElement.dataset.font,
@@ -120,7 +123,7 @@ async function coursePage(options = {}, id = 'day-skipper') {
   // Every change, not only the first: an unstamped edit loses the next merge to
   // a device that changed nothing since.
   await page.waitForTimeout(20);
-  await page.selectOption('#set-font', 'small');
+  await page.click('[data-font-step="small"]');
   const smaller = await page.evaluate(() => {
     writeNow();
     return {
@@ -147,7 +150,7 @@ async function coursePage(options = {}, id = 'day-skipper') {
   const reopened = await page.evaluate(() => ({
     attr: document.documentElement.dataset.font,
     root: parseFloat(getComputedStyle(document.documentElement).fontSize),
-    picked: document.getElementById('set-font').value,
+    picked: document.querySelector('[data-font-step].on')?.dataset.fontStep,
     order: globalThis.__fontOrder,
   }));
   ok(reopened.attr === 'small' && reopened.root === 13 && reopened.picked === 'small',
@@ -461,6 +464,8 @@ async function coursePage(options = {}, id = 'day-skipper') {
   ]);
   await a.evaluate(() => { startSession(null, {}); writeNow(); });
   await c.evaluate(() => go('stats'));
+  await c.click('.setup-btn:visible');
+  await c.click('#setup-studying');
   await c.fill('#set-new', '77');
   await c.dispatchEvent('#set-new', 'change');
   const refused = await c.evaluate(() => ({
@@ -503,6 +508,8 @@ async function coursePage(options = {}, id = 'day-skipper') {
   });
   await a.waitForFunction(() => state.answers === 1);
   await a.evaluate(() => go('stats'));
+  await a.click('.setup-btn:visible');
+  await a.click('#setup-keeping');
   a.on('dialog', (d) => d.accept());
   const staleReload = c.waitForEvent('load');
   await a.click('#reset-btn');

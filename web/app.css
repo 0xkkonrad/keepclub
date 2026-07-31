@@ -292,6 +292,12 @@ button { cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-colo
 /* Home's header sits under the frieze rather than under the status bar, so it
    keeps its own smaller inset — with the same 8px the pill costs everywhere. */
 #s-home .top { padding-top: 18px; }
+/* Home clears the fixed `courses` pill because the frieze band is drawn above
+   its header. Browse and Progress have no frieze, so their own header runs
+   straight into that corner — and now that the header carries a control, the
+   pill was sitting on top of it. The pill is 48px tall from 10px down
+   (munin.js's SHELF_CSS), so this is that height plus a little air. */
+#s-browse .top, #s-stats .top { padding-top: calc(66px + env(safe-area-inset-top)); }
 
 /* The entrance. This is a hop re-cut to be played once: the version that used
    to loop spent most of its timeline standing still, because a hop every
@@ -362,6 +368,10 @@ button { cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-colo
    taken from the button rather than from `.dood`'s accent, so the toggle stays
    the quiet grey it has always been and still lights up on hover. */
 .icon-btn .dood.dood-glyph { width: 21px; height: 21px; color: inherit; }
+/* The settings mark is drawn in the markup rather than built by a script, so
+   the header is complete before app.js has run. Same box as the glyph above,
+   same grey, and it inherits the button's colour on hover. */
+.icon-btn .mark { width: 21px; height: 21px; display: block; }
 .icon-btn:disabled { opacity: .35; }
 .icon-btn:active:not(:disabled) { background: var(--surface-2); color: var(--text); }
 @media (hover: hover) { .icon-btn:hover:not(:disabled) { background: var(--surface-2); color: var(--text); } }
@@ -1545,6 +1555,55 @@ mark {
    for "this changes something": beside it `cancel` was drawn in exactly the
    same ink as the link that empties a card out of the deck. */
 .danger-link { color: var(--warn); }
+
+/* ── the setup sheet ─────────────────────────────────────────────── */
+
+/* Same furniture again — .sheet and .sheet-card are shared with the card
+   editor — so there is one sheet in this app and three things that use it.
+   What is new here is the folding: five groups, one open, and the app's own
+   disclosure (.how) doing the folding, because it is already the idiom on Home
+   and on Progress. Only the spacing changes: inside a sheet the first group
+   must not push a 24px gap under the title bar. */
+#setup .sheet-card { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
+.setup-g { margin-top: 0; }
+.setup-g:first-of-type { margin-top: 10px; }
+.setup-g:last-of-type { border-bottom: 2px dotted var(--line); }
+.setup-g > .settings { border-top: 0; margin-bottom: 14px; }
+.setup-g .h-sect:first-child { margin-top: 4px; }
+.setup-g .fineprint { margin-top: 10px; }
+.setup-g .ghost.wide, .setup-g .danger { margin-bottom: 14px; }
+.setup-g .about { margin-bottom: 16px; }
+
+/* The theme control: the drawing it always was, now with room for the name of
+   the colour it is showing. */
+.theme-pick { display: inline-flex; align-items: center; gap: 9px; flex: none; padding: 0 14px; }
+.theme-pick .dood.dood-glyph { width: 20px; height: 20px; color: inherit; }
+
+/* Four steps, each drawn at the size it sets. The px are the four the
+   stylesheet resolves --font-px to, written out again here on purpose: the
+   point of the control is that you can see the difference before you pick, and
+   a preview that inherits the current size previews nothing. */
+.fontsteps { display: flex; flex: none; gap: 0; }
+.fontsteps button {
+  min-width: 44px; min-height: 44px;
+  display: grid; place-items: center;
+  background: var(--surface); color: var(--muted);
+  border: var(--bw) solid var(--stroke); border-radius: 0;
+  margin-left: calc(var(--bw) * -1);
+  line-height: 1;
+}
+.fontsteps button:first-child { border-radius: var(--r-sm) 0 0 var(--r-sm); margin-left: 0; }
+.fontsteps button:last-child { border-radius: 0 var(--r-sm) var(--r-sm) 0; }
+.fontsteps button[data-font-step="small"] { font-size: 13px; }
+.fontsteps button[data-font-step="default"] { font-size: 15px; }
+.fontsteps button[data-font-step="large"] { font-size: 17px; }
+.fontsteps button[data-font-step="xlarge"] { font-size: 19px; }
+/* The step you are on is filled, and stands above its neighbours so its own
+   outline is the one you see on both sides of it. */
+.fontsteps button.on {
+  background: var(--accent); color: var(--accent-ink);
+  position: relative; z-index: 1; font-weight: 500;
+}
 
 /* ── lightbox ────────────────────────────────────────────────────── */
 

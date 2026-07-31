@@ -1716,6 +1716,8 @@ async function restore(page, payload) {
     return { id: wrote.id, shipped };
   });
   await page.click('[data-go="stats"]');
+  await page.click('.setup-btn:visible');
+  await page.click('#setup-keeping');
   await page.click('#reset-btn');
   await page.waitForFunction(() => state.answers === 0);
   await page.evaluate(() => writeNow());

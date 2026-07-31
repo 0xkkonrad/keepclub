@@ -357,7 +357,9 @@ ok(homeSectionArtwork.source?.startsWith('blob:')
     && homeSectionArtwork.fallbackHidden,
   'the single public section artwork is a decorative raster default on Home');
 
+await page.click('.setup-btn:visible');
 await page.click('#theme-btn');
+await page.keyboard.press('Escape');
 const themedDark = await page.evaluate(() => {
   const style = getComputedStyle(document.documentElement);
   return {
