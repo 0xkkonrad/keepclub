@@ -403,9 +403,16 @@ const offer = (pg) => pg.evaluate(() => {
     'About documents the desktop study shortcuts');
   ok(said.offlineShown && said.offline.includes(`${said.diagrams} diagrams`),
     `offline counts this deck's diagrams (${said.diagrams})`);
+  /* "How this works" is on the picker now, not on Home: it is what the app is,
+   * which is a thing you read before you have chosen a deck. Read it where a
+   * person meets it — through the pill, from whichever tab they are on. */
+  await p6.click('.shelf-btn');
+  await p6.waitForSelector('.shelf.on[role="dialog"] #how');
   ok((await p6.textContent('#how')).replace(/\s+/g, ' ')
     .includes('only share it if you turn on Sync'),
     'the getting-started privacy copy describes opt-in Sync truthfully');
+  await p6.click('#shelf-x');
+  await p6.waitForSelector('.shelf.on', { state: 'detached' });
 
   await p6.click('.setup-btn:visible');
   await p6.click('#setup-keeping');

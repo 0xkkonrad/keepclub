@@ -698,7 +698,12 @@ ok(errors.length === 0, `no uncaught errors in the whole run (${errors.slice(0, 
     'the card that made the deck is in the deck’s document and the next one is in the layer');
   ok(second.yours === 2, 'and both of them read as cards you wrote');
 
-  // And out again, taking both documents with it.
+  // And out again, taking both documents with it. Back to the deck first: the
+  // one card was graded, so this is the finish screen, and the `courses` pill
+  // stands in a header now — which the finish screen, like the study screen,
+  // does not have. Its own way back is the way a person takes.
+  await pw.click('#done-home');
+  await pw.waitForSelector('.shelf-btn', { state: 'visible' });
   await pw.click('.shelf-btn');
   await pw.waitForSelector('.shelf.on');
   await pw.click(`[data-del="${ownId}"]`);

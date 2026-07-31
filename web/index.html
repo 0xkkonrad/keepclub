@@ -44,19 +44,27 @@
         <h1 id="course-title">…</h1>
         <p class="sub" id="home-sub">Spaced-repetition revision</p>
       </div>
-      <!-- The same control in all three headers, because everything behind it
-           used to be filed under Progress — including the theme, which from
-           Browse and Progress there was then no way to reach at all. Drawn
-           here rather than borrowed from the device: every other mark in this
-           app is a hand-made line, and an OS gear arrives in whatever shape
-           the phone thinks a gear is. Three rules and three handles. -->
-      <button class="icon-btn setup-btn" id="setup-btn" type="button"
-              aria-label="Settings" title="Settings">
-        <svg class="mark" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-             stroke-width="2" stroke-linecap="round" aria-hidden="true">
-          <path d="M4 6.6C8 6.4 15 6.3 20 6.5M9.4 3.6C9.2 5.3 9.3 8 9.5 9.6M4 12.1C8 11.9 15 11.9 20 12.1M15.6 9.1C15.4 10.8 15.5 13.5 15.7 15.1M4 17.6C8 17.4 15 17.4 20 17.6M8.4 14.6C8.2 16.3 8.3 19 8.5 20.6"/>
-        </svg>
-      </button>
+      <!-- The corner's two controls, on one axis and in the header's own flow.
+           munin.js puts the `courses` pill in here as the first of them (it
+           only exists inside a course, and only the shell knows how to leave
+           one); the settings mark is markup, so the header is complete before
+           app.js has run.
+           The same pair sits in all three headers, because everything behind
+           settings used to be filed under Progress — including the theme,
+           which from Browse and Progress there was then no way to reach at
+           all. Drawn here rather than borrowed from the device: every other
+           mark in this app is a hand-made line, and an OS gear arrives in
+           whatever shape the phone thinks a gear is. Three rules and three
+           handles. -->
+      <div class="top-acts">
+        <button class="icon-btn setup-btn" id="setup-btn" type="button"
+                aria-label="Settings" title="Settings">
+          <svg class="mark" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <path d="M4 6.6C8 6.4 15 6.3 20 6.5M9.4 3.6C9.2 5.3 9.3 8 9.5 9.6M4 12.1C8 11.9 15 11.9 20 12.1M15.6 9.1C15.4 10.8 15.5 13.5 15.7 15.1M4 17.6C8 17.4 15 17.4 20 17.6M8.4 14.6C8.2 16.3 8.3 19 8.5 20.6"/>
+          </svg>
+        </button>
+      </div>
     </header>
 
     <main id="main" class="body">
@@ -74,31 +82,22 @@
            answered #exam-banner above stands in its place anyway. -->
       <div class="ask-exam" id="ask-exam" hidden>
         <h2>When is your exam?</h2>
+        <!-- The way out of the ask. It was a sentence — "I have not booked one
+             yet" — under the field, which is a second thing to read in a block
+             whose whole job is one question, and the app's other dismissals
+             are all this mark. After the heading it names, the way the sheets
+             and the picker put theirs. Same id, same intent: no date is
+             stored, the ask does not come back, and Settings still has the
+             field. -->
+        <button class="icon-btn ask-x" id="skip-exam" type="button"
+                aria-label="Close" title="Close">✕</button>
         <!-- Written by app.js: what is true of a 537-card syllabus is not true
              of an eleven-card deck someone just imported. -->
-        <p id="ask-why">Give it a date and it works out how many new cards a day
-           you need, and stops scheduling past it.</p>
+        <p id="ask-why">A date sets your daily pace and stops scheduling past it.</p>
         <label class="sr" for="home-exam">Exam date</label>
         <input type="date" id="home-exam">
         <p class="ask-parsed" id="home-exam-parsed"></p>
-        <button class="link-btn" id="skip-exam">I have not booked one yet</button>
       </div>
-
-      <details class="how" id="how">
-        <summary>How this works</summary>
-        <p>You are shown a question. Try to answer it in your head, then tap the
-           card to see whether you were right, and say how it went.</p>
-        <p><b>Again</b> means you did not know it. <b>Hard</b> means you got there,
-           slowly. <b>Good</b> means you knew it. <b>Easy</b> means it was obvious.
-           Be honest — the app uses your answer to decide when to show the card
-           next, so flattering yourself just means seeing it less.</p>
-        <p>Cards you find hard come back within minutes. Cards you know come back
-           in days, then weeks. That is the whole trick: you spend your time on
-           the material you have not learned yet.</p>
-        <p>Progress starts in this browser. Built-in courses only share it if
-           you turn on Sync; imported decks always stay here. Export a backup
-           from Settings before you change phone.</p>
-      </details>
 
       <button class="trouble" id="leech-row" hidden>
         <span></span>
@@ -248,13 +247,15 @@
       <div>
         <h1 tabindex="-1">Browse</h1>
       </div>
-      <button class="icon-btn setup-btn" type="button"
-              aria-label="Settings" title="Settings">
-        <svg class="mark" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-             stroke-width="2" stroke-linecap="round" aria-hidden="true">
-          <path d="M4 6.6C8 6.4 15 6.3 20 6.5M9.4 3.6C9.2 5.3 9.3 8 9.5 9.6M4 12.1C8 11.9 15 11.9 20 12.1M15.6 9.1C15.4 10.8 15.5 13.5 15.7 15.1M4 17.6C8 17.4 15 17.4 20 17.6M8.4 14.6C8.2 16.3 8.3 19 8.5 20.6"/>
-        </svg>
-      </button>
+      <div class="top-acts">
+        <button class="icon-btn setup-btn" type="button"
+                aria-label="Settings" title="Settings">
+          <svg class="mark" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <path d="M4 6.6C8 6.4 15 6.3 20 6.5M9.4 3.6C9.2 5.3 9.3 8 9.5 9.6M4 12.1C8 11.9 15 11.9 20 12.1M15.6 9.1C15.4 10.8 15.5 13.5 15.7 15.1M4 17.6C8 17.4 15 17.4 20 17.6M8.4 14.6C8.2 16.3 8.3 19 8.5 20.6"/>
+          </svg>
+        </button>
+      </div>
     </header>
     <div class="searchbar">
       <label class="sr" for="search">Search cards</label>
@@ -323,13 +324,15 @@
         <h1>Progress</h1>
         <p class="sub" id="stats-sub"></p>
       </div>
-      <button class="icon-btn setup-btn" type="button"
-              aria-label="Settings" title="Settings">
-        <svg class="mark" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-             stroke-width="2" stroke-linecap="round" aria-hidden="true">
-          <path d="M4 6.6C8 6.4 15 6.3 20 6.5M9.4 3.6C9.2 5.3 9.3 8 9.5 9.6M4 12.1C8 11.9 15 11.9 20 12.1M15.6 9.1C15.4 10.8 15.5 13.5 15.7 15.1M4 17.6C8 17.4 15 17.4 20 17.6M8.4 14.6C8.2 16.3 8.3 19 8.5 20.6"/>
-        </svg>
-      </button>
+      <div class="top-acts">
+        <button class="icon-btn setup-btn" type="button"
+                aria-label="Settings" title="Settings">
+          <svg class="mark" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="2" stroke-linecap="round" aria-hidden="true">
+            <path d="M4 6.6C8 6.4 15 6.3 20 6.5M9.4 3.6C9.2 5.3 9.3 8 9.5 9.6M4 12.1C8 11.9 15 11.9 20 12.1M15.6 9.1C15.4 10.8 15.5 13.5 15.7 15.1M4 17.6C8 17.4 15 17.4 20 17.6M8.4 14.6C8.2 16.3 8.3 19 8.5 20.6"/>
+          </svg>
+        </button>
+      </div>
     </header>
     <main class="body">
       <div class="tiles" id="stat-tiles"></div>
@@ -526,19 +529,23 @@
             <span id="theme-name"></span>
           </button>
         </div>
-        <!-- Four buttons, each drawn at the size it sets, rather than a native
+        <!-- Five buttons, each drawn at the size it sets, rather than a native
              menu: you cannot preview a text size through a dropdown, and this
              was the one place in the app where a hand-drawn control had been
              replaced by an OS widget. The steps are written out in the markup
              rather than built by app.js, so the control is complete and
-             readable before any script has run. -->
+             readable before any script has run.
+             The scale starts where the app is drawn rather than under it —
+             13px was smaller than anything else in the app — and it runs up to
+             23 instead of stopping at 19. -->
         <div class="setting">
           <span>Text size <small>Scales the whole app, not just the cards.</small></span>
           <div class="fontsteps" id="set-font" role="group" aria-label="Text size">
-            <button type="button" data-font-step="small" aria-pressed="false" aria-label="Small">A</button>
             <button type="button" data-font-step="default" aria-pressed="false" aria-label="Default">A</button>
             <button type="button" data-font-step="large" aria-pressed="false" aria-label="Large">A</button>
             <button type="button" data-font-step="xlarge" aria-pressed="false" aria-label="Extra large">A</button>
+            <button type="button" data-font-step="huge" aria-pressed="false" aria-label="Huge">A</button>
+            <button type="button" data-font-step="biggest" aria-pressed="false" aria-label="Biggest">A</button>
           </div>
         </div>
       </div>

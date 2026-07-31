@@ -87,16 +87,21 @@
   color-scheme: light;
 }
 
-/* Text size, four steps, written by applyFontSize() in app.js. Steps rather
+/* Text size, five steps, written by applyFontSize() in app.js. Steps rather
    than a slider: the point is legibility, not typography, and a person picking
-   between four names cannot land on a size that breaks the layout. Declared as
+   between five names cannot land on a size that breaks the layout. Declared as
    attribute overrides for the same reason the theme is — the stylesheet is
    parsed before any script runs, so the sizes have to already be here for the
-   attribute to mean anything on the first frame. */
-:root[data-font="small"] { --font-px: 13px; }
+   attribute to mean anything on the first frame.
+   The scale runs up from the size the app is drawn at rather than down to it:
+   13px was smaller than anything else in the app, and the far end is 23 rather
+   than 19. A save holding the step that went is read back as `default`, which
+   is the smallest there is now — the sanitiser in app.js does it for free. */
 :root[data-font="default"] { --font-px: 15px; }
 :root[data-font="large"] { --font-px: 17px; }
 :root[data-font="xlarge"] { --font-px: 19px; }
+:root[data-font="huge"] { --font-px: 21px; }
+:root[data-font="biggest"] { --font-px: 23px; }
 
 /* There is no prefers-color-scheme block, on purpose. Munin's default is LIGHT,
  * not the device's setting (28 July 2026): the app is drawn — paper, ink and a
@@ -182,15 +187,15 @@ html, body {
 .pull-refresh.refreshing .pull-refresh-icon { animation: pull-refresh-spin .8s linear infinite; }
 @keyframes pull-refresh-spin { to { transform: rotate(360deg); } }
 
+/* Two roots, not three: the `courses` pill used to be a fixed child of <body>
+ * with a translate of its own, and it rides inside #app now. */
 body.pull-refresh-active #app,
-body.pull-refresh-active > .shelf,
-body.pull-refresh-active > .shelf-btn {
+body.pull-refresh-active > .shelf {
   transform: translateY(var(--pull-refresh-distance, 0px));
   transition: transform .2s ease;
 }
 body.pull-refresh-dragging #app,
-body.pull-refresh-dragging > .shelf,
-body.pull-refresh-dragging > .shelf-btn {
+body.pull-refresh-dragging > .shelf {
   transition: none;
 }
 
@@ -234,7 +239,7 @@ button { cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-colo
   gap: 4px; color: var(--accent);
   padding: calc(10px + env(safe-area-inset-top)) 20px 0;
   /* The height is held at what an unshrunk row costs, so that narrowing the
-     screen cannot pull the header up under the pill. */
+     screen cannot pull the header up into the drawings. */
   min-height: calc(32px + env(safe-area-inset-top));
 }
 /* The line the drawings stand on, written by friezeRule(). Inset by the
@@ -251,15 +256,11 @@ button { cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-colo
 .frieze-rule path {
   fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round;
 }
-/* Both end before the fixed `courses` pill, which is pinned to this same corner
-   and covered four of the ten drawings at 320 — a ten-slot progress row that
-   read as six. At every width: the pill is tethered to the same 680px column
-   the header uses, so it sits over the last two drawings on a wide screen just
-   as surely as on a phone, with the drawn ground line running behind it. */
-.frieze { padding-right: 130px; }
-.frieze-rule { right: 130px; }
-/* Ten drawings have to fit inside a 320px screen without a sideways scrollbar,
-   which is what sets this size rather than taste. */
+/* This row and the line under it used to end 130px short of the right edge,
+   because a `courses` pill fixed to this same corner covered four of the ten
+   drawings at 320 — a ten-slot progress row that read as six. The pill stands
+   in the header now, under the frieze rather than on it, so both run the full
+   width of the screen again. */
 /* The drawing arrives with a hop and then settles into a breath: the entrance
    plays once, the idle plays forever, and one element carries both. Two
    animations on one element do not blend — the later one in the list simply
@@ -270,10 +271,12 @@ button { cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-colo
    with two animations, one inline delay would set both of them and the idle
    would start before the hop had finished. */
 .frieze .dood {
-  /* They shrink to fit whatever is left beside the pill rather than running
-     under it, and stay square as they do — a drawing whose feet leave the line
-     it is standing on is the one thing this row must not do. Flex-shrink, not
-     an arithmetic width, because how many drawings there are is the course's. */
+  /* Ten drawings have to fit inside a 320px screen without a sideways
+     scrollbar, which is what sets this size rather than taste. They shrink to
+     whatever the row can spare and stay square as they do — a drawing whose
+     feet leave the line it is standing on is the one thing this row must not
+     do. Flex-shrink, not an arithmetic width, because how many drawings there
+     are is the course's. */
   flex: 0 1 22px; min-width: 0; width: 22px; height: auto; aspect-ratio: 1;
   transform-origin: 50% 100%;              /* a creature with feet stays on them */
   animation: hop-in .95s ease-out both,
@@ -296,14 +299,10 @@ button { cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-colo
 :root[data-theme="dark"] .frieze .unearned { opacity: .4; }
 :root[data-theme="dark"] .frieze-rule { opacity: .8; }
 /* Home's header sits under the frieze rather than under the status bar, so it
-   keeps its own smaller inset — with the same 8px the pill costs everywhere. */
+   keeps its own smaller inset. Browse and Progress used to carry 66px here to
+   clear a `courses` pill fixed to the window; the pill stands in the header
+   now, so there is nothing to clear and they take the ordinary inset. */
 #s-home .top { padding-top: 18px; }
-/* Home clears the fixed `courses` pill because the frieze band is drawn above
-   its header. Browse and Progress have no frieze, so their own header runs
-   straight into that corner — and now that the header carries a control, the
-   pill was sitting on top of it. The pill is 48px tall from 10px down
-   (munin.js's SHELF_CSS), so this is that height plus a little air. */
-#s-browse .top, #s-stats .top { padding-top: calc(66px + env(safe-area-inset-top)); }
 
 /* The entrance. This is a hop re-cut to be played once: the version that used
    to loop spent most of its timeline standing still, because a hop every
@@ -350,13 +349,32 @@ button { cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-colo
 .top {
   display: flex; align-items: flex-end; justify-content: space-between;
   gap: 12px;
-  /* 28, not 20: the fixed `courses` pill is 48px tall and pinned to this
-     corner, and at 20 it clipped the top of the theme button beside it. */
-  padding: calc(28px + env(safe-area-inset-top)) 20px 16px;
+  padding: calc(22px + env(safe-area-inset-top)) 20px 16px;
 }
+/* The corner. Both controls on one axis, in the header's own flow: `courses`
+   was fixed to the window and the settings mark sat under it, so the corner
+   was two chips floating over whatever had scrolled beneath them, on two
+   different rows, belonging to nothing. They are one pair of header controls
+   now, and the header is what holds them apart from the title. */
+.top-acts { flex: none; margin-left: auto; display: flex; align-items: center; gap: 8px; }
+/* The title gives way first and the pair drops under it last. Two controls
+   cost the row about 150px, and at the largest text size a one-word heading
+   and that pair do not both fit across a 320px phone: the title column is
+   allowed to shrink to its longest word, and only when even that will not fit
+   does the pair take a line of its own — still one row, still one axis, just
+   under the title rather than beside it. Shrinking is tried first, which is
+   why the column's basis is 0 rather than its content: at the size the app is
+   drawn at nothing here ever wraps. Not the study header, which is a back
+   arrow and a progress bar and has nothing to drop. */
+.top:not(.study-top) { flex-wrap: wrap; }
+.top:not(.study-top) > div:first-child { flex: 1 1 0; max-width: 100%; }
 .top h1 {
   margin: 0; font-size: 1.5rem; font-weight: 500; letter-spacing: -.03em;
-  text-transform: lowercase;
+  /* A deck is named by whoever built it, and one named in a single unbroken
+     string used to run off the side of the screen. `break-word` rather than
+     `anywhere`: `anywhere` lets the column shrink below its longest word, and
+     "progress" came back as "progres / s". */
+  text-transform: lowercase; overflow-wrap: break-word;
 }
 .top h1.own { text-transform: none; }
 .sub { margin: 4px 0 0; color: var(--muted); font-size: .8rem; text-transform: lowercase; }
@@ -384,9 +402,9 @@ button { cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-colo
 /* The one control in the header corner that is not a word, and unchipped it
    read as a stray glyph rather than something to press: three short rules and
    three handles look a lot like a typographic mark that failed to render. The
-   `courses` pill it shares that corner with is paper, 2px ink and a hard
-   shadow, so this is too — same round end, same height, and its right edge on
-   the same axis as the pill's (munin.js's SHELF_CSS holds the other half). */
+   `courses` pill it now stands beside is paper, 2px ink and a hard shadow, so
+   this is too — same round end, same height, one row (munin.js's SHELF_CSS
+   holds the other half). */
 .setup-btn.icon-btn {
   background: var(--surface); color: var(--text);
   border: var(--bw) solid var(--stroke); border-radius: 99px;
@@ -562,11 +580,24 @@ details.part > summary.h-part { align-items: center; min-height: var(--tap); }
 .fineprint { color: var(--muted); font-size: .78rem; line-height: 1.65; margin: 28px 0 0; }
 
 .ask-exam {
+  position: relative;
   border: var(--bw) solid var(--stroke); border-radius: var(--r);
   background: var(--surface); box-shadow: var(--sh);
   padding: 18px; margin-bottom: 24px;
 }
-.ask-exam h2 { margin: 0 0 8px; font-size: 1.05rem; font-weight: 500; letter-spacing: -.02em; text-transform: lowercase; }
+/* The dismissal, in the corner every other dismissal in this app is in. Out of
+   the flow rather than in it: the block asks one question, and a control on a
+   line of its own is a second thing to read before you can answer it. It keeps
+   the app's 48px target by hanging over the card's own padding, which is why
+   the heading beside it is given room to stop. */
+.ask-x {
+  position: absolute; top: 5px; right: 5px;
+  color: var(--muted); font-size: 1rem;
+}
+.ask-exam h2 {
+  margin: 0 0 8px; padding-right: 40px;
+  font-size: 1.05rem; font-weight: 500; letter-spacing: -.02em; text-transform: lowercase;
+}
 .ask-exam p { margin: 0 0 16px; font-size: .84rem; line-height: 1.6; color: var(--muted); }
 .ask-exam input[type=date] {
   width: 100%; min-height: var(--tap); padding: 0 12px;
@@ -574,10 +605,9 @@ details.part > summary.h-part { align-items: center; min-height: var(--tap); }
   border-radius: var(--r-sm); font-size: 1rem;
 }
 .ask-parsed { margin: 10px 0 0 !important; font-weight: 500; color: var(--text) !important; }
-/* Nothing typed, nothing read back, and nothing to leave a 10px gap between the
-   date field and the link under it. */
+/* Nothing typed, nothing read back, and nothing to leave a 10px gap under the
+   date field. */
 .ask-parsed:empty { display: none; }
-.ask-exam .link-btn { padding-left: 0; }
 
 .how { margin-top: 24px; border-top: 2px dotted var(--line); }
 .how summary {
@@ -1469,9 +1499,10 @@ mark {
    bottom it sat directly over Show answer and the four grade buttons. */
 .unlock {
   position: fixed; left: 50%; top: calc(10px + env(safe-area-inset-top));
-  /* Above the `courses` pill at 80, which shares this top inset and was drawn
-     inside the card — cutting its border, its corner and its shadow. Still
-     under the loading screen at 95. */
+  /* Over the screen it lands on, and still under the loading screen at 95. It
+     used to have to outrank a `courses` pill fixed at 80 that shared this top
+     inset and was drawn inside the card, cutting its border, its corner and
+     its shadow; the pill is in the header now and cannot reach up here. */
   z-index: 85; width: min(340px, calc(100vw - 32px));
   transform: translateX(-50%);
   display: flex; align-items: center; gap: 12px;
@@ -1588,18 +1619,19 @@ mark {
 }
 .notes-row span { grid-column: 1; font-weight: 500; font-size: .9rem; text-transform: lowercase; }
 .notes-row small { grid-column: 1; color: var(--muted); font-size: .76rem; }
-/* Every other openable thing on this screen — "how this works" and all seven
-   themes — carries the same cue, and this one carried none at all while opening
-   a panel like the rest of them. Same mark, same ink, same place. */
+/* Every other openable thing in this app — all seven themes below it, every
+   group in the settings sheet, "how this works" on the picker — carries the
+   same cue, and this one carried none at all while opening a panel like the
+   rest of them. Same mark, same ink, same place. */
 .notes-row::after {
   content: "+"; grid-column: 2; grid-row: 1 / span 2; align-self: center;
   color: var(--accent); font-size: 1.1rem; line-height: 1;
 }
 
-/* Above the `courses` pill (80) and below the lightbox (90); the two are never
-   open at once, and the pill is inert while this is up anyway. The toast (70)
-   is deliberately left underneath — a panel you are typing into answers inside
-   itself, and .notes-say is where every message it has goes. */
+/* Above the app it covers and below the lightbox (90); the two are never open
+   at once. The toast (70) is deliberately left underneath — a panel you are
+   typing into answers inside itself, and .notes-say is where every message it
+   has goes. */
 .notes {
   position: fixed; inset: 0; z-index: 82;
   background: var(--scrim);
@@ -1746,7 +1778,15 @@ mark {
 .setup-g { margin-top: 0; }
 .setup-g:first-of-type { margin-top: 10px; }
 .setup-g:last-of-type { border-bottom: 2px dotted var(--line); }
+/* One rule between two groups, in every open/closed combination there is.
+   A group is separated from the one above it by its own border-top and by
+   nothing else, so anything inside a group that draws a full-width rule at its
+   own edges has to give that edge up. `.settings` opens with one, and every
+   `.setting` row carries a border-bottom to divide it from the next row — and
+   the last row's landed 14px above the next group's, so opening Display or
+   Studying drew two dotted lines with a strip of paper between them. */
 .setup-g > .settings { border-top: 0; margin-bottom: 14px; }
+.setup-g > .settings > .setting:last-child { border-bottom: 0; }
 .setup-g .h-sect:first-child { margin-top: 4px; }
 .setup-g .fineprint { margin-top: 10px; }
 .setup-g .ghost.wide, .setup-g .danger { margin-bottom: 14px; }
@@ -1757,11 +1797,13 @@ mark {
 .theme-pick { display: inline-flex; align-items: center; gap: 9px; flex: none; padding: 0 14px; }
 .theme-pick .dood.dood-glyph { width: 20px; height: 20px; color: inherit; }
 
-/* Four steps, each drawn at a size that says which way it goes. These are
-   display sizes, not the sizes they set: 13, 15, 17 and 19 differ by two
-   pixels, and four A's two pixels apart are four identical A's — you could not
-   tell what you were choosing from the control that was choosing it. The steps
-   the app actually applies are untouched and still come from --font-px. */
+/* Five steps, each drawn at a size that says which way it goes. These are
+   display sizes, not the sizes they set: 15 to 23 in twos is eight pixels
+   across the whole run, and five A's two pixels apart are five identical A's —
+   you could not tell what you were choosing from the control that was choosing
+   it. The steps the app actually applies are untouched and still come from
+   --font-px. Five of them fit a 320px screen because the box is what holds the
+   tap target, not the letter in it. */
 .fontsteps { display: flex; flex: none; gap: 0; }
 .fontsteps button {
   min-width: 44px; min-height: 44px;
@@ -1773,10 +1815,11 @@ mark {
 }
 .fontsteps button:first-child { border-radius: var(--r-sm) 0 0 var(--r-sm); margin-left: 0; }
 .fontsteps button:last-child { border-radius: 0 var(--r-sm) var(--r-sm) 0; }
-.fontsteps button[data-font-step="small"] { font-size: 12px; }
-.fontsteps button[data-font-step="default"] { font-size: 15px; }
-.fontsteps button[data-font-step="large"] { font-size: 18px; }
-.fontsteps button[data-font-step="xlarge"] { font-size: 22px; }
+.fontsteps button[data-font-step="default"] { font-size: 12px; }
+.fontsteps button[data-font-step="large"] { font-size: 15px; }
+.fontsteps button[data-font-step="xlarge"] { font-size: 18px; }
+.fontsteps button[data-font-step="huge"] { font-size: 22px; }
+.fontsteps button[data-font-step="biggest"] { font-size: 27px; }
 /* The step you are on is filled, and stands above its neighbours so its own
    outline is the one you see on both sides of it. */
 .fontsteps button.on {
@@ -1850,9 +1893,9 @@ mark {
 .boot.going { opacity: 0; pointer-events: none; }
 .boot[hidden] { display: none; }
 .boot p { font-size: .88rem; text-transform: lowercase; }
-/* Hidden until something has gone wrong. The screen is opaque and outranks the
-   `courses` pill, so this is the only control on it — and the only way back to
-   the other course when this one will not load. */
+/* Hidden until something has gone wrong. The screen is opaque and covers the
+   app whole, so this is the only control on it — and the only way back to the
+   other course when this one will not load. */
 #boot-back { margin-top: 4px; }
 .boot-scene { display: grid; place-items: center; }
 .boot-raven { width: 52px; height: 52px; color: var(--accent); animation: hop 2.4s ease-in-out infinite; }
@@ -1885,8 +1928,7 @@ mark {
   .pull-refresh,
   .pull-refresh-icon,
   body.pull-refresh-active #app,
-  body.pull-refresh-active > .shelf,
-  body.pull-refresh-active > .shelf-btn { transition: none; animation: none; }
+  body.pull-refresh-active > .shelf { transition: none; animation: none; }
 }
 
 .toast {

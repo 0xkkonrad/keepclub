@@ -97,8 +97,13 @@ const EXAM_MIN_YEAR = 2020, EXAM_MAX_YEAR = 2040;
 // belong to app.css (`:root[data-font=…]`), which is the only place that knows
 // what the type scale is measured in, and a number stored here would be a
 // second opinion about it. 'default' is 15px — the size the app was drawn at,
-// and what anyone who has never opened this setting is already reading.
-const FONT_SIZES = ['small', 'default', 'large', 'xlarge'];
+// and what anyone who has never opened this setting is already reading. It is
+// also the floor now: the step below it was 13px, which is smaller than the
+// app draws anything else, and the scale runs up from here to 23 rather than
+// stopping at 19. A save holding the step that went comes back as 'default'
+// through the sanitiser, which is the smallest there is now — the same 15px
+// that device would be offered on a fresh install.
+const FONT_SIZES = ['default', 'large', 'xlarge', 'huge', 'biggest'];
 const FONT_DEFAULT = 'default';
 
 const $ = (s) => document.querySelector(s);
@@ -297,12 +302,13 @@ function sanitise(raw) {
   s.settings.at = Math.round(num(s.settings.at, 0, 8.64e15, 0));
   s.settings.shuffle = !!s.settings.shuffle;
   s.settings.examSkipped = !!s.settings.examSkipped;
-  // Anything that is not one of the four steps is the default size, which also
-  // covers the case that matters most: every save written before this setting
+  // Anything that is not one of the five steps is the default size, which also
+  // covers the two cases that matter: every save written before this setting
   // existed has no fontSize at all, and those people must go on reading the app
-  // at exactly the size they have always read it at. The value is written
-  // straight into an attribute selector, so it is checked against the list
-  // rather than merely coerced to a string.
+  // at exactly the size they have always read it at; and a save holding the
+  // 13px step that has since been dropped lands on the smallest step there is.
+  // The value is written straight into an attribute selector, so it is checked
+  // against the list rather than merely coerced to a string.
   if (!FONT_SIZES.includes(s.settings.fontSize)) s.settings.fontSize = FONT_DEFAULT;
   // The default exam date belongs to a fresh install only. A restored backup
   // that never had one must not silently inherit it — that would compress every
@@ -1883,6 +1889,16 @@ function go(name, moveFocus = false) {
   // nobody had asked them of, because that flag outlived the screen it belongs
   // to.
   if (name === 'browse') { browseLimit = BROWSE_FIRST; showingHidden = false; renderBrowse(); }
+  // The `courses` pill is the shell's, and there is exactly one of it: it used
+  // to be fixed to the window, and inlined into the header it would otherwise
+  // have to be three buttons, three things to focus, three to inert, three for
+  // the picker to hand focus back to. Carry the one element into whichever
+  // header is on screen instead. Study and Done have no corner to put it in,
+  // which is right — a session is not the moment to change course — and it
+  // simply stays where it was, on a screen that is now hidden.
+  const acts = $('#s-' + name + ' .top-acts');
+  const pill = document.querySelector('.shelf-btn');
+  if (acts && pill && pill.parentElement !== acts) acts.prepend(pill);
   const body = $('#s-' + name).querySelector('.body');
   if (body && name !== 'study') body.scrollTop = 0;
   // "Skip to content" pointed at #main, which was the home screen's <main> and
@@ -1959,10 +1975,6 @@ function renderAskExam() {
   // Booking the exam a week in is the common case, and by then a "seen === 0"
   // prompt would be long gone with no way back to it except the third tab.
   $('#ask-exam').hidden = !!(state.settings.examDate || state.settings.examSkipped);
-  // Never open by itself. Four paragraphs wedged between the study button and
-  // the deck is 460px of manual on the first screen anyone ever sees; the
-  // summary row is the invitation, and the paragraphs are one tap away.
-  $('#how').open = false;
 }
 
 /** True once this has printed a pacing sentence of its own, which is the note
@@ -2986,10 +2998,10 @@ function renderAskWhy() {
     // The deck's size is the line under the title and it is in the pacing note
     // below the button. Said a third time here it was an opener that pushed the
     // whole ask past the fold.
-    ? 'Give it a date and it works out how many new cards a day you need, and stops scheduling past it.'
+    ? 'A date sets your daily pace and stops scheduling past it.'
     : DECK.cards.length < 2
-      ? 'Give the app a date and it paces the deck to it, however big the deck gets, and stops scheduling anything for after you have sat it.'
-      : `Give the app a date and it works out how many of these ${plural(DECK.cards.length, 'card')} a day you need, and stops scheduling anything for after you have sat it.`;
+      ? 'A date paces the deck, however big it grows.'
+      : `A date works out how many of these ${plural(DECK.cards.length, 'card')} a day you need.`;
 }
 
 /** The deck grew, shrank or changed a word. Everything counted off it moves.
@@ -6089,7 +6101,7 @@ function applyTheme() {
  * Setting it any later is a flash of 15px type on a phone that asked for 19. */
 function applyFontSize() {
   document.documentElement.setAttribute('data-font', state.settings.fontSize);
-  // The four buttons are marked from the same value the attribute is written
+  // The five buttons are marked from the same value the attribute is written
   // from, here rather than in the sheet's own render, so the control is
   // standing on the right step whoever changed it — this tab, another tab, a
   // merge, a restored backup — and before the sheet has ever been opened.
@@ -6445,8 +6457,8 @@ function wire() {
     state.settings.shuffle = e.target.checked;
     save();
   });
-  // Delegated across the four steps rather than one listener each: they are one
-  // control with four positions, and the group is what the app names.
+  // Delegated across the five steps rather than one listener each: they are one
+  // control with five positions, and the group is what the app names.
   $('#set-font').addEventListener('click', (e) => {
     const step = e.target.closest('[data-font-step]');
     if (!step) return;

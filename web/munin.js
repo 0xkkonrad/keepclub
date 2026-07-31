@@ -55,8 +55,8 @@ const MUNIN = {
      * hoard needed fourteen distinct drawings. The gate keeps this a subset. */
     friezeArt: ['perch', 'peek', 'flap', 'carry', 'roost',
       'hoard', 'puff', 'strut', 'quill', 'bow'],
-    /* Where progress lives is said in "how this works" on the same screen, and
-     * again by Sync's own state line on Progress. This is the deck's caveat. */
+    /* Where progress lives is said in "how this works" on the picker, and again
+     * by Sync's own state line in Settings. This is the deck's caveat. */
     notice: 'Revision material.',
   },
 };
@@ -1147,27 +1147,27 @@ const SHELF_CSS = `
   /* Over a course it says nothing — the ✕ needs no caption — but it stays in
    * the tree: the importer writes what it is doing into this line. */
   .shelf-note:empty { display: none; }
-  /* Tethered to the same column the header uses, not to the window: on a wide
-   * screen it stranded itself six hundred pixels out from everything it sits
-   * over. Position only — the stacking order is what the lightbox is measured
-   * against. */
-  .shelf-btn { position: fixed; top: calc(10px + env(safe-area-inset-top));
-    /* The same gutter the header's own controls stand in — app.css's .top takes
-     * 20px, and inside a 680px column that is 50% - 320. Eight pixels out, the
-     * pill and the settings chip under it read as two separate corners rather
-     * than one. */
-    right: max(20px, calc(50% - 320px));
-    z-index: 80; display: inline-flex; align-items: center; gap: 6px;
+  /* In the header, beside the settings mark, in ordinary flow. It used to be
+   * fixed to the top-right of the window with that mark floating under it: two
+   * chips on two rows, hanging over whatever had scrolled beneath them. The
+   * shell still owns it — it is the only way out of a course and only the
+   * shell knows how to leave one — but app.css's .top-acts is the row it
+   * stands in, and mountShelfButton() puts it there.
+   * Paper, 2px ink, a hard shadow and the same 48px target as everything else,
+   * matching the mark it now stands beside. It keeps a rank of its own because
+   * it is what every modal in the app is measured against. */
+  .shelf-btn { flex: none; z-index: 1;
+    display: inline-flex; align-items: center; gap: 6px;
     background: var(--surface); color: var(--text); font: inherit; font-size: .78rem;
     text-transform: lowercase; cursor: pointer; border: var(--bw) solid var(--stroke);
     border-radius: 99px; box-shadow: var(--sh-sm); padding: 5px 12px;
-    /* The one control that changes course, pinned where a phone's own chrome
-     * crowds it, held to the same 48px as every other target in the app. */
     min-height: var(--tap); }
+  .shelf-btn:active { transform: translate(3px, 3px); box-shadow: 0 0 0 var(--stroke); }
   .shelf-btn .dood { width: 16px; height: 16px; }
-  /* Mid-session the pill would sit on the study header; a session is not the
-   * moment to change course anyway. Home, Browse and Progress keep it. */
-  body:has(#s-study:not([hidden])) .shelf-btn { display: none; }`;
+  /* The fold that used to sit on Home, where it was four paragraphs of manual
+   * wedged between the study button and the deck. This is the screen a person
+   * is on before they have picked anything, and the one they come back to. */
+  .shelf .how { margin-top: 22px; }`;
 
 let shelfCssOn = false;
 function ensureShelfCss() {
@@ -1602,6 +1602,26 @@ async function renderShelf(asOverlay, say) {
       <ol class="shelf-install-steps"></ol>
       <button type="button" id="shelf-install-btn" hidden>install</button>
     </div>
+    <!-- What the app is, on the screen you meet before you have picked
+         anything. It sat on Home under the study button, which is a manual
+         offered to somebody who is already studying, and it was closed there
+         every time. Folded, as it has always been: the summary is the
+         invitation and the paragraphs are one tap away. -->
+    <details class="how" id="how">
+      <summary>How this works</summary>
+      <p>You are shown a question. Try to answer it in your head, then tap the
+         card to see whether you were right, and say how it went.</p>
+      <p><b>Again</b> means you did not know it. <b>Hard</b> means you got there,
+         slowly. <b>Good</b> means you knew it. <b>Easy</b> means it was obvious.
+         Be honest — the app uses your answer to decide when to show the card
+         next, so flattering yourself just means seeing it less.</p>
+      <p>Cards you find hard come back within minutes. Cards you know come back
+         in days, then weeks. That is the whole trick: you spend your time on
+         the material you have not learned yet.</p>
+      <p>Progress starts in this browser. Built-in courses only share it if
+         you turn on Sync; imported decks always stay here. Export a backup
+         from Settings before you change phone.</p>
+    </details>
       <p class="shelf-note">${asOverlay ? ''
     : 'pick a course — it opens straight here next time'}</p>
   </div>`;
@@ -1801,12 +1821,19 @@ function mountShelfButton(c) {
     finally { shelfOpening = false; }
   });
   ensureShelfCss();
-  // In front of the app, not after it. Appended to the end of the body it was
-  // the last of thirty-three tab stops while sitting in the top-right corner:
-  // the only route to another course, thirty-three presses away. The skip link
-  // stays first — this goes between it and the screens.
-  const app = document.getElementById('app');
-  if (app) app.before(b); else document.body.appendChild(b);
+  // First in the header's own corner, ahead of the settings mark. One button,
+  // not one per screen: app.js's go() carries this same element into whichever
+  // header is on screen, so there is a single control to focus, to inert and to
+  // give the focus back to — and, appended to the end of the body as it once
+  // was, it had been the last of thirty-three tab stops while sitting in the
+  // top-right corner. Home's header is where it starts, because home is the
+  // screen a course opens on.
+  const slot = document.querySelector('#s-home .top-acts') || document.querySelector('.top-acts');
+  if (slot) slot.prepend(b);
+  else {
+    const app = document.getElementById('app');
+    if (app) app.before(b); else document.body.appendChild(b);
+  }
 }
 
 /* Offline is the product, so the worker is registered by the shell rather

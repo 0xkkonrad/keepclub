@@ -108,6 +108,11 @@ const tinyPng = Buffer.from(
 async function openImporter(page) {
   const shelf = page.locator('.shelf.on');
   if (!await shelf.count()) {
+    // The `courses` pill stands in a screen header now, and the finish screen
+    // has none — no more than the study screen does. Its own way back to the
+    // deck is the way a person takes off it.
+    const backToDeck = page.locator('#s-done:not([hidden]) #done-home');
+    if (await backToDeck.count()) await backToDeck.click();
     await page.click('.shelf-btn');
     await shelf.waitFor();
   }

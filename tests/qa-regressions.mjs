@@ -121,18 +121,19 @@ async function coursePage(options = {}, id = 'day-skipper') {
     'changing the text size stamps the settings block, so it syncs like the rest');
 
   // Every change, not only the first: an unstamped edit loses the next merge to
-  // a device that changed nothing since.
+  // a device that changed nothing since. The far end of the scale, which is
+  // also the only step that has to reach 23px.
   await page.waitForTimeout(20);
-  await page.click('[data-font-step="small"]');
-  const smaller = await page.evaluate(() => {
+  await page.click('[data-font-step="biggest"]');
+  const again = await page.evaluate(() => {
     writeNow();
     return {
       root: parseFloat(getComputedStyle(document.documentElement).fontSize),
       at: JSON.parse(localStorage.getItem(KEY)).settings.at,
     };
   });
-  ok(smaller.root === 13 && smaller.at > bigger.stored.at,
-    `a second change re-stamps the block (${smaller.root}px, ${smaller.at} > ${bigger.stored.at})`);
+  ok(again.root === 23 && again.at > bigger.stored.at,
+    `a second change re-stamps the block (${again.root}px, ${again.at} > ${bigger.stored.at})`);
 
   /* Before the first frame, not after it. Both events are recorded from
      document_start; the size has to be written before #app is ever unhidden. */
@@ -153,19 +154,22 @@ async function coursePage(options = {}, id = 'day-skipper') {
     picked: document.querySelector('[data-font-step].on')?.dataset.fontStep,
     order: globalThis.__fontOrder,
   }));
-  ok(reopened.attr === 'small' && reopened.root === 13 && reopened.picked === 'small',
+  ok(reopened.attr === 'biggest' && reopened.root === 23 && reopened.picked === 'biggest',
     `the size survives a reload and the control comes back on it (${reopened.attr})`);
   ok(reopened.order.indexOf('size') === 0 && reopened.order.includes('shown'),
     `the size is on the document before the app is shown (${reopened.order.join(',')})`);
 
-  // A value the control could never have produced, and a save from before this
-  // setting existed. Both are the default, and neither stops the deck opening.
+  // A value the control could never have produced, a save from before this
+  // setting existed, and the 13px step the app used to offer and dropped. All
+  // three are the default, which is the smallest size there is now, and none
+  // of them stops the deck opening.
   const DROP = 'drop-the-field';
   for (const [what, value] of [
-    ['a size that is not one of the four', 'enormous'],
+    ['a size that is not one of the five', 'enormous'],
     ['a size stored as a number', 22],
     ['a size stored as null', null],
     ['a save written before the setting existed', DROP],
+    ['a device left on the 13px step the app no longer offers', 'small'],
   ]) {
     // Written into the live document rather than straight into localStorage,
     // for the reason notes.mjs records: this page rewrites the key from memory
