@@ -970,6 +970,168 @@ ok(errors.length === 0, `no uncaught errors in the whole run (${errors.slice(0, 
   await ce.close();
 }
 
+/* The same round trip on the deck that can actually be matched.
+ *
+ * The block above is a deck somebody wrote here, and match() excludes those at
+ * the first line (`web/import.js:754`) — so it proves the ruling where it was
+ * never at risk. A deck imported from a .keep.yml is the one kind that carries
+ * a sourceCourseId for a file to match on AND exports whole, and it is the case
+ * the ruling was written about.
+ *
+ * Two files, two different right answers, and the fineprint under the button
+ * says both. A file with your cards in it is not that course any more, so it
+ * comes back as a second deck — it has to, because landing on this one goes
+ * through "a different deck under the same name", which deletes the state
+ * document and the layer, and neither the notes nor the review history in there
+ * is in any course file to put back. A file that is only the deck as it came in
+ * is still that course, so importing it is an update to this deck, and that is
+ * the outcome that keeps everything.
+ */
+{
+  const cy = await b.newContext({ viewport: { width: 390, height: 844 } });
+  const py = await cy.newPage();
+  const yerrors = [];
+  py.on('pageerror', (e) => yerrors.push(String(e)));
+  await py.addInitScript(() => {
+    globalThis.__files = [];
+    const make = URL.createObjectURL.bind(URL);
+    URL.createObjectURL = (blob) => {
+      if (blob && /yaml/.test(blob.type || '')) globalThis.__files.push(blob);
+      return make(blob);
+    };
+    const click = HTMLAnchorElement.prototype.click;
+    HTMLAnchorElement.prototype.click = function named() {
+      if (this.download) globalThis.__files.names = (globalThis.__files.names || []).concat(this.download);
+      return click.call(this);
+    };
+  });
+  const source = `schemaVersion: 2
+courseId: tiny-club
+title: Tiny club
+cards:
+  - cardId: aaaaaaaaaa
+    front: One
+    back: A
+  - cardId: bbbbbbbbbb
+    front: Two
+    back: B
+`;
+  const openImporter = async () => {
+    await py.click('.shelf-btn');
+    await py.waitForSelector('.shelf.on');
+    await py.click('[data-byo]');
+    await py.waitForSelector('#imp-input', { state: 'attached' });
+  };
+  const hand = async (name, text) => {
+    await py.setInputFiles('#imp-input', {
+      name, mimeType: 'text/yaml', buffer: Buffer.from(text),
+    });
+    await py.waitForSelector('.imp .imp-book', { timeout: 20000 });
+  };
+  const exportNow = async () => {
+    await py.click('[data-go="stats"]');
+    await py.waitForFunction(() => {
+      const button = document.getElementById('deck-export-btn');
+      return button && !button.hidden && button.textContent.length > 0;
+    });
+    const was = await py.evaluate(() => globalThis.__files.length);
+    await py.click('#deck-export-btn');
+    await py.waitForFunction((seen) => globalThis.__files.length > seen, was);
+    return py.evaluate(async () => ({
+      text: await globalThis.__files.at(-1).text(),
+      name: (globalThis.__files.names || []).at(-1),
+    }));
+  };
+
+  await py.goto(URL_, { waitUntil: 'networkidle' });
+  await py.waitForSelector('.shelf.on');
+  await py.click('[data-byo]');
+  await py.waitForSelector('#imp-input', { state: 'attached' });
+  await hand('tiny-club.keep.yml', source);
+  await Promise.all([py.waitForEvent('load'), py.click('[data-keep="new"]')]);
+  await py.waitForFunction(() => document.getElementById('boot').hidden, null, { timeout: 20000 });
+  const deckId = await py.evaluate(() => COURSE.id);
+
+  // The plain file first, while there is nothing of yours in the deck to fork
+  // it: it is a byte-faithful copy of somebody's course and stays that course.
+  const plain = await exportNow();
+
+  // Then a card, a note and an answered card: the three things a person has in
+  // a deck, and only the first of them is in any course file.
+  await py.evaluate(async () => {
+    await writeCard({ front: 'A card of my own.', back: 'Its answer.' });
+    addNote('A note I typed.');
+    state.recs[DECK.cards[0].cardId] =
+      { due: 1, ivl: 1, ease: 2500, reps: 1, lapses: 0, last: Date.now() };
+    writeNow();
+  });
+  const mine = await exportNow();
+  ok(mine.name !== plain.name,
+    `the two files are never one name in one downloads folder (${plain.name} / ${mine.name})`);
+
+  await openImporter();
+  await hand(mine.name, mine.text);
+  const offered = await py.$$eval('.imp-acts button', (ns) => ns.map((x) => x.textContent.trim()));
+  ok(!offered.some((t) => /replace|update/i.test(t)),
+    `a file with your cards in it is offered as a deck rather than as a replacement (${
+      offered.join(' | ')})`);
+  await Promise.all([py.waitForEvent('load'), py.click('.imp-acts button')]);
+  await py.waitForFunction(() => document.getElementById('boot').hidden, null, { timeout: 20000 });
+  const beside = await py.evaluate(async (id) => {
+    const decks = await (await import('./lib/store.js')).list();
+    const kept = JSON.parse(localStorage.getItem(`munin/${id}/state/v1`) || 'null');
+    return {
+      decks: decks.length,
+      landedOnIt: COURSE.id === id,
+      notes: kept ? Object.keys(kept.notes || {}).length : 0,
+      recs: kept ? Object.keys(kept.recs || {}).length : 0,
+      layer: !!localStorage.getItem(`munin/${id}/cards/v1`),
+      cards: DECK.cards.length,
+    };
+  }, deckId);
+  ok(beside.decks === 2 && !beside.landedOnIt,
+    `and it lands beside the deck it came from rather than on it (${beside.decks} decks)`);
+  ok(beside.notes === 1 && beside.recs === 1 && beside.layer,
+    `so the note, the review history and the layer it could not carry are all still there (${
+      beside.notes} note, ${beside.recs} record)`);
+  ok(beside.cards === 3, `with your card in the new deck as one of its own (${beside.cards} cards)`);
+
+  // The other file: still that course, so it is an update to the deck it came
+  // from, which keeps everything — and which is the half of the sentence under
+  // the button that the flat old promise got wrong.
+  await openImporter();
+  await hand(plain.name, plain.text);
+  const update = await py.$$eval('.imp-acts button', (ns) => ns.map((x) => x.textContent.trim()));
+  ok(update.some((t) => /keeping progress/i.test(t)),
+    `a file that is only the deck as it came in is offered as the update it is (${
+      update.join(' | ')})`);
+  await Promise.all([py.waitForEvent('load'), py.click('.imp-acts button')]);
+  await py.waitForFunction(() => document.getElementById('boot').hidden, null, { timeout: 20000 });
+  const updated = await py.evaluate(async (id) => {
+    const decks = await (await import('./lib/store.js')).list();
+    const kept = JSON.parse(localStorage.getItem(`munin/${id}/state/v1`) || 'null');
+    return {
+      decks: decks.length,
+      landedOnIt: COURSE.id === id,
+      recs: Object.keys(kept?.recs || {}).length,
+      notes: Object.keys(kept?.notes || {}).length,
+    };
+  }, deckId);
+  ok(updated.decks === 2 && updated.landedOnIt && updated.recs === 1 && updated.notes === 1,
+    `landing on this deck with its review history and its notes kept (${updated.decks} decks, ${
+      updated.recs} record, ${updated.notes} note)`);
+  await py.click('[data-go="stats"]');
+  await py.waitForSelector('#deck-file-state');
+  const fineprint = await py.evaluate(() =>
+    document.getElementById('deck-file-state').previousElementSibling.textContent
+      .replace(/\s+/g, ' ').trim());
+  ok(/comes back as a second deck/.test(fineprint) && /updates this deck instead/.test(fineprint),
+    `and the sentence under the button is the one that describes both (${fineprint.slice(-140)})`);
+  ok(yerrors.length === 0,
+    `both ends of the round trip raise no page errors (${yerrors.slice(0, 2).join(' | ') || 'none'})`);
+  await cy.close();
+}
+
 await b.close();
 console.log(out.concat(fails).join('\n'));
 if (fails.length) { console.error(`\n${fails.length} failing`); process.exit(1); }

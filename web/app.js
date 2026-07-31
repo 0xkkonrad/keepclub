@@ -5169,6 +5169,18 @@ function deckFileAttribution(stored) {
  * screen counts with, so this line moves the moment a card is written — like
  * every other derived number in the app. */
 function deckFileSays() {
+  /* THIS ANSWER FIRST, whatever the deck is.
+   *
+   * With the cards document unread, every count below is a count of nothing —
+   * writtenCardCount(), liveCardCount() and hiddenCards() all read the layer —
+   * so this line would tell somebody who has written fourteen cards that they
+   * have written none, and then send them to Browse, where the first card
+   * written replaces the document that would not open. It is the same refusal
+   * the button gives, said before the button rather than after it. */
+  if (!cardLayerLoaded) {
+    return 'The cards you wrote into this deck could not be read, so a file made now '
+      + 'would be missing them, and none will be written.';
+  }
   const written = writtenCardCount();
   const overridden = liveCardCount() - written;
   const hidden = hiddenCards().length;
@@ -5219,12 +5231,15 @@ function deckFileSays() {
     return `A file now would hold all ${total} in this deck, exactly as they came in.`
       + attribution;
   }
+  // What the fork is guarding is whatever this file has of yours in it, and a
+  // file with cards taken out of it has one thing: the taking out.
   const mine = yours
     ? `: the deck’s own, and the ${plural(yours, 'card')} you have written or edited.`
-    : ' that you have not hidden.';
+    : '.';
+  const risk = yours ? 'take yours with it' : 'put back what you took out';
   return `A file now would hold all ${total} in this deck${mine}${without} It goes out under `
-    + 'a course ID of its own, so that an update from the deck’s author can never replace '
-    + 'it and take yours with it.' + attribution;
+    + 'a name and a course ID of its own, so that an update from the deck’s author can '
+    + `never replace it and ${risk}.${attribution}`;
 }
 
 function renderDeckFileState() {
@@ -6571,6 +6586,10 @@ function wire() {
     }
 
     const label = btn.textContent;
+    // Disabling the button a keyboard is on drops focus onto the body, and
+    // enabling it again does not put it back: the next Tab would restart at the
+    // top of the document, one press after the control it was on.
+    const held = document.activeElement === btn;
     deckExporting = true;
     btn.disabled = true;
     btn.textContent = 'Writing the file…';
@@ -6592,6 +6611,7 @@ function wire() {
     deckExporting = false;
     btn.disabled = false;
     btn.textContent = label;
+    if (held && document.activeElement === document.body) btn.focus();
 
     if (!written.ok) {
       // The reader's own words, in the shape the card sheet and the importer

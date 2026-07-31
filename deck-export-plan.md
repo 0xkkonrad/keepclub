@@ -45,8 +45,8 @@ change to how the importer matches a file to a deck. See *Settled* below for eac
 | Format | **`.keep.yml`, v2, nothing else** | It is what the importer reads (`web/import.js:28`, `web/lib/course-package.js:487-495`), what the docs teach, and what `schema/course-v2.md` specifies. A private export format would be a second thing to keep in step with the reader. |
 | Media in v1 | **No, with a named reason** | There is no ZIP writer in this repo — `web/lib/unzip.js` only reads — and a `.keep` writer is CRC32, local headers, a central directory and a memory story for a 250 MiB archive. That is a feature, not a corner of this one. |
 | Review history in the file | **Never** | *"Course artifacts contain content and presentation, never scheduling state"* (`schema/course-v2.md:54`). The backup already carries it and is the only thing that should. |
-| The exported `courseId` | **The deck's own when nothing of yours is in the file; `<courseId>.yours` when something is** | A course id is the author's claim on the course. A file with your cards folded in is no longer only theirs — and keeping the id is actively dangerous: the next genuine update from the author matches on `sourceCourseId` (`web/import.js:756-771`) and rewrites the whole deck record (`web/import.js:810-828`), deleting every card you had folded in, silently. |
-| Re-importing your own export | **A second deck, never an update** | It follows from the ruling above and needs no importer change. A deck you created is already excluded from replacement (`web/import.js:755`); this makes every export behave the way that one already does. |
+| The exported `courseId` **and title** | **The deck's own when nothing of yours is in the file; `<courseId>.yours` and `<title> — with your cards` when something is** | A course id is the author's claim on the course. A file with your cards folded in is no longer only theirs — and keeping the id is actively dangerous: the next genuine update from the author matches on `sourceCourseId` (`web/import.js:756-771`) and rewrites the whole deck record (`web/import.js:810-828`), deleting every card you had folded in, silently. **Amended after the build:** the id alone does not do it. `match()` falls back to the title (`web/import.js:772-778`), and that fallback is the destructive one — "a different deck under the same name" clears the state document and the layer. A fork has to differ in both. |
+| Re-importing your own export | **A file with your cards in it, a second deck. A plain copy of a deck you imported, an update to it.** | ~~It follows from the ruling above and needs no importer change.~~ **Amended after the build:** it did not follow, and the flat promise on screen was false twice. A file with nothing of yours in it keeps the deck's `courseId` and *is* that course, so it takes the update path — which keeps everything and is the right answer; the fineprint says so rather than denying it. A file with your cards in it is a different course and lands as a second deck, which the title fork above is what delivers. A deck you created is excluded from replacement either way (`web/import.js:755`). |
 | Written card ids | **`u.` stripped, deterministically** | `u.` ids are refused outright by the reader, for cards *and* for sections (`schema/course-v2.md:46-48`, verified: `course.reserved_id` at `$.cards[0].cardId` and `$.sections[0].sectionId`). `newCardId()` mints `u.` + 12 hex (`web/app.js:2438-2442`), so `id.slice(2)` is already a valid id under `COURSE_CARD_ID` (`web/app.js:79`) and cannot collide with the ten-hex ids the courses ship. Deterministic so two exports of one deck name the same cards. |
 | Override card ids | **Kept exactly** | They are the course's own ids and ids are opaque by contract (`schema/course-v2.md:44-45`). Keeping them is what lets a person diff their file against the course they came from. Nothing bleeds: a separate deck is a separate state document (`web/munin.js:28`). |
 | Where it lives | **Progress, its own section under Backup** | Below. |
@@ -249,7 +249,9 @@ deck file is the cards, going anywhere.
   A backup goes back into this deck on this device. A deck file is the cards themselves,
   in the format keep club reads and writes, so it opens on another device, in another
   browser, or in a text editor. It carries no review history and no notes: course files
-  never do. Importing one makes another deck; it does not come back into this one.
+  never do. Importing one is not a restore. A file with your cards in it comes back as a
+  second deck. A file that is only the deck as it came in is the same course, so importing
+  it here updates this deck instead.
 </p>
 <p class="backup-state" id="deck-file-state"></p>
 <div class="btn-row"><button class="ghost" id="deck-export-btn"></button></div>
@@ -302,9 +304,15 @@ case, with the reason before the consequence:
 (`web/app.js:6353-6362`), naming the file because the next thing a person does is look for
 it:
 
-- *Exported the 17 cards you have written or edited, as `day-skipper.yours.keep.yml`.*
+- *Exported the 17 cards you have written or edited, as
+  `rya-day-skipper-cards-you-wrote.keep.yml`.*
 - *Exported all 212 cards in this deck, including the 14 you wrote, as
-  `knot-basics.yours.keep.yml`.*
+  `knot-basics-with-your-cards.keep.yml`.*
+
+**Amended after the build:** the name is the slug of the file's own title and carries no
+suffix of its own. Both files that are not the author's course say so in that title already,
+and the `.yours` the plan first put in the name was the one thing that let a fork of a fork
+come back out wearing the author's own filename.
 
 **The refusals**, each naming the cause and the way out:
 
@@ -326,7 +334,13 @@ it:
 - Not a refusal, a caveat, sticky: *That file is 6.4 MB. keep club will not read a course
   file over 5 MB back in, so it will open in a text editor but not in this app.* — the file
   still downloads. `COURSE_YAML_LIMITS.inputBytes` is 5 MiB (`web/lib/course-yaml.js:8-14`),
-  and withholding somebody's own words over a limit of ours is not on.
+  and withholding somebody's own words over a limit of ours is not on. **Amended after the
+  build:** the gate above this one has to move out of the way for it, or this caveat can
+  never fire. `readCourseFile()` refuses the bytes before it parses them, so over the
+  ceiling its verdict is a foregone `limit.input_bytes` and the export took it for a bug in
+  itself and withheld the file — which is the opposite of the ruling, on the one deck whose
+  cards have no other copy. Over the ceiling the gate is `readCourse()` over the document,
+  which is the same reader without the input bound in front of it.
 
 ---
 

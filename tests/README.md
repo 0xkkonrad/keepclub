@@ -28,7 +28,12 @@ sharing an id, a creation called off leaving no deck and no tile, the reader's
 refusals in the reader's own words, an imported deck standing beside it keeping
 every picture across the save that makes the new one, studying it straight away,
 the second card landing in the layer while the deck's document keeps its one,
-and removal taking both documents.
+and removal taking both documents. Then the far end of the deck exporter, on the
+one kind of deck the importer can actually match a file to: a file with your
+cards in it lands beside the deck it came from rather than on the start-over path
+that would delete its notes and its review history, and a file that is only the
+deck as it came in lands on it as the update it is, which is the half of the
+sentence under the button that the flat old promise had backwards.
 
 `qa-regressions.mjs` — cross-surface browser regressions from the deep QA pass:
 single-writer study tabs, midnight and DST scheduling, held keys, session
@@ -157,7 +162,17 @@ like proof there was nothing there — an idle tab exporting while another studi
 without touching the lease, and a stored document that no longer validates
 refused in the reader's words as the exporter's own bug. The re-import side is in
 `importer-ui.mjs`, and a packaged deck refusing to go out whole is in
-`course-importer-ui.mjs`, beside the `.keep` that carries the pictures.
+`course-importer-ui.mjs`, beside the `.keep` that carries the pictures. Last, the
+seven things three adversarial reviews found in the built feature, each one
+reproduced before it was fixed and held down here: a deck too big for this app to
+read a course file back in at, which was refused outright instead of downloaded
+with the caveat that says so; the fork made to differ from the deck it forked in
+both of the things the importer matches on, at each of their ceilings and down a
+chain of forks; a comment header that claimed a deck came out exactly as it came
+in while cards were missing from it, and counted "1 cards"; the line above the
+button telling somebody whose cards document would not open that they had written
+none, one step before the refusal that says otherwise; and the keyboard keeping
+its place across a button that disables itself.
 
 `deploy-script.mjs` — destructive deployment preflights in disposable Git
 repositories: wrong branches, dirty Pages work and an unexpected remote are

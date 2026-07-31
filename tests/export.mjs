@@ -234,6 +234,83 @@ const knots = {
     `and is named for its title rather than for a course id (${file.fileName})`);
 }
 
+/* THE FORK, IN BOTH OF THE THINGS THE IMPORTER MATCHES ON.
+ *
+ * A file with your cards folded in must never land back on the deck it came
+ * from. match() identifies a file by its course id first and by its title after
+ * it (`web/import.js:756, 772`), and the second match is the destructive one —
+ * "a different deck under the same name" clears the state document and the
+ * layer. So a fork that changes only the id is a fork that still lands, and
+ * takes the notes and the review history with it.
+ *
+ * Each case below is one way of handing back the value the fork has to differ
+ * from. */
+{
+  const shipped = { courseId: 'knot-basics', title: 'Knot basics', cards: [] };
+  const mine = { 'u.aabbccddeeff': layerRecord('Bowline?', 'A fixed loop.', 3) };
+  const forked = await buildDeckExport({
+    kind: 'whole', stored: knots, shipped, layer: mine, own: false, now: NOW,
+  });
+  ok(forked.courseId !== knots.courseId && forked.title !== knots.title,
+    `a forked file differs from the deck it came from in the id and in the title (${
+      forked.courseId} / ${forked.title})`);
+  ok(forked.document.title === forked.title && /with your cards/.test(forked.title),
+    `and the title says which of the two files this is (${forked.document.title})`);
+
+  const ceiling = 'c'.repeat(128);
+  const atCeiling = await buildDeckExport({
+    kind: 'whole',
+    stored: { ...knots, courseId: ceiling },
+    shipped: { ...shipped, courseId: ceiling },
+    layer: mine,
+    own: false,
+    now: NOW,
+  });
+  ok(atCeiling.courseId !== ceiling && atCeiling.courseId.length <= 128,
+    `an id already at the format's ceiling still forks (${atCeiling.courseId.slice(-12)}, ${
+      atCeiling.courseId.length} characters)`);
+  const longTitle = 'T'.repeat(200);
+  const atTitleCeiling = await buildDeckExport({
+    kind: 'whole',
+    stored: { ...knots, title: longTitle },
+    shipped: { ...shipped, title: longTitle },
+    layer: mine,
+    own: false,
+    now: NOW,
+  });
+  ok(atTitleCeiling.title !== longTitle && [...atTitleCeiling.title].length <= 200,
+    `and so does a title at its own (${[...atTitleCeiling.title].length} characters)`);
+
+  /* Exporting a fork, importing it and exporting again. Every pass has to differ
+   * from the deck it was written out of, or that pass is the one where the
+   * chain quietly stops forking and the file lands back where it came from —
+   * which is how a 128-character id got away with it. */
+  let chained = { ...knots, courseId: 'a'.repeat(126), title: 'T'.repeat(198) };
+  let landed = '';
+  for (let pass = 1; pass <= 4; pass++) {
+    const step = await buildDeckExport({
+      kind: 'whole',
+      stored: chained,
+      shipped: { ...shipped, courseId: chained.courseId, title: chained.title },
+      layer: mine,
+      own: false,
+      now: NOW,
+    });
+    if (step.courseId === chained.courseId || step.title === chained.title) landed ||= `pass ${pass}`;
+    chained = { ...chained, courseId: step.courseId, title: step.title };
+  }
+  ok(!landed, `and a fork of a fork forks too, at the ceiling (${landed || 'four passes, four forks'})`);
+
+  const plain = await buildDeckExport({
+    kind: 'whole', stored: knots, shipped, layer: {}, own: false, now: NOW,
+  });
+  ok(plain.courseId === knots.courseId && plain.title === knots.title,
+    'a file with nothing of yours in it is still that course, and keeps both');
+  ok(plain.fileName !== forked.fileName,
+    `so the author's file and yours are never one name in one folder (${plain.fileName} / ${
+      forked.fileName})`);
+}
+
 /* Round trip, byte for byte.
  *
  * An untouched deck goes out, comes back and goes out again as the same file to
@@ -359,6 +436,57 @@ const knots = {
     `and the refusal is the reader’s own message and correction (${file.say})`);
 }
 
+/* A file over the size this app will read back in.
+ *
+ * It is a caveat and not a refusal: the reader's ceiling is a bound on what
+ * keep club will parse, and withholding somebody's own words over a limit of
+ * ours is not on. The gate cannot be the round trip here — readCourseFile()
+ * refuses the bytes before it parses them, so its answer is a foregone
+ * limit.input_bytes that says nothing about the document — and taking that for
+ * a verdict is what turned the one deck whose cards have no other copy into the
+ * one deck that could not be written out. */
+{
+  const filler = 'a very long clause that keeps going and going '.repeat(40);
+  const big = {
+    schemaVersion: 2,
+    courseId: 'big-club',
+    title: 'Big club',
+    cards: Array.from({ length: 1500 }, (unused, index) => ({
+      cardId: String(index).padStart(10, '0'),
+      front: `Question ${index}. ${filler}`,
+      back: `Answer ${index}. ${filler}`,
+    })),
+  };
+  const file = await writeCourseFile({
+    kind: 'whole',
+    stored: big,
+    shipped: { courseId: 'big-club', title: 'Big club', cards: [] },
+    layer: {},
+    own: false,
+    now: NOW,
+  });
+  ok(file.bytes > 5 * 1024 * 1024, `the file is over the reader's ceiling (${file.bytes} bytes)`);
+  ok(file.ok && file.text.length > 0 && file.overLimit,
+    `and it is still written, with the caveat that says why (ok ${file.ok}, over ${file.overLimit})`);
+  ok(file.say === '', 'so nothing about it reads as a refusal');
+  const back = await readCourseFile(file.text, { fileName: file.fileName });
+  ok(!back.course && back.diagnostics.some((item) => item.code === 'limit.input_bytes'),
+    'the caveat is true: this app will not read it back in');
+
+  /* The gate is still a gate. A document the reader refuses is refused whatever
+   * it weighs — the size is the one thing that must not become an amnesty. */
+  const broken = await writeCourseFile({
+    kind: 'whole',
+    stored: { ...big, cards: [...big.cards, { ...big.cards[0], front: 'A duplicate id.' }] },
+    shipped: { courseId: 'big-club', title: 'Big club', cards: [] },
+    layer: {},
+    own: false,
+    now: NOW,
+  });
+  ok(!broken.ok && broken.text === '' && /repeated/i.test(broken.say),
+    `a document the reader refuses is still not written at any size (${broken.say})`);
+}
+
 /* A whole deck can only come out of a stored document. Asked for one without,
  * the file falls back to the layer rather than going out under the deck's name
  * holding nothing but what the layer had. */
@@ -409,8 +537,9 @@ const knots = {
   ok(exportFileName('RYA Day Skipper — cards you wrote', 'day-skipper.yours')
     === 'rya-day-skipper-cards-you-wrote.keep.yml',
   'the file is named after its own title');
-  ok(exportFileName('Knot basics', 'knot-basics.yours', true) === 'knot-basics.yours.keep.yml',
-    'a whole deck that went out under a forked id says so in the name too');
+  ok(exportFileName('Knot basics — with your cards', 'knot-basics.yours')
+    === 'knot-basics-with-your-cards.keep.yml',
+  'a forked deck is named by the forked title, so it never wears the author’s own filename');
   ok(exportFileName('日本語', 'local-mfx3k2a1') === 'local-mfx3k2a1.keep.yml',
     'and a title that slugs to nothing falls back to the course id');
   ok(!/\d{4}-\d{2}-\d{2}/.test(exportFileName('Knot basics', 'knot-basics')),
@@ -436,6 +565,64 @@ const knots = {
     'and says there is no review history in here, because the file outlives the screen');
   ok(text.startsWith('#') && /\nschemaVersion: 2\n/.test(text),
     'the comment sits above the document rather than inside it');
+}
+
+/* What the header says about the file it is inside.
+ *
+ * It is the part that travels: the screen says what a file would hold once, to
+ * the person who pressed the button, and the header says it to whoever the file
+ * is handed on to afterwards. So a claim the file cannot keep is worse here than
+ * anywhere else on the screen it came from. */
+{
+  const shipped = { courseId: 'knot-basics', title: 'Knot basics', cards: [] };
+  const second = (file) => file.header[1];
+  const hidden = await buildDeckExport({
+    kind: 'whole',
+    stored: knots,
+    shipped,
+    layer: { 'reef-knot': { at: 1, ed: 1, front: '', back: '', hidden: true } },
+    own: false,
+    now: NOW,
+  });
+  ok(!/as they came in/.test(second(hidden)) && /you hid/.test(second(hidden)),
+    `a deck with a card taken out of it is not "exactly as they came in" (${second(hidden)})`);
+
+  const untouched = await buildDeckExport({
+    kind: 'whole', stored: knots, shipped, layer: {}, own: false, now: NOW,
+  });
+  ok(/3 cards, exactly as they came in/.test(second(untouched)),
+    `and one with nothing taken out of it says so (${second(untouched)})`);
+
+  const one = {
+    schemaVersion: 2,
+    courseId: 'local-mfx3k2a1',
+    title: 'Rope work',
+    cards: [{ cardId: 'aabbccddee', front: 'What is a bowline for?' }],
+  };
+  const own = await buildDeckExport({
+    kind: 'whole',
+    stored: one,
+    shipped: { courseId: one.courseId, title: one.title, cards: [] },
+    layer: {},
+    own: true,
+    now: NOW,
+  });
+  ok(/^1 card, /.test(second(own)),
+    `one card is one card, and a deck of your own starts at exactly one (${second(own)})`);
+  ok(!/came in/.test(second(own)) && /yours/.test(second(own)),
+    'and nothing came in to a deck you wrote here');
+
+  const layerOnly = await buildDeckExport({
+    kind: 'layer',
+    stored: null,
+    shipped: shippedDeck([]),
+    layer: { 'u.aa': layerRecord('A card of my own.') },
+    own: false,
+    now: NOW,
+  });
+  ok(!/\b0\b/.test(second(layerOnly)),
+    `silent at nought, like every other line in this app that has nothing to count (${
+      second(layerOnly)})`);
 }
 
 /* A title carrying a newline would end the comment and put the rest of it into
@@ -602,6 +789,7 @@ const toastText = (page) => page.textContent('#toast');
     loaded: cardLayerLoaded,
     files: globalThis.__files.length,
     toast: document.getElementById('toast').textContent,
+    line: document.getElementById('deck-file-state').textContent,
   }));
   ok(!state.loaded, 'the layer is unloaded, which is not the same as empty');
   ok(/could not be read/.test(state.toast) && /Nothing was exported/.test(state.toast),
@@ -609,7 +797,40 @@ const toastText = (page) => page.textContent('#toast');
   ok(state.files === 0, 'nothing at all was handed over');
   ok(!/have not written or changed a card/.test(state.toast),
     'and it is never mistaken for "you have written nothing", which would be a lie');
+  /* The same lie one step earlier. The line above the button is read first, and
+   * it is drawn from the same layer the app knows it could not read — so it
+   * said the cards were never written, and then sent the person to Browse,
+   * where the first card written replaces the document that would not open. */
+  ok(/could not be read/.test(state.line),
+    `the line above the button says the same thing the button does (${state.line})`);
+  ok(!/have not written or changed a card/.test(state.line)
+      && !/Browse is where you write one/.test(state.line),
+  'rather than telling somebody who wrote a card that they wrote none, and sending them to Browse');
   ok(errors.length === 0, `the refusal raises no page errors (${errors.join(' | ') || 'none'})`);
+  await ctx.close();
+}
+
+/* The keyboard keeps its place.
+ *
+ * Disabling the button somebody is standing on hands focus to the body, and
+ * enabling it again does not hand it back — so the next Tab restarts at the top
+ * of the document, one press after the control they were on. The sibling backup
+ * button never disables at all, so this was new behaviour on this screen. */
+{
+  const { ctx, page, errors } = await coursePage();
+  await page.evaluate(async () => {
+    await writeCard({ front: 'A card written before the file was.' });
+    writeNow();
+  });
+  await progress(page);
+  await page.focus('#deck-export-btn');
+  await page.keyboard.press('Enter');
+  await page.waitForFunction(() => globalThis.__files.length > 0);
+  await page.waitForFunction(() => !document.getElementById('deck-export-btn').disabled);
+  const where = await page.evaluate(() => document.activeElement.id || document.activeElement.tagName);
+  ok(where === 'deck-export-btn',
+    `focus comes back to the button that wrote the file (${where})`);
+  ok(errors.length === 0, `exporting from the keyboard raises no page errors (${errors.join(' | ') || 'none'})`);
   await ctx.close();
 }
 
@@ -731,6 +952,39 @@ const toastText = (page) => page.textContent('#toast');
     'a deck you made keeps its own id: you are its author, and no file can be an update to it');
   ok(errors.length === 0,
     `exporting a deck of your own raises no page errors (${errors.slice(0, 2).join(' | ') || 'none'})`);
+
+  /* The same deck, grown past the size this app will read a course file back
+   * in at. The file still comes out, and the one sentence that says why it will
+   * not open here is stuck on screen rather than flashed — while this deck is
+   * the one whose cards have no other copy anywhere, which is what the refusal
+   * that used to happen here cost. */
+  await page.evaluate(() => {
+    const filler = 'a very long clause that keeps going and going '.repeat(40);
+    for (let index = 0; index < 1500; index++) {
+      COURSE.deck.cards.push({
+        cardId: String(index).padStart(10, '0'),
+        front: `Question ${index}. ${filler}`,
+        back: `Answer ${index}. ${filler}`,
+      });
+    }
+  });
+  const beforeBig = await page.evaluate(() => globalThis.__files.length);
+  await page.click('#deck-export-btn');
+  await page.waitForFunction((was) => globalThis.__files.length > was, beforeBig, { timeout: 30000 });
+  const big = await page.evaluate(async () => ({
+    toast: document.getElementById('toast').textContent,
+    sticky: !document.getElementById('toast').hidden,
+    bytes: (await globalThis.__files.at(-1).text()).length,
+  }));
+  ok(/^Exported all /.test(big.toast) && big.bytes > 5 * 1024 * 1024,
+    `a deck over the reader's ceiling is still handed over (${big.bytes} bytes)`);
+  ok(/will not read a course file over 5 MB back in/.test(big.toast)
+      && /text editor/.test(big.toast),
+  `with the caveat that says where it will open and where it will not (${big.toast.slice(-120)})`);
+  ok(!/could not write a course file/.test(big.toast),
+    'and nothing in it reads as a refusal, or as a bug in keep club');
+  ok(errors.length === 0,
+    `a file over the ceiling raises no page errors (${errors.slice(0, 2).join(' | ') || 'none'})`);
   await ctx.close();
 }
 

@@ -7,7 +7,9 @@
  * written. That gate is the whole safety story, for the reason web/lib/
  * validate.js is a standing note about: a second opinion about what a course
  * file is would be a second thing to keep in step with the reader, and only one
- * of them could be right.
+ * of them could be right. Past the reader's own 5 MiB input ceiling the round
+ * trip is not available to ask — see writeCourseFile() — and what answers there
+ * is readCourse(), which is the same reader one layer down.
  *
  * Two shapes, and the deck decides which rather than a control on the screen. A
  * deck whose stored document is authored CommonMark goes out whole, because
@@ -25,6 +27,7 @@
  */
 
 import { COURSE_YAML_LIMITS } from './course-yaml.js';
+import { readCourse } from './course.js';
 import { readCourseFile } from './course-package.js';
 
 /** The only machine-readable statement that a file is not its author's own.
@@ -50,17 +53,30 @@ const YIELD_EVERY = 500;
  * through under it, then the structure, then the cards, then machine noise at
  * the bottom. This is the list of what a whole-deck export copies across
  * untouched — including a licence and an authors block, which is what stops a
- * file being somebody else's course with the credit taken off. */
+ * file being somebody else's course with the credit taken off. The title is not
+ * on it, and is written in above it: a fork has to differ from the deck it
+ * forked in its title as well as its id, which is the one thing about a
+ * whole-deck export that is not the author's own. */
 const CARRIED = [
-  'title', 'shortTitle', 'tagline', 'description', 'contentLanguage',
+  'shortTitle', 'tagline', 'description', 'contentLanguage',
   'instructionLanguage', 'authors', 'license', 'source', 'theme',
 ];
+/* What a fork is called, in the two things the importer identifies a file by,
+ * and the format's ceiling on each. */
+const FORK_ID = '.yours';
+const FORK_TITLE = ' — with your cards';
+const ID_LIMIT = 128;
+const TITLE_LIMIT = 200;
 /* The top-level blocks a blank line goes before, so the file is scannable
  * rather than a wall. */
 const SPACED_BLOCKS = new Set(['sections', 'groups', 'cards', 'extensions']);
 
 const isPlainObject = (value) =>
   !!value && typeof value === 'object' && !Array.isArray(value);
+
+/** "1 card", not "1 cards". The header is the part of the file a person reads
+ *  first, and the commonest deck of somebody's own starts at exactly one. */
+const plural = (value, word) => `${value} ${value === 1 ? word : `${word}s`}`;
 
 const record = (layer, id) =>
   (isPlainObject(layer) && Object.hasOwn(layer, id) && isPlainObject(layer[id]))
@@ -333,23 +349,41 @@ const oneLine = (value) => String(value == null ? '' : value)
  * Comments are not nodes, so the reader neither sees these nor objects to them.
  * It is the only place the file can say what it is in a sentence, and the file
  * outlives the screen that said it once. */
-function headerFor({ kind, title, deckTitle, counts, now }) {
+function headerFor({ kind, title, deckTitle, counts, own, now }) {
   const on = now.toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
   const yours = [];
-  if (counts.written) yours.push(`${counts.written} you wrote`);
-  if (counts.overridden) yours.push(`${counts.overridden} you changed`);
-  const what = kind === 'whole'
-    ? [
+  let what;
+  if (kind === 'whole') {
+    if (counts.written) yours.push(`${counts.written} you wrote`);
+    if (counts.overridden) yours.push(`${counts.overridden} you changed`);
+    /* A hide is in neither the file nor the count above it: a course file has
+     * no way to say "not this card" about a course it is not shipping. So a
+     * header calling this the deck exactly as it came in would be claiming a
+     * completeness the file does not have — to whoever it is handed on to,
+     * which is the whole reason the header is in there. */
+    const without = counts.hidden
+      ? ` The ${plural(counts.hidden, 'card')} you hid ${
+        counts.hidden === 1 ? 'is' : 'are'} not in it.`
+      : '';
+    const many = counts.cards !== 1;
+    const held = own ? (many ? 'all of them yours' : 'yours')
+      : yours.length ? yours.join(' and ')
+        : counts.hidden ? (many ? 'all of them the deck’s own' : 'the deck’s own')
+          : `exactly as ${many ? 'they' : 'it'} came in`;
+    what = [
       `${oneLine(title)}, written out of keep club.`,
-      yours.length
-        ? `${counts.cards} cards, ${yours.join(' and ')}. Exported ${on}.`
-        : `${counts.cards} cards, exactly as they came in. Exported ${on}.`,
-    ]
-    : [
-      `Cards you wrote in keep club, from ${oneLine(deckTitle)}.`,
-      `${counts.written} you wrote, ${counts.overridden} of the course's that `
-        + `you changed. Exported ${on}.`,
+      `${plural(counts.cards, 'card')}, ${held}.${without} Exported ${on}.`,
     ];
+  } else {
+    // Silent at nought, like every other line in this app that has nothing to
+    // count: most people write cards into a course and change none of it.
+    if (counts.written) yours.push(`${plural(counts.written, 'card')} you wrote`);
+    if (counts.overridden) yours.push(`${plural(counts.overridden, 'card')} you changed`);
+    what = [
+      `Cards you wrote in keep club, from ${oneLine(deckTitle)}.`,
+      `${yours.length ? yours.join(' and ') : plural(counts.cards, 'card')}. Exported ${on}.`,
+    ];
+  }
   return what.concat([
     'There is no review history in here: keep club course files never carry any.',
     'The format: https://keepclub.app/docs/',
@@ -362,6 +396,26 @@ function headerFor({ kind, title, deckTitle, counts, now }) {
 function clipTitle(value, max) {
   const points = [...String(value == null ? '' : value)];
   return points.length <= max ? points.join('') : points.slice(0, max).join('');
+}
+
+/** A fork of one of the two things the importer identifies a file by.
+ *
+ * It matches on the course id first and on the title after it (`web/import.js:
+ * 756, 772`), and either match lands a file carrying your cards back on the
+ * deck it came from — the second one on the path that clears the state document
+ * and the layer. So both have to differ, and this is where each is made to.
+ *
+ * The suffix goes on inside the format's ceiling rather than over it, or the
+ * clip that follows would take it straight off again and hand back the very
+ * value this has to differ from. Clipping to make room can do that on its own:
+ * an id already at 128 points and already ending in the suffix clips to exactly
+ * its own stem, so the stem gives up one more point where it does.
+ */
+function forkFrom(value, suffix, max) {
+  const room = max - [...suffix].length;
+  let stem = clipTitle(value, room);
+  if (`${stem}${suffix}` === value) stem = clipTitle(stem, [...stem].length - 1);
+  return `${stem}${suffix}`;
 }
 
 /**
@@ -399,19 +453,28 @@ export async function buildDeckExport(input) {
    * no sourceCourseId for any file to match on, and the id is already your
    * claim; a suffix there would be noise guarding against nobody.
    */
-  const courseId = (yours && !own) ? clipTitle(`${from}.yours`, 128) : from;
+  const courseId = (yours && !own) ? forkFrom(from, FORK_ID, ID_LIMIT) : from;
 
   const document = { schemaVersion: 2, courseId };
   let title;
   if (kind === 'whole') {
+    /* The title above the carried metadata rather than inside it, because a
+     * forked file's title is the one thing on that list this does not hand on
+     * untouched. A file of the author's cards with yours folded in, under the
+     * author's own name, is a file the importer puts back on the deck it came
+     * from by the title alone — and that path clears the state document and the
+     * layer. The name says what the id says, so that it cannot. */
+    title = (typeof stored.title === 'string' && stored.title) ? stored.title
+      : (typeof shipped.title === 'string' ? shipped.title : '');
+    if (title && courseId !== from) title = forkFrom(title, FORK_TITLE, TITLE_LIMIT);
+    if (title) document.title = title;
     for (const field of CARRIED) {
       if (stored[field] !== undefined) document[field] = stored[field];
     }
-    title = typeof stored.title === 'string' ? stored.title : shipped.title;
     if (built.sections) document.sections = built.sections;
     if (built.groups && built.groups.length) document.groups = built.groups;
   } else {
-    title = clipTitle(shipped.title, 200 - ' — cards you wrote'.length)
+    title = clipTitle(shipped.title, TITLE_LIMIT - ' — cards you wrote'.length)
       + ' — cards you wrote';
     document.title = title;
   }
@@ -435,11 +498,15 @@ export async function buildDeckExport(input) {
     courseId,
     title,
     counts: built.counts,
-    header: headerFor({ kind, title, deckTitle: shipped.title, counts: built.counts, now }),
-    // `.yours` on the file too, but only where the whole deck went out under a
-    // forked id: the layer file's own title already says in words that it is
-    // the cards you wrote, and a downloads folder does not need it twice.
-    fileName: exportFileName(title, courseId, kind === 'whole' && courseId !== from),
+    header: headerFor({
+      kind, title, deckTitle: shipped.title, counts: built.counts, own: !!own, now,
+    }),
+    // Named after its own title and nothing else. Both files that are not the
+    // author's course say so in that title already — "cards you wrote" on one
+    // and "with your cards" on the other — so a downloads folder never needs it
+    // twice, and the fork of a fork can never come back wearing the author's
+    // own filename.
+    fileName: exportFileName(title, courseId),
   };
 }
 
@@ -455,7 +522,7 @@ export async function buildDeckExport(input) {
  * content, and dating it invites the belief that the format tracks versions
  * when the id is what does. Two exports in a day are then byte-identical.
  */
-export function exportFileName(title, courseId, forked = false) {
+export function exportFileName(title, courseId) {
   let slug = '';
   try {
     slug = String(title == null ? '' : title).normalize('NFKD')
@@ -466,7 +533,7 @@ export function exportFileName(title, courseId, forked = false) {
   // A title that slugs to nothing \u2014 one written in a script with no ASCII in
   // it \u2014 falls back to the courseId, which already carries any fork suffix.
   if (!slug) return `${courseId}.keep.yml`;
-  return `${slug}${forked ? '.yours' : ''}.keep.yml`;
+  return `${slug}.keep.yml`;
 }
 
 /**
@@ -514,7 +581,25 @@ export async function emitCourseYaml(document, header) {
 export async function writeCourseFile(input) {
   const built = await buildDeckExport(input);
   const text = await emitCourseYaml(built.document, built.header);
-  const read = await readCourseFile(text, { fileName: built.fileName });
+  /* Measured before anything is asked of the reader, so that the size a caveat
+   * is written against and the size the reader refuses are one number — and
+   * because over that size the question changes. */
+  const bytes = new TextEncoder().encode(text).byteLength;
+  const overLimit = bytes > COURSE_YAML_LIMITS.inputBytes;
+  /* Over the ceiling the round trip cannot be the gate. readCourseFile()
+   * refuses the bytes before it parses them, so its answer is a foregone
+   * limit.input_bytes that says nothing about the document — and taking that
+   * for a verdict is how a deck too big to re-read here became a deck that
+   * could not be written out at all, which is the one deck whose cards have no
+   * other copy. The file still goes out, with the caveat saying why it will
+   * open in a text editor and not in this app: withholding somebody's own words
+   * over a limit of ours is not on. What checks it instead is readCourse() over
+   * the document itself — the same validator, without the input ceiling in
+   * front of it.
+   */
+  const read = overLimit
+    ? readCourse(built.document)
+    : await readCourseFile(text, { fileName: built.fileName });
   const errors = read.diagnostics.filter((item) => item.severity === 'error');
   if (!read.course || errors.length) {
     return {
@@ -527,17 +612,12 @@ export async function writeCourseFile(input) {
       say: errors[0] ? `${errors[0].message} ${errors[0].correction}` : '',
     };
   }
-  /* Answered here rather than measured again on the screen, so that the size a
-   * caveat is written against and the size the reader refuses are one number.
-   * The file still goes out: withholding somebody's own words over a limit of
-   * ours is not on. */
-  const bytes = new TextEncoder().encode(text).byteLength;
   return {
     ...built,
     ok: true,
     text,
     bytes,
-    overLimit: bytes > COURSE_YAML_LIMITS.inputBytes,
+    overLimit,
     diagnostics: read.diagnostics,
     say: '',
   };
