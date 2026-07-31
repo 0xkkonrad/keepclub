@@ -877,6 +877,99 @@ ok(errors.length === 0, `no uncaught errors in the whole run (${errors.slice(0, 
   await co.close();
 }
 
+/* The other end of the deck exporter: a file this app wrote, brought back in.
+ *
+ * It has to land as a second deck and never as an update. A deck somebody wrote
+ * here carries no sourceCourseId for a file to match on, so the only way in
+ * would be the shared-title path — the one that clears the state document and
+ * the layer — and that would take the deck's own cards with it. The suffix on a
+ * forked courseId is the same guarantee said the other way round: the deck's
+ * real author can ship an update without it landing on the fork.
+ */
+{
+  const ce = await b.newContext({ viewport: { width: 390, height: 844 } });
+  const pe = await ce.newPage();
+  const eerrors = [];
+  pe.on('pageerror', (e) => eerrors.push(String(e)));
+  await pe.addInitScript(() => {
+    globalThis.__files = [];
+    const make = URL.createObjectURL.bind(URL);
+    URL.createObjectURL = (blob) => {
+      if (blob && /yaml/.test(blob.type || '')) globalThis.__files.push(blob);
+      return make(blob);
+    };
+  });
+  await pe.goto(URL_, { waitUntil: 'networkidle' });
+  await pe.waitForSelector('.shelf.on');
+  await pe.click('[data-byo]');
+  await pe.waitForSelector('#imp-mine');
+  await pe.click('#imp-mine');
+  await pe.waitForSelector('#byo-deck-name');
+  await pe.fill('#byo-deck-name', 'Rope work');
+  await pe.fill('#byo-card-front', 'What is a bowline for?');
+  await pe.fill('#byo-card-back', 'A loop that will not slip.');
+  await pe.click('#byo-card-save');
+  await pe.waitForSelector('[data-open]', { timeout: 15000 });
+  await Promise.all([pe.waitForEvent('load'), pe.click('[data-open]')]);
+  await pe.waitForFunction(() => document.getElementById('boot').hidden, null, { timeout: 20000 });
+  const madeId = await pe.evaluate(() => COURSE.id);
+  await pe.evaluate(async () => {
+    await writeCard({ front: 'What is a *sheet bend* for?', back: 'Two ropes.  \nUnequal sizes.' });
+    writeNow();
+  });
+
+  await pe.click('[data-go="stats"]');
+  await pe.waitForFunction(() => {
+    const button = document.getElementById('deck-export-btn');
+    return button && !button.hidden && button.textContent.length > 0;
+  });
+  await pe.click('#deck-export-btn');
+  await pe.waitForFunction(() => globalThis.__files.length > 0);
+  const file = await pe.evaluate(() => globalThis.__files.at(-1).text());
+
+  await pe.click('.shelf-btn');
+  await pe.waitForSelector('.shelf.on');
+  await pe.click('[data-byo]');
+  await pe.waitForSelector('#imp-input', { state: 'attached' });
+  await pe.setInputFiles('#imp-input', {
+    name: 'rope-work.keep.yml', mimeType: 'text/yaml', buffer: Buffer.from(file),
+  });
+  await pe.waitForSelector('.imp .imp-book', { timeout: 20000 });
+  const preview = (await pe.innerText('.imp-inner')).replace(/\s+/g, ' ');
+  const offered = await pe.$$eval('.imp-acts button', (ns) => ns.map((x) => x.textContent.trim()));
+  ok(/2 cards ready to study/.test(preview),
+    `a file keep club wrote reads back as the deck it was written from (${
+      /(\d+ cards ready to study)/.exec(preview)?.[1] || preview.slice(0, 80)})`);
+  ok(!offered.some((t) => /replace/i.test(t)) && !/already have a deck called/i.test(preview),
+    `and is offered as a new deck rather than as an update (${offered.join(' | ')})`);
+  ok(/description/i.test(preview) && /attribution/i.test(preview) && !/error/i.test(preview),
+    'its two expected warnings are in the receipt as things worth checking, and no errors');
+
+  await Promise.all([pe.waitForEvent('load'), pe.click('[data-keep="new"]')]);
+  await pe.waitForFunction(() => document.getElementById('boot').hidden, null, { timeout: 20000 });
+  const landed = await pe.evaluate(async (id) => {
+    const decks = await (await import('./lib/store.js')).list();
+    return {
+      count: decks.length,
+      here: COURSE.id,
+      fronts: DECK.cards.map((card) => card.front),
+      ids: DECK.cards.map((card) => card.cardId).sort(),
+      madeStillThere: decks.some((deck) => deck.id === id && deck.importFormat === 'own'),
+      madeLayer: localStorage.getItem(`munin/${id}/cards/v1`),
+    };
+  }, madeId);
+  ok(landed.count === 2 && landed.here !== madeId && landed.madeStillThere,
+    `it lands beside the deck it came from rather than on top of it (${landed.count} decks)`);
+  ok(landed.fronts.some((front) => /<em>sheet bend<\/em>/.test(front))
+      && landed.fronts.some((front) => /bowline/.test(front)),
+  'with both cards back word for word, the one in the document and the one in the layer');
+  ok(landed.madeLayer && Object.keys(JSON.parse(landed.madeLayer).cards).length === 1,
+    'and the deck it came from still holds its own layer, untouched');
+  ok(eerrors.length === 0,
+    `re-importing an export raises no page errors (${eerrors.slice(0, 2).join(' | ') || 'none'})`);
+  await ce.close();
+}
+
 await b.close();
 console.log(out.concat(fails).join('\n'));
 if (fails.length) { console.error(`\n${fails.length} failing`); process.exit(1); }

@@ -137,6 +137,28 @@ line on the row rather than behind a closed answer; a deck of one card counted
 in words; the cards you hid closing when the screen changes; and focus landing
 somewhere after a row rebuilds itself.
 
+`export.mjs` — writing a deck out, as the file and as the screen that offers it.
+The promise is one sentence, so it is gated in one place: every card in a file
+keep club writes comes back word for word and under the same id, and nothing
+else in it does. Half of it is pure and runs in node against the writer — the
+document, the emitter, the gate that runs the emitted text back through the
+importer's own reader, and the two dozen things a person can type that a YAML
+writer can quietly change under them, hard breaks and control characters and
+astral pairs included. Then the whole-deck shape: hides taken out, overrides in
+place, a titled section and a titled group for the cards you wrote because the
+shape `applyCardLayer()` builds in memory is illegal in a file, and the licence
+and authors the deck came with carried through. Then the shapes themselves, one
+per kind of deck, decided by what the stored document is made of rather than by
+where the deck came from. The browser half is what a person meets: the line that
+says what a file would hold before the button, a built-in course giving up only
+what somebody authored, the three refusals in their own words — chief among them
+the unreadable layer, where exporting would write a short file that then looks
+like proof there was nothing there — an idle tab exporting while another studies
+without touching the lease, and a stored document that no longer validates
+refused in the reader's words as the exporter's own bug. The re-import side is in
+`importer-ui.mjs`, and a packaged deck refusing to go out whole is in
+`course-importer-ui.mjs`, beside the `.keep` that carries the pictures.
+
 `deploy-script.mjs` — destructive deployment preflights in disposable Git
 repositories: wrong branches, dirty Pages work and an unexpected remote are
 all refused before the copy begins.

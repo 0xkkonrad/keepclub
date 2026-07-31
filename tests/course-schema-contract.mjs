@@ -1,119 +1,22 @@
 /* Contract-only JSON Schema fixture gate.
  *
- * Production YAML parsing/semantic validation belongs to later phases. This
- * small evaluator covers only the standard JSON Schema keywords used by
- * schema/course-v2.schema.json, so Phase 0 examples cannot drift while the
- * runtime dependency is still being chosen.
+ * Production YAML parsing/semantic validation belongs to later phases. The
+ * evaluator this leans on covers only the standard keywords
+ * schema/course-v2.schema.json uses, so Phase 0 examples cannot drift while the
+ * runtime dependency is still being chosen. It lives in json-schema.mjs because
+ * the export suite holds the documents keep club writes to the same schema.
  */
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { courseSchema as schema, validate } from './json-schema.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SCHEMA_DIR = path.join(ROOT, 'schema');
 const readJson = (file) => JSON.parse(fs.readFileSync(file, 'utf8'));
-const schema = readJson(path.join(SCHEMA_DIR, 'course-v2.schema.json'));
 const failures = [];
 let passed = 0;
-
-function resolveRef(ref) {
-  assert.match(ref, /^#\//, `only local schema refs are allowed: ${ref}`);
-  return ref.slice(2).split('/').reduce((value, part) => value[part.replaceAll('~1', '/').replaceAll('~0', '~')], schema);
-}
-
-const equal = (a, b) => JSON.stringify(a) === JSON.stringify(b);
-const kind = (value) => {
-  if (value === null) return 'null';
-  if (Array.isArray(value)) return 'array';
-  if (Number.isInteger(value)) return 'integer';
-  return typeof value;
-};
-
-function validate(value, rule, at = '$') {
-  if (rule === true) return [];
-  if (rule === false) return [`${at}: forbidden`];
-  if (rule.$ref) return validate(value, resolveRef(rule.$ref), at);
-
-  const errors = [];
-  if (rule.const !== undefined && !equal(value, rule.const)) errors.push(`${at}: not the constant value`);
-  if (rule.enum && !rule.enum.some((item) => equal(value, item))) errors.push(`${at}: not in enum`);
-
-  if (rule.type) {
-    const types = Array.isArray(rule.type) ? rule.type : [rule.type];
-    const actual = kind(value);
-    const compatible = types.includes(actual) || (actual === 'integer' && types.includes('number'));
-    if (!compatible) return errors.concat(`${at}: expected ${types.join('|')}, got ${actual}`);
-  }
-
-  if (rule.allOf) {
-    for (const child of rule.allOf) errors.push(...validate(value, child, at));
-  }
-  if (rule.anyOf && !rule.anyOf.some((child) => validate(value, child, at).length === 0)) {
-    errors.push(`${at}: no anyOf branch matched`);
-  }
-  if (rule.oneOf && rule.oneOf.filter((child) => validate(value, child, at).length === 0).length !== 1) {
-    errors.push(`${at}: expected exactly one oneOf match`);
-  }
-  if (rule.not && validate(value, rule.not, at).length === 0) errors.push(`${at}: matched forbidden schema`);
-
-  if (typeof value === 'string') {
-    const length = [...value].length;
-    if (rule.minLength !== undefined && length < rule.minLength) errors.push(`${at}: shorter than ${rule.minLength}`);
-    if (rule.maxLength !== undefined && length > rule.maxLength) errors.push(`${at}: longer than ${rule.maxLength}`);
-    if (rule.pattern !== undefined && !(new RegExp(rule.pattern, 'u')).test(value)) {
-      errors.push(`${at}: does not match ${rule.pattern}`);
-    }
-  }
-
-  if (typeof value === 'number') {
-    if (rule.minimum !== undefined && value < rule.minimum) errors.push(`${at}: below minimum`);
-    if (rule.maximum !== undefined && value > rule.maximum) errors.push(`${at}: above maximum`);
-    if (rule.exclusiveMinimum !== undefined && value <= rule.exclusiveMinimum) errors.push(`${at}: below exclusive minimum`);
-    if (rule.exclusiveMaximum !== undefined && value >= rule.exclusiveMaximum) errors.push(`${at}: above exclusive maximum`);
-  }
-
-  if (Array.isArray(value)) {
-    if (rule.minItems !== undefined && value.length < rule.minItems) errors.push(`${at}: too few items`);
-    if (rule.maxItems !== undefined && value.length > rule.maxItems) errors.push(`${at}: too many items`);
-    if (rule.uniqueItems && new Set(value.map((item) => JSON.stringify(item))).size !== value.length) {
-      errors.push(`${at}: duplicate items`);
-    }
-    if (rule.items) value.forEach((item, index) => errors.push(...validate(item, rule.items, `${at}[${index}]`)));
-    if (rule.contains && !value.some((item, index) => validate(item, rule.contains, `${at}[${index}]`).length === 0)) {
-      errors.push(`${at}: no item matched contains`);
-    }
-  }
-
-  if (value && typeof value === 'object' && !Array.isArray(value)) {
-    const keys = Object.keys(value);
-    if (rule.minProperties !== undefined && keys.length < rule.minProperties) errors.push(`${at}: too few properties`);
-    if (rule.maxProperties !== undefined && keys.length > rule.maxProperties) errors.push(`${at}: too many properties`);
-    for (const required of rule.required || []) {
-      if (!Object.hasOwn(value, required)) errors.push(`${at}: missing ${required}`);
-    }
-    for (const key of keys) {
-      if (rule.propertyNames) errors.push(...validate(key, rule.propertyNames, `${at} key ${JSON.stringify(key)}`));
-      let matched = false;
-      if (rule.properties && Object.hasOwn(rule.properties, key)) {
-        matched = true;
-        errors.push(...validate(value[key], rule.properties[key], `${at}.${key}`));
-      }
-      for (const [pattern, child] of Object.entries(rule.patternProperties || {})) {
-        if (new RegExp(pattern, 'u').test(key)) {
-          matched = true;
-          errors.push(...validate(value[key], child, `${at}.${key}`));
-        }
-      }
-      if (!matched && rule.additionalProperties === false) errors.push(`${at}: unknown property ${key}`);
-      else if (!matched && rule.additionalProperties && typeof rule.additionalProperties === 'object') {
-        errors.push(...validate(value[key], rule.additionalProperties, `${at}.${key}`));
-      }
-    }
-  }
-
-  return errors;
-}
 
 function check(condition, label, detail = '') {
   if (condition) {
@@ -223,10 +126,9 @@ const sourceByType = {
   video: ['media/sample.webm', 'video/webm'],
 };
 const documentedMediaFields = new Set(Object.values(mediaFieldsByType).flat());
-check(equal(
-  [...documentedMediaFields].sort(),
-  Object.keys(schema.$defs.media.properties).sort(),
-), 'media schema exposes exactly the runtime-documented field union');
+check(JSON.stringify([...documentedMediaFields].sort())
+  === JSON.stringify(Object.keys(schema.$defs.media.properties).sort()),
+'media schema exposes exactly the runtime-documented field union');
 
 for (const [mediaType, allowedFields] of Object.entries(mediaFieldsByType)) {
   const allowed = new Set(allowedFields);

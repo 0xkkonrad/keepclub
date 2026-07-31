@@ -357,6 +357,33 @@ ok(homeSectionArtwork.source?.startsWith('blob:')
     && homeSectionArtwork.fallbackHidden,
   'the single public section artwork is a decorative raster default on Home');
 
+/* A deck carrying media can only give up the layer.
+ *
+ * Its stored document is authored CommonMark, so it would otherwise go out
+ * whole — but a .keep.yml is text, and one naming assets that are not beside it
+ * fails on the way back in. There is no ZIP writer in this app, so the layer is
+ * what is offered, with the count of pictures as the reason rather than a
+ * refusal with nothing behind it. */
+await page.evaluate(async () => {
+  await writeCard({ front: 'A card written into a deck that carries pictures.' });
+  writeNow();
+});
+await page.click('#nav [data-go="stats"]');
+await page.waitForFunction(() => {
+  const button = document.getElementById('deck-export-btn');
+  return button && !button.hidden && button.textContent.length > 0;
+});
+const packagedDeckFile = await page.evaluate(() => ({
+  said: document.getElementById('deck-file-state').textContent,
+  label: document.getElementById('deck-export-btn').textContent.trim().toLowerCase(),
+}));
+ok(/The deck carries 3 pictures/.test(packagedDeckFile.said)
+    && /a course file written here is text only/.test(packagedDeckFile.said),
+`a packaged deck says how many pictures keep it from going out whole (${packagedDeckFile.said})`);
+ok(packagedDeckFile.label === 'export the cards you wrote',
+  `so what is offered is the layer rather than the deck (${packagedDeckFile.label})`);
+await page.click('#nav [data-go="home"]');
+
 await page.click('#theme-btn');
 const themedDark = await page.evaluate(() => {
   const style = getComputedStyle(document.documentElement);
