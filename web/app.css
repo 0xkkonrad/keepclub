@@ -464,7 +464,25 @@ button { cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-colo
   flex: none; font-size: .72rem; color: var(--muted);
   font-variant-numeric: tabular-nums;
 }
-#section-list > .h-part:first-child, #mastery > .h-part:first-child { margin-top: 4px; }
+#section-list > .h-part:first-child, #mastery > .h-part:first-child,
+#section-list > .part:first-child > .h-part { margin-top: 4px; }
+
+/* One disclosure, and the app uses it everywhere it groups a list under a
+   themed heading — Home's seven themes and the same seven on the Browse index.
+   The heading is the summary, the count it already carried is the badge, and
+   the +/− is the one #how has used since the beginning. Four screens each
+   inventing their own scroll is what this replaces. */
+details.part > summary { list-style: none; cursor: pointer; }
+details.part > summary::-webkit-details-marker { display: none; }
+details.part > summary::after {
+  content: "+"; flex: none; margin-left: 2px; line-height: 1;
+  color: var(--accent); font-size: 1.1rem;
+}
+details.part[open] > summary::after { content: "\2212"; }
+/* A heading you press is a target, so it is thumb-sized whatever the type is
+   doing. Centred rather than on the baseline, because the row is now taller
+   than the words in it. */
+details.part > summary.h-part { align-items: center; min-height: var(--tap); }
 /* The section rows already rule themselves off top and bottom. Under a heading
    that carries its own dotted rule that is two lines of dots, three pixels
    apart, which reads as a mistake. */
@@ -541,22 +559,15 @@ button { cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-colo
 .key span { display: flex; align-items: center; gap: 6px; }
 .key i { width: 12px; height: 8px; border: 1px solid var(--stroke); display: block; }
 
-.grade-ask {
-  /* The gap under it is padding, not margin: with the grade row out of the flow
-     a margin here collapses with the dock foot's, and the dock is 8px shorter
-     while the question is up than it is once the answer needs the room. */
-  max-width: 62ch; margin: 0 auto; padding-bottom: 10px; text-align: center;
-  font-size: .76rem; color: var(--muted); text-transform: lowercase;
-}
-/* Held empty rather than added on reveal, which is why it hides with a class
-   and not with `hidden`: this line arrives at the exact moment the answer needs
-   the room, and a dock that grows by its height takes that room from the card —
-   138px to 170px, which is 44% of a phone held sideways. */
-.grade-ask.away { visibility: hidden; }
-/* Except where there is nothing to hold it in. On a short screen the band is a
-   twelfth of the window, and four labelled buttons ask the question themselves. */
+/* #grade-ask is spoken, never drawn — it carries `sr` in the markup and has no
+   rules of its own here. It used to be a visible line held empty by
+   `.grade-ask.away { visibility: hidden }` so that arriving on reveal could not
+   grow the dock and take 28px from the card. Out of the flow in both states,
+   the growth it was reserving against cannot happen, and the four labelled
+   buttons were always the question. Anything that puts the line back on screen
+   has to put `.away` back with it, and 28px of dock with that. */
+
 @media (max-height: 620px) {
-  .grade-ask { display: none; }
   .study-top {
     padding: calc(8px + env(safe-area-inset-top)) 12px 6px;
   }
@@ -911,28 +922,35 @@ button.plate:active { transform: translate(3px, 3px); box-shadow: none; }
 /* ── video ───────────────────────────────────────────────────────── */
 
 .vids { margin: 20px 0 0; }
-.vhead { margin: 0 0 8px; font-size: .74rem; letter-spacing: .08em;
-  text-transform: lowercase; color: var(--muted); }
+/* The heading is the app's own section idiom, the same one the rest of the
+   card uses. It used to be a label of its own invention. */
+.vhead { margin: 20px 0 10px; }
 .vrow { display: flex; gap: 10px; flex-wrap: wrap; }
 
 /* The poster is the clip's own first second, not a 54th image asset —
-   preload="metadata" costs tens of KB, not the whole video. */
+   preload="metadata" costs tens of KB, not the whole video.
+   Small, and framed the way everything else here is framed. Two full-colour
+   photographic rectangles under a hand-drawn ink diagram won a fight they had
+   no business being in: the loudest pixels in the app sat next to its best
+   drawing. The clips stay; they stop shouting. */
 .vthumb {
-  position: relative; flex: 0 0 auto; width: 108px; padding: 0;
+  position: relative; flex: 0 0 auto; width: 96px; padding: 0;
   border: var(--bw) solid var(--stroke); border-radius: var(--r-sm);
-  background: #000; overflow: hidden; box-shadow: var(--sh-sm);
+  background: #000; overflow: hidden; box-shadow: var(--sh);
   transition: transform .08s ease, box-shadow .08s ease;
 }
-.vthumb:active { transform: translate(3px, 3px); box-shadow: 0 0 0 var(--stroke); }
-.vthumb video { display: block; width: 100%; height: 150px; object-fit: cover; pointer-events: none; }
+.vthumb:active { transform: translate(4px, 4px); box-shadow: 0 0 0 var(--stroke); }
+.vthumb video { display: block; width: 100%; height: 96px; object-fit: cover; pointer-events: none; }
 .vthumb .vplay {
   position: absolute; inset: 0; display: grid; place-items: center;
-  color: #fff; font-size: 1.5rem; text-shadow: 0 1px 6px rgba(0, 0, 0, .7);
+  color: #fff; font-size: 1.3rem; text-shadow: 0 1px 6px rgba(0, 0, 0, .7);
 }
+/* Muted ink on the app's own paper. A running time is not a warning, and it was
+   the only yellow object within reach of the drawing. */
 .vthumb .vlen {
-  position: absolute; left: 5px; bottom: 5px;
-  background: var(--flag); color: #121214;
-  border: 1.5px solid #121214; border-radius: 5px;
+  position: absolute; left: 4px; bottom: 4px;
+  background: var(--surface); color: var(--muted);
+  border: var(--bw) solid var(--stroke); border-radius: 5px;
   font-size: .6rem; padding: 0 5px; font-variant-numeric: tabular-nums;
 }
 
@@ -1017,15 +1035,36 @@ button.plate:active { transform: translate(3px, 3px); box-shadow: none; }
   background-position: calc(100% - 18px) 21px, calc(100% - 13px) 21px;
   background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
 }
-/* The native ✕ in a type=search field is a four-pixel-wide target that clears
-   the text and leaves the section filter set, next to a labelled button that
-   says what it will undo. One of them had to go. */
-#search::-webkit-search-cancel-button { display: none; }
+/* The native ✕ is left where the browser draws it: it clears the field it sits
+   in, which is a reset next to the thing it resets. It used to be suppressed in
+   favour of a labelled Clear a row further down, and that button is now kept
+   only for the one case the ✕ cannot do — a search AND a section filter set at
+   once, where clearing the text alone leaves you looking at a narrowed deck. */
 
 .result-count { margin: 2px 0 0; font-size: .78rem; color: var(--muted); }
 .result-count.nothing { color: var(--text); font-size: .86rem; margin-top: 4px; }
-.browse-acts { display: flex; flex-wrap: wrap; align-items: center; gap: 0 18px; }
+/* One ranked line: where you are, then the one thing worth doing from here. */
+.browse-acts { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; }
 .browse-acts .link-btn { padding-left: 0; padding-right: 0; }
+#browse-study, #browse-clear, #browse-wide { margin-left: auto; }
+/* The breadcrumb gives up its ending rather than the line: a theme name long
+   enough to wrap would put the offer beside it on a second row, and two rows is
+   the pile this replaced. */
+#browse-back {
+  flex: 1 1 0; min-width: 0; text-align: left;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+#browse-study { flex: none; padding: 0 13px; font-size: .78rem; }
+/* The one that is a sentence rather than a label takes its own row: it only
+   turns up in the empty state, where it is the only offer on the screen. */
+#browse-wide { flex: 1 0 100%; margin-left: 0; text-align: left; }
+/* The list's own header: the count, and the toggle that acts on all of it. */
+.browse-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+.browse-head .link-btn { flex: none; padding: 4px 0; min-height: 32px; font-size: .74rem; }
+/* Under the list, not over it. Both of these are things you do once you have
+   read something, and the list of cards you hid opens directly beneath them. */
+.browse-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; margin-top: 18px; }
+.browse-foot .link-btn { padding-left: 0; padding-right: 0; }
 
 /* ── the browse index ──
    Twenty-four sections in seven themes, each marked with the drawing it already

@@ -1149,7 +1149,7 @@ function renderCardVideo(card) {
   if (!clips.length) { host.innerHTML = ''; return; }
   // data-card is what "close" uses to rebuild the thumbnails; without it the
   // player collapsed into an empty row.
-  host.innerHTML = `<p class="vhead">${clips.length === 1 ? 'A clip on this' : 'Clips on this'}</p>
+  host.innerHTML = `<p class="h-sect vhead">${clips.length === 1 ? 'A clip on this' : 'Clips on this'}</p>
     <div class="vrow" data-card="${escapeHtml(card.cardId)}">${clips.map((c) => thumbHtml(c)).join('')}</div>`;
 }
 
@@ -2086,23 +2086,45 @@ function renderHome() {
 
   const list = $('#section-list');
   list.innerHTML = '';
-  for (const [g, inside] of byGroup()) {
-    // counts() walks the whole deck, so it is called once per section and the
-    // theme's total is added up from those rather than costing a second pass.
+  // counts() walks the whole deck, so it is called once per section and the
+  // theme's total is added up from those rather than costing a second pass.
+  const themes = byGroup().map(([g, inside]) => {
     const rows = inside.map((s) => {
       const sc = counts(s.sectionId);
       return { s, sc, pending: Math.min(sc.due, 999) + sc.learning };
     });
+    return {
+      g,
+      rows,
+      waiting: rows.reduce((t, r) => t + r.pending, 0),
+      unseen: rows.reduce((t, r) => t + r.sc.fresh, 0),
+    };
+  });
+  /* Which themes stand open.
+   *
+   * The question Home answers is "where do I go next", so a theme with cards
+   * waiting answers it and is open. With nothing waiting, the first theme you
+   * have not finished is the answer instead. On a deck you have been all the
+   * way through, nothing opens: there is nothing left to point at, and the
+   * badge on each heading already says so. */
+  const anyWaiting = themes.some((t) => t.waiting > 0);
+  const firstUnfinished = anyWaiting ? -1 : themes.findIndex((t) => t.unseen > 0);
+  for (const [i, { g, rows, waiting }] of themes.entries()) {
+    let host = list;
     if (g.title) {
-      // The heading says what is waiting inside the theme, because the question
-      // Home answers is "where do I go next" and the answer used to be
-      // twenty-four rows of column you had to read to work it out.
-      const waiting = rows.reduce((t, r) => t + r.pending, 0);
-      const h = document.createElement('h3');
+      // The heading says what is waiting inside the theme, because the answer
+      // used to be twenty-four rows of column you had to read to work it out.
+      // Folded, that badge is the whole of what a closed theme has to say.
+      const part = document.createElement('details');
+      part.className = 'part';
+      part.open = anyWaiting ? waiting > 0 : i === firstUnfinished;
+      const h = document.createElement('summary');
       h.className = 'h-part';
       h.innerHTML = `<span>${escapeHtml(g.title)}</span>`
         + (waiting ? `<span class="h-part-n">${n(waiting)} to review</span>` : '');
-      list.appendChild(h);
+      part.appendChild(h);
+      list.appendChild(part);
+      host = part;
     }
     const ul = document.createElement('ul');
     ul.className = 'sections';
@@ -2134,7 +2156,7 @@ function renderHome() {
       li.appendChild(b);
       ul.appendChild(li);
     }
-    list.appendChild(ul);
+    host.appendChild(ul);
   }
   renderNotesRow();
   hydrateSectionArtwork(list);
@@ -4812,18 +4834,26 @@ function renderBrowseIndex() {
   const host = $('#browse-index');
   host.innerHTML = '';
   const frag = document.createDocumentFragment();
+  // The same fold Home uses, over the same seven themes: twenty-four tiles in
+  // one column is the wall this screen exists to save you from, and the app has
+  // one folding idiom or none. The first theme stands open, because a screen of
+  // seven shut doors and nothing else shows you nothing.
+  let first = true;
   for (const g of groupOf.values()) {
     const sec = document.createElement('section');
     sec.className = 'bgroup';
     const named = !!g.title;
-    sec.innerHTML = (named ? `<h2 class="bgroup-h">
+    sec.innerHTML = (named ? `<details class="part"${first ? ' open' : ''}>
+      <summary class="bgroup-h">
         ${doodle(GROUP_ART[g.groupId] || COURSE.fallback, 'bgroup-art')}
         <span class="bgroup-t">${escapeHtml(g.title)}</span>
         <button class="bgroup-all" data-scope="${escapeHtml(GROUP_AT + g.groupId)}"
           aria-label="Read all ${plural(g.cardCount, 'card')} in ${escAttr(g.title)}">${
   plural(g.cardCount, 'card')} →</button>
-      </h2>` : '')
-      + '<ul class="btiles"></ul>';
+      </summary>
+      <ul class="btiles"></ul>
+    </details>` : '<ul class="btiles"></ul>');
+    if (named) first = false;
     const ul = sec.querySelector('.btiles');
     for (const sectionId of g.sectionIds) {
       const s = sectionOf.get(sectionId);
@@ -4940,18 +4970,13 @@ function renderBrowse() {
   sayCount(count);
   $('#browse-count').classList.toggle('nothing', !hits.length);
 
-  // One control, labelled for what it will actually undo — the old combined
-  // "Clear search and filter" threw away a typed query when the empty state had
-  // just told you to clear the filter.
+  // Only the case neither control can do for itself. A typed query is cleared
+  // by the field's own ✕; a section by the dropdown's own "All sections"; and
+  // "← All sections" is the way out of a theme. Both at once is the one state
+  // where clearing either leaves you looking at a narrowed deck and wondering
+  // why, so it keeps a button — and says both things it will undo.
   const clear = $('#browse-clear');
-  const up = upFrom(sk);
-  // Two buttons that go to the same place is one button too many: from a theme,
-  // "← All sections" already is the clear. From a section they differ — back
-  // goes up to the theme, clear goes all the way out — so both earn their place.
-  const dup = !terms.length && up && !up.to;
-  clear.hidden = !(sk || terms.length) || dup;
-  clear.textContent = sk && terms.length ? 'Clear search and filter'
-    : terms.length ? 'Clear search' : 'Clear filter';
+  clear.hidden = !(sk && terms.length);
 
   // A search that finds nothing here may still find something in the deck.
   const wide = $('#browse-wide');
@@ -4962,14 +4987,17 @@ function renderBrowse() {
     wide.textContent = `Search all ${n(all)} cards instead — ${n(elsewhere)} match${elsewhere === 1 ? '' : 'es'}`;
   }
 
-  // Filtering to a section is usually an attempt to work through it.
+  // Filtering to a section is usually an attempt to work through it. The name
+  // is not repeated on it: the dropdown two lines above is already showing it,
+  // and spelled out the label wrapped this line to four rows on a phone.
   const study = $('#browse-study');
   const studiable = sk && sk !== LEECH_FILTER && !terms.length && hits.length;
   study.hidden = !studiable;
-  if (studiable) study.textContent = `Study ${scopeName(sk)} →`;
+  if (studiable) study.textContent = isGroup(sk) ? 'Study this theme →' : 'Study this section →';
 
   // Up one level, which is not the same offer as Clear filter: from a section
   // you almost always want its neighbours in the same theme, not all 537 cards.
+  const up = upFrom(sk);
   const back = $('#browse-back');
   back.hidden = !up;
   if (up) {
@@ -6266,7 +6294,12 @@ function wire() {
   // index is rebuilt wholesale, and a listener per button would have to be too.
   $('#browse-index').addEventListener('click', (e) => {
     const b = e.target.closest('[data-scope]');
-    if (b) goScope(b.dataset.scope);
+    if (!b) return;
+    // The theme's own "N cards →" sits inside the summary, so pressing it would
+    // fold the theme shut on the way out — and folding it is not what it says
+    // it does. The tiles are outside the summary and this costs them nothing.
+    e.preventDefault();
+    goScope(b.dataset.scope);
   });
   $('#browse-open').addEventListener('click', () => {
     const rows = $$('#browse-list details');

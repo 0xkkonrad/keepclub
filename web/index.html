@@ -181,9 +181,12 @@
 
     <div class="dock" id="dock">
       <button class="primary big" id="reveal-btn">Show answer</button>
-      <!-- `away`, not `hidden`: the line keeps its place in the dock while the
-           question is up, so revealing the answer does not shrink the card. -->
-      <p class="grade-ask away" id="grade-ask" role="status"
+      <!-- Spoken, never drawn. It stays in the tree because #grade-row is
+           labelled by it and it is the live region that says when a session is
+           practice, but Again/Hard/Good/Easy ask the question themselves and
+           the line above them asked it a third time. `sr`, not `away`: held
+           empty it still cost the card 28px of dock in both states. -->
+      <p class="grade-ask sr" id="grade-ask" role="status"
          aria-live="polite" aria-atomic="true">Did you get it right?</p>
       <div class="grades" id="grade-row" role="group" aria-labelledby="grade-ask" hidden>
         <button class="grade g1" data-g="1"><b>Again</b><small id="iv1"></small></button>
@@ -191,12 +194,19 @@
         <button class="grade g3" data-g="3"><b>Good</b><small id="iv3"></small></button>
         <button class="grade g4" data-g="4"><b>Easy</b><small id="iv4"></small></button>
       </div>
+      <!-- One line, and the two ends of it are the session: undoing the last
+           answer on the left, leaving on the right. The long forms are on the
+           labels, where a screen reader still reads them out. -->
       <div class="dock-foot">
-        <button class="link-btn" id="undo-btn" disabled>↶ Undo last answer</button>
+        <button class="link-btn" id="undo-btn" disabled
+                aria-label="Undo the last answer">↶ Undo</button>
         <!-- §4b's path: the card in front of you is wrong and this is where you
              are standing. Editing mid-session is safe — the queue holds ids and
-             resolves them through byId on every draw — so it needs no warning. -->
-        <button class="link-btn" id="fix-btn">Fix this card</button>
+             resolves them through byId on every draw — so it needs no warning.
+             It stays here rather than under the answer because it has to be
+             reachable from the question too, which is where you usually notice. -->
+        <button class="link-btn" id="fix-btn"
+                aria-label="Fix the card you are looking at">Fix card</button>
         <button class="link-btn" id="end-btn">End session</button>
       </div>
       <p class="keyhint" id="keyhint">Space reveals · 1–4 grades · U undoes</p>
@@ -251,37 +261,53 @@
       <input id="search" type="search" placeholder="Search the deck…" autocomplete="off" enterkeyhint="search">
       <label class="sr" for="sect-filter">Filter by section</label>
       <select id="sect-filter"></select>
-      <p class="result-count" id="browse-count"></p>
+      <!-- Where you are on the left, the one thing worth doing on the right.
+           This was five links at one weight — a breadcrumb, a bulk toggle, a
+           reset, a primary offer and a way to write a card, all reading as
+           peers. The other three have gone to the controls they act on: open
+           every answer sits on the list's own header line below, clearing a
+           search is the field's own ✕, and writing a card is at the foot of
+           the list you have just read. -->
+      <div class="browse-acts">
+        <button class="link-btn" id="browse-back" hidden>← All sections</button>
+        <button class="ghost" id="browse-study" hidden></button>
+        <button class="link-btn" id="browse-clear" hidden>Clear search and filter</button>
+        <!-- Last, and a whole row of its own: it is a sentence, and it only
+             turns up in the empty state where it is the only offer going. -->
+        <button class="link-btn" id="browse-wide" hidden></button>
+      </div>
+      <!-- The list's header line: how many, and the one thing you can do to all
+           of them at once. -->
+      <div class="browse-head">
+        <p class="result-count" id="browse-count"></p>
+        <button class="link-btn" id="browse-open" hidden>Open every answer</button>
+      </div>
       <!-- The spoken half, separate so it can wait for you to stop typing: a
            live region on the visible count read out a sentence per keystroke. -->
       <p class="sr" id="browse-say" role="status" aria-live="polite"></p>
-      <div class="browse-acts">
-        <!-- Writing a card is offered here rather than on Home: Browse is the
-             screen that already shows you the card that is wrong. Never hidden —
-             a deck you cannot add to looks like a deck that does not take
-             additions, and every deck in this app does. -->
-        <button class="link-btn" id="browse-write">Write a card</button>
-        <button class="link-btn" id="browse-hidden" aria-controls="hidden-list" hidden></button>
-        <button class="link-btn" id="browse-back" hidden>← All sections</button>
-        <button class="link-btn" id="browse-open" hidden>Open every answer</button>
-        <button class="link-btn" id="browse-study" hidden></button>
-        <button class="link-btn" id="browse-wide" hidden></button>
-        <button class="link-btn" id="browse-clear" hidden>Clear</button>
-      </div>
     </div>
     <main class="body">
-      <!-- A card you hid is not in the deck any more, so it is in none of the
-           lists below and there would be nowhere to take the hiding back from.
-           Its own list, off by default, is that place: hiding is only free to
-           undo if undoing it is somewhere you can reach. Directly under the
-           control that opens it, because at the foot of 537 rows opening it
-           looks like a button that did nothing. -->
-      <ul class="browse-list hidden-list" id="hidden-list" hidden></ul>
       <!-- Shown instead of the list when nothing is searched or filtered: 537
            questions in one column is not a thing anyone can browse. -->
       <div class="browse-index" id="browse-index" hidden></div>
       <ul class="browse-list" id="browse-list"></ul>
       <button class="ghost wide" id="browse-more" hidden>Show more</button>
+      <!-- Writing a card is offered on Browse rather than on Home: this is the
+           screen that already shows you the card that is wrong. At the foot,
+           because you decide to write one after reading, not before. Never
+           hidden — a deck you cannot add to looks like a deck that does not
+           take additions, and every deck in this app does. -->
+      <div class="browse-foot">
+        <button class="ghost" id="browse-write">Write a card</button>
+        <button class="link-btn" id="browse-hidden" aria-controls="hidden-list" hidden></button>
+      </div>
+      <!-- A card you hid is not in the deck any more, so it is in none of the
+           lists above and there would be nowhere to take the hiding back from.
+           Its own list, off by default, is that place: hiding is only free to
+           undo if undoing it is somewhere you can reach. Directly under the
+           control that opens it, wherever that control stands — a list that
+           opened a thousand pixels away looks like a button that did nothing. -->
+      <ul class="browse-list hidden-list" id="hidden-list" hidden></ul>
     </main>
   </section>
 
