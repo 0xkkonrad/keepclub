@@ -28,6 +28,17 @@ ok(orange === '#a63a1b', `Git 101 accent is burnt orange (${orange})`);
 ok((await page.textContent('body')).includes('142 cards'),
   'Git 101 reports the compiled 142-card deck');
 
+/* Nobody sits Git 101, so its course.json says `"exam": false` and the whole
+ * countdown goes with it — the ask on Home, the row in Settings, and the
+ * banner that only a date could raise. */
+ok(await page.locator('#ask-exam').isHidden(), 'Git 101 never asks when your exam is');
+ok(await page.locator('#exam-banner').isHidden(), 'Git 101 raises no exam banner');
+await page.click('.setup-btn:visible');
+await page.click('#setup-studying');
+ok(await page.locator('#exam-row').isHidden(), 'Git 101 has no exam date row in Settings');
+await page.click('#setup-close');
+await page.waitForSelector('#setup', { state: 'hidden' });
+
 await page.click('[data-go="browse"]');
 await page.waitForSelector('#browse-index:not([hidden])');
 ok((await page.locator('#browse-index .bgroup').count()) === 4,
@@ -51,6 +62,19 @@ ok(figure.label.includes('three local areas')
 'Git 101 lights the working tree, staging area, and repository figure');
 ok(figure.overflow === 0, 'Git 101 has no mobile horizontal overflow');
 ok(errors.length === 0, `Git 101 raises no page errors (${errors.join('; ') || 'none'})`);
+
+/* The control: a course that says nothing about an exam is a course that is
+ * sat, and keeps both halves of the feature. */
+const sailing = await browser.newContext({ viewport: { width: 390, height: 844 } });
+const sailingPage = await sailing.newPage();
+await sailingPage.goto(URL + '?course=day-skipper', { waitUntil: 'networkidle' });
+await sailingPage.waitForFunction(() => document.getElementById('boot').hidden);
+ok(await sailingPage.locator('#ask-exam').isVisible(), 'a sailing course still asks for the exam date');
+await sailingPage.click('.setup-btn:visible');
+await sailingPage.click('#setup-studying');
+ok(await sailingPage.locator('#exam-row').isVisible(),
+  'a sailing course keeps the exam date row in Settings');
+await sailing.close();
 
 await context.close();
 await browser.close();

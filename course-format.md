@@ -84,6 +84,7 @@ stay as the fallback for a course without them.)
 | `groupArt` | `{groupKey: doodleName}`, done-screen badge | `{}` |
 | `friezeArt` | array of doodle names for the decorative frieze | `[]` — no frieze |
 | `examDate` | `YYYY-MM-DD`, seeds the exam-countdown setting | feature stays quiet |
+| `exam` | `false` for a course nobody sits — no ask, no Settings row, no countdown | `true` |
 
 ## cards.json
 

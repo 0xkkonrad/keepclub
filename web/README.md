@@ -70,7 +70,7 @@ of the shelf intact.
 `figures.css`, `videos.json`, `img/`, `video/`, and every optional field in
 course.json —
 `accent`, `short`, `tagline`, `boot.line`, `boot.art`, `shelfArt`,
-`shelfPath`, `fallback`, `sectionArt`, `groupArt`, `friezeArt`, `examDate`,
+`shelfPath`, `fallback`, `sectionArt`, `groupArt`, `friezeArt`, `exam`, `examDate`,
 `notice`, `credit`, `hoard`, `figures`. Anything absent comes from keep club. A course with
 a title and two hundred cards works, looks like keep club, and is not a
 second-class citizen — that is the ruling, and `tests/separation.mjs` requires
