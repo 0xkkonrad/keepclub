@@ -12,7 +12,7 @@ Three dots compare the branch tip with the merge base it shares with <b>origin/m
 
 ## What should you look for beyond the code's happy path?
 
-Unrelated files, missing error handling, weak tests, dependency or lockfile changes, migrations, permissions, security boundaries, generated drift, and behavior under failure.
+Unrelated files, missing error handling, weak tests, dependency or lockfile changes, migrations, permissions, security boundaries, generated drift, and behaviour under failure.
 
 ## When should agent work be cherry-picked?
 
@@ -50,6 +50,6 @@ Leave the protected branch untouched. Keep or archive the task branch if its aud
 
 ## What completes an agent-assisted task?
 
-The requested behavior exists, the final diff is scoped and understood, checks pass on the final integrated state, required review is complete, and temporary branches or worktrees have a deliberate disposition.
+The requested behaviour exists, the final diff is scoped and understood, checks pass on the final integrated state, required review is complete, and temporary branches or worktrees have a deliberate disposition.
 
 ![figure](fig:agent-loop@brief,branch,diff,test,review,merge)

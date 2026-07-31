@@ -68,6 +68,28 @@ FIGURES = {
         "A feature branch can fast-forward, diverge and merge, or be replayed by rebase.",
         ["main", "feature", "fast-forward", "diverge", "merge", "rebase"],
     ),
+    "fast-forward": figure(
+        """
+<path class="f-thin" d="M92 152H488"/>
+<circle class="f-node" data-l="main" cx="120" cy="152" r="14"/>
+<circle class="f-node" data-l="main" cx="270" cy="152" r="14"/>
+<circle class="f-node c-grn" data-l="feature" cx="440" cy="152" r="14"/>
+<text data-l="main" x="120" y="196" text-anchor="middle">A</text>
+<text data-l="main" x="270" y="196" text-anchor="middle">B</text>
+<text class="c-grn" data-l="feature" x="440" y="196" text-anchor="middle">C</text>
+<path class="f-lead c-grn" data-l="feature" d="M440 132V92H488"/>
+<rect class="f-label c-grn" data-l="feature" x="480" y="74" width="84" height="32" rx="16"/>
+<text class="c-grn" data-l="feature" x="522" y="96" text-anchor="middle">feature</text>
+<rect class="f-label" data-l="main" x="228" y="216" width="84" height="32" rx="16"/>
+<text data-l="main" x="270" y="238" text-anchor="middle">main</text>
+<path class="f-dash c-acc" data-l="move" d="M322 232H388M378 224L388 232L378 240"/>
+<rect class="f-label c-acc" data-l="move" x="398" y="216" width="84" height="32" rx="16"/>
+<text class="c-acc" data-l="move" x="440" y="238" text-anchor="middle">main</text>
+<text class="f-note c-mut" data-l="move" x="290" y="52" text-anchor="middle">no merge commit: the name moves to the tip</text>
+""".strip(),
+        "Fast-forward: main has no commits of its own, so its name moves to the branch tip.",
+        ["main", "feature", "move"],
+    ),
     "conflict": figure(
         """
 <rect class="f-panel" data-l="ours" x="24" y="66" width="148" height="150" rx="12"/>

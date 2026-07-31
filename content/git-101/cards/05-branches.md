@@ -18,6 +18,10 @@ Run <b>git branch</b> for local branches, <b>git branch -r</b> for remote-tracki
 
 Run <b>git switch branch-name</b>. Commit, stash, or otherwise account for current edits first when the switch would overwrite them.
 
+## What does git checkout map to in newer Git?
+
+<b>git checkout</b> did two different jobs, so Git split it: <b>git switch</b> moves between branches and <b>git restore</b> puts file content back. Older tutorials still show <b>checkout</b> and it still works, but the newer pair says which job you mean.
+
 ## What happens to HEAD when you switch branches?
 
 <b>HEAD</b> attaches to the selected branch, and Git updates the working tree and staging area to match that branch's commit.

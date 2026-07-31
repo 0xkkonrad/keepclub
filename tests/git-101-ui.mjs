@@ -25,8 +25,8 @@ ok((await page.textContent('#course-title')).trim().toLowerCase() === 'git 101',
 const orange = await page.evaluate(() =>
   getComputedStyle(document.documentElement).getPropertyValue('--accent').trim());
 ok(orange === '#a63a1b', `Git 101 accent is burnt orange (${orange})`);
-ok((await page.textContent('body')).includes('142 cards'),
-  'Git 101 reports the compiled 142-card deck');
+ok((await page.textContent('body')).includes('144 cards'),
+  'Git 101 reports the compiled 144-card deck');
 
 /* Nobody sits Git 101, so its course.json says `"exam": false` and the whole
  * countdown goes with it — the ask on Home, the row in Settings, and the

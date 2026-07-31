@@ -2,7 +2,7 @@
 
 ## How do you check whether Git is installed?
 
-Run <b>git --version</b>. If it prints a version, the command is available. Install Git through your operating system or the instructions at [git-scm.com](https://git-scm.com/downloads) if it is missing.
+Run <b>git --version</b>. If it prints a version, the command is available.
 
 ## Which identity should you configure before committing?
 

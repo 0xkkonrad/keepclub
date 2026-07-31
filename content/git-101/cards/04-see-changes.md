@@ -14,7 +14,7 @@ All tracked working-tree differences from the current commit, staged and unstage
 
 ## How do you see a compact commit history?
 
-Run <b>git log --oneline</b>. Add <b>--decorate --graph --all</b> to show branch names and the shape of all local history.
+Run <b>git log --oneline</b>. Branch and tag names are decorated by default; add <b>--graph --all</b> to draw the shape of the history and include every ref, remote-tracking branches included.
 
 ![figure](fig:snapshots@commits,head)
 
@@ -34,7 +34,7 @@ An object identifier derived from the commit's content and metadata. Commands ac
 
 ## What do HEAD~1 and HEAD^ mean?
 
-Both usually name the first parent of <b>HEAD</b>. <b>~2</b> walks back two first-parent steps; <b>^2</b> selects a merge commit's second parent.
+Both name the first parent of <b>HEAD</b>. <b>~2</b> walks back two first-parent steps; <b>^2</b> selects a merge commit's second parent.
 
 ## What does .gitignore do?
 

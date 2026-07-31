@@ -21061,7 +21061,7 @@
       "courseId": "git-101",
       "normalizedCourseId": "git-101",
       "courseIdUnchanged": true,
-      "cardCount": 142,
+      "cardCount": 144,
       "sectionCount": 15,
       "groupCount": 4,
       "cards": [
@@ -21168,8 +21168,8 @@
             "unchanged": true
           },
           "renderedBack": {
-            "oldSha256": "7205f86c0b8885e299f3edba15f2fe671363aa4e477860b0524774a8d709ad6a",
-            "newSha256": "7205f86c0b8885e299f3edba15f2fe671363aa4e477860b0524774a8d709ad6a",
+            "oldSha256": "02fcc8f22d60bd1c61ab28674a1e62fdf0c8bda663c443db164e4af764c2519b",
+            "newSha256": "02fcc8f22d60bd1c61ab28674a1e62fdf0c8bda663c443db164e4af764c2519b",
             "unchanged": true
           },
           "media": {
@@ -21263,13 +21263,17 @@
             "oldFigure": {
               "n": "three-areas",
               "on": [
-                "working"
+                "working",
+                "staging",
+                "repository"
               ]
             },
             "normalizedFigure": {
               "figureId": "three-areas",
               "highlightedLabels": [
-                "working"
+                "working",
+                "staging",
+                "repository"
               ]
             }
           }
@@ -21288,8 +21292,8 @@
             "unchanged": true
           },
           "renderedBack": {
-            "oldSha256": "51763a948b8e48699dd1bf0f50bfa720587bf11b2a7fc06e1844077507b8c2fa",
-            "newSha256": "51763a948b8e48699dd1bf0f50bfa720587bf11b2a7fc06e1844077507b8c2fa",
+            "oldSha256": "2e8712d3ae473422ce90377de5f7c8e2169f82f06cc2468099d18c12c321ab98",
+            "newSha256": "2e8712d3ae473422ce90377de5f7c8e2169f82f06cc2468099d18c12c321ab98",
             "unchanged": true
           },
           "media": {
@@ -21695,15 +21699,15 @@
         },
         {
           "index": 22,
-          "oldCardId": "f364e16d3a",
-          "newCardId": "f364e16d3a",
+          "oldCardId": "8288346aa2",
+          "newCardId": "8288346aa2",
           "idUnchanged": true,
           "oldSectionId": "everyday-loop",
           "newSectionId": "everyday-loop",
           "sectionUnchanged": true,
           "renderedFront": {
-            "oldSha256": "ac808d0a072332e0dc057101cebd0e4b3e33fb2131b613c5b059b283bed9822c",
-            "newSha256": "ac808d0a072332e0dc057101cebd0e4b3e33fb2131b613c5b059b283bed9822c",
+            "oldSha256": "7b0c22c176bc57f452a9bfcedd593182e9953f886a27727fdc0c152417c19804",
+            "newSha256": "7b0c22c176bc57f452a9bfcedd593182e9953f886a27727fdc0c152417c19804",
             "unchanged": true
           },
           "renderedBack": {
@@ -21846,8 +21850,8 @@
             "unchanged": true
           },
           "renderedBack": {
-            "oldSha256": "73adc0df01bf2fc721899373b3c780d19ad091a767b199e6138ce41293168dc4",
-            "newSha256": "73adc0df01bf2fc721899373b3c780d19ad091a767b199e6138ce41293168dc4",
+            "oldSha256": "93835bbe06cf647db568b3b1f8affdbf5ec8b7f2bd6c94150ed62ffbeba5868a",
+            "newSha256": "93835bbe06cf647db568b3b1f8affdbf5ec8b7f2bd6c94150ed62ffbeba5868a",
             "unchanged": true
           },
           "media": {
@@ -21970,8 +21974,8 @@
             "unchanged": true
           },
           "renderedBack": {
-            "oldSha256": "8179e8806fd52d031c51c9f5b8617f3013e77a22e1444d18b234aea9c6c80760",
-            "newSha256": "8179e8806fd52d031c51c9f5b8617f3013e77a22e1444d18b234aea9c6c80760",
+            "oldSha256": "5b1e6f5498eecfcf6cb5af1dea81d6ac5f03366c9054787577d7647195e76553",
+            "newSha256": "5b1e6f5498eecfcf6cb5af1dea81d6ac5f03366c9054787577d7647195e76553",
             "unchanged": true
           },
           "media": {
@@ -22170,6 +22174,31 @@
         },
         {
           "index": 39,
+          "oldCardId": "474276408d",
+          "newCardId": "474276408d",
+          "idUnchanged": true,
+          "oldSectionId": "branches",
+          "newSectionId": "branches",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "27847fceb954a026889d1fd36761e7c7fa787fee91ee56debf4365fdd0b60a8d",
+            "newSha256": "27847fceb954a026889d1fd36761e7c7fa787fee91ee56debf4365fdd0b60a8d",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "c60d84f7ba568309358d3cfd0df8d0a1db6a8d44de60ec930f343acae00240f4",
+            "newSha256": "c60d84f7ba568309358d3cfd0df8d0a1db6a8d44de60ec930f343acae00240f4",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 40,
           "oldCardId": "d6f963a2a5",
           "newCardId": "d6f963a2a5",
           "idUnchanged": true,
@@ -22206,7 +22235,7 @@
           }
         },
         {
-          "index": 40,
+          "index": 41,
           "oldCardId": "179c2d6f27",
           "newCardId": "179c2d6f27",
           "idUnchanged": true,
@@ -22231,7 +22260,7 @@
           }
         },
         {
-          "index": 41,
+          "index": 42,
           "oldCardId": "5174705ded",
           "newCardId": "5174705ded",
           "idUnchanged": true,
@@ -22256,7 +22285,7 @@
           }
         },
         {
-          "index": 42,
+          "index": 43,
           "oldCardId": "5b9f34f5c0",
           "newCardId": "5b9f34f5c0",
           "idUnchanged": true,
@@ -22281,7 +22310,7 @@
           }
         },
         {
-          "index": 43,
+          "index": 44,
           "oldCardId": "8796e591cc",
           "newCardId": "8796e591cc",
           "idUnchanged": true,
@@ -22306,7 +22335,7 @@
           }
         },
         {
-          "index": 44,
+          "index": 45,
           "oldCardId": "d1ea5f589e",
           "newCardId": "d1ea5f589e",
           "idUnchanged": true,
@@ -22331,7 +22360,7 @@
           }
         },
         {
-          "index": 45,
+          "index": 46,
           "oldCardId": "d31c809402",
           "newCardId": "d31c809402",
           "idUnchanged": true,
@@ -22368,7 +22397,7 @@
           }
         },
         {
-          "index": 46,
+          "index": 47,
           "oldCardId": "534c015395",
           "newCardId": "534c015395",
           "idUnchanged": true,
@@ -22389,21 +22418,25 @@
             "oldImage": null,
             "normalized": [],
             "oldFigure": {
-              "n": "branch-merge",
+              "n": "fast-forward",
               "on": [
-                "fast-forward"
+                "main",
+                "feature",
+                "move"
               ]
             },
             "normalizedFigure": {
-              "figureId": "branch-merge",
+              "figureId": "fast-forward",
               "highlightedLabels": [
-                "fast-forward"
+                "main",
+                "feature",
+                "move"
               ]
             }
           }
         },
         {
-          "index": 47,
+          "index": 48,
           "oldCardId": "7b1befc07a",
           "newCardId": "7b1befc07a",
           "idUnchanged": true,
@@ -22440,7 +22473,7 @@
           }
         },
         {
-          "index": 48,
+          "index": 49,
           "oldCardId": "f3cb9c8cea",
           "newCardId": "f3cb9c8cea",
           "idUnchanged": true,
@@ -22479,7 +22512,7 @@
           }
         },
         {
-          "index": 49,
+          "index": 50,
           "oldCardId": "d410b419e7",
           "newCardId": "d410b419e7",
           "idUnchanged": true,
@@ -22504,7 +22537,44 @@
           }
         },
         {
-          "index": 50,
+          "index": 51,
+          "oldCardId": "28f7b7b77f",
+          "newCardId": "28f7b7b77f",
+          "idUnchanged": true,
+          "oldSectionId": "merge-conflicts",
+          "newSectionId": "merge-conflicts",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "6fd39b898ddaf218f21efdd176778b351d0942ec2326515869f80755492343ba",
+            "newSha256": "6fd39b898ddaf218f21efdd176778b351d0942ec2326515869f80755492343ba",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "e0454b25eae0335d08bce1c1c53bc10b9d8c02073535b36741c44c5a223aab7b",
+            "newSha256": "e0454b25eae0335d08bce1c1c53bc10b9d8c02073535b36741c44c5a223aab7b",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "conflict",
+              "on": [
+                "ours",
+                "theirs"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "conflict",
+              "highlightedLabels": [
+                "ours",
+                "theirs"
+              ]
+            }
+          }
+        },
+        {
+          "index": 52,
           "oldCardId": "40bea0b509",
           "newCardId": "40bea0b509",
           "idUnchanged": true,
@@ -22529,7 +22599,7 @@
           }
         },
         {
-          "index": 51,
+          "index": 53,
           "oldCardId": "ce42925fd1",
           "newCardId": "ce42925fd1",
           "idUnchanged": true,
@@ -22542,8 +22612,8 @@
             "unchanged": true
           },
           "renderedBack": {
-            "oldSha256": "b36d3e9e6b72d5da8d538344713609eac52ea9f4e9682ba951e80df46b0d6579",
-            "newSha256": "b36d3e9e6b72d5da8d538344713609eac52ea9f4e9682ba951e80df46b0d6579",
+            "oldSha256": "9c1afbeeb2040c398c92ff0a649f6ce49c636137017398e979bec442b5c1c20a",
+            "newSha256": "9c1afbeeb2040c398c92ff0a649f6ce49c636137017398e979bec442b5c1c20a",
             "unchanged": true
           },
           "media": {
@@ -22554,7 +22624,7 @@
           }
         },
         {
-          "index": 52,
+          "index": 54,
           "oldCardId": "a71e0ada64",
           "newCardId": "a71e0ada64",
           "idUnchanged": true,
@@ -22567,8 +22637,8 @@
             "unchanged": true
           },
           "renderedBack": {
-            "oldSha256": "a4c5fb79d08ddf50841582498faa1935ac3e84dfaaa2ab370d4d4841aa53edf8",
-            "newSha256": "a4c5fb79d08ddf50841582498faa1935ac3e84dfaaa2ab370d4d4841aa53edf8",
+            "oldSha256": "72f91138814ef8ed8ed568c456103f7d36255608283eb1dbf8306544472041e9",
+            "newSha256": "72f91138814ef8ed8ed568c456103f7d36255608283eb1dbf8306544472041e9",
             "unchanged": true
           },
           "media": {
@@ -22579,7 +22649,7 @@
           }
         },
         {
-          "index": 53,
+          "index": 55,
           "oldCardId": "5abd0bd745",
           "newCardId": "5abd0bd745",
           "idUnchanged": true,
@@ -22604,7 +22674,7 @@
           }
         },
         {
-          "index": 54,
+          "index": 56,
           "oldCardId": "945fc2be9e",
           "newCardId": "945fc2be9e",
           "idUnchanged": true,
@@ -22629,7 +22699,7 @@
           }
         },
         {
-          "index": 55,
+          "index": 57,
           "oldCardId": "4ab84717cd",
           "newCardId": "4ab84717cd",
           "idUnchanged": true,
@@ -22666,7 +22736,7 @@
           }
         },
         {
-          "index": 56,
+          "index": 58,
           "oldCardId": "1f3ff1463d",
           "newCardId": "1f3ff1463d",
           "idUnchanged": true,
@@ -22691,7 +22761,7 @@
           }
         },
         {
-          "index": 57,
+          "index": 59,
           "oldCardId": "9b574946e7",
           "newCardId": "9b574946e7",
           "idUnchanged": true,
@@ -22726,7 +22796,7 @@
           }
         },
         {
-          "index": 58,
+          "index": 60,
           "oldCardId": "0acfeb3a93",
           "newCardId": "0acfeb3a93",
           "idUnchanged": true,
@@ -22751,7 +22821,7 @@
           }
         },
         {
-          "index": 59,
+          "index": 61,
           "oldCardId": "4502a286cd",
           "newCardId": "4502a286cd",
           "idUnchanged": true,
@@ -22776,7 +22846,7 @@
           }
         },
         {
-          "index": 60,
+          "index": 62,
           "oldCardId": "d8e5558d78",
           "newCardId": "d8e5558d78",
           "idUnchanged": true,
@@ -22811,7 +22881,7 @@
           }
         },
         {
-          "index": 61,
+          "index": 63,
           "oldCardId": "6d604c36e6",
           "newCardId": "6d604c36e6",
           "idUnchanged": true,
@@ -22836,7 +22906,7 @@
           }
         },
         {
-          "index": 62,
+          "index": 64,
           "oldCardId": "27e9201309",
           "newCardId": "27e9201309",
           "idUnchanged": true,
@@ -22861,7 +22931,7 @@
           }
         },
         {
-          "index": 63,
+          "index": 65,
           "oldCardId": "da3e532b0f",
           "newCardId": "da3e532b0f",
           "idUnchanged": true,
@@ -22886,7 +22956,7 @@
           }
         },
         {
-          "index": 64,
+          "index": 66,
           "oldCardId": "23d7baf5c0",
           "newCardId": "23d7baf5c0",
           "idUnchanged": true,
@@ -22911,7 +22981,7 @@
           }
         },
         {
-          "index": 65,
+          "index": 67,
           "oldCardId": "a3bcda84d3",
           "newCardId": "a3bcda84d3",
           "idUnchanged": true,
@@ -22936,7 +23006,7 @@
           }
         },
         {
-          "index": 66,
+          "index": 68,
           "oldCardId": "e0f3dcc415",
           "newCardId": "e0f3dcc415",
           "idUnchanged": true,
@@ -22961,7 +23031,7 @@
           }
         },
         {
-          "index": 67,
+          "index": 69,
           "oldCardId": "5654d5b2a9",
           "newCardId": "5654d5b2a9",
           "idUnchanged": true,
@@ -22974,8 +23044,8 @@
             "unchanged": true
           },
           "renderedBack": {
-            "oldSha256": "5dc6b1582b48543677fd096924a178bc06f2abf2178637f745f491ccac149091",
-            "newSha256": "5dc6b1582b48543677fd096924a178bc06f2abf2178637f745f491ccac149091",
+            "oldSha256": "8ff1632901bbc4a0503bdd0acedd3754a9bc2caddf808c7cc962f7866a974c1c",
+            "newSha256": "8ff1632901bbc4a0503bdd0acedd3754a9bc2caddf808c7cc962f7866a974c1c",
             "unchanged": true
           },
           "media": {
@@ -22986,7 +23056,7 @@
           }
         },
         {
-          "index": 68,
+          "index": 70,
           "oldCardId": "a633bbe05b",
           "newCardId": "a633bbe05b",
           "idUnchanged": true,
@@ -23011,7 +23081,7 @@
           }
         },
         {
-          "index": 69,
+          "index": 71,
           "oldCardId": "2c89a91a31",
           "newCardId": "2c89a91a31",
           "idUnchanged": true,
@@ -23024,8 +23094,8 @@
             "unchanged": true
           },
           "renderedBack": {
-            "oldSha256": "e260770b725d08d552e9beebc1bf4ba064088012418dad1ae7ebe75cecb3541a",
-            "newSha256": "e260770b725d08d552e9beebc1bf4ba064088012418dad1ae7ebe75cecb3541a",
+            "oldSha256": "e3dc3632841b188ca1debdfbe736139a5ee8583b9ab76a7172054653ec6eb507",
+            "newSha256": "e3dc3632841b188ca1debdfbe736139a5ee8583b9ab76a7172054653ec6eb507",
             "unchanged": true
           },
           "media": {
@@ -23036,7 +23106,7 @@
           }
         },
         {
-          "index": 70,
+          "index": 72,
           "oldCardId": "530af876c5",
           "newCardId": "530af876c5",
           "idUnchanged": true,
@@ -23061,7 +23131,7 @@
           }
         },
         {
-          "index": 71,
+          "index": 73,
           "oldCardId": "7b9034742a",
           "newCardId": "7b9034742a",
           "idUnchanged": true,
@@ -23074,8 +23144,8 @@
             "unchanged": true
           },
           "renderedBack": {
-            "oldSha256": "7bedb8ffe5bd5cc2881d34b390c92a7e53fb2c96d32baee1548ae60055c90c60",
-            "newSha256": "7bedb8ffe5bd5cc2881d34b390c92a7e53fb2c96d32baee1548ae60055c90c60",
+            "oldSha256": "663506b3ab141f1a71bb4e7625d78d5321281fe20cd8546fdc21f114f0a68afc",
+            "newSha256": "663506b3ab141f1a71bb4e7625d78d5321281fe20cd8546fdc21f114f0a68afc",
             "unchanged": true
           },
           "media": {
@@ -23086,7 +23156,7 @@
           }
         },
         {
-          "index": 72,
+          "index": 74,
           "oldCardId": "e1ea5ac321",
           "newCardId": "e1ea5ac321",
           "idUnchanged": true,
@@ -23111,7 +23181,7 @@
           }
         },
         {
-          "index": 73,
+          "index": 75,
           "oldCardId": "f864075bb0",
           "newCardId": "f864075bb0",
           "idUnchanged": true,
@@ -23136,7 +23206,7 @@
           }
         },
         {
-          "index": 74,
+          "index": 76,
           "oldCardId": "60bfac7cc7",
           "newCardId": "60bfac7cc7",
           "idUnchanged": true,
@@ -23161,7 +23231,7 @@
           }
         },
         {
-          "index": 75,
+          "index": 77,
           "oldCardId": "9c67b9734e",
           "newCardId": "9c67b9734e",
           "idUnchanged": true,
@@ -23196,7 +23266,7 @@
           }
         },
         {
-          "index": 76,
+          "index": 78,
           "oldCardId": "b439e5dd77",
           "newCardId": "b439e5dd77",
           "idUnchanged": true,
@@ -23231,7 +23301,7 @@
           }
         },
         {
-          "index": 77,
+          "index": 79,
           "oldCardId": "f739fb0ceb",
           "newCardId": "f739fb0ceb",
           "idUnchanged": true,
@@ -23266,7 +23336,7 @@
           }
         },
         {
-          "index": 78,
+          "index": 80,
           "oldCardId": "f682160d02",
           "newCardId": "f682160d02",
           "idUnchanged": true,
@@ -23291,7 +23361,7 @@
           }
         },
         {
-          "index": 79,
+          "index": 81,
           "oldCardId": "544f8f1624",
           "newCardId": "544f8f1624",
           "idUnchanged": true,
@@ -23316,7 +23386,7 @@
           }
         },
         {
-          "index": 80,
+          "index": 82,
           "oldCardId": "1ba354e8fb",
           "newCardId": "1ba354e8fb",
           "idUnchanged": true,
@@ -23341,7 +23411,7 @@
           }
         },
         {
-          "index": 81,
+          "index": 83,
           "oldCardId": "b7bf2f1bb2",
           "newCardId": "b7bf2f1bb2",
           "idUnchanged": true,
@@ -23376,7 +23446,7 @@
           }
         },
         {
-          "index": 82,
+          "index": 84,
           "oldCardId": "9f525b5db2",
           "newCardId": "9f525b5db2",
           "idUnchanged": true,
@@ -23389,8 +23459,8 @@
             "unchanged": true
           },
           "renderedBack": {
-            "oldSha256": "e0272cc550ece4d4b38565b4c5efa0aeabd3fdd1f4b416d49d9d93ea91e92c3d",
-            "newSha256": "e0272cc550ece4d4b38565b4c5efa0aeabd3fdd1f4b416d49d9d93ea91e92c3d",
+            "oldSha256": "508ccc431c861e6153e55492e79ec4e46d42a9028fe1cb39ae7f8834810b095c",
+            "newSha256": "508ccc431c861e6153e55492e79ec4e46d42a9028fe1cb39ae7f8834810b095c",
             "unchanged": true
           },
           "media": {
@@ -23401,7 +23471,7 @@
           }
         },
         {
-          "index": 83,
+          "index": 85,
           "oldCardId": "892f926a0e",
           "newCardId": "892f926a0e",
           "idUnchanged": true,
@@ -23436,7 +23506,7 @@
           }
         },
         {
-          "index": 84,
+          "index": 86,
           "oldCardId": "92734fb7f7",
           "newCardId": "92734fb7f7",
           "idUnchanged": true,
@@ -23461,7 +23531,7 @@
           }
         },
         {
-          "index": 85,
+          "index": 87,
           "oldCardId": "a3783e02d5",
           "newCardId": "a3783e02d5",
           "idUnchanged": true,
@@ -23486,7 +23556,7 @@
           }
         },
         {
-          "index": 86,
+          "index": 88,
           "oldCardId": "7ea29e9686",
           "newCardId": "7ea29e9686",
           "idUnchanged": true,
@@ -23499,8 +23569,8 @@
             "unchanged": true
           },
           "renderedBack": {
-            "oldSha256": "bd53dd9b353539ec8688e0912a87d13b2d3536fe6fc0a25f24d35ca5648ee5a0",
-            "newSha256": "bd53dd9b353539ec8688e0912a87d13b2d3536fe6fc0a25f24d35ca5648ee5a0",
+            "oldSha256": "d25345a7847333a67c44e49d0c39172b0395612f531085f0da79a8371d8ef004",
+            "newSha256": "d25345a7847333a67c44e49d0c39172b0395612f531085f0da79a8371d8ef004",
             "unchanged": true
           },
           "media": {
@@ -23511,7 +23581,7 @@
           }
         },
         {
-          "index": 87,
+          "index": 89,
           "oldCardId": "79f0038e04",
           "newCardId": "79f0038e04",
           "idUnchanged": true,
@@ -23536,7 +23606,7 @@
           }
         },
         {
-          "index": 88,
+          "index": 90,
           "oldCardId": "8610263cf4",
           "newCardId": "8610263cf4",
           "idUnchanged": true,
@@ -23573,7 +23643,7 @@
           }
         },
         {
-          "index": 89,
+          "index": 91,
           "oldCardId": "b201f3f447",
           "newCardId": "b201f3f447",
           "idUnchanged": true,
@@ -23586,8 +23656,8 @@
             "unchanged": true
           },
           "renderedBack": {
-            "oldSha256": "a0e3695efc665b160e00085078230945fc1852b884068e43ec81ab516d410456",
-            "newSha256": "a0e3695efc665b160e00085078230945fc1852b884068e43ec81ab516d410456",
+            "oldSha256": "2f482b385598e304527b720fedde52cf808df1ab3b18951e4f2d03ab93cd389f",
+            "newSha256": "2f482b385598e304527b720fedde52cf808df1ab3b18951e4f2d03ab93cd389f",
             "unchanged": true
           },
           "media": {
@@ -23598,7 +23668,7 @@
           }
         },
         {
-          "index": 90,
+          "index": 92,
           "oldCardId": "32518be7df",
           "newCardId": "32518be7df",
           "idUnchanged": true,
@@ -23623,7 +23693,7 @@
           }
         },
         {
-          "index": 91,
+          "index": 93,
           "oldCardId": "173704f298",
           "newCardId": "173704f298",
           "idUnchanged": true,
@@ -23648,7 +23718,7 @@
           }
         },
         {
-          "index": 92,
+          "index": 94,
           "oldCardId": "154cfcc05b",
           "newCardId": "154cfcc05b",
           "idUnchanged": true,
@@ -23673,7 +23743,7 @@
           }
         },
         {
-          "index": 93,
+          "index": 95,
           "oldCardId": "383f1066ac",
           "newCardId": "383f1066ac",
           "idUnchanged": true,
@@ -23698,7 +23768,7 @@
           }
         },
         {
-          "index": 94,
+          "index": 96,
           "oldCardId": "5aa36e7507",
           "newCardId": "5aa36e7507",
           "idUnchanged": true,
@@ -23723,7 +23793,7 @@
           }
         },
         {
-          "index": 95,
+          "index": 97,
           "oldCardId": "fa53e7f291",
           "newCardId": "fa53e7f291",
           "idUnchanged": true,
@@ -23736,8 +23806,8 @@
             "unchanged": true
           },
           "renderedBack": {
-            "oldSha256": "26a37b27f4117a8741f47321775f10bef8806d242cbd525fc3341db8eaf9cfe4",
-            "newSha256": "26a37b27f4117a8741f47321775f10bef8806d242cbd525fc3341db8eaf9cfe4",
+            "oldSha256": "2466e0f7aa423651e2305f677db543ddf49e6249a1f058c642ae7a3be7b333f9",
+            "newSha256": "2466e0f7aa423651e2305f677db543ddf49e6249a1f058c642ae7a3be7b333f9",
             "unchanged": true
           },
           "media": {
@@ -23748,7 +23818,7 @@
           }
         },
         {
-          "index": 96,
+          "index": 98,
           "oldCardId": "11074334a3",
           "newCardId": "11074334a3",
           "idUnchanged": true,
@@ -23773,7 +23843,7 @@
           }
         },
         {
-          "index": 97,
+          "index": 99,
           "oldCardId": "eac6e3e51f",
           "newCardId": "eac6e3e51f",
           "idUnchanged": true,
@@ -23798,7 +23868,7 @@
           }
         },
         {
-          "index": 98,
+          "index": 100,
           "oldCardId": "f27e56c609",
           "newCardId": "f27e56c609",
           "idUnchanged": true,
@@ -23823,7 +23893,7 @@
           }
         },
         {
-          "index": 99,
+          "index": 101,
           "oldCardId": "4a6a7d51f7",
           "newCardId": "4a6a7d51f7",
           "idUnchanged": true,
@@ -23848,7 +23918,7 @@
           }
         },
         {
-          "index": 100,
+          "index": 102,
           "oldCardId": "82fb8199bd",
           "newCardId": "82fb8199bd",
           "idUnchanged": true,
@@ -23861,8 +23931,8 @@
             "unchanged": true
           },
           "renderedBack": {
-            "oldSha256": "c4f38e6a51fbd1e8b88a62d0c92d414732480d3b44d7dd6855d8a10e18e27c84",
-            "newSha256": "c4f38e6a51fbd1e8b88a62d0c92d414732480d3b44d7dd6855d8a10e18e27c84",
+            "oldSha256": "b91feab723d7caf9ef1da272ce4f98d6eaf762ac6a6a3001a5aac603d76a5b55",
+            "newSha256": "b91feab723d7caf9ef1da272ce4f98d6eaf762ac6a6a3001a5aac603d76a5b55",
             "unchanged": true
           },
           "media": {
@@ -23873,7 +23943,7 @@
           }
         },
         {
-          "index": 101,
+          "index": 103,
           "oldCardId": "da6a178aef",
           "newCardId": "da6a178aef",
           "idUnchanged": true,
@@ -23898,7 +23968,7 @@
           }
         },
         {
-          "index": 102,
+          "index": 104,
           "oldCardId": "dc02d0efca",
           "newCardId": "dc02d0efca",
           "idUnchanged": true,
@@ -23923,7 +23993,7 @@
           }
         },
         {
-          "index": 103,
+          "index": 105,
           "oldCardId": "fbbb75b0be",
           "newCardId": "fbbb75b0be",
           "idUnchanged": true,
@@ -23960,7 +24030,7 @@
           }
         },
         {
-          "index": 104,
+          "index": 106,
           "oldCardId": "7caa1ba363",
           "newCardId": "7caa1ba363",
           "idUnchanged": true,
@@ -23985,7 +24055,7 @@
           }
         },
         {
-          "index": 105,
+          "index": 107,
           "oldCardId": "027c7f8a0e",
           "newCardId": "027c7f8a0e",
           "idUnchanged": true,
@@ -24010,21 +24080,21 @@
           }
         },
         {
-          "index": 106,
-          "oldCardId": "eef879cb39",
-          "newCardId": "eef879cb39",
+          "index": 108,
+          "oldCardId": "1897bbb835",
+          "newCardId": "1897bbb835",
           "idUnchanged": true,
           "oldSectionId": "agent-contract",
           "newSectionId": "agent-contract",
           "sectionUnchanged": true,
           "renderedFront": {
-            "oldSha256": "e207f4a6327ca3957ac4b4387526a31a684184febe22f65236413089c2e4e754",
-            "newSha256": "e207f4a6327ca3957ac4b4387526a31a684184febe22f65236413089c2e4e754",
+            "oldSha256": "2308cd0b247a69a9d75d6c67afc5662bc1371c88b464e9f0b0281d06efa6b2aa",
+            "newSha256": "2308cd0b247a69a9d75d6c67afc5662bc1371c88b464e9f0b0281d06efa6b2aa",
             "unchanged": true
           },
           "renderedBack": {
-            "oldSha256": "2f39398733076a7c1852a9be115b189f765b89e1ccb0e35f96ab227d111034eb",
-            "newSha256": "2f39398733076a7c1852a9be115b189f765b89e1ccb0e35f96ab227d111034eb",
+            "oldSha256": "83daa79f12217e76b6510526922b495d311e8217c33b4d73ce2485fe5605994e",
+            "newSha256": "83daa79f12217e76b6510526922b495d311e8217c33b4d73ce2485fe5605994e",
             "unchanged": true
           },
           "media": {
@@ -24045,7 +24115,7 @@
           }
         },
         {
-          "index": 107,
+          "index": 109,
           "oldCardId": "dfa8fd7337",
           "newCardId": "dfa8fd7337",
           "idUnchanged": true,
@@ -24058,8 +24128,8 @@
             "unchanged": true
           },
           "renderedBack": {
-            "oldSha256": "071f481642ba73e9199ec308a5c90f7bd20404374a506b79370f08c05bf9a465",
-            "newSha256": "071f481642ba73e9199ec308a5c90f7bd20404374a506b79370f08c05bf9a465",
+            "oldSha256": "adb7f7d1067bacec7d99c119118285a250823a8ce162dae7c2bd5c841f75a673",
+            "newSha256": "adb7f7d1067bacec7d99c119118285a250823a8ce162dae7c2bd5c841f75a673",
             "unchanged": true
           },
           "media": {
@@ -24070,7 +24140,7 @@
           }
         },
         {
-          "index": 108,
+          "index": 110,
           "oldCardId": "551c3028c0",
           "newCardId": "551c3028c0",
           "idUnchanged": true,
@@ -24095,7 +24165,7 @@
           }
         },
         {
-          "index": 109,
+          "index": 111,
           "oldCardId": "efdc535b80",
           "newCardId": "efdc535b80",
           "idUnchanged": true,
@@ -24108,8 +24178,8 @@
             "unchanged": true
           },
           "renderedBack": {
-            "oldSha256": "8aaed40b5a40334b5f88dff11a792a077c726095e470ae59a75e5141fadaa54f",
-            "newSha256": "8aaed40b5a40334b5f88dff11a792a077c726095e470ae59a75e5141fadaa54f",
+            "oldSha256": "9feddd21fa30f5c14607860c7c9ce3146a1d1c84efc6839a3b19c1bc0097e00d",
+            "newSha256": "9feddd21fa30f5c14607860c7c9ce3146a1d1c84efc6839a3b19c1bc0097e00d",
             "unchanged": true
           },
           "media": {
@@ -24120,7 +24190,7 @@
           }
         },
         {
-          "index": 110,
+          "index": 112,
           "oldCardId": "c7bd61a0ca",
           "newCardId": "c7bd61a0ca",
           "idUnchanged": true,
@@ -24133,8 +24203,8 @@
             "unchanged": true
           },
           "renderedBack": {
-            "oldSha256": "b55b8bfd593037dd85c0d6687a4fda36dbd51b7b70439fda475dcfd9f05c361f",
-            "newSha256": "b55b8bfd593037dd85c0d6687a4fda36dbd51b7b70439fda475dcfd9f05c361f",
+            "oldSha256": "34b42744d0d3ab83448841374d8bd91fb0fccf32745489b0a48a11fa7b36e485",
+            "newSha256": "34b42744d0d3ab83448841374d8bd91fb0fccf32745489b0a48a11fa7b36e485",
             "unchanged": true
           },
           "media": {
@@ -24145,7 +24215,7 @@
           }
         },
         {
-          "index": 111,
+          "index": 113,
           "oldCardId": "392b7a0219",
           "newCardId": "392b7a0219",
           "idUnchanged": true,
@@ -24170,7 +24240,7 @@
           }
         },
         {
-          "index": 112,
+          "index": 114,
           "oldCardId": "00d5093347",
           "newCardId": "00d5093347",
           "idUnchanged": true,
@@ -24195,7 +24265,7 @@
           }
         },
         {
-          "index": 113,
+          "index": 115,
           "oldCardId": "74176889e4",
           "newCardId": "74176889e4",
           "idUnchanged": true,
@@ -24220,7 +24290,7 @@
           }
         },
         {
-          "index": 114,
+          "index": 116,
           "oldCardId": "7e73374154",
           "newCardId": "7e73374154",
           "idUnchanged": true,
@@ -24245,7 +24315,7 @@
           }
         },
         {
-          "index": 115,
+          "index": 117,
           "oldCardId": "8b14d6eeac",
           "newCardId": "8b14d6eeac",
           "idUnchanged": true,
@@ -24270,7 +24340,7 @@
           }
         },
         {
-          "index": 116,
+          "index": 118,
           "oldCardId": "1934952775",
           "newCardId": "1934952775",
           "idUnchanged": true,
@@ -24295,7 +24365,7 @@
           }
         },
         {
-          "index": 117,
+          "index": 119,
           "oldCardId": "010996f849",
           "newCardId": "010996f849",
           "idUnchanged": true,
@@ -24320,7 +24390,7 @@
           }
         },
         {
-          "index": 118,
+          "index": 120,
           "oldCardId": "f180197fc3",
           "newCardId": "f180197fc3",
           "idUnchanged": true,
@@ -24345,7 +24415,7 @@
           }
         },
         {
-          "index": 119,
+          "index": 121,
           "oldCardId": "d7712a26dd",
           "newCardId": "d7712a26dd",
           "idUnchanged": true,
@@ -24370,7 +24440,7 @@
           }
         },
         {
-          "index": 120,
+          "index": 122,
           "oldCardId": "d4ba3d453d",
           "newCardId": "d4ba3d453d",
           "idUnchanged": true,
@@ -24407,7 +24477,7 @@
           }
         },
         {
-          "index": 121,
+          "index": 123,
           "oldCardId": "0de6047977",
           "newCardId": "0de6047977",
           "idUnchanged": true,
@@ -24432,7 +24502,7 @@
           }
         },
         {
-          "index": 122,
+          "index": 124,
           "oldCardId": "ba874c563b",
           "newCardId": "ba874c563b",
           "idUnchanged": true,
@@ -24457,7 +24527,7 @@
           }
         },
         {
-          "index": 123,
+          "index": 125,
           "oldCardId": "557232757a",
           "newCardId": "557232757a",
           "idUnchanged": true,
@@ -24482,7 +24552,7 @@
           }
         },
         {
-          "index": 124,
+          "index": 126,
           "oldCardId": "3c6a0a3f2b",
           "newCardId": "3c6a0a3f2b",
           "idUnchanged": true,
@@ -24505,19 +24575,23 @@
             "oldFigure": {
               "n": "worktrees",
               "on": [
-                "scope"
+                "scout",
+                "builder",
+                "reviewer"
               ]
             },
             "normalizedFigure": {
               "figureId": "worktrees",
               "highlightedLabels": [
-                "scope"
+                "scout",
+                "builder",
+                "reviewer"
               ]
             }
           }
         },
         {
-          "index": 125,
+          "index": 127,
           "oldCardId": "1cef295435",
           "newCardId": "1cef295435",
           "idUnchanged": true,
@@ -24542,7 +24616,7 @@
           }
         },
         {
-          "index": 126,
+          "index": 128,
           "oldCardId": "7a7875c923",
           "newCardId": "7a7875c923",
           "idUnchanged": true,
@@ -24567,7 +24641,7 @@
           }
         },
         {
-          "index": 127,
+          "index": 129,
           "oldCardId": "6eb606705c",
           "newCardId": "6eb606705c",
           "idUnchanged": true,
@@ -24592,7 +24666,7 @@
           }
         },
         {
-          "index": 128,
+          "index": 130,
           "oldCardId": "ee21658e1f",
           "newCardId": "ee21658e1f",
           "idUnchanged": true,
@@ -24617,7 +24691,7 @@
           }
         },
         {
-          "index": 129,
+          "index": 131,
           "oldCardId": "81f295c7d6",
           "newCardId": "81f295c7d6",
           "idUnchanged": true,
@@ -24658,7 +24732,7 @@
           }
         },
         {
-          "index": 130,
+          "index": 132,
           "oldCardId": "86077984c7",
           "newCardId": "86077984c7",
           "idUnchanged": true,
@@ -24697,7 +24771,7 @@
           }
         },
         {
-          "index": 131,
+          "index": 133,
           "oldCardId": "f9add16b60",
           "newCardId": "f9add16b60",
           "idUnchanged": true,
@@ -24722,7 +24796,7 @@
           }
         },
         {
-          "index": 132,
+          "index": 134,
           "oldCardId": "65a59c73de",
           "newCardId": "65a59c73de",
           "idUnchanged": true,
@@ -24735,8 +24809,8 @@
             "unchanged": true
           },
           "renderedBack": {
-            "oldSha256": "3c280de30e6aca992eeb04238ebd8be573c187b62df858fa4cca676587b7166d",
-            "newSha256": "3c280de30e6aca992eeb04238ebd8be573c187b62df858fa4cca676587b7166d",
+            "oldSha256": "de14629ec7e234b743b5041a4957e74f7916ff895421e5daf31a4edcf5ebb2c6",
+            "newSha256": "de14629ec7e234b743b5041a4957e74f7916ff895421e5daf31a4edcf5ebb2c6",
             "unchanged": true
           },
           "media": {
@@ -24747,7 +24821,7 @@
           }
         },
         {
-          "index": 133,
+          "index": 135,
           "oldCardId": "e32cbf500f",
           "newCardId": "e32cbf500f",
           "idUnchanged": true,
@@ -24772,7 +24846,7 @@
           }
         },
         {
-          "index": 134,
+          "index": 136,
           "oldCardId": "01a026bf5b",
           "newCardId": "01a026bf5b",
           "idUnchanged": true,
@@ -24797,7 +24871,7 @@
           }
         },
         {
-          "index": 135,
+          "index": 137,
           "oldCardId": "2df17ef9c6",
           "newCardId": "2df17ef9c6",
           "idUnchanged": true,
@@ -24822,7 +24896,7 @@
           }
         },
         {
-          "index": 136,
+          "index": 138,
           "oldCardId": "db011a59db",
           "newCardId": "db011a59db",
           "idUnchanged": true,
@@ -24863,7 +24937,7 @@
           }
         },
         {
-          "index": 137,
+          "index": 139,
           "oldCardId": "830b0a716d",
           "newCardId": "830b0a716d",
           "idUnchanged": true,
@@ -24888,7 +24962,7 @@
           }
         },
         {
-          "index": 138,
+          "index": 140,
           "oldCardId": "5ad93118e3",
           "newCardId": "5ad93118e3",
           "idUnchanged": true,
@@ -24913,7 +24987,7 @@
           }
         },
         {
-          "index": 139,
+          "index": 141,
           "oldCardId": "156b49caf5",
           "newCardId": "156b49caf5",
           "idUnchanged": true,
@@ -24938,7 +25012,7 @@
           }
         },
         {
-          "index": 140,
+          "index": 142,
           "oldCardId": "e86491d83c",
           "newCardId": "e86491d83c",
           "idUnchanged": true,
@@ -24963,7 +25037,7 @@
           }
         },
         {
-          "index": 141,
+          "index": 143,
           "oldCardId": "308b5f75bb",
           "newCardId": "308b5f75bb",
           "idUnchanged": true,
@@ -24976,8 +25050,8 @@
             "unchanged": true
           },
           "renderedBack": {
-            "oldSha256": "f8f5adabc04531db0a57df34dd3e58a18d393d5c5734d2b188c61b20d409bbf6",
-            "newSha256": "f8f5adabc04531db0a57df34dd3e58a18d393d5c5734d2b188c61b20d409bbf6",
+            "oldSha256": "1e807c3c24ca0c9831f729befd198d4eb6dce104631466cf000bf2fab30df3d6",
+            "newSha256": "1e807c3c24ca0c9831f729befd198d4eb6dce104631466cf000bf2fab30df3d6",
             "unchanged": true
           },
           "media": {
@@ -25056,8 +25130,8 @@
           "oldTitleSha256": "409bb2d2893d638f3f99cdeb839246d904cc036049185a08e612f0c4ed900e67",
           "newTitleSha256": "409bb2d2893d638f3f99cdeb839246d904cc036049185a08e612f0c4ed900e67",
           "titleUnchanged": true,
-          "oldCardCount": 10,
-          "derivedCardCount": 10
+          "oldCardCount": 11,
+          "derivedCardCount": 11
         },
         {
           "oldSectionId": "merge-conflicts",
@@ -25066,8 +25140,8 @@
           "oldTitleSha256": "3b13631d049d19687773287904de79cee6d763c24680988e2a7da08be894bba6",
           "newTitleSha256": "3b13631d049d19687773287904de79cee6d763c24680988e2a7da08be894bba6",
           "titleUnchanged": true,
-          "oldCardCount": 10,
-          "derivedCardCount": 10
+          "oldCardCount": 11,
+          "derivedCardCount": 11
         },
         {
           "oldSectionId": "remotes",
@@ -25198,8 +25272,8 @@
             "team-workflow"
           ],
           "membershipUnchanged": true,
-          "oldCardCount": 40,
-          "derivedCardCount": 40
+          "oldCardCount": 42,
+          "derivedCardCount": 42
         },
         {
           "oldGroupId": "recovery",
@@ -25244,10 +25318,10 @@
   ],
   "summary": {
     "courses": 3,
-    "cards": 879,
-    "unchangedCardIds": 879,
-    "unchangedRenderedFronts": 879,
-    "unchangedRenderedBacks": 879,
-    "unchangedSectionMemberships": 879
+    "cards": 881,
+    "unchangedCardIds": 881,
+    "unchangedRenderedFronts": 881,
+    "unchangedRenderedBacks": 881,
+    "unchangedSectionMemberships": 881
   }
 }

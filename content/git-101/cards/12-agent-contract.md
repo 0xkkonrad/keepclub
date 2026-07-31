@@ -14,15 +14,15 @@ It provides isolation, a diff, checkpoints, authorship metadata, recovery, and a
 
 The goal, in-scope files or systems, acceptance criteria, required checks, boundaries, and known risks. A bounded task produces a diff that can be judged.
 
-## What is the 2026 one-task rule?
+## How many tasks should one branch or worktree carry?
 
-One task gets one branch and, when work runs in parallel, one worktree. This keeps ownership, status, commits, and cleanup legible to both people and agents.
+One. A task gets its own branch and, when work runs in parallel, its own worktree. This keeps ownership, status, commits, and cleanup legible to both people and agents.
 
 ![figure](fig:worktrees@branches)
 
 ## Should an agent treat a dirty worktree as disposable?
 
-No. Existing changes may belong to the user or another process. The agent should inspect status, preserve unrelated work, and avoid destructive cleanup unless the exact action is authorized.
+No. Existing changes may belong to the user or another process. The agent should inspect status, preserve unrelated work, and avoid destructive cleanup unless the exact action is authorised.
 
 ## Why ask an agent to make checkpoint commits?
 
@@ -30,11 +30,11 @@ A focused checkpoint is a recoverable state that can be inspected, reverted, che
 
 ## What evidence should an agent return?
 
-The files changed, the behavior implemented, exact checks run and their results, remaining risks, and the branch or commit containing the work.
+The files changed, the behaviour implemented, exact checks run and their results, remaining risks, and the branch or commit containing the work.
 
 ## What is the difference between agent confidence and evidence?
 
-Confidence is part of an explanation. Evidence is the actual diff, test output, build result, CI status, and reproducible behavior on the final commit.
+Confidence is part of an explanation. Evidence is the actual diff, test output, build result, CI status, and reproducible behaviour on the final commit.
 
 ## Who owns the merge of agent-generated code?
 

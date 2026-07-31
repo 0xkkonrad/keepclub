@@ -10,7 +10,7 @@ It integrates the history reachable from <b>feature</b> into the current branch.
 
 The current branch has no unique commits, so Git only moves its pointer forward to the other branch. No merge commit is required.
 
-![figure](fig:branch-merge@fast-forward)
+![figure](fig:fast-forward@main,feature,move)
 
 ## What is a three-way merge?
 
@@ -28,17 +28,23 @@ Git cannot safely choose the final content, often because both sides changed ove
 
 <b>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</b> starts the current side, <b>=======</b> separates it from the incoming side, and <b>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</b> ends the conflict. Edit the file into the intended result and remove all markers.
 
+## What do ours and theirs mean in a merge?
+
+<b>ours</b> is the branch you are on; <b>theirs</b> is the branch being merged in. Git labels the two sides that way, and <b>git checkout --ours path</b> or <b>--theirs path</b> takes one side whole when that is genuinely the right answer.
+
+![figure](fig:conflict@ours,theirs)
+
 ## How do you finish a merge conflict?
 
 Resolve each file, run tests, stage resolved paths with <b>git add</b>, then run <b>git commit</b> or <b>git merge --continue</b> when Git requests it.
 
 ## How do you abandon a merge in progress?
 
-Run <b>git merge --abort</b>. It attempts to restore the state from before the merge; inspect <b>git status</b> afterward.
+Run <b>git merge --abort</b>. It attempts to restore the state from before the merge; inspect <b>git status</b> afterwards.
 
 ## What should you inspect before resolving a conflict?
 
-The task's intended behavior, both branch versions, and the common base. Do not mechanically keep both sides: syntactically combined code can still be logically wrong.
+The task's intended behaviour, both branch versions, and the common base. Do not mechanically keep both sides: syntactically combined code can still be logically wrong.
 
 ## Can a merge succeed without being correct?
 

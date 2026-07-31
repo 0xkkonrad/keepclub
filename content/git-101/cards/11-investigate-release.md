@@ -2,7 +2,7 @@
 
 ## What does git blame path/to/file show?
 
-For each line, the most recent commit that changed it. It is a navigation aid into history, not proof of who designed, approved, or caused a behavior.
+For each line, the most recent commit that changed it. It is a navigation aid into history, not proof of who designed, approved, or caused a behaviour.
 
 ## How do you search commits for a changed string?
 
@@ -22,7 +22,7 @@ A name for one specific object, usually a release commit. Unlike a branch, a tag
 
 ## How do you create an annotated release tag?
 
-Run <b>git tag -a v1.0.0 -m "Version 1.0.0"</b>, then publish it with <b>git push origin v1.0.0</b>. Pushing a branch does not necessarily push tags.
+Run <b>git tag -a v1.0.0 -m "Version 1.0.0"</b>, then publish it with <b>git push origin v1.0.0</b>. An annotated tag is its own object carrying a tagger, a date, and a message; a lightweight tag is only a name for a commit. Pushing a branch does not necessarily push tags.
 
 ## What does git diff --check detect?
 

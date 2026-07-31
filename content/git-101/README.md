@@ -6,8 +6,8 @@ with safe, branch-isolated agentic workflows.
 ## Shape
 
 - 15 sections in four groups
-- 142 independently answerable cards
-- 9 reusable labelled SVG figures
+- 144 independently answerable cards
+- 10 reusable labelled SVG figures
 - Basics first: repository, staging, commits, diffs, branches, merges, remotes,
   team workflow, recovery, and investigation
 - Agentic track last: task contracts, repository instructions, worktrees,

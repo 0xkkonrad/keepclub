@@ -16,7 +16,7 @@ A project folder whose history Git tracks. The hidden <b>.git</b> directory hold
 
 ## What is a commit?
 
-A named snapshot of the staged project plus metadata: its author, time, message, and parent commit or commits. A commit is local until you push it somewhere.
+A snapshot of the staged project, identified by its hash, plus metadata: its author, time, message, and parent commit or commits. A commit is local until you push it somewhere.
 
 ![figure](fig:snapshots@commits)
 
@@ -32,4 +32,4 @@ Git stores project snapshots. It can compare snapshots to describe additions, de
 
 <b>git status</b>. It reports the current branch and separates staged, unstaged, and untracked work. Read it before guessing at a fix.
 
-![figure](fig:three-areas@working)
+![figure](fig:three-areas@working,staging,repository)

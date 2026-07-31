@@ -22,7 +22,7 @@ Normally no. Git prevents it because two independent indexes and working directo
 
 Separate ownership reduces merge conflicts and, more importantly, semantic collisions where two clean diffs make incompatible decisions in the same subsystem.
 
-![figure](fig:worktrees@scope)
+![figure](fig:worktrees@scout,builder,reviewer)
 
 ## Do linked worktrees share uncommitted files?
 

@@ -2,7 +2,7 @@
 
 ## What does git stash do?
 
-It temporarily stores selected working-tree changes and resets them from view. Use <b>git stash push -m "why"</b>, inspect with <b>git stash list</b>, and restore with <b>git stash pop</b> or <b>apply</b>.
+It stores your tracked working-tree and index changes and leaves a clean tree behind. Untracked files stay where they are unless you add <b>-u</b>. Use <b>git stash push -m "why"</b>, inspect with <b>git stash list</b>, and restore with <b>git stash pop</b> or <b>apply</b>.
 
 ## Is a stash a durable backup?
 
@@ -16,7 +16,7 @@ It replays the feature branch's commits onto the current <b>main</b> tip, creati
 
 ## How do you continue or abandon a conflicted rebase?
 
-Resolve and stage the file, then run <b>git rebase --continue</b>. Run <b>git rebase --abort</b> to return to the pre-rebase state.
+Resolve and stage the file, then run <b>git rebase --continue</b>. Run <b>git rebase --abort</b> to return to the pre-rebase state. The side labels invert during a rebase: <b>ours</b> is the new base and <b>theirs</b> is your commit being replayed onto it.
 
 ## What does git rebase -i HEAD~4 enable?
 

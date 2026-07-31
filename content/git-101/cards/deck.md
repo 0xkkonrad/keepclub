@@ -19,7 +19,7 @@ name: Git 101
 - advanced-tools
 - investigate-release
 
-## Agentic Git in 2026 {#agentic}
+## Agentic Git {#agentic}
 - agent-contract
 - agent-context
 - parallel-agents

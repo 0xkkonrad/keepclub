@@ -36,7 +36,7 @@ Run <b>git add .</b>. It is convenient, but inspect <b>git status</b> and <b>git
 
 Run <b>git add -p path/to/file</b>. Git shows one hunk at a time so you can include, skip, split, or edit it.
 
-## What makes a useful commit?
+## What should one commit contain?
 
 One coherent change, a message that explains its purpose, and a state that passes the relevant checks. Small focused commits are easier to review, revert, and give to another contributor.
 

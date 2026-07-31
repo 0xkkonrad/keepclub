@@ -10,7 +10,7 @@ Update the default branch, create a task branch, make focused commits, push it, 
 
 ## What should a pull request explain?
 
-The problem, the chosen behavior, important tradeoffs, how it was validated, and any risk or follow-up. The diff remains the source of truth for what actually changed.
+The problem, the chosen behaviour, important trade-offs, how it was validated, and any risk or follow-up. The diff remains the source of truth for what actually changed.
 
 ## Why should commits be focused?
 
@@ -18,7 +18,7 @@ A focused commit has one reason to exist. Reviewers can understand it, automated
 
 ## What makes a useful commit message?
 
-An imperative summary of the outcome, such as <b>Fix empty search state</b>, plus a body when the reason or tradeoff is not obvious from the diff.
+An imperative summary of the outcome, such as <b>Fix empty search state</b>, plus a body when the reason or trade-off is not obvious from the diff.
 
 ## Should you rewrite commits that teammates already use?
 
@@ -26,7 +26,7 @@ Usually not. Rebase, amend, and reset create new commit identities. Rewriting a 
 
 ## When is git push --force-with-lease appropriate?
 
-After intentionally rewriting a branch you control. It refuses if the remote moved somewhere you have not seen, making it safer than plain <b>--force</b>, but it is still a history rewrite.
+After intentionally rewriting a branch you control. It refuses if the remote moved somewhere you have not seen, making it safer than plain <b>--force</b>, but it is still a history rewrite. A background fetch from an editor or tooling updates your remote-tracking ref and silently satisfies the lease, which is what <b>--force-if-includes</b> guards against.
 
 ## How do protected branches help?
 

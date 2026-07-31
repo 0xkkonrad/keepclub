@@ -38,7 +38,7 @@ It moves the branch and makes both staging area and tracked working files match 
 
 ## What is git clean -fd, and why is it dangerous?
 
-It deletes untracked files and directories. Preview with <b>git clean -nd</b>, verify the exact scope, and prefer a recoverable move when the files may matter.
+It deletes untracked files and directories; ignored files survive unless you also pass <b>-x</b>. Preview with <b>git clean -nd</b>, verify the exact scope, and prefer a recoverable move when the files may matter.
 
 ## What is git reflog?
 
