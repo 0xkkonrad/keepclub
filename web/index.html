@@ -52,18 +52,6 @@
     </header>
 
     <main id="main" class="body">
-      <div class="ask-exam" id="ask-exam" hidden>
-        <h2>When is your exam?</h2>
-        <!-- Written by app.js: what is true of a 537-card syllabus is not true
-             of an eleven-card deck someone just imported. -->
-        <p id="ask-why">Give the app a date and it works out how many new cards a
-           day you need, and stops scheduling anything for after you have sat it.</p>
-        <label class="sr" for="home-exam">Exam date</label>
-        <input type="date" id="home-exam">
-        <p class="ask-parsed" id="home-exam-parsed"></p>
-        <button class="link-btn" id="skip-exam">I have not booked one yet</button>
-      </div>
-
       <p class="banner" id="exam-banner" hidden></p>
 
       <div class="today" id="today-card">
@@ -71,6 +59,21 @@
         <button class="primary big" id="study-all">Study</button>
         <p class="today-note" id="today-note"></p>
         <p class="today-note" id="today-done" hidden></p>
+      </div>
+
+      <!-- Under the button, not over it: the app opens with the thing you came
+           to do, and the date is an admin question you answer once. Once it is
+           answered #exam-banner above stands in its place anyway. -->
+      <div class="ask-exam" id="ask-exam" hidden>
+        <h2>When is your exam?</h2>
+        <!-- Written by app.js: what is true of a 537-card syllabus is not true
+             of an eleven-card deck someone just imported. -->
+        <p id="ask-why">Give it a date and it works out how many new cards a day
+           you need, and stops scheduling past it.</p>
+        <label class="sr" for="home-exam">Exam date</label>
+        <input type="date" id="home-exam">
+        <p class="ask-parsed" id="home-exam-parsed"></p>
+        <button class="link-btn" id="skip-exam">I have not booked one yet</button>
       </div>
 
       <details class="how" id="how">
@@ -117,7 +120,7 @@
            the default. Filled by renderNotice(); the markup carries the
            default so the page says something sane before app.js runs. -->
       <p class="fineprint" id="notice">
-        Revision material. Progress stays here unless you turn on Sync.
+        Revision material.
       </p>
     </main>
   </section>
@@ -226,7 +229,6 @@
     <header class="top">
       <div>
         <h1 tabindex="-1">Browse</h1>
-        <p class="sub">Read any card. Nothing here is graded.</p>
       </div>
     </header>
     <div class="searchbar">
@@ -278,6 +280,9 @@
     </header>
     <main class="body">
       <div class="tiles" id="stat-tiles"></div>
+      <!-- The two repeat-card facts, once there are any to state. Written by
+           renderStats(); hidden until the deck has handed a card back. -->
+      <p class="stat-say" id="repeat-line" hidden></p>
 
       <section class="moment-card membership-card" id="membership-card" hidden>
         <span class="moment-art" id="membership-art" aria-hidden="true"></span>
@@ -292,13 +297,19 @@
       <h2 class="h-sect">Cards coming back</h2>
       <div class="forecast" id="forecast" role="img" aria-label="Cards due each of the next seven days"></div>
 
-      <h2 class="h-sect">By section</h2>
-      <p class="key">
-        <span><i class="m-mature"></i> solid</span>
-        <span><i class="m-young"></i> seen</span>
-        <span><i class="m-learn"></i> learning</span>
-      </p>
-      <div id="mastery"></div>
+      <!-- Twenty-four rows of "0 solid · 0 seen · N total" is the drill-down,
+           not the headline: the sections are already a list on Home and in
+           Browse. Folded behind the app's own disclosure, with the key to the
+           bars inside it, beside the bars it explains. -->
+      <details class="how" id="by-section">
+        <summary>By section, in detail</summary>
+        <div class="key">
+          <span><i class="m-mature"></i> solid</span>
+          <span><i class="m-young"></i> seen</span>
+          <span><i class="m-learn"></i> learning</span>
+        </div>
+        <div id="mastery"></div>
+      </details>
 
       <section class="moment-card month-card" id="month-card" hidden>
         <span class="moment-art" id="month-art" aria-hidden="true"></span>
@@ -315,6 +326,10 @@
       <h2 class="h-sect" id="hoard-title">Milestones</h2>
       <p class="ach-count" id="ach-count"></p>
       <ul class="ach" id="ach-list"></ul>
+      <!-- The rungs you are not on next are still in the list, because the
+           sentence above it counts them. They are one press away rather than
+           forty rows of dashed border under a line saying there are forty. -->
+      <button class="ghost wide" id="ach-more" hidden></button>
 
       <h2 class="h-sect">Settings</h2>
       <div class="settings">
@@ -517,7 +532,7 @@
         <label class="sheet-label" for="card-section">Section</label>
         <select id="card-section"></select>
       </div>
-      <p class="fineprint sheet-fine">Plain text works. *Emphasis*, **strong**,
+      <p class="fineprint sheet-fine">*Emphasis*, **strong**,
         lists and https links also work; nothing else does.</p>
       <div class="sheet-acts">
         <button class="primary" id="card-save" type="submit">Save card</button>

@@ -123,6 +123,11 @@
   --text: #f1efe8; --muted: #a6a7b2; --accent: #35917f; --accent-ink: #141519;
   --g1: #ff8a75; --g2: #f0b64a; --g3: #5ed49a; --g4: #35917f; --warn: #f0b64a;
   --fig-blu: #6fb2ff;
+  /* The hard offset shadow is the app's signature, and here it is cast in the
+     same near-white as --stroke, so every border simply looks thicker on one
+     side. Ink, not paper: a shadow is the one thing on a dark screen that is
+     darker than the page. */
+  --sh: 4px 4px 0 #000; --sh-sm: 3px 3px 0 #000;
   /* Darker and more opaque than the light theme's: the page behind it is
      already dark, so it takes more to read as "that is not the thing you are
      using now" and there is no bright paper left for it to soften. */
@@ -804,10 +809,13 @@ button.plate:active { transform: translate(3px, 3px); box-shadow: none; }
 @keyframes revealIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
 .chip-row { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 14px; }
+/* Outline and muted ink, like every other quiet label. "New" is not a warning,
+   and it was the only yellow object on the best screen in the app. --flag is
+   still the flag colour: the search highlight and the clip bar wear it. */
 .chip {
   display: inline-block; padding: 3px 10px;
   border: var(--bw) solid var(--stroke); border-radius: 9px;
-  background: var(--flag); color: #121214;
+  background: var(--surface); color: var(--muted);
   font-size: .68rem; letter-spacing: .12em; text-transform: uppercase;
 }
 .chip.warn { background: var(--surface); color: var(--warn); border-color: var(--warn); }
@@ -883,7 +891,12 @@ button.plate:active { transform: translate(3px, 3px); box-shadow: none; }
 .link-btn:disabled { opacity: .4; text-decoration: none; }
 
 .keyhint { display: none; margin: 12px 0 0; text-align: center; font-size: .72rem; color: var(--muted); text-transform: lowercase; }
-@media (hover: hover) and (pointer: fine) { .keyhint { display: block; } }
+/* Both places the keyboard is documented follow the same rule, so they never
+   both turn up: on a phone neither of them is about anything you have. */
+#about-shortcuts { display: none; }
+@media (hover: hover) and (pointer: fine) {
+  .keyhint, #about-shortcuts { display: block; }
+}
 
 /* ── video ───────────────────────────────────────────────────────── */
 
@@ -1144,6 +1157,16 @@ mark {
   display: flex; flex-wrap: wrap; align-items: center; gap: 4px 14px;
   margin: 6px 0 4px; font-weight: 400;
 }
+/* Where a row has nothing to say for itself, Edit goes in the row's own right
+   gutter beside the chevron instead of taking a line under every card you came
+   here to read. A grid on the <li>, so nothing renests: the JS that finds the
+   row still finds <details> as a direct child. A row carrying a layer notice
+   keeps its line — the notice is a sentence, not a label. */
+#browse-list li { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 12px; }
+#browse-list li > * { grid-column: 1; }
+#browse-list li > .b-acts.bare {
+  grid-column: 2; grid-row: 1; align-self: start; margin: 0;
+}
 .b-mine { flex: 1 1 100%; font-size: .72rem; color: var(--muted); }
 /* The one line here that is a decision rather than a label. Warn, not the
    accent: the accent is what the app uses to point at things you asked for. */
@@ -1174,6 +1197,10 @@ mark {
   letter-spacing: -.04em; font-variant-numeric: tabular-nums;
 }
 .tile span { font-size: .74rem; line-height: 1.5; color: var(--muted); display: block; margin-top: 2px; }
+/* The repeat-card record, once there is one. A line rather than two more tiles:
+   a tile whose whole content is "n/a — not enough data yet" is an apology in a
+   grid, and the other one said the same thing from the other side. */
+.stat-say { margin: 12px 0 0; font-size: .76rem; color: var(--muted); }
 
 .moment-card {
   position: relative; overflow: hidden;
@@ -1221,6 +1248,12 @@ mark {
 }
 .fc-bar.empty { background: var(--surface-2); }
 .fc-d { font-size: .66rem; color: var(--muted); }
+/* Seven stubs of nothing under an axis is a chart with no reading in it. The
+   element stays — it is the labelled role="img" — and says the reading out. */
+.forecast.none {
+  display: block; height: auto; align-items: initial;
+  font-size: .8rem; line-height: 1.6; color: var(--muted);
+}
 
 .mastery { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
 .mastery li { display: grid; grid-template-columns: 1fr auto; gap: 5px 12px; font-size: .86rem; }
@@ -1255,6 +1288,11 @@ mark {
 /* Locked ones stay drawn rather than blanked out — a row of question marks
    tells you nothing about what is worth doing next. */
 .ach li.locked { box-shadow: none; border-style: dashed; opacity: .55; background: none; }
+/* The rungs you are not on next. display:none rather than visibility: they are
+   still in the list, because the sentence above it counts them and a share
+   button on an earned row is never folded away — but containTab() decides what
+   is a tab stop by getClientRects(), and a folded row must not be one. */
+.ach.folded li.locked:not(.next) { display: none; }
 .ach .dood { width: 30px; height: 30px; color: var(--accent); }
 .ach li.locked .dood { color: var(--muted); }
 .ach .a-txt { min-width: 0; flex: 1; }
@@ -1370,16 +1408,17 @@ mark {
    two theme sets' variables, so the panel is drawn in whichever one is showing
    and there is no second design to keep in step. */
 
-/* The row on Home that opens it. A ghost button's shape, laid out like the
-   leech row: a name and a line saying what is behind it. */
+/* The row on Home that opens it. A dotted-ruled line like the settings rows,
+   not a deck: it is a side door onto this deck, and drawn as paper with a hard
+   shadow it read as a second thing to study, directly under the sections. */
 .notes-row {
   width: 100%; text-align: left; margin-top: 20px;
-  display: grid; gap: 3px; min-height: var(--tap);
-  background: var(--surface); border: var(--bw) solid var(--stroke);
-  border-radius: var(--r); box-shadow: var(--sh-sm); padding: 12px 14px;
-  transition: transform .08s ease, box-shadow .08s ease;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 2px 12px;
+  min-height: var(--tap); padding: 12px 2px;
+  background: none; border: 0;
+  border-top: 2px dotted var(--line); border-bottom: 2px dotted var(--line);
 }
-.notes-row:active { transform: translate(3px, 3px); box-shadow: 0 0 0 var(--stroke); }
 .notes-row span { font-weight: 500; font-size: .9rem; text-transform: lowercase; }
 .notes-row small { color: var(--muted); font-size: .76rem; }
 
@@ -1502,7 +1541,10 @@ mark {
   margin-top: 14px; padding-top: 10px; border-top: 2px dotted var(--line);
 }
 .sheet-more .link-btn { flex: none; }
-.danger-link { color: var(--g1); }
+/* Taking a card out of the deck, either way round, in the colour the app uses
+   for "this changes something": beside it `cancel` was drawn in exactly the
+   same ink as the link that empties a card out of the deck. */
+.danger-link { color: var(--warn); }
 
 /* ── lightbox ────────────────────────────────────────────────────── */
 

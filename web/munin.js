@@ -55,7 +55,9 @@ const MUNIN = {
      * hoard needed fourteen distinct drawings. The gate keeps this a subset. */
     friezeArt: ['perch', 'peek', 'flap', 'carry', 'roost',
       'hoard', 'puff', 'strut', 'quill', 'bow'],
-    notice: 'Revision material. Progress stays here unless you turn on Sync.',
+    /* Where progress lives is said in "how this works" on the same screen, and
+     * again by Sync's own state line on Progress. This is the deck's caveat. */
+    notice: 'Revision material.',
   },
 };
 globalThis.MUNIN = MUNIN;
@@ -1142,7 +1144,15 @@ const SHELF_CSS = `
   #shelf-install-btn[hidden] { display: none; }
   .shelf-note { margin-top: 22px; color: var(--muted); font-size: .78rem;
     text-transform: lowercase; text-align: center; }
-  .shelf-btn { position: fixed; top: calc(10px + env(safe-area-inset-top)); right: 12px;
+  /* Over a course it says nothing — the ✕ needs no caption — but it stays in
+   * the tree: the importer writes what it is doing into this line. */
+  .shelf-note:empty { display: none; }
+  /* Tethered to the same column the header uses, not to the window: on a wide
+   * screen it stranded itself six hundred pixels out from everything it sits
+   * over. Position only — the stacking order is what the lightbox is measured
+   * against. */
+  .shelf-btn { position: fixed; top: calc(10px + env(safe-area-inset-top));
+    right: max(12px, calc(50% - 332px));
     z-index: 80; display: inline-flex; align-items: center; gap: 6px;
     background: var(--surface); color: var(--text); font: inherit; font-size: .78rem;
     text-transform: lowercase; cursor: pointer; border: var(--bw) solid var(--stroke);
@@ -1570,8 +1580,8 @@ async function renderShelf(asOverlay, say) {
     </div>
     <div class="shelf-intro">
       <p class="shelf-sub">membership pays in memories.</p>
-      <button type="button" class="shelf-share" id="shelf-share">share</button>
-      <span class="sr" id="shelf-share-status" role="status" aria-live="polite"></span>
+      ${asOverlay ? '' : `<button type="button" class="shelf-share" id="shelf-share">share</button>
+      <span class="sr" id="shelf-share-status" role="status" aria-live="polite"></span>`}
     </div>
     <div class="shelf-tiles">
       ${say ? `<div class="shelf-tile broken">${muninDoodle('peek')}
@@ -1585,11 +1595,10 @@ async function renderShelf(asOverlay, say) {
     </div>
     <div class="shelf-install" id="shelf-install" hidden>
       <b>learn every day</b>
-      <p>spacing only pays if you turn up. one tap from your home screen, and the cards work with no signal.</p>
       <ol class="shelf-install-steps"></ol>
       <button type="button" id="shelf-install-btn" hidden>install</button>
     </div>
-      <p class="shelf-note">${asOverlay ? 'tap the ✕ to go back to your course'
+      <p class="shelf-note">${asOverlay ? ''
     : 'pick a course — it opens straight here next time'}</p>
   </div>`;
   document.body.appendChild(el);
@@ -1604,7 +1613,9 @@ async function renderShelf(asOverlay, say) {
     document.querySelector('.skip')?.setAttribute('href', '#shelf-main');
   }
   el.querySelector('#shelf-theme').addEventListener('click', () => MuninTheme.cycle());
-  el.querySelector('#shelf-share').addEventListener('click', (e) =>
+  // Only the cold picker carries it: mid-course there is a course to share, and
+  // Done and Progress are where the app offers that.
+  el.querySelector('#shelf-share')?.addEventListener('click', (e) =>
     shareShelf(e.currentTarget, el.querySelector('#shelf-share-status')));
   el.querySelector('#shelf-install-btn').addEventListener('click', () => MuninInstall.prompt());
   MuninTheme.apply();

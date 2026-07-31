@@ -1489,10 +1489,23 @@ function renderAch() {
   $('#ach-count').textContent = got
     ? `${got} of ${ACHIEVEMENTS.length} earned. They unlock as you revise — there is nothing to collect deliberately.`
     : `Nothing in the log yet. ${ACHIEVEMENTS.length} of them turn up as you revise.`;
+  // Forty rows under a sentence saying there are forty, twenty-six of them
+  // wearing the same drawing, is the sentence proved by repetition. What is
+  // worth showing is the rung you are on next — and one rung of three different
+  // ladders, not three steps of the same one, so the first locked row of each
+  // of the first three families is the one that stays out. Nothing is removed:
+  // the sentence counts them, and the rest are one press away.
+  const nextUp = new Set();
+  const laddersShown = new Set();
+  for (const a of ACHIEVEMENTS) {
+    if (unlocked[a.id] || nextUp.size >= 3 || laddersShown.has(a.family)) continue;
+    laddersShown.add(a.family);
+    nextUp.add(a.id);
+  }
   const staticRows = ACHIEVEMENTS.map((a) => {
     const on = unlocked[a.id];
     const when = on ? ` · ${longDate(dayKey(on))}` : '';
-    return `<li class="${on ? '' : 'locked'}">${doodle(a.art)}
+    return `<li class="${on ? '' : `locked${nextUp.has(a.id) ? ' next' : ''}`}">${doodle(a.art)}
       <span class="a-txt"><b>${escapeHtml(a.title)}</b><small>${escapeHtml(a.description)}${escapeHtml(when)}</small></span>
       ${on && a.shareable
         ? `<button class="share-mini" data-share-ach="${escapeHtml(a.id)}" aria-label="Share ${escapeHtml(a.title)}">Share</button>`
@@ -1506,7 +1519,15 @@ function renderAch() {
       <button class="share-mini" data-share-moment="${escapeHtml(moment.id)}"
         aria-label="Share ${escapeHtml(moment.title)}">Share</button>
     </li>`).join('');
-  $('#ach-list').innerHTML = staticRows + repeatableRows;
+  const list = $('#ach-list');
+  list.innerHTML = staticRows + repeatableRows;
+  // Folded only where there is a wall to fold. A log with a handful of rungs
+  // left in it is a list, not a wall, and a button under it would be worse.
+  const folded = ACHIEVEMENTS.length - got > 8;
+  list.classList.toggle('folded', folded);
+  const more = $('#ach-more');
+  more.hidden = !folded;
+  more.textContent = `Show all ${ACHIEVEMENTS.length}`;
 }
 
 /* A drawing for each of the 24 chapters. Picked for the thing the chapter is
@@ -1913,15 +1934,18 @@ function daysToSeeAll(unseen) {
   return pace > 0 ? Math.ceil(unseen / pace) : Infinity;
 }
 
-function renderAskExam(c) {
-  // The exam date decides the entire daily workload, so it is asked for before
-  // anything else — buried in settings, nobody ever finds it, and they walk
-  // into the exam having seen half the deck.
+function renderAskExam() {
+  // The exam date decides the entire daily workload, so it is asked for early —
+  // buried in settings, nobody ever finds it, and they walk into the exam
+  // having seen half the deck.
   // Shown until a date is set or the prompt is dismissed — not just on day one.
   // Booking the exam a week in is the common case, and by then a "seen === 0"
   // prompt would be long gone with no way back to it except the third tab.
   $('#ask-exam').hidden = !!(state.settings.examDate || state.settings.examSkipped);
-  $('#how').open = c.seen === 0;
+  // Never open by itself. Four paragraphs wedged between the study button and
+  // the deck is 460px of manual on the first screen anyone ever sees; the
+  // summary row is the invitation, and the paragraphs are one tap away.
+  $('#how').open = false;
 }
 
 function renderExamBanner(c) {
@@ -2055,7 +2079,7 @@ function renderHome() {
   $('#today-done').hidden = today === 0;
   $('#today-done').textContent = `You have answered ${today} card${today === 1 ? '' : 's'} today.`;
 
-  renderAskExam(c);
+  renderAskExam();
   renderExamBanner(c);
   renderLeechRow();
 
@@ -2090,7 +2114,9 @@ function renderHome() {
       // Counted through plural(): a section can hold one card, and a deck
       // written here starts as one section holding exactly one.
       if (pending) meta = `${pending} to review · ${plural(s.cardCount, 'card')}`;
-      else if (sc.seen === 0) meta = `${plural(s.cardCount, 'card')} · not started`;
+      // No badge and an empty meter already say it, twice over. Printed down
+      // twenty-four rows it was the same two words twenty-four times.
+      else if (sc.seen === 0) meta = plural(s.cardCount, 'card');
       else if (sc.fresh) meta = `${sc.fresh} new left · ${plural(s.cardCount, 'card')}`;
       else meta = `all ${s.cardCount} scheduled · ${pct}% known well`;
 
@@ -2881,7 +2907,7 @@ async function commitCards(id, say) {
   return { ok: wrote.ok, id, say: wrote.ok ? say : wrote.say, diagnostics: [] };
 }
 
-/** "537 cards is more than you can cram" is true of a syllabus and false of a
+/** What a date buys you is not the same sentence about a syllabus as about a
  *  deck someone imported on the bus. Say the thing that is true of this deck —
  *  and re-say it, because the number moves the moment a card is written. */
 function renderAskWhy() {
@@ -2891,7 +2917,10 @@ function renderAskWhy() {
   // day" is a sentence about a workload that does not exist yet. A deck you
   // wrote here starts at exactly one, so this is the state it opens in.
   cram.textContent = DECK.cards.length > 120
-    ? `${DECK.cards.length} cards is more than you can cram. Give the app a date and it works out how many new cards a day you need, and stops scheduling anything for after you have sat it.`
+    // The deck's size is the line under the title and it is in the pacing note
+    // below the button. Said a third time here it was an opener that pushed the
+    // whole ask past the fold.
+    ? 'Give it a date and it works out how many new cards a day you need, and stops scheduling past it.'
     : DECK.cards.length < 2
       ? 'Give the app a date and it paces the deck to it, however big the deck gets, and stops scheduling anything for after you have sat it.'
       : `Give the app a date and it works out how many of these ${plural(DECK.cards.length, 'card')} a day you need, and stops scheduling anything for after you have sat it.`;
@@ -3637,7 +3666,7 @@ function renderCardSheet() {
   }
   const takeAway = yours
     ? '<button class="link-btn danger-link" type="button" data-card-delete>Delete this card</button>'
-    : '<button class="link-btn" type="button" data-card-hide>Hide this card</button>';
+    : '<button class="link-btn danger-link" type="button" data-card-hide>Hide this card</button>';
   // Only where there is a layer over a shipped card to take off. A card you
   // wrote has no course card underneath it, which is why deleting is the only
   // way it goes and why deleting is the one thing here behind a confirm.
@@ -4624,7 +4653,10 @@ function browseCardActs(card) {
   } else if (yours) {
     notice = '<span class="b-mine">Written by you.</span>';
   }
-  return `<div class="b-acts">${notice}
+  // `bare` is the row with nothing to say for itself, which is nearly all of
+  // them: Edit alone goes in the row's right gutter beside the chevron rather
+  // than on a line of its own. A row carrying a notice keeps its line.
+  return `<div class="b-acts${notice ? '' : ' bare'}">${notice}
     <button class="link-btn" type="button" data-card-edit
       aria-label="Edit this card">Edit</button></div>`;
 }
@@ -4890,7 +4922,9 @@ function renderBrowse() {
   } else if (terms.length) {
     count = `${n(hits.length)} of ${plural(all, 'card')}`;
   } else if (sk) {
-    count = `${plural(scope, 'card')} in ${scopeName(sk)}`;
+    // Not "34 cards in 01 Boat and nautical terms": the select directly above
+    // is already showing the section's name, at full size.
+    count = plural(scope, 'card');
   } else {
     // Nothing narrowed: the index is on screen, so the honest count is of the
     // things you can actually see and press, not of the cards behind them.
@@ -5340,14 +5374,24 @@ function renderStats() {
   const acc = state.revTotal ? Math.round((state.revGood / state.revTotal) * 100) : null;
 
   $('#stats-sub').textContent = `${countStudiedToday()} answers today`;
-  $('#stat-tiles').innerHTML = `
-    <div class="tile"><b>${club.clubStreak}</b><span>club streak <small>— across every course</small></span></div>
-    <div class="tile"><b>${buckets.mature}</b><span>solid <small>— still there in three weeks</small></span></div>
-    <div class="tile"><b>${buckets.young + buckets.learning}</b><span>seen, not solid yet</span></div>
-    <div class="tile"><b>${buckets.new}</b><span>not started</span></div>
-    <div class="tile"><b>${acc === null ? 'n/a' : acc + '%'}</b><span>${acc === null
-        ? 'repeat cards right — not enough data yet' : 'of repeat cards you got right'}</span></div>
-    <div class="tile"><b>${n(state.revTotal)}</b><span>repeat cards answered</span></div>`;
+  // Four, not six. The two that went were the accuracy and the total behind it:
+  // on a fresh account one of them read "n/a — not enough data yet", which is a
+  // tile whose whole content is an apology, and the other said 0 about the same
+  // thing from the other side. Both are the line under the tiles, and only once
+  // the deck has handed a card back. Club streak stays first.
+  const tiles = [
+    [club.clubStreak, 'club streak <small>— across every course</small>'],
+    [buckets.mature, 'solid <small>— still there in three weeks</small>'],
+    [buckets.young + buckets.learning, 'seen, not solid yet'],
+    [buckets.new, 'not started'],
+  ];
+  $('#stat-tiles').innerHTML = tiles
+    .map(([value, say]) => `<div class="tile"><b>${value}</b><span>${say}</span></div>`)
+    .join('');
+  const repeat = $('#repeat-line');
+  repeat.hidden = acc === null;
+  repeat.textContent = acc === null ? ''
+    : `You have got ${acc}% of ${plural(state.revTotal, 'repeat card')} right.`;
 
   // forecast
   const now = Date.now();
@@ -5365,7 +5409,14 @@ function renderStats() {
     names[i] = new Date(addCalendarDays(now, i))
       .toLocaleDateString(undefined, { weekday: 'short' });
   }
-  $('#forecast').innerHTML = bins.map((n, i) => `
+  // Seven stubs of nothing under a dotted axis is a chart with no reading in
+  // it, and on a fresh account that is what it always is. Same element, same
+  // role="img", same computed label — one sentence instead of the drawing.
+  const anyDue = bins.some(Boolean);
+  $('#forecast').classList.toggle('none', !anyDue);
+  $('#forecast').innerHTML = !anyDue
+    ? 'Nothing is scheduled yet. Cards come back once you have answered them.'
+    : bins.map((n, i) => `
     <div class="fc-col">
       <span class="fc-n">${n || ''}</span>
       <span class="fc-bar ${n ? '' : 'empty'}" style="height:${n ? Math.max(6, (n / peak) * 68) : 3}px"></span>
@@ -5419,8 +5470,11 @@ function renderStats() {
   $('#new-hint').textContent = auto > state.settings.newPerDay
     ? `Raised to ${auto} a day to get through the deck before your exam.`
     : '';
-  $('#build-line').textContent = `Deck build ${DECK.buildFingerprint || 'unknown'} · ${
-    plural(DECK.cards.length, 'card')}`;
+  // The count is a fact about the deck; the fingerprint is a sha shown to
+  // somebody revising for an exam. It stays where support can still ask for it.
+  const build = $('#build-line');
+  build.textContent = `${plural(DECK.cards.length, 'card')} in this deck.`;
+  build.title = `Deck build ${DECK.buildFingerprint || 'unknown'}`;
   renderClubMoments();
   renderAch();
   // Re-asked on every visit rather than once at boot: on a first load the
@@ -6152,6 +6206,13 @@ function wire() {
     }
     sayCount(browseCountSaid.replace(/ · showing \d+$/, '')
       + ` · showing ${n(Math.min(browseLimit, browseHits.length))}`);
+  });
+
+  // Unfolds the log for as long as the tab is up. Not remembered: the fold is
+  // about the first thing you see, and the next visit is a first thing again.
+  $('#ach-more').addEventListener('click', (e) => {
+    $('#ach-list').classList.remove('folded');
+    e.currentTarget.hidden = true;
   });
 
   $('#set-new').addEventListener('change', (e) => {
