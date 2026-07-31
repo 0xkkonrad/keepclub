@@ -66,7 +66,7 @@ async function deckFile(page) {
 /** Out of the sheet again: the app under it is inert while it is up. */
 async function shutSetup(page) {
   await page.keyboard.press('Escape');
-  await page.waitForSelector('#setup[hidden]');
+  await page.waitForFunction(() => document.getElementById('setup').hidden);
 }
 
 await p.goto(URL_, { waitUntil: 'networkidle' });
