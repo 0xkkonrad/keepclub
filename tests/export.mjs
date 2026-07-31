@@ -679,9 +679,20 @@ async function coursePage(id = 'day-skipper', options = {}) {
   return { ctx, page, errors };
 }
 
-/** Progress, drawn, with the deck-file line settled. */
+/** The deck-file section, open, with its line settled.
+ *
+ * It sits under Backup, and Backup is inside the settings sheet: the way to it
+ * is the header's settings mark from whichever screen you are on, then the
+ * group that holds both. Left open, because every block below it only reads the
+ * line and presses the button, and then closes the window it did that in. */
 async function progress(page) {
-  await page.click('[data-go="stats"]');
+  if (!await page.locator('#setup:not([hidden])').count()) {
+    await page.click('.setup-btn:visible');
+    await page.waitForSelector('#setup:not([hidden])');
+  }
+  if (await page.evaluate(() => !document.getElementById('setup-keeping').parentElement.open)) {
+    await page.click('#setup-keeping');
+  }
   await page.waitForFunction(() => {
     const btn = document.getElementById('deck-export-btn');
     return btn && !btn.hidden && btn.textContent.length > 0;

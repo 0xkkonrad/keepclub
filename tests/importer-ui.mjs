@@ -44,6 +44,31 @@ async function give(page, name) {
   });
 }
 
+/** The deck-file section, open, with its line settled.
+ *
+ * It sits under Backup, and Backup is inside the settings sheet: the way to it
+ * is the header's settings mark from whichever screen you are on, then the
+ * group that holds both. */
+async function deckFile(page) {
+  if (!await page.locator('#setup:not([hidden])').count()) {
+    await page.click('.setup-btn:visible');
+    await page.waitForSelector('#setup:not([hidden])');
+  }
+  if (await page.evaluate(() => !document.getElementById('setup-keeping').parentElement.open)) {
+    await page.click('#setup-keeping');
+  }
+  await page.waitForFunction(() => {
+    const button = document.getElementById('deck-export-btn');
+    return button && !button.hidden && button.textContent.length > 0;
+  });
+}
+
+/** Out of the sheet again: the app under it is inert while it is up. */
+async function shutSetup(page) {
+  await page.keyboard.press('Escape');
+  await page.waitForSelector('#setup[hidden]');
+}
+
 await p.goto(URL_, { waitUntil: 'networkidle' });
 await p.waitForSelector('.shelf.on');
 await p.click('[data-byo]');
@@ -698,7 +723,12 @@ ok(errors.length === 0, `no uncaught errors in the whole run (${errors.slice(0, 
     'the card that made the deck is in the deck’s document and the next one is in the layer');
   ok(second.yours === 2, 'and both of them read as cards you wrote');
 
-  // And out again, taking both documents with it.
+  // And out again, taking both documents with it. Back to the deck first: the
+  // one card was graded, so this is the finish screen, and the `courses` pill
+  // stands in a header now — which the finish screen, like the study screen,
+  // does not have. Its own way back is the way a person takes.
+  await pw.click('#done-home');
+  await pw.waitForSelector('.shelf-btn', { state: 'visible' });
   await pw.click('.shelf-btn');
   await pw.waitForSelector('.shelf.on');
   await pw.click(`[data-del="${ownId}"]`);
@@ -918,15 +948,12 @@ ok(errors.length === 0, `no uncaught errors in the whole run (${errors.slice(0, 
     writeNow();
   });
 
-  await pe.click('[data-go="stats"]');
-  await pe.waitForFunction(() => {
-    const button = document.getElementById('deck-export-btn');
-    return button && !button.hidden && button.textContent.length > 0;
-  });
+  await deckFile(pe);
   await pe.click('#deck-export-btn');
   await pe.waitForFunction(() => globalThis.__files.length > 0);
   const file = await pe.evaluate(() => globalThis.__files.at(-1).text());
 
+  await shutSetup(pe);
   await pe.click('.shelf-btn');
   await pe.waitForSelector('.shelf.on');
   await pe.click('[data-byo]');
@@ -1029,18 +1056,16 @@ cards:
     await py.waitForSelector('.imp .imp-book', { timeout: 20000 });
   };
   const exportNow = async () => {
-    await py.click('[data-go="stats"]');
-    await py.waitForFunction(() => {
-      const button = document.getElementById('deck-export-btn');
-      return button && !button.hidden && button.textContent.length > 0;
-    });
+    await deckFile(py);
     const was = await py.evaluate(() => globalThis.__files.length);
     await py.click('#deck-export-btn');
     await py.waitForFunction((seen) => globalThis.__files.length > seen, was);
-    return py.evaluate(async () => ({
+    const got = await py.evaluate(async () => ({
       text: await globalThis.__files.at(-1).text(),
       name: (globalThis.__files.names || []).at(-1),
     }));
+    await shutSetup(py);
+    return got;
   };
 
   await py.goto(URL_, { waitUntil: 'networkidle' });
@@ -1120,8 +1145,7 @@ cards:
   ok(updated.decks === 2 && updated.landedOnIt && updated.recs === 1 && updated.notes === 1,
     `landing on this deck with its review history and its notes kept (${updated.decks} decks, ${
       updated.recs} record, ${updated.notes} note)`);
-  await py.click('[data-go="stats"]');
-  await py.waitForSelector('#deck-file-state');
+  await deckFile(py);
   const fineprint = await py.evaluate(() =>
     document.getElementById('deck-file-state').previousElementSibling.textContent
       .replace(/\s+/g, ' ').trim());

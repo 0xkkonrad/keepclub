@@ -108,6 +108,11 @@ const tinyPng = Buffer.from(
 async function openImporter(page) {
   const shelf = page.locator('.shelf.on');
   if (!await shelf.count()) {
+    // The `courses` pill stands in a screen header now, and the finish screen
+    // has none — no more than the study screen does. Its own way back to the
+    // deck is the way a person takes off it.
+    const backToDeck = page.locator('#s-done:not([hidden]) #done-home');
+    if (await backToDeck.count()) await backToDeck.click();
     await page.click('.shelf-btn');
     await shelf.waitFor();
   }
@@ -363,12 +368,16 @@ ok(homeSectionArtwork.source?.startsWith('blob:')
  * whole — but a .keep.yml is text, and one naming assets that are not beside it
  * fails on the way back in. There is no ZIP writer in this app, so the layer is
  * what is offered, with the count of pictures as the reason rather than a
- * refusal with nothing behind it. */
+ * refusal with nothing behind it.
+ *
+ * Both this and the theme below are read inside the settings sheet, which is
+ * where every one of these controls lives now — the deck-file section among
+ * them, under Backup, whose neighbour it is. */
 await page.evaluate(async () => {
   await writeCard({ front: 'A card written into a deck that carries pictures.' });
   writeNow();
 });
-await page.click('#nav [data-go="stats"]');
+await page.click('.setup-btn:visible');
 await page.waitForFunction(() => {
   const button = document.getElementById('deck-export-btn');
   return button && !button.hidden && button.textContent.length > 0;
@@ -382,9 +391,8 @@ ok(/The deck carries 3 pictures/.test(packagedDeckFile.said)
 `a packaged deck says how many pictures keep it from going out whole (${packagedDeckFile.said})`);
 ok(packagedDeckFile.label === 'export the cards you wrote',
   `so what is offered is the layer rather than the deck (${packagedDeckFile.label})`);
-await page.click('#nav [data-go="home"]');
-
 await page.click('#theme-btn');
+await page.keyboard.press('Escape');
 const themedDark = await page.evaluate(() => {
   const style = getComputedStyle(document.documentElement);
   return {

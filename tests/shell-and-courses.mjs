@@ -403,10 +403,19 @@ const offer = (pg) => pg.evaluate(() => {
     'About documents the desktop study shortcuts');
   ok(said.offlineShown && said.offline.includes(`${said.diagrams} diagrams`),
     `offline counts this deck's diagrams (${said.diagrams})`);
+  /* "How this works" is on the picker now, not on Home: it is what the app is,
+   * which is a thing you read before you have chosen a deck. Read it where a
+   * person meets it — through the pill, from whichever tab they are on. */
+  await p6.click('.shelf-btn');
+  await p6.waitForSelector('.shelf.on[role="dialog"] #how');
   ok((await p6.textContent('#how')).replace(/\s+/g, ' ')
     .includes('only share it if you turn on Sync'),
     'the getting-started privacy copy describes opt-in Sync truthfully');
+  await p6.click('#shelf-x');
+  await p6.waitForSelector('.shelf.on', { state: 'detached' });
 
+  await p6.click('.setup-btn:visible');
+  await p6.click('#setup-keeping');
   ok(await p6.locator('[data-sync="new"]').isVisible(),
     'a built-in course offers account-free device sync');
   await p6.click('[data-sync="join"]');
@@ -785,8 +794,11 @@ const offer = (pg) => pg.evaluate(() => {
   // Two new cards a day, so today's plan is two cards long. Competent Crew
   // ships no exam date, so the number asked for is the number used.
   await p15.click('[data-go="stats"]');
+  await p15.click('.setup-btn:visible');
+  await p15.click('#setup-studying');
   await p15.fill('#set-new', '2');
   await p15.dispatchEvent('#set-new', 'change');
+  await p15.keyboard.press('Escape');
   await p15.click('[data-go="home"]');
   const answer = async (g) => {
     await p15.waitForSelector('#reveal-btn:visible');
