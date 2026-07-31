@@ -459,6 +459,8 @@ const backupOf = (page, extra) => page.evaluate((over) => Object.assign({
   });
   await page.evaluate(() => leaveStudy(false));
   await page.click('[data-go="stats"]');
+  await page.click('.setup-btn:visible');
+  await page.click('#setup-keeping');
   await page.click('#reset-btn');
   await page.waitForFunction(() => state.answers === 0);
   await flush(page);
@@ -645,7 +647,9 @@ const backupOf = (page, extra) => page.evaluate((over) => Object.assign({
   const light = await read();
   await page.click('#notes-close');
   await page.waitForTimeout(200);
+  await page.click('.setup-btn:visible');
   await page.click('#theme-btn');
+  await page.keyboard.press('Escape');
   await page.click('#notes-open');
   await page.waitForSelector('#notes:not([hidden])');
   const dark = await read();
@@ -675,7 +679,8 @@ const backupOf = (page, extra) => page.evaluate((over) => Object.assign({
   await page.reload({ waitUntil: 'networkidle' });
   await page.waitForFunction(() => document.getElementById('boot').hidden);
   await page.waitForFunction(() =>
-    /notes at most/i.test(document.getElementById('toast').textContent));
+    /notes and cards of your own together at most/i
+      .test(document.getElementById('toast').textContent));
   const capped = await page.evaluate(() => {
     const live = liveNotes();
     return {

@@ -130,6 +130,13 @@ const SHELL = [
   'lib/course-markdown.js',
   'lib/course-media.js',
   'lib/course-yaml.js',
+  // The public course-file boundary, both ways. It was already the importer's
+  // front door for .keep and .keep.yml and had never been listed here, so
+  // reading a course file off your own disk was the one importer path that
+  // needed a network. It is now also the reader the exporter's own gate runs
+  // its file through, on a screen that must work on a train.
+  'lib/course-package.js',
+  'lib/course-export.js',
   'lib/vendor/commonmark-parser-0.31.2.min.js',
   'lib/vendor/yaml-2.9.0.min.js',
   'lib/receipt.js',

@@ -204,14 +204,28 @@ answer "none of them exist".
   Neither does restoring a backup: it replaces the review history and *merges*
   the notes through that same `mergeNotes`, because a file exported before this
   feature existed has no `notes` key and taking its document whole deleted
-  every word on the device. A deck keeps 200 live notes (`NOTE_MAX`, and
-  `NOTE_LIVE` in `sync.js` — one number, two files) inside 400 stored entries;
-  both the sanitiser and the merge count what the ceiling costs, and
-  `sayIfNotesDropped()` is the sentence that says so.
+  every word on the device. A deck keeps 200 live records inside 400 stored
+  entries (`WRITTEN_LIVE` and `WRITTEN_SLOTS`, the same numbers in `app.js` and
+  `sync.js`), and notes share that ceiling with the cards you write rather than
+  holding one of their own — the blob they both travel in is one document, and
+  what loses when it will not fit is the review history. Both the sanitisers and
+  the merge count what the ceiling costs, and `sayIfNotesDropped()` and
+  `sayIfCardsDropped()` are the sentences that say so.
 - Deck/media fetches go through `COURSE.base`.
 - **Sync is on for built-in courses** — `sync.js` uses one device key across
-  course-specific progress blobs. The merge is commutative and idempotent;
-  imported deck cards/media remain local and every deck still has file backup.
+  course-specific progress blobs. The merge is commutative, idempotent and
+  associative; imported deck cards/media remain local and every deck still has
+  file backup. Three blocks travel: the review history, the notes, and the cards
+  you have written and fixed — the last as its own block beside the state, never
+  inside it, because `mergeState` rebuilds that document key by key. The blob is
+  bounded at 262,144 bytes by `sync.apps.max_bytes` in the backend's own
+  migration; `MAX_BYTES` in `sync.js` is that number, the ceilings above are cut
+  from it, and a blob over it is refused before it is sent rather than dropping
+  somebody's writing to fit. `blobBytes()` measures the jsonb text form Postgres
+  writes back, not our own JSON, because that is what `octet_length` counts.
+  A merge is adopted whole or not at all: `adoptMerged()` asks the single-writer
+  lease once, before it touches either document, and it says what the round cost
+  itself rather than leaving that to whatever asked for the sync.
 
 ## Deploy
 

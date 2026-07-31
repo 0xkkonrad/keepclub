@@ -235,6 +235,8 @@ async function cachesAt(page) {
   await page.reload({ waitUntil: 'load' });
   await page.waitForFunction(() => document.getElementById('boot').hidden);
   await page.click('[data-go="stats"]');
+  await page.click('.setup-btn:visible');
+  await page.click('#setup-device');
   await page.click('#prefetch-btn');
   await page.waitForFunction(() => !document.getElementById('prefetch-btn').disabled,
     null, { timeout: 20000 });
@@ -452,6 +454,8 @@ async function cachesAt(page) {
   await crew.goto(BASE + '?course=competent-crew', { waitUntil: 'networkidle' });
   await crew.waitForFunction(() => document.getElementById('boot').hidden);
   await crew.click('[data-go="stats"]');
+  await crew.click('.setup-btn:visible');
+  await crew.click('#setup-device');
   await crew.click('#prefetch-btn');
   await crew.waitForFunction(() => !document.getElementById('prefetch-btn').disabled,
     null, { timeout: 20000 });

@@ -296,6 +296,8 @@ try {
   ok(!progress.notificationHidden && progress.permissionRequests === 0,
     'the opt-in is offered without requesting permission during render');
 
+  await page.click('.setup-btn:visible');
+  await page.click('#setup-device');
   await page.click('#notifications-btn');
   await page.waitForFunction(() => globalThis.__permissionRequests === 1);
   const notification = await page.evaluate(() => ({
@@ -308,6 +310,7 @@ try {
       && notification.saved?.enabled === true,
   'one explicit click requests permission and persists the opt-in');
 
+  await page.keyboard.press('Escape');
   await page.click('#membership-share');
   await page.waitForFunction(() => globalThis.__shareCalls.length === 1, null, { timeout: 10000 });
   const sharing = await page.evaluate(() => ({

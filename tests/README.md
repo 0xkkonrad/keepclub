@@ -16,10 +16,24 @@ Also the sanitiser, against a package written to attack the app.
 `importer-ui.mjs` — the importer as a person meets it: the tile, a real file,
 the receipt, keeping it, studying it, the pictures and sound coming off the
 device, re-importing over the top with progress kept, the refusals, and
-removing the deck again. It also covers unrelated same-title replacement,
+removing the deck again, and the deck a file may never replace: one somebody
+wrote here, whose own document is the cards and which no backup file holds, so
+a file that merely shares its name is a second row. It also covers unrelated
+same-title replacement,
 lazy media and BFCache restoration, native audio controls, modal history/focus
 containment, recoverable storage failures, and stale-tab safety after reset or
-deck removal.
+deck removal. Then the other path on that screen: a deck of your own, made by
+its first card — the card sheet's own boxes borrowed without two elements ever
+sharing an id, a creation called off leaving no deck and no tile, the reader's
+refusals in the reader's own words, an imported deck standing beside it keeping
+every picture across the save that makes the new one, studying it straight away,
+the second card landing in the layer while the deck's document keeps its one,
+and removal taking both documents. Then the far end of the deck exporter, on the
+one kind of deck the importer can actually match a file to: a file with your
+cards in it lands beside the deck it came from rather than on the start-over path
+that would delete its notes and its review history, and a file that is only the
+deck as it came in lands on it as the update it is, which is the half of the
+sentence under the button that the flat old promise had backwards.
 
 `qa-regressions.mjs` — cross-surface browser regressions from the deep QA pass:
 single-writer study tabs, midnight and DST scheduling, held keys, session
@@ -50,7 +64,20 @@ working-tree/staging/repository figure, responsive width, and page errors.
 
 `sync-merge.mjs` — the cross-device merge algebra without a server:
 commutativity, idempotence, monotonic review history, streak reconstruction,
-key validation, and the guarantee that only a SHA-256 hash is transported.
+key validation, and the guarantee that only a SHA-256 hash is transported. Then
+the two blocks a person writes: notes and cards travelling as separately
+stamped records, tombstones that beat older words in either direction, a card
+written again after a delete, three devices converging whatever order they meet
+in, the one ceiling notes and cards share evicting by one total order across
+both, and the rule the feature turns on — a card tombstone arriving from
+another device deletes no review record in the merge. The blob's byte bound is
+gated rather than assumed: the client's number is read out of the backend's own
+migration, the measurement is asserted against the jsonb text form the server
+actually counts rather than against our own JSON, and a blob over it is refused
+before it is sent — as a failure only the person can clear, because trying
+again produces the same answer for ever. The tie-break is gated too: an exact
+edit-stamp tie converges whichever pair of devices meets first, which it did
+not while it compared the `at` the merge writes itself.
 
 `notes.mjs` — the per-deck notes tool as a person meets it: add, read back,
 edit and delete through the panel's own controls, the words surviving a reload
@@ -66,6 +93,90 @@ live ceiling coming back at it with the app saying what it cost. The merge
 algebra behind them — commutative, idempotent, a delete that is not
 resurrected, and a live ceiling that three devices converge on — is in
 `sync-merge.mjs`.
+
+`authoring.mjs` — the card editor, and the layer under it. First the layer: a card of your own written
+into a shipped course, an edit over a course card with the fingerprint that
+notices the author rewriting it afterwards, a hide and a revert, a delete that
+leaves a marker rather than a hole, both halves of the reserved `u.` namespace
+(the layer accepts nothing else, the course readers refuse a shipped course
+that uses it), a deliberately corrupt cards document still opening the deck,
+Markdown rendered to sanitized HTML in a deck that is already sanitized HTML,
+the shared ceiling and what it costs — and the one that matters most: a cards document
+that will not parse stops the boot orphan sweep instead of feeding it, because
+the sweep deletes review history for every card it cannot find. Then the editor
+over the top of it, driven the way a person meets it: writing a card from Browse
+through two boxes, fixing a course card from the row it is on, the reader's own
+diagnostics after Save, the sheet's dialog contract (inert background, Tab
+containment, Back, Escape, focus return, no stray history entry), Fix this card
+mid-session — where an edit is safe and a delete is refused with the reason —
+the last card in a section taking the section with it, the only card in a deck
+refused outright, an author rewriting a card you had edited and the
+keep-yours/take-theirs choice that follows, a hidden card found again from its
+own list, the first fill for a card written in markup the two boxes cannot
+write, and every number the app counts off the deck moving when the deck does.
+The structural cases substitute one course of our own at the fetch boundary, the
+way `front-only-ui.mjs` does. Last, the half that crosses between devices: the
+blob assembled as two blocks with the state document still holding no cards key,
+a card arriving from another device and landing in the deck and its indexes, a
+card deleted over there taking its review history here and saying so out loud
+once — said by the adoption itself, because most syncs are not asked for — a
+card only hidden over there keeping it, the ceiling notes and cards share
+counted from both sides, a merge arriving while another tab studies refused
+whole rather than in pieces, and a deck that stays on this device where the
+sync path is inert and the screen says why. Last of all, a deck of your own
+made through the screen a person makes one on, because a card written into one
+has two homes and the app has one model for them: the card that made the deck
+lives in the deck's own document and every card after it in the layer, both
+read as cards you wrote, the document's one is hidden and brought back for free
+while the layer's is deleted for good, the last card standing is refused
+whichever of the two it is, and an edit of the card the deck was made by is an
+override that leaves that document alone. Then the nineteen things four
+adversarial reviews found in the built feature, each one reproduced before it
+was fixed and held down here: a ceiling that bit in memory and never wrote
+back, so it dropped the same records and said so on every boot; two blocks
+losing at once with only one of them mentioned, for ever; the review history an
+eviction takes, which is the thing the ceiling exists to protect; an override
+outliving the course update that reworded its question; a shipped card coming
+back through the two boxes word for word rather than as a list nobody typed; a
+write asking for the sync that carries it; a side cut in code points so no half
+a character reaches the blob; the byte bound refused where the card is on
+screen and not where nobody looks; a cards document that will not open saying
+so; a delete on this device not blamed on another one; the author-rewrote-it
+line on the row rather than behind a closed answer; a deck of one card counted
+in words; the cards you hid closing when the screen changes; and focus landing
+somewhere after a row rebuilds itself.
+
+`export.mjs` — writing a deck out, as the file and as the screen that offers it.
+The promise is one sentence, so it is gated in one place: every card in a file
+keep club writes comes back word for word and under the same id, and nothing
+else in it does. Half of it is pure and runs in node against the writer — the
+document, the emitter, the gate that runs the emitted text back through the
+importer's own reader, and the two dozen things a person can type that a YAML
+writer can quietly change under them, hard breaks and control characters and
+astral pairs included. Then the whole-deck shape: hides taken out, overrides in
+place, a titled section and a titled group for the cards you wrote because the
+shape `applyCardLayer()` builds in memory is illegal in a file, and the licence
+and authors the deck came with carried through. Then the shapes themselves, one
+per kind of deck, decided by what the stored document is made of rather than by
+where the deck came from. The browser half is what a person meets: the line that
+says what a file would hold before the button, a built-in course giving up only
+what somebody authored, the three refusals in their own words — chief among them
+the unreadable layer, where exporting would write a short file that then looks
+like proof there was nothing there — an idle tab exporting while another studies
+without touching the lease, and a stored document that no longer validates
+refused in the reader's words as the exporter's own bug. The re-import side is in
+`importer-ui.mjs`, and a packaged deck refusing to go out whole is in
+`course-importer-ui.mjs`, beside the `.keep` that carries the pictures. Last, the
+seven things three adversarial reviews found in the built feature, each one
+reproduced before it was fixed and held down here: a deck too big for this app to
+read a course file back in at, which was refused outright instead of downloaded
+with the caveat that says so; the fork made to differ from the deck it forked in
+both of the things the importer matches on, at each of their ceilings and down a
+chain of forks; a comment header that claimed a deck came out exactly as it came
+in while cards were missing from it, and counted "1 cards"; the line above the
+button telling somebody whose cards document would not open that they had written
+none, one step before the refusal that says otherwise; and the keyboard keeping
+its place across a button that disables itself.
 
 `deploy-script.mjs` — destructive deployment preflights in disposable Git
 repositories: wrong branches, dirty Pages work and an unexpected remote are

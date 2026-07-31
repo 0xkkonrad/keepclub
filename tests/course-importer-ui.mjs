@@ -108,6 +108,11 @@ const tinyPng = Buffer.from(
 async function openImporter(page) {
   const shelf = page.locator('.shelf.on');
   if (!await shelf.count()) {
+    // The `courses` pill stands in a screen header now, and the finish screen
+    // has none — no more than the study screen does. Its own way back to the
+    // deck is the way a person takes off it.
+    const backToDeck = page.locator('#s-done:not([hidden]) #done-home');
+    if (await backToDeck.count()) await backToDeck.click();
     await page.click('.shelf-btn');
     await shelf.waitFor();
   }
@@ -357,7 +362,37 @@ ok(homeSectionArtwork.source?.startsWith('blob:')
     && homeSectionArtwork.fallbackHidden,
   'the single public section artwork is a decorative raster default on Home');
 
+/* A deck carrying media can only give up the layer.
+ *
+ * Its stored document is authored CommonMark, so it would otherwise go out
+ * whole — but a .keep.yml is text, and one naming assets that are not beside it
+ * fails on the way back in. There is no ZIP writer in this app, so the layer is
+ * what is offered, with the count of pictures as the reason rather than a
+ * refusal with nothing behind it.
+ *
+ * Both this and the theme below are read inside the settings sheet, which is
+ * where every one of these controls lives now — the deck-file section among
+ * them, under Backup, whose neighbour it is. */
+await page.evaluate(async () => {
+  await writeCard({ front: 'A card written into a deck that carries pictures.' });
+  writeNow();
+});
+await page.click('.setup-btn:visible');
+await page.waitForFunction(() => {
+  const button = document.getElementById('deck-export-btn');
+  return button && !button.hidden && button.textContent.length > 0;
+});
+const packagedDeckFile = await page.evaluate(() => ({
+  said: document.getElementById('deck-file-state').textContent,
+  label: document.getElementById('deck-export-btn').textContent.trim().toLowerCase(),
+}));
+ok(/The deck carries 3 pictures/.test(packagedDeckFile.said)
+    && /a course file written here is text only/.test(packagedDeckFile.said),
+`a packaged deck says how many pictures keep it from going out whole (${packagedDeckFile.said})`);
+ok(packagedDeckFile.label === 'export the cards you wrote',
+  `so what is offered is the layer rather than the deck (${packagedDeckFile.label})`);
 await page.click('#theme-btn');
+await page.keyboard.press('Escape');
 const themedDark = await page.evaluate(() => {
   const style = getComputedStyle(document.documentElement);
   return {

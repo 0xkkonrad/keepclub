@@ -47,6 +47,31 @@ async function give(page, name) {
   });
 }
 
+/** The deck-file section, open, with its line settled.
+ *
+ * It sits under Backup, and Backup is inside the settings sheet: the way to it
+ * is the header's settings mark from whichever screen you are on, then the
+ * group that holds both. */
+async function deckFile(page) {
+  if (!await page.locator('#setup:not([hidden])').count()) {
+    await page.click('.setup-btn:visible');
+    await page.waitForSelector('#setup:not([hidden])');
+  }
+  if (await page.evaluate(() => !document.getElementById('setup-keeping').parentElement.open)) {
+    await page.click('#setup-keeping');
+  }
+  await page.waitForFunction(() => {
+    const button = document.getElementById('deck-export-btn');
+    return button && !button.hidden && button.textContent.length > 0;
+  });
+}
+
+/** Out of the sheet again: the app under it is inert while it is up. */
+async function shutSetup(page) {
+  await page.keyboard.press('Escape');
+  await page.waitForFunction(() => document.getElementById('setup').hidden);
+}
+
 await p.goto(URL_, { waitUntil: 'networkidle' });
 await p.waitForSelector('.shelf.on');
 await p.click('[data-byo]');
@@ -227,8 +252,20 @@ ok(/^local-[a-z0-9]+$/.test(id), `the imported deck becomes the resume target ($
 }
 
 /* Re-importing the same deck: your progress is the thing at risk, so it is the
- * thing the screen is about. */
+ * thing the screen is about — along with the other thing in this deck that only
+ * this device has, which no file being imported can put back. */
 {
+  // One of each kind of record, so the layer under this deck holds both a card
+  // that exists because somebody typed it and an edit over a card the file
+  // brought.
+  const mine = await p.evaluate(async () => {
+    const shipped = DECK.cards[0].cardId;
+    const wrote = await writeCard({ front: 'A card I wrote into an imported deck' });
+    const fixed = await editCard(shipped, { front: 'Fixed by me before the re-import' });
+    writeNow();
+    return { ok: wrote.ok && fixed.ok, id: wrote.id, shipped };
+  });
+  ok(mine.ok, 'a card written into the imported deck, and one of its own edited');
   await p.click('.shelf-btn');
   await p.waitForSelector('.shelf.on');
   ok((await p.locator('.shelf-row').count()) === 1, 'the imported deck sits on the shelf');
@@ -237,8 +274,11 @@ ok(/^local-[a-z0-9]+$/.test(id), `the imported deck becomes the resume target ($
   await give(p, 'legacy.apkg');
   await p.waitForSelector('.imp .imp-book', { timeout: 20000 });
   ok(await p.locator('[data-keep="replace"]').isVisible(), 'it recognises a deck you already have');
-  ok((await p.textContent('.imp-inner')).includes('keeping my progress'),
-    'and offers to keep the progress');
+  const said = await p.textContent('.imp-inner');
+  ok(said.includes('keeping my progress'), 'and offers to keep the progress');
+  ok(/written or edited 2 cards in this deck/.test(said) && /Yours are kept/.test(said),
+    `the receipt accounts for the cards only this device has (${
+      /You have written[^.]*\.[^.]*\./.exec(said)?.[0] || said.slice(0, 90)})`);
   await Promise.all([p.waitForEvent('load'), p.click('[data-keep="replace"]')]);
   await p.waitForFunction(() => document.getElementById('boot').hidden, null, { timeout: 20000 });
   const kept = await p.evaluate((k) => {
@@ -246,6 +286,16 @@ ok(/^local-[a-z0-9]+$/.test(id), `the imported deck becomes the resume target ($
     return Object.keys(s.recs || {}).length;
   }, id);
   ok(kept >= 2, `replacing a deck keeps what you had done (${kept} cards still answered)`);
+  const layer = await p.evaluate((k) => {
+    const doc = JSON.parse(localStorage.getItem(`munin/${k}/cards/v1`) || 'null');
+    return doc ? Object.values(doc.cards).filter((rec) => rec.front).length : 0;
+  }, id);
+  const drawn = await p.evaluate((m) => ({
+    written: !!byId.get(m.id),
+    fixed: /Fixed by me/.test(byId.get(m.shipped)?.front || ''),
+  }), mine);
+  ok(layer === 2 && drawn.written && drawn.fixed,
+    `and keeps them, in the deck as well as in the document (${layer} records)`);
   const count = await p.evaluate(async () => (await (await import('./lib/store.js')).list()).length);
   ok(count === 1, 'and does not leave a second copy behind');
 }
@@ -263,10 +313,22 @@ ok(/^local-[a-z0-9]+$/.test(id), `the imported deck becomes the resume target ($
   await p.waitForSelector('#imp-file');
   await give(p, 'replacement.apkg');
   await p.waitForSelector('.imp .imp-book', { timeout: 20000 });
-  ok((await p.textContent('.imp-inner')).includes('start over'),
+  const said = await p.textContent('.imp-inner');
+  ok(said.includes('start over'),
     'a same-title deck with different cards is identified as a fresh start');
+  // The other replace kept them and said so. This one cannot: the records are
+  // keyed by the outgoing deck's card ids, so what would survive is edits over
+  // nothing and cards written into a deck that is not here any more.
+  ok(/written or edited 2 cards in this deck/.test(said)
+      && /Starting over takes them/.test(said) && /export a backup/.test(said),
+  `and says the cards you wrote go with the progress, and where to put them first (${
+    /You have written[^.]*\.[^.]*\./.exec(said)?.[0] || said.slice(0, 90)})`);
   await Promise.all([p.waitForEvent('load'), p.click('[data-keep="replace"]')]);
   await p.waitForFunction(() => document.getElementById('boot').hidden, null, { timeout: 20000 });
+  const layerGone = await p.evaluate((k) =>
+    localStorage.getItem(`munin/${k}/cards/v1`), id);
+  ok(layerGone === null,
+    'start over takes the layer with the account, as the line above the button said');
   const fresh = await p.evaluate(() => ({
     records: Object.keys(state.recs).length,
     answers: state.answers,
@@ -349,8 +411,16 @@ ok(/^local-[a-z0-9]+$/.test(id), `the imported deck becomes the resume target ($
     'held Escape cannot cascade through the underlying shelf');
 }
 
-/* Removing a deck takes two taps and takes its history with it. */
+/* Removing a deck takes two taps and takes both of its documents with it. */
 {
+  // Erasing progress deliberately keeps the layer and says so; removing the
+  // deck is the one thing that takes it, because there is nothing left for it
+  // to be a layer over.
+  const wrote = await p.evaluate(async () => {
+    const card = await writeCard({ front: 'A card in a deck about to go' });
+    return card.ok;
+  });
+  ok(wrote, 'a card written into the deck that is about to be removed');
   const staleRemoval = await ctx.newPage();
   await staleRemoval.goto(URL_, { waitUntil: 'networkidle' });
   await staleRemoval.waitForFunction(() => document.getElementById('boot').hidden);
@@ -379,19 +449,23 @@ ok(/^local-[a-z0-9]+$/.test(id), `the imported deck becomes the resume target ($
   await p.waitForSelector('.shelf.on');
   const gone = await p.evaluate((k) => ({
     state: localStorage.getItem(`munin/${k}/state/v1`),
+    cards: localStorage.getItem(`munin/${k}/cards/v1`),
     last: localStorage.getItem('munin/last-course'),
   }), id);
   ok(gone.state === null, 'the second tap takes the deck and its history');
+  ok(gone.cards === null, 'and the cards written into it, which nothing else now describes');
   ok(gone.last === null, 'and it stops being the deck you resume into');
   const left = await p.evaluate(async () => (await (await import('./lib/store.js')).list()).length);
   ok(left === 0, 'and the database is empty again');
   await staleRemoval.waitForSelector('.shelf.on');
   await staleRemoval.evaluate(() =>
     dispatchEvent(new PageTransitionEvent('pagehide', { persisted: false })));
-  const stayedGone = await p.evaluate((k) =>
-    localStorage.getItem(`munin/${k}/state/v1`), id);
-  ok(stayedGone === null,
-    'an open study tab cannot recreate a removed deck’s orphaned progress');
+  const stayedGone = await p.evaluate((k) => ({
+    state: localStorage.getItem(`munin/${k}/state/v1`),
+    cards: localStorage.getItem(`munin/${k}/cards/v1`),
+  }), id);
+  ok(stayedGone.state === null && stayedGone.cards === null,
+    'an open study tab cannot recreate a removed deck’s orphaned documents');
   await staleRemoval.close();
 }
 
@@ -472,6 +546,217 @@ ok(/^local-[a-z0-9]+$/.test(id), `the imported deck becomes the resume target ($
 
 ok(errors.length === 0, `no uncaught errors in the whole run (${errors.slice(0, 2).join(' | ') || 'none'})`);
 
+/* A deck of your own, made by its first card.
+ *
+ * The second path on this same screen, beside choosing a file rather than
+ * instead of it. A course with no cards is a document the reader refuses, so
+ * the deck cannot exist before the card does — which makes the two things worth
+ * proving here that nothing is written until Save, and that a deck standing
+ * next to it keeps its pictures when it is: store.put() clears a deck's whole
+ * media range before writing, and the creation path hands it an empty list. */
+{
+  const cw = await b.newContext({ viewport: { width: 390, height: 844 } });
+  const pw = await cw.newPage();
+  const werrors = [];
+  pw.on('pageerror', (e) => werrors.push(String(e)));
+  /* Every [deck, index] key in the media store, straight out of the database:
+   * the question is whether another deck's pictures are still there, and the
+   * app's own resolver would only answer it one index at a time. */
+  const mediaKeys = () => pw.evaluate(() => new Promise((res, rej) => {
+    const open = indexedDB.open('munin', 1);
+    open.onerror = () => rej(open.error);
+    open.onsuccess = () => {
+      const q = open.result.transaction('media').objectStore('media').getAllKeys();
+      q.onsuccess = () => res(q.result.map((key) => key.join(' / ')).sort());
+      q.onerror = () => rej(q.error);
+    };
+  }));
+  await pw.goto(URL_, { waitUntil: 'networkidle' });
+  await pw.waitForSelector('.shelf.on');
+
+  // A deck with pictures and sound in it, standing beside the one about to be
+  // made.
+  await pw.click('[data-byo]');
+  await pw.waitForSelector('#imp-file');
+  await give(pw, 'legacy.apkg');
+  await pw.waitForSelector('.imp .imp-book', { timeout: 20000 });
+  await Promise.all([pw.waitForEvent('load'), pw.click('[data-keep="new"]')]);
+  await pw.waitForFunction(() => document.getElementById('boot').hidden, null, { timeout: 20000 });
+  const neighbourMedia = await mediaKeys();
+  ok(neighbourMedia.length > 0,
+    `the imported deck beside it holds media (${neighbourMedia.join(', ')})`);
+
+  await pw.click('.shelf-btn');
+  await pw.waitForSelector('.shelf.on');
+  await pw.click('[data-byo]');
+  await pw.waitForSelector('#imp-mine');
+  ok((await pw.textContent('#imp-mine')).toLowerCase().includes('first card'),
+    'the pick screen offers writing your own cards beside choosing a file');
+  ok(await pw.locator('#imp-file').isVisible(),
+    'and it is a second path on that screen, not a replacement for the first');
+  await pw.click('#imp-mine');
+  await pw.waitForSelector('#byo-deck-name');
+
+  // The two boxes are the card sheet's own, cloned. If that clone ever stopped
+  // renaming what it copies, the labels here would point at the sheet's hidden
+  // boxes instead of these ones.
+  {
+    const sheet = await pw.evaluate(() => {
+      const seen = new Set(), dupes = [];
+      for (const el of document.querySelectorAll('[id]')) {
+        if (seen.has(el.id)) dupes.push(el.id);
+        seen.add(el.id);
+      }
+      return {
+        dupes,
+        labels: [...document.querySelectorAll('.imp-own label[for]')]
+          .map((l) => l.textContent.trim() + ' → ' + (document.getElementById(l.htmlFor)
+            ? l.htmlFor : 'nothing')),
+        fine: document.querySelector('.imp-own .sheet-fine')?.textContent || '',
+        says: document.querySelector('.imp-sub')?.textContent || '',
+      };
+    });
+    ok(sheet.dupes.length === 0,
+      `borrowing the card sheet's form leaves no two elements sharing an id (${sheet.dupes.join(', ') || 'none'})`);
+    ok(sheet.labels.length === 3 && sheet.labels.every((l) => !l.endsWith('nothing')),
+      `the name and the two boxes each have a label of their own (${sheet.labels.join(' · ')})`);
+    ok(/\*\*strong\*\*/.test(sheet.fine),
+      'and the sheet’s own line about what Markdown does comes with them');
+    ok(/stays on this device/.test(sheet.says) && /does not sync/.test(sheet.says)
+        && /backup/.test(sheet.says),
+    `it says plainly where a deck you write lives (${sheet.says.replace(/\s+/g, ' ')})`);
+  }
+
+  // Nothing is written until the card is.
+  await pw.fill('#byo-deck-name', 'Thrown away');
+  await pw.fill('#byo-card-front', 'A question nobody kept');
+  await pw.click('#byo-card-cancel');
+  await pw.waitForSelector('#imp-file');
+  await pw.click('.imp-x');
+  await pw.waitForSelector('.shelf.on');
+  ok((await pw.evaluate(async () =>
+    (await (await import('./lib/store.js')).list()).length)) === 1,
+  'a creation called off halfway leaves no deck behind');
+  ok((await pw.locator('.shelf-row').count()) === 1, 'and no tile on the shelf');
+
+  await pw.click('[data-byo]');
+  await pw.waitForSelector('#imp-mine');
+  await pw.click('#imp-mine');
+  await pw.waitForSelector('#byo-deck-name');
+  await pw.click('#byo-card-save');
+  ok((await pw.textContent('#byo-card-say')) === 'A deck needs a name.',
+    'a deck with no name is refused, and named as the reason');
+  await pw.fill('#byo-deck-name', 'Knots I keep forgetting');
+  await pw.click('#byo-card-save');
+  ok((await pw.textContent('#byo-card-say')) === 'A card needs a question.',
+    'and so is a deck with no card in it, in the sheet’s own words');
+
+  // The reader every course in this app goes through is the one that decides,
+  // and it is its own message that is printed.
+  await pw.fill('#byo-card-front', '[the format](javascript:alert(1))');
+  await pw.click('#byo-card-save');
+  await pw.waitForFunction(() =>
+    /https/.test(document.getElementById('byo-card-say').textContent), null, { timeout: 8000 });
+  const refused = await pw.textContent('#byo-card-say');
+  ok(/^Question — /.test(refused) && /mailto/.test(refused),
+    `a side the reader will not take is refused in the reader's own words (${refused})`);
+  ok((await pw.evaluate(async () =>
+    (await (await import('./lib/store.js')).list()).length)) === 1,
+  'and a card that would not read wrote no deck');
+
+  await pw.fill('#byo-card-front', 'What knot **joins** two ropes of a size?');
+  await pw.fill('#byo-card-back', 'A sheet bend.');
+  await pw.click('#byo-card-save');
+  await pw.waitForSelector('[data-open]', { timeout: 15000 });
+  const made = await pw.evaluate(() => document.querySelector('.imp-body').textContent);
+  ok(/Knots I keep forgetting/.test(made) && /one card/.test(made),
+    'the deck is made, and the screen says what it holds');
+  ok(/Browse is where you write the next card/.test(made) && /does not sync/.test(made),
+    'and where the second card goes, and that this one stays here');
+  ok((await mediaKeys()).join(', ') === neighbourMedia.join(', '),
+    'the imported deck standing beside it keeps every one of its pictures');
+
+  // "back to your decks" has to reach a shelf that knows about it: the one
+  // behind this sheet was drawn before the deck existed.
+  await Promise.all([pw.waitForEvent('load'), pw.click('[data-shelf]')]);
+  await pw.waitForSelector('.shelf.on');
+  const shelved = await pw.$$eval('.shelf-row .shelf-tile b', (ns) => ns.map((x) => x.textContent));
+  ok(shelved.includes('Knots I keep forgetting'),
+    `and the deck is on the shelf the way out of the sheet leads to (${shelved.join(' | ')})`);
+  ok(shelved.length === 2, 'beside the one that was already there');
+  const madeRow = await pw.$$eval('.shelf-row .shelf-tile small', (ns) => ns.map((x) => x.textContent));
+  ok(madeRow.some((t) => /· 1 card ·/.test(t)),
+    `its row counts one card rather than one cards (${madeRow.join(' | ')})`);
+
+  const ownId = await pw.evaluate(async () => (await (await import('./lib/store.js')).list())
+    .find((d) => d.importFormat === 'own').id);
+  await Promise.all([pw.waitForEvent('load'), pw.click(`[data-course="${ownId}"]`)]);
+  await pw.waitForFunction(() => document.getElementById('boot').hidden, null, { timeout: 20000 });
+  await pw.waitForFunction(() => document.getElementById('boot').hidden, null, { timeout: 20000 });
+  ok(/^local-[a-z0-9]+$/.test(ownId) && (await pw.textContent('#course-title')).trim()
+      === 'Knots I keep forgetting', `it opens as a deck like any other (${ownId})`);
+
+  // Studied straight away, off the document the creation path wrote — with the
+  // Markdown rendered, which is the whole reason the deck is stored as typed.
+  await pw.click('#study-all');
+  await pw.waitForSelector('#reveal-btn:visible');
+  ok(/<strong>joins<\/strong>/.test(await pw.innerHTML('#card-q')),
+    'the card it was made by is studied immediately, as Markdown rendered once');
+  await pw.click('#reveal-btn');
+  await pw.waitForSelector('.grade[data-g="3"]:visible');
+  ok((await pw.textContent('#card-a')).trim() === 'A sheet bend.', 'and it reveals its answer');
+  await pw.click('.grade[data-g="3"]');
+  await pw.waitForTimeout(300);
+  await pw.evaluate(() => writeNow());
+
+  // The second card is the layer over it — the same layer every other deck in
+  // this app has, which is what keeps the model to one shape.
+  const second = await pw.evaluate(async () => {
+    const wrote = await writeCard({ front: 'What knot makes a fixed loop?', back: 'A bowline.' });
+    return {
+      ok: wrote.ok,
+      cards: DECK.cards.length,
+      yours: DECK.cards.filter((c) => c._yours === true).length,
+      layer: Object.keys(JSON.parse(localStorage.getItem(CARDS_KEY)).cards).length,
+    };
+  });
+  const inDocument = await pw.evaluate(async (id) =>
+    (await (await import('./lib/store.js')).get(id)).deck.cards.length, ownId);
+  ok(second.ok && second.cards === 2, `a second card joins the deck (${second.cards} cards)`);
+  ok(second.layer === 1 && inDocument === 1,
+    'the card that made the deck is in the deck’s document and the next one is in the layer');
+  ok(second.yours === 2, 'and both of them read as cards you wrote');
+
+  // And out again, taking both documents with it. Back to the deck first: the
+  // one card was graded, so this is the finish screen, and the `courses` pill
+  // stands in a header now — which the finish screen, like the study screen,
+  // does not have. Its own way back is the way a person takes.
+  await pw.click('#done-home');
+  await pw.waitForSelector('.shelf-btn', { state: 'visible' });
+  await pw.click('.shelf-btn');
+  await pw.waitForSelector('.shelf.on');
+  await pw.click(`[data-del="${ownId}"]`);
+  await pw.waitForTimeout(ARM_MS + 50);
+  await Promise.all([pw.waitForEvent('load'), pw.click(`[data-del="${ownId}"]`)]);
+  await pw.waitForFunction(() => document.getElementById('boot').hidden
+      || !!document.querySelector('.shelf.on'), null, { timeout: 20000 });
+  const orphans = await pw.evaluate(async (id) => ({
+    decks: (await (await import('./lib/store.js')).list()).map((d) => d.id),
+    state: localStorage.getItem(`munin/${id}/state/v1`),
+    cards: localStorage.getItem(`munin/${id}/cards/v1`),
+    last: localStorage.getItem('munin/last-course'),
+  }), ownId);
+  ok(!orphans.decks.includes(ownId), 'removing it takes the deck');
+  ok(orphans.state === null && orphans.cards === null,
+    'and both of the documents it left in local storage');
+  ok(orphans.last !== ownId, 'and it stops being the deck you resume into');
+  ok((await mediaKeys()).join(', ') === neighbourMedia.join(', '),
+    'while the deck beside it still has its pictures at the end of all of it');
+  ok(werrors.length === 0,
+    `writing a deck of your own raises no page errors (${werrors.slice(0, 2).join(' | ') || 'none'})`);
+  await cw.close();
+}
+
 /* A committed deck remains usable if only the resume-pointer write fails. */
 {
   const cq = await b.newContext({ viewport: { width: 390, height: 844 },
@@ -539,6 +824,340 @@ ok(errors.length === 0, `no uncaught errors in the whole run (${errors.slice(0, 
   ok(removal.decks === 0 && !removal.tile,
     'a committed database deletion cannot leave a ghost shelf tile');
   await cr.close();
+}
+
+/* A deck you wrote here is not something a file replaces.
+ *
+ * Both rulings about replacing are about a deck a file could be another copy
+ * of: the same deck again keeps the layer, a different deck under the same name
+ * takes it and starts over. A deck of your own carries no sourceCourseId — no
+ * file is an update to one — so it could only ever land on the second, and that
+ * one deletes the deck's own document along with the layer. That document IS
+ * the cards, and nothing puts it back: the backup file is per-course and holds
+ * the history, the notes and the layer, never the deck. So a file that merely
+ * shares its name is a different deck, and a different deck is a second row.
+ */
+{
+  const co = await b.newContext({ viewport: { width: 390, height: 844 } });
+  const po = await co.newPage();
+  const oerrors = [];
+  po.on('pageerror', (e) => oerrors.push(String(e)));
+  await po.goto(URL_, { waitUntil: 'networkidle' });
+  await po.waitForSelector('.shelf.on');
+
+  // A deck of your own, named after the deck inside legacy.apkg, with a second
+  // card written into its layer on top of the one that made it.
+  await po.click('[data-byo]');
+  await po.waitForSelector('#imp-mine');
+  await po.click('#imp-mine');
+  await po.waitForSelector('#byo-deck-name');
+  await po.fill('#byo-deck-name', 'Sailing');
+  await po.fill('#byo-card-front', 'The card that made my deck');
+  await po.fill('#byo-card-back', 'Its answer.');
+  await po.click('#byo-card-save');
+  await po.waitForSelector('[data-open]', { timeout: 15000 });
+  await Promise.all([po.waitForEvent('load'), po.click('[data-open]')]);
+  await po.waitForFunction(() => document.getElementById('boot').hidden, null, { timeout: 20000 });
+  await po.evaluate(async () => {
+    await writeCard({ front: 'A second card, in the layer' });
+    writeNow();
+  });
+  const ownId = await po.evaluate(() => COURSE.id);
+
+  // The shelf counts the deck as it is now, not as the record was written. The
+  // deck's own record still says one card and cannot be rewritten — store.put()
+  // clears a deck's whole media range before it writes — so the row reads the
+  // layer beside it.
+  await po.click('.shelf-btn');
+  await po.waitForSelector('.shelf.on');
+  const row = await po.$$eval('.shelf-row .shelf-tile small', (ns) => ns.map((x) => x.textContent));
+  const record = await po.evaluate(async (id) =>
+    (await (await import('./lib/store.js')).get(id)).cards, ownId);
+  ok(row.some((t) => /2 cards/.test(t)),
+    `the shelf row counts the cards written into a deck since (${row.join(' | ')})`);
+  ok(record === 1,
+    `without rewriting the deck record, which would take its pictures with it (${record})`);
+
+  // And now a file called Sailing.
+  await po.click('[data-byo]');
+  await po.waitForSelector('#imp-file');
+  await give(po, 'legacy.apkg');
+  await po.waitForSelector('.imp .imp-book', { timeout: 20000 });
+  const offered = await po.$$eval('.imp-acts button', (ns) => ns.map((x) => x.textContent.trim()));
+  const receipt = await po.evaluate(() => document.querySelector('.imp-body').innerText);
+  ok(!offered.some((t) => /replace/.test(t)),
+    `a file sharing a name with a deck you wrote offers no replace (${offered.join(' | ')})`);
+  ok(!/already have a deck called/.test(receipt),
+    'and does not claim to have seen this deck before');
+
+  await Promise.all([po.waitForEvent('load'), po.click('[data-keep="new"]')]);
+  await po.waitForFunction(() => document.getElementById('boot').hidden, null, { timeout: 20000 });
+  await po.click('.shelf-btn');
+  await po.waitForSelector('.shelf.on');
+  const both = await po.evaluate(async (id) => {
+    const decks = await (await import('./lib/store.js')).list();
+    return {
+      count: decks.length,
+      own: decks.some((d) => d.id === id && d.importFormat === 'own'),
+      layer: localStorage.getItem(`munin/${id}/cards/v1`),
+    };
+  }, ownId);
+  ok(both.count === 2 && both.own,
+    `the deck somebody wrote is still there beside the one just imported (${both.count} decks)`);
+  ok(both.layer && Object.keys(JSON.parse(both.layer).cards).length === 1,
+    'with the card written into it still in its layer');
+  ok(oerrors.length === 0,
+    `a file beside a deck of your own raises no page errors (${oerrors.slice(0, 2).join(' | ') || 'none'})`);
+  await co.close();
+}
+
+/* The other end of the deck exporter: a file this app wrote, brought back in.
+ *
+ * It has to land as a second deck and never as an update. A deck somebody wrote
+ * here carries no sourceCourseId for a file to match on, so the only way in
+ * would be the shared-title path — the one that clears the state document and
+ * the layer — and that would take the deck's own cards with it. The suffix on a
+ * forked courseId is the same guarantee said the other way round: the deck's
+ * real author can ship an update without it landing on the fork.
+ */
+{
+  const ce = await b.newContext({ viewport: { width: 390, height: 844 } });
+  const pe = await ce.newPage();
+  const eerrors = [];
+  pe.on('pageerror', (e) => eerrors.push(String(e)));
+  await pe.addInitScript(() => {
+    globalThis.__files = [];
+    const make = URL.createObjectURL.bind(URL);
+    URL.createObjectURL = (blob) => {
+      if (blob && /yaml/.test(blob.type || '')) globalThis.__files.push(blob);
+      return make(blob);
+    };
+  });
+  await pe.goto(URL_, { waitUntil: 'networkidle' });
+  await pe.waitForSelector('.shelf.on');
+  await pe.click('[data-byo]');
+  await pe.waitForSelector('#imp-mine');
+  await pe.click('#imp-mine');
+  await pe.waitForSelector('#byo-deck-name');
+  await pe.fill('#byo-deck-name', 'Rope work');
+  await pe.fill('#byo-card-front', 'What is a bowline for?');
+  await pe.fill('#byo-card-back', 'A loop that will not slip.');
+  await pe.click('#byo-card-save');
+  await pe.waitForSelector('[data-open]', { timeout: 15000 });
+  await Promise.all([pe.waitForEvent('load'), pe.click('[data-open]')]);
+  await pe.waitForFunction(() => document.getElementById('boot').hidden, null, { timeout: 20000 });
+  const madeId = await pe.evaluate(() => COURSE.id);
+  await pe.evaluate(async () => {
+    await writeCard({ front: 'What is a *sheet bend* for?', back: 'Two ropes.  \nUnequal sizes.' });
+    writeNow();
+  });
+
+  await deckFile(pe);
+  await pe.click('#deck-export-btn');
+  await pe.waitForFunction(() => globalThis.__files.length > 0);
+  const file = await pe.evaluate(() => globalThis.__files.at(-1).text());
+
+  await shutSetup(pe);
+  await pe.click('.shelf-btn');
+  await pe.waitForSelector('.shelf.on');
+  await pe.click('[data-byo]');
+  await pe.waitForSelector('#imp-input', { state: 'attached' });
+  await pe.setInputFiles('#imp-input', {
+    name: 'rope-work.keep.yml', mimeType: 'text/yaml', buffer: Buffer.from(file),
+  });
+  await pe.waitForSelector('.imp .imp-book', { timeout: 20000 });
+  const preview = (await pe.innerText('.imp-inner')).replace(/\s+/g, ' ');
+  const offered = await pe.$$eval('.imp-acts button', (ns) => ns.map((x) => x.textContent.trim()));
+  ok(/2 cards ready to study/.test(preview),
+    `a file keep club wrote reads back as the deck it was written from (${
+      /(\d+ cards ready to study)/.exec(preview)?.[1] || preview.slice(0, 80)})`);
+  ok(!offered.some((t) => /replace/i.test(t)) && !/already have a deck called/i.test(preview),
+    `and is offered as a new deck rather than as an update (${offered.join(' | ')})`);
+  ok(/description/i.test(preview) && /attribution/i.test(preview) && !/error/i.test(preview),
+    'its two expected warnings are in the receipt as things worth checking, and no errors');
+
+  await Promise.all([pe.waitForEvent('load'), pe.click('[data-keep="new"]')]);
+  await pe.waitForFunction(() => document.getElementById('boot').hidden, null, { timeout: 20000 });
+  const landed = await pe.evaluate(async (id) => {
+    const decks = await (await import('./lib/store.js')).list();
+    return {
+      count: decks.length,
+      here: COURSE.id,
+      fronts: DECK.cards.map((card) => card.front),
+      ids: DECK.cards.map((card) => card.cardId).sort(),
+      madeStillThere: decks.some((deck) => deck.id === id && deck.importFormat === 'own'),
+      madeLayer: localStorage.getItem(`munin/${id}/cards/v1`),
+    };
+  }, madeId);
+  ok(landed.count === 2 && landed.here !== madeId && landed.madeStillThere,
+    `it lands beside the deck it came from rather than on top of it (${landed.count} decks)`);
+  ok(landed.fronts.some((front) => /<em>sheet bend<\/em>/.test(front))
+      && landed.fronts.some((front) => /bowline/.test(front)),
+  'with both cards back word for word, the one in the document and the one in the layer');
+  ok(landed.madeLayer && Object.keys(JSON.parse(landed.madeLayer).cards).length === 1,
+    'and the deck it came from still holds its own layer, untouched');
+  ok(eerrors.length === 0,
+    `re-importing an export raises no page errors (${eerrors.slice(0, 2).join(' | ') || 'none'})`);
+  await ce.close();
+}
+
+/* The same round trip on the deck that can actually be matched.
+ *
+ * The block above is a deck somebody wrote here, and match() excludes those at
+ * the first line (`web/import.js:754`) — so it proves the ruling where it was
+ * never at risk. A deck imported from a .keep.yml is the one kind that carries
+ * a sourceCourseId for a file to match on AND exports whole, and it is the case
+ * the ruling was written about.
+ *
+ * Two files, two different right answers, and the fineprint under the button
+ * says both. A file with your cards in it is not that course any more, so it
+ * comes back as a second deck — it has to, because landing on this one goes
+ * through "a different deck under the same name", which deletes the state
+ * document and the layer, and neither the notes nor the review history in there
+ * is in any course file to put back. A file that is only the deck as it came in
+ * is still that course, so importing it is an update to this deck, and that is
+ * the outcome that keeps everything.
+ */
+{
+  const cy = await b.newContext({ viewport: { width: 390, height: 844 } });
+  const py = await cy.newPage();
+  const yerrors = [];
+  py.on('pageerror', (e) => yerrors.push(String(e)));
+  await py.addInitScript(() => {
+    globalThis.__files = [];
+    const make = URL.createObjectURL.bind(URL);
+    URL.createObjectURL = (blob) => {
+      if (blob && /yaml/.test(blob.type || '')) globalThis.__files.push(blob);
+      return make(blob);
+    };
+    const click = HTMLAnchorElement.prototype.click;
+    HTMLAnchorElement.prototype.click = function named() {
+      if (this.download) globalThis.__files.names = (globalThis.__files.names || []).concat(this.download);
+      return click.call(this);
+    };
+  });
+  const source = `schemaVersion: 2
+courseId: tiny-club
+title: Tiny club
+cards:
+  - cardId: aaaaaaaaaa
+    front: One
+    back: A
+  - cardId: bbbbbbbbbb
+    front: Two
+    back: B
+`;
+  const openImporter = async () => {
+    await py.click('.shelf-btn');
+    await py.waitForSelector('.shelf.on');
+    await py.click('[data-byo]');
+    await py.waitForSelector('#imp-input', { state: 'attached' });
+  };
+  const hand = async (name, text) => {
+    await py.setInputFiles('#imp-input', {
+      name, mimeType: 'text/yaml', buffer: Buffer.from(text),
+    });
+    await py.waitForSelector('.imp .imp-book', { timeout: 20000 });
+  };
+  const exportNow = async () => {
+    await deckFile(py);
+    const was = await py.evaluate(() => globalThis.__files.length);
+    await py.click('#deck-export-btn');
+    await py.waitForFunction((seen) => globalThis.__files.length > seen, was);
+    const got = await py.evaluate(async () => ({
+      text: await globalThis.__files.at(-1).text(),
+      name: (globalThis.__files.names || []).at(-1),
+    }));
+    await shutSetup(py);
+    return got;
+  };
+
+  await py.goto(URL_, { waitUntil: 'networkidle' });
+  await py.waitForSelector('.shelf.on');
+  await py.click('[data-byo]');
+  await py.waitForSelector('#imp-input', { state: 'attached' });
+  await hand('tiny-club.keep.yml', source);
+  await Promise.all([py.waitForEvent('load'), py.click('[data-keep="new"]')]);
+  await py.waitForFunction(() => document.getElementById('boot').hidden, null, { timeout: 20000 });
+  const deckId = await py.evaluate(() => COURSE.id);
+
+  // The plain file first, while there is nothing of yours in the deck to fork
+  // it: it is a byte-faithful copy of somebody's course and stays that course.
+  const plain = await exportNow();
+
+  // Then a card, a note and an answered card: the three things a person has in
+  // a deck, and only the first of them is in any course file.
+  await py.evaluate(async () => {
+    await writeCard({ front: 'A card of my own.', back: 'Its answer.' });
+    addNote('A note I typed.');
+    state.recs[DECK.cards[0].cardId] =
+      { due: 1, ivl: 1, ease: 2500, reps: 1, lapses: 0, last: Date.now() };
+    writeNow();
+  });
+  const mine = await exportNow();
+  ok(mine.name !== plain.name,
+    `the two files are never one name in one downloads folder (${plain.name} / ${mine.name})`);
+
+  await openImporter();
+  await hand(mine.name, mine.text);
+  const offered = await py.$$eval('.imp-acts button', (ns) => ns.map((x) => x.textContent.trim()));
+  ok(!offered.some((t) => /replace|update/i.test(t)),
+    `a file with your cards in it is offered as a deck rather than as a replacement (${
+      offered.join(' | ')})`);
+  await Promise.all([py.waitForEvent('load'), py.click('.imp-acts button')]);
+  await py.waitForFunction(() => document.getElementById('boot').hidden, null, { timeout: 20000 });
+  const beside = await py.evaluate(async (id) => {
+    const decks = await (await import('./lib/store.js')).list();
+    const kept = JSON.parse(localStorage.getItem(`munin/${id}/state/v1`) || 'null');
+    return {
+      decks: decks.length,
+      landedOnIt: COURSE.id === id,
+      notes: kept ? Object.keys(kept.notes || {}).length : 0,
+      recs: kept ? Object.keys(kept.recs || {}).length : 0,
+      layer: !!localStorage.getItem(`munin/${id}/cards/v1`),
+      cards: DECK.cards.length,
+    };
+  }, deckId);
+  ok(beside.decks === 2 && !beside.landedOnIt,
+    `and it lands beside the deck it came from rather than on it (${beside.decks} decks)`);
+  ok(beside.notes === 1 && beside.recs === 1 && beside.layer,
+    `so the note, the review history and the layer it could not carry are all still there (${
+      beside.notes} note, ${beside.recs} record)`);
+  ok(beside.cards === 3, `with your card in the new deck as one of its own (${beside.cards} cards)`);
+
+  // The other file: still that course, so it is an update to the deck it came
+  // from, which keeps everything — and which is the half of the sentence under
+  // the button that the flat old promise got wrong.
+  await openImporter();
+  await hand(plain.name, plain.text);
+  const update = await py.$$eval('.imp-acts button', (ns) => ns.map((x) => x.textContent.trim()));
+  ok(update.some((t) => /keeping progress/i.test(t)),
+    `a file that is only the deck as it came in is offered as the update it is (${
+      update.join(' | ')})`);
+  await Promise.all([py.waitForEvent('load'), py.click('.imp-acts button')]);
+  await py.waitForFunction(() => document.getElementById('boot').hidden, null, { timeout: 20000 });
+  const updated = await py.evaluate(async (id) => {
+    const decks = await (await import('./lib/store.js')).list();
+    const kept = JSON.parse(localStorage.getItem(`munin/${id}/state/v1`) || 'null');
+    return {
+      decks: decks.length,
+      landedOnIt: COURSE.id === id,
+      recs: Object.keys(kept?.recs || {}).length,
+      notes: Object.keys(kept?.notes || {}).length,
+    };
+  }, deckId);
+  ok(updated.decks === 2 && updated.landedOnIt && updated.recs === 1 && updated.notes === 1,
+    `landing on this deck with its review history and its notes kept (${updated.decks} decks, ${
+      updated.recs} record, ${updated.notes} note)`);
+  await deckFile(py);
+  const fineprint = await py.evaluate(() =>
+    document.getElementById('deck-file-state').previousElementSibling.textContent
+      .replace(/\s+/g, ' ').trim());
+  ok(/comes back as a second deck/.test(fineprint) && /updates this deck instead/.test(fineprint),
+    `and the sentence under the button is the one that describes both (${fineprint.slice(-140)})`);
+  ok(yerrors.length === 0,
+    `both ends of the round trip raise no page errors (${yerrors.slice(0, 2).join(' | ') || 'none'})`);
+  await cy.close();
 }
 
 await b.close();

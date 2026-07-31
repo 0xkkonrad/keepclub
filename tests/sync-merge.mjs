@@ -43,6 +43,7 @@ function state(overrides = {}) {
     bestClean: 0,
     ach: {},
     notes: {},
+    cards: {},
     settings: {
       newPerDay: 20,
       maxRev: 120,
@@ -222,8 +223,8 @@ const rec = (overrides = {}) => Object.assign({
   S.takeNoteDrops();
   const merged = mergeState(state({ notes: many }), state());
   const kept = Object.values(merged.notes);
-  ok(kept.length === 400 && kept.filter((value) => value.text).length === S.NOTE_LIVE,
-    `an over-long note set is capped at ${S.NOTE_LIVE} live notes, and delete markers`
+  ok(kept.length === 400 && kept.filter((value) => value.text).length === S.WRITTEN_LIVE,
+    `an over-long note set is capped at ${S.WRITTEN_LIVE} live notes, and delete markers`
     + ' take only what is left of the entry budget');
   ok(S.takeNoteDrops() === 50 && S.takeNoteDrops() === 0,
     'the words the cap could not keep are counted once, for the app to say so');
@@ -253,8 +254,8 @@ const rec = (overrides = {}) => Object.assign({
   const live = Object.values(left.notes).filter((note) => note.text);
   ok(same(left, right) && same(left, other),
     'three devices over the live ceiling converge whatever order they meet in');
-  ok(live.length === S.NOTE_LIVE,
-    `450 live notes across three devices become ${S.NOTE_LIVE} (${live.length})`);
+  ok(live.length === S.WRITTEN_LIVE,
+    `450 live notes across three devices become ${S.WRITTEN_LIVE} (${live.length})`);
   ok(live.every((note) => !note.text.startsWith('a')),
     'the ceiling evicts by the edit stamp, so the oldest writing goes first');
   ok(same(left, mergeState(left, phone)) && same(left, mergeState(left, tablet)),
@@ -271,6 +272,265 @@ const rec = (overrides = {}) => Object.assign({
   ok(Object.keys(merged.notes).join() === 'ok1'
       && Object.getPrototypeOf(merged.notes) === Object.prototype,
   'a note id that is not an id this app writes never becomes an object key');
+}
+
+/* ────────────────────── the cards you write ────────────────────── */
+
+/* The blob's size bound is not a number anybody chose here: it is the backend's
+ * own, and this is the gate that keeps the two the same. If the migration is
+ * ever raised or an app is given a ceiling of its own, the caps cut from it
+ * have to be recut, and a client that quietly kept the old number would find
+ * out in the field. */
+{
+  const dir = path.join(HERE, '..', 'content', 'day-skipper', 'supabase', 'migrations');
+  const file = fs.readdirSync(dir).find((name) => name.endsWith('_sync_blobs.sql'));
+  const sql = fs.readFileSync(path.join(dir, file), 'utf8');
+  const column = /max_bytes\s+integer\s+not null\s+default\s+(\d+)/.exec(sql);
+  ok(!!column && Number(column[1]) === S.MAX_BYTES,
+    `the client's blob ceiling is the backend's own (${column && column[1]} = ${S.MAX_BYTES})`);
+  ok(/insert into sync\.apps \(app\) values/.test(sql)
+      && /'day-skipper'/.test(sql) && /'competent-crew'/.test(sql),
+  'both built-in courses are inserted at that default rather than a ceiling of their own');
+  ok(/octet_length\(p_data::text\) > v_max/.test(sql),
+    'and the server measures the bytes it was sent, which is what blobBytes() counts');
+}
+
+/* `p_data::text` is the jsonb text form, not the JSON we sent: Postgres parses
+ * the document and writes it back with a space after every colon and every
+ * comma. A client that measured JSON.stringify would read a blob of five
+ * thousand keys as five thousand bytes smaller than the server does, wave it
+ * through, and collect the refusal a round trip later. */
+{
+  const shaped = { a: 1, b: [1, 2], c: { d: 'x' }, e: null };
+  ok(S.blobBytes(shaped) === '{"a": 1, "b": [1, 2], "c": {"d": "x"}, "e": null}'.length,
+    `blobBytes counts the document as Postgres writes it back (${S.blobBytes(shaped)})`);
+  ok(S.blobBytes(shaped) > JSON.stringify(shaped).length,
+    'which is larger than our own JSON, so the check errs towards refusing early');
+  ok(S.blobBytes({ note: 'ü€𝄞' }) === new TextEncoder().encode('{"note": "ü€𝄞"}').length,
+    'and it counts bytes rather than characters, the way octet_length does');
+}
+
+/* A blob over the bound is refused before it is sent. The counted ceilings hold
+ * records, not bytes, so a deck full of maximum-length cards can still be too
+ * big for the blob — and the honest answer to that is a sentence, not a silent
+ * eviction of somebody's writing. */
+{
+  storage.clear();
+  const originalFetch = globalThis.fetch;
+  const calls = [];
+  globalThis.fetch = (url) => {
+    calls.push(url.split('/').pop());
+    return Promise.resolve({ ok: true, status: 200, text: async () => '[]' });
+  };
+  const cards = {};
+  for (let i = 0; i < 100; i++) {
+    cards['u.' + i.toString(16).padStart(12, '0')] =
+      { at: i, ed: i, front: 'q'.repeat(2000), back: 'a'.repeat(2000) };
+  }
+  const huge = state({ cards });
+  ok(S.blobBytes(huge) > S.MAX_BYTES,
+    `100 cards at their length ceiling already outgrow the blob (${S.blobBytes(huge)} bytes)`);
+  S.init({ app: 'day-skipper', supported: true, sanitise: (value) => value });
+  S.turnOn('0123456789ABCDEFGHJKMNPQR');
+  let refusal = '';
+  await S.sync(huge).catch((error) => { refusal = error.message; });
+  ok(calls.join() === 'sync_get' && /more than sync can carry/.test(refusal),
+    `an over-large blob is refused here rather than sent to be refused there (${refusal})`);
+  ok(/deleting some of them/.test(refusal),
+    'and the refusal names the way out rather than only the problem');
+  S.turnOff();
+  globalThis.fetch = originalFetch;
+}
+
+/* The cards you write are the second thing in this document nothing else can
+ * reproduce, and they travel by the same algebra as the notes: stamped records,
+ * merged id by id, deletes recorded rather than dropped. */
+{
+  const card = (overrides = {}) =>
+    Object.assign({ at: 100, ed: 100, front: 'a question', back: 'an answer' }, overrides);
+  const phone = state({
+    cards: {
+      'u.aaaa': card({ front: 'written on the phone' }),
+      c3e8a945bb: card({ at: 50, ed: 50, front: 'my wording', was: '1a2b3c4d.z' }),
+    },
+    recs: { 'u.aaaa': rec({ rp: 4 }) },
+  });
+  const laptop = state({
+    cards: {
+      'u.bbbb': card(),
+      c3e8a945bb: card({ at: 50, ed: 400, front: 'my better wording', was: '1a2b3c4d.z' }),
+    },
+  });
+  const merged = mergeState(phone, laptop);
+  ok(same(merged, mergeState(laptop, phone)), 'the card merge is commutative');
+  ok(same(merged, mergeState(merged, phone)) && same(merged, mergeState(merged, laptop)),
+    'merging the same cards again changes nothing');
+  ok(Object.keys(merged.cards).sort().join() === 'c3e8a945bb,u.aaaa,u.bbbb',
+    'a card written on one device only travels to the other');
+  ok(merged.cards.c3e8a945bb.front === 'my better wording'
+      && merged.cards.c3e8a945bb.at === 50,
+  'the later edit of a course card wins while it keeps the moment it was first made');
+  ok(merged.cards.c3e8a945bb.was === '1a2b3c4d.z',
+    'the fingerprint of the card the author shipped travels with the edit');
+  ok(same(merged.recs['u.aaaa'], phone.recs['u.aaaa']),
+    'and the review history of a written card crosses with it');
+}
+
+{
+  const written = state({ cards: { 'u.aaaa': { at: 100, ed: 100, front: 'the card' } } });
+  const deleted = state({ cards: { 'u.aaaa': { at: 100, ed: 500, front: '', back: '' } } });
+  const hidden = state({
+    cards: { c3e8a945bb: { at: 100, ed: 500, front: '', back: '', hidden: true } },
+  });
+  const merged = mergeState(written, deleted);
+  ok(!merged.cards['u.aaaa'].front,
+    'a deleted card is not resurrected by the device that still has it');
+  ok(same(merged, mergeState(deleted, written)) && same(merged, mergeState(merged, written)),
+    'the delete marker survives repeated merges in either order');
+  const again = state({ cards: { 'u.aaaa': { at: 100, ed: 900, front: 'written again' } } });
+  ok(mergeState(merged, again).cards['u.aaaa'].front === 'written again',
+    'a card written again after a delete is not held down by the marker');
+  ok(mergeState(hidden, state()).cards.c3e8a945bb.hidden === true,
+    'a hidden course card travels as a hide rather than as a plain delete');
+  const third = state({ cards: { 'u.aaaa': { at: 100, ed: 700, front: 'from a third device' } } });
+  ok(same(mergeState(mergeState(written, deleted), third),
+    mergeState(written, mergeState(deleted, third))),
+  'the card merge is associative across three devices');
+}
+
+/* The rule the whole feature turns on. A tombstone takes a card out of every
+ * deck it reaches, and the record of answering that card is keyed by the same
+ * id — but the merge is the one place with no way to tell a deleted card from a
+ * cards document that failed to load, so it never touches one. */
+{
+  const answered = state({
+    cards: { 'u.aaaa': { at: 100, ed: 100, front: 'the card' } },
+    recs: { 'u.aaaa': rec({ rp: 14, ivl: 30 }) },
+  });
+  const deleted = state({ cards: { 'u.aaaa': { at: 100, ed: 500, front: '', back: '' } } });
+  const merged = mergeState(answered, deleted);
+  ok(!merged.cards['u.aaaa'].front && merged.recs['u.aaaa'].rp === 14,
+    'a card tombstone arriving from another device deletes no review record in the merge');
+  ok(same(merged, mergeState(deleted, answered)),
+    'in either direction');
+}
+
+/* The tie-break, on the one field the merge writes itself.
+ *
+ * pickWritten carries the EARLIEST `at` forward so a list does not re-order
+ * after a sync, which makes `at` a value neither device holds — and comparing
+ * the whole record on an `ed` tie fed that derived value straight back into the
+ * comparison. It sorts ahead of `front`, so a rewritten stamp decided which
+ * words won, and the answer then depended on which pair of devices met first.
+ * pickRec settles the same problem one screen up by comparing with the lapse
+ * count blanked; this is the same move for the same reason. */
+{
+  const first = state({ cards: { 'u.c0': { at: 100, ed: 100, front: 'yours', back: '' } } });
+  const kept = state({ cards: { 'u.c0': { at: 100, ed: 200, front: 'yours', back: '' } } });
+  const hidden = state({
+    cards: { 'u.c0': { at: 200, ed: 200, front: '', back: '', hidden: true } },
+  });
+  const left = mergeState(mergeState(first, kept), hidden);
+  const right = mergeState(mergeState(first, hidden), kept);
+  ok(same(left, right),
+    'an exact edit-stamp tie on one card converges whichever pair of devices meets first');
+  ok(!!left.cards['u.c0'].front === !!right.cards['u.c0'].front,
+    'so a hide is not undone, or applied, by the order the devices reached the server');
+  const tie = (a, b) => S.pickWritten(a, b);
+  const x = { at: 1, ed: 5, front: 'x' };
+  const y = { at: 9, ed: 5, front: 'y' };
+  ok(stable(tie(x, y)) === stable(tie(y, x)),
+    'and the tie-break itself gives one answer whichever way round it is asked');
+}
+
+/* Three devices, all of them over the shared ceiling, converging on one set
+ * whichever pair meets first. */
+{
+  const deck = (prefix, base) => {
+    const cards = {};
+    for (let i = 0; i < 120; i++) {
+      cards['u.' + prefix + i.toString(16).padStart(10, '0')] =
+        { at: base + i, ed: base + i, front: prefix + ' card ' + i };
+    }
+    return state({ cards });
+  };
+  const phone = deck('a', 1000);
+  const laptop = deck('b', 5000);
+  const tablet = deck('c', 9000);
+  const left = mergeState(mergeState(phone, laptop), tablet);
+  const right = mergeState(phone, mergeState(laptop, tablet));
+  const other = mergeState(tablet, mergeState(laptop, phone));
+  const live = Object.values(left.cards).filter((card) => card.front);
+  ok(same(left, right) && same(left, other),
+    'three devices over the ceiling converge on cards whatever order they meet in');
+  ok(live.length === S.WRITTEN_LIVE,
+    `360 written cards across three devices become ${S.WRITTEN_LIVE} (${live.length})`);
+  ok(live.every((card) => !card.front.startsWith('a')),
+    'the ceiling evicts by the edit stamp, so the oldest writing goes first');
+  ok(same(left, mergeState(left, phone)) && same(left, mergeState(left, tablet)),
+    'a capped set stays put when the same devices sync again');
+}
+
+/* The ceiling is one budget, not one each. Notes and cards are evicted against
+ * each other by the one total order, because the document that carries them is
+ * one document and what loses when it will not fit is the review history. */
+{
+  const notes = {};
+  const cards = {};
+  for (let i = 0; i < 150; i++) {
+    // Interleaved stamps: every card is newer than the note before it and older
+    // than the note after it, so a budget that kept kinds apart would show.
+    notes['n' + i.toString(36).padStart(4, '0')] = { at: 2 * i, ed: 2 * i, text: 'note ' + i };
+    cards['u.' + i.toString(16).padStart(12, '0')] =
+      { at: 2 * i + 1, ed: 2 * i + 1, front: 'card ' + i };
+  }
+  S.takeNoteDrops();
+  S.takeCardDrops();
+  const merged = mergeState(state({ notes, cards }), state());
+  const liveNotes = Object.values(merged.notes).filter((note) => note.text);
+  const liveCards = Object.values(merged.cards).filter((card) => card.front);
+  ok(liveNotes.length + liveCards.length === S.WRITTEN_LIVE,
+    `300 notes and cards come back at the ${S.WRITTEN_LIVE} they share`
+    + ` (${liveNotes.length} + ${liveCards.length})`);
+  ok(liveNotes.length === 100 && liveCards.length === 100,
+    'and the survivors are the newest across both kinds, not the newest of each');
+  ok(liveNotes.every((note) => Number(note.ed) >= 100)
+      && liveCards.every((card) => Number(card.ed) >= 100),
+  'the eviction reads one total order over the two blocks');
+  ok(S.takeNoteDrops() === 50 && S.takeCardDrops() === 50,
+    'and what the shared ceiling could not keep is counted by kind, for the app to say so');
+  ok(S.takeNoteDrops() === 0 && S.takeCardDrops() === 0,
+    'counted once: a loss said twice is its own kind of wrong');
+}
+
+/* Markers fill what the live records leave, and the entry budget is shared too:
+ * three hundred deletes on top of two hundred live records cannot push the blob
+ * past the entries it is allowed. */
+{
+  const notes = {};
+  const cards = {};
+  for (let i = 0; i < 150; i++) {
+    notes['n' + i.toString(36).padStart(4, '0')] = { at: i, ed: i, text: 'note ' + i };
+    cards['u.' + i.toString(16).padStart(12, '0')] = { at: i, ed: i, front: 'card ' + i };
+  }
+  for (let i = 0; i < 200; i++) {
+    cards['u.f' + i.toString(16).padStart(11, '0')] = { at: i, ed: i, front: '', back: '' };
+  }
+  const merged = mergeState(state({ notes, cards }), state());
+  const kept = Object.keys(merged.notes).length + Object.keys(merged.cards).length;
+  ok(kept === S.WRITTEN_SLOTS, `the entry budget is shared as well (${kept})`);
+}
+
+{
+  // An own "__proto__" key only exists in JSON, which is exactly where a synced
+  // blob comes from — and a card id has two shapes to police rather than one.
+  const hostile = JSON.parse('{"__proto__":{"at":1,"ed":1,"front":"x"},'
+    + '"u.NOTHEX":{"at":1,"ed":1,"front":"y"},"-leading-dash":{"at":1,"ed":1,"front":"z"},'
+    + '"u.abc123":{"at":1,"ed":1,"front":"mine"},"c3e8a945bb":{"at":1,"ed":1,"front":"theirs"}}');
+  const merged = mergeState(state({ cards: hostile }), state());
+  ok(Object.keys(merged.cards).sort().join() === 'c3e8a945bb,u.abc123'
+      && Object.getPrototypeOf(merged.cards) === Object.prototype,
+  'a card id that is not an id this app writes never becomes an object key');
 }
 
 {
@@ -370,6 +630,37 @@ const rec = (overrides = {}) => Object.assign({
     'a concurrent first-write collision retries through the revision conflict');
   ok(merged.recs.phone && merged.recs.laptop && same(merged, adopted),
     'the first-write retry retains progress from both devices');
+  S.turnOff();
+  globalThis.fetch = originalFetch;
+}
+
+/* A blob over the bound is refused before it is sent, and marked as a failure
+ * only the person can clear: every other failure here is worth another go on
+ * its own, and a screen promising that it will try again is a screen telling
+ * somebody to wait for something that cannot happen. */
+{
+  const originalFetch = globalThis.fetch;
+  const big = state({ notes: {} });
+  for (let i = 0; i < 200; i++) {
+    big.notes['n' + i.toString(36).padStart(4, '0')] =
+      { at: 1, ed: 1, text: 'x'.repeat(2000) };
+  }
+  globalThis.fetch = async () => ({
+    ok: true, status: 200, text: async () => JSON.stringify([]),
+  });
+  S.init({ app: 'day-skipper', supported: true, sanitise: (v) => v, onMerged: () => {} });
+  S.turnOn('0123456789ABCDEFGHJKMNPQR');
+  let message = '';
+  try {
+    await S.sync(big);
+  } catch (error) {
+    message = error.message;
+  }
+  const status = S.status();
+  ok(S.blobBytes(big) > S.MAX_BYTES && /more than sync can carry/.test(message),
+    `a blob over the bound is refused before it is sent (${message})`);
+  ok(status.errYours === true,
+    'and recorded as a failure trying again cannot clear');
   S.turnOff();
   globalThis.fetch = originalFetch;
 }
