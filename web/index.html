@@ -166,7 +166,7 @@
             <button class="fig-btn" id="fig-btn">
               <img id="card-img" alt="" decoding="async">
             </button>
-            <figcaption id="fig-caption">Tap the diagram to enlarge</figcaption>
+            <figcaption id="fig-caption">Tap to enlarge</figcaption>
           </figure>
           <p class="fig-missing" id="fig-missing" hidden>
             This card has a diagram that has not been saved on this device. Reconnect,
@@ -206,7 +206,7 @@
              It stays here rather than under the answer because it has to be
              reachable from the question too, which is where you usually notice. -->
         <button class="link-btn" id="fix-btn"
-                aria-label="Fix the card you are looking at">Fix card</button>
+                aria-label="Edit the card you are looking at">Edit card</button>
         <button class="link-btn" id="end-btn">End session</button>
       </div>
       <p class="keyhint" id="keyhint">Space reveals · 1–4 grades · U undoes</p>
@@ -290,6 +290,11 @@
       <!-- Shown instead of the list when nothing is searched or filtered: 537
            questions in one column is not a thing anyone can browse. -->
       <div class="browse-index" id="browse-index" hidden></div>
+      <!-- The one screen in the app that exists purely to soften a dead end,
+           and it was a sentence over four hundred pixels of nothing in an app
+           built on hand-drawn marks. One drawing, from the set this deck
+           already carries — filled by renderBrowse(). -->
+      <p class="browse-empty" id="browse-empty" hidden aria-hidden="true"></p>
       <ul class="browse-list" id="browse-list"></ul>
       <button class="ghost wide" id="browse-more" hidden>Show more</button>
       <!-- Writing a card is offered on Browse rather than on Home: this is the
@@ -298,7 +303,7 @@
            hidden — a deck you cannot add to looks like a deck that does not
            take additions, and every deck in this app does. -->
       <div class="browse-foot">
-        <button class="ghost" id="browse-write">Write a card</button>
+        <button class="ghost" id="browse-write">New card</button>
         <button class="link-btn" id="browse-hidden" aria-controls="hidden-list" hidden></button>
       </div>
       <!-- A card you hid is not in the deck any more, so it is in none of the
@@ -377,7 +382,7 @@
       <!-- The rungs you are not on next are still in the list, because the
            sentence above it counts them. They are one press away rather than
            forty rows of dashed border under a line saying there are forty. -->
-      <button class="ghost wide" id="ach-more" hidden></button>
+      <button class="ghost" id="ach-more" hidden></button>
     </main>
   </section>
 

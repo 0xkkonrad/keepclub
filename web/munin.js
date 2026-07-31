@@ -1152,7 +1152,11 @@ const SHELF_CSS = `
    * over. Position only — the stacking order is what the lightbox is measured
    * against. */
   .shelf-btn { position: fixed; top: calc(10px + env(safe-area-inset-top));
-    right: max(12px, calc(50% - 332px));
+    /* The same gutter the header's own controls stand in — app.css's .top takes
+     * 20px, and inside a 680px column that is 50% - 320. Eight pixels out, the
+     * pill and the settings chip under it read as two separate corners rather
+     * than one. */
+    right: max(20px, calc(50% - 320px));
     z-index: 80; display: inline-flex; align-items: center; gap: 6px;
     background: var(--surface); color: var(--text); font: inherit; font-size: .78rem;
     text-transform: lowercase; cursor: pointer; border: var(--bw) solid var(--stroke);
@@ -1681,10 +1685,15 @@ async function renderShelf(asOverlay, say) {
     addEventListener('keydown', modalKeys);
     el.querySelector('#shelf-x').addEventListener('click', () => closeOverlay(false));
     el.querySelector('#shelf-x').focus();
-    // Dismiss by clicking off the card, not by clicking anything that is not a
-    // tile: the theme button and the remove button live up here too.
+    // Dismiss by clicking the backdrop, and only that. "Anything not inside the
+    // card" looked equivalent and was not: the theme button redraws its own
+    // glyph the moment it is pressed, so by the time the click reached here the
+    // thing that had been clicked was a detached <path> with no ancestors at
+    // all — and this panel tore itself off the page every time somebody changed
+    // the colour from it. The test is where the click landed, which is the same
+    // test the card sheet and the settings sheet use.
     el.addEventListener('click', (e) => {
-      if (!e.target.closest('.shelf-inner')) closeOverlay();
+      if (e.target === el) closeOverlay();
     });
   }
 
@@ -1699,10 +1708,18 @@ async function renderShelf(asOverlay, say) {
       if (impOpening || document.querySelector('.imp')) return;
       impOpening = true;
       const note = el.querySelector('.shelf-note');
+      // Whatever this line was saying before, said again once the importer is
+      // up: this is the shelf's own caption and the importer only borrows it
+      // while the module is on its way. Left set, the shelf grew a permanent
+      // "reading it here on your device — nothing is uploaded" — lowercase, no
+      // subject, starting mid-clause — under a row of course tiles, which reads
+      // as a glitch rather than as reassurance about a file you did not pick.
+      const said = note.textContent;
       note.textContent = 'reading it here on your device — nothing is uploaded';
       try {
         const { openImporter } = await import('./import.js');
         openImporter();
+        note.textContent = said;
       } catch (err) {
         console.error(err);
         note.textContent = 'the importer could not load — try again once you are online';
