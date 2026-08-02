@@ -43,7 +43,53 @@ await page.click('[data-go="browse"]');
 await page.waitForSelector('#browse-index:not([hidden])');
 ok((await page.locator('#browse-index .bgroup').count()) === 4,
   'Git 101 groups foundations before the agentic track');
-await page.click('#browse-index [data-scope="mental-model"]');
+const groups = await page.evaluate(() => ({
+  nested: document.querySelectorAll('#browse-index summary button').length,
+  toggles: [...document.querySelectorAll('.bgroup-toggle')].map((button) => ({
+    expanded: button.getAttribute('aria-expanded'),
+    target: button.getAttribute('aria-controls'),
+    height: button.getBoundingClientRect().height,
+  })),
+  allHeight: Math.min(...[...document.querySelectorAll('.bgroup-all')]
+    .map((button) => button.getBoundingClientRect().height)),
+}));
+ok(groups.nested === 0 && groups.toggles.length === 4
+    && groups.toggles[0].expanded === 'true'
+    && groups.toggles.slice(1).every((group) => group.expanded === 'false'),
+  'Browse groups use separate disclosure and read-all buttons with explicit state');
+ok(groups.toggles.every((group) => group.height >= 44) && groups.allHeight >= 44,
+  'Browse group actions meet the 44px touch-target floor');
+await page.locator('.bgroup-toggle').first().click();
+const closedFirst = await page.evaluate(() => ({
+  expanded: document.querySelector('.bgroup-toggle').getAttribute('aria-expanded'),
+  hidden: document.getElementById(
+    document.querySelector('.bgroup-toggle').getAttribute('aria-controls')).hidden,
+}));
+ok(closedFirst.expanded === 'false' && closedFirst.hidden,
+  'the disclosure state and controlled list stay in sync');
+await page.locator('.bgroup-toggle').first().click();
+await page.click('#browse-index [data-scope="g:foundations"]');
+const groupWrite = await page.evaluate(() => ({
+  scope: document.getElementById('sect-filter').value,
+  label: document.getElementById('sect-filter').selectedOptions[0].textContent,
+  expected: groupOf.get('foundations').sectionIds[0],
+}));
+await page.click('#browse-write');
+await page.waitForSelector('#card-sheet:not([hidden])');
+const pickedSection = await page.inputValue('#card-section');
+ok(groupWrite.scope === 'g:foundations' && pickedSection === groupWrite.expected,
+  'New card opened from a group starts in that group rather than the deck default');
+await page.fill('#card-front', 'A QA card in the mental-model group');
+await page.click('#card-save');
+await page.waitForFunction(() => document.getElementById('card-say').textContent === 'Card written.');
+const groupAfter = await page.evaluate(() => ({
+  scope: document.getElementById('sect-filter').value,
+  label: document.getElementById('sect-filter').selectedOptions[0].textContent,
+}));
+ok(groupAfter.scope === groupWrite.scope && groupAfter.label !== groupWrite.label,
+  'the selected group count refreshes immediately after authoring a card');
+await page.click('#card-close');
+await page.waitForSelector('#card-sheet', { state: 'hidden' });
 await page.locator('#browse-list details').first().click();
 await page.waitForSelector('#browse-list details[open] .figure');
 const figure = await page.evaluate(() => {

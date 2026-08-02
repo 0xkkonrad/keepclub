@@ -18,7 +18,9 @@ const state = {
 const mime = {
   '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css',
   '.json': 'application/json', '.webmanifest': 'application/manifest+json',
-  '.png': 'image/png', '.woff2': 'font/woff2',
+  '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg',
+  '.webp': 'image/webp', '.gif': 'image/gif', '.svg': 'image/svg+xml',
+  '.woff2': 'font/woff2',
 };
 
 const server = http.createServer(async (req, res) => {
@@ -39,7 +41,12 @@ const server = http.createServer(async (req, res) => {
   try {
     const path = resolve(ROOT, rel);
     if (!path.startsWith(ROOT + '/')) throw new Error('outside');
-    let body = await readFile(path);
+    // A real JPEG byte stream is unnecessary here: the worker's boundary is
+    // the same MIME contract the server declares and the runtime accepts. Use
+    // a known image body under a synthetic format-2 .jpg course URL.
+    let body = rel === 'courses/day-skipper/img/qa-course-photo.jpg'
+      ? await readFile(resolve(ROOT, 'courses/day-skipper/img/ds-other-marks.png'))
+      : await readFile(path);
     if (state.v2Cards && rel === 'courses/day-skipper/cards.json') {
       body = Buffer.from(JSON.stringify({
         schemaVersion: 2,
@@ -59,6 +66,12 @@ const server = http.createServer(async (req, res) => {
               mediaType: 'image',
               source: 'img/ds-tidal-datums.png',
               alternativeText: 'The answer diagram',
+            },
+            {
+              side: 'back',
+              mediaType: 'image',
+              source: 'img/qa-course-photo.jpg',
+              alternativeText: 'A second answer image in JPEG format',
             },
           ],
         }],
@@ -317,6 +330,10 @@ async function cachesAt(page) {
   const ctx = await b.newContext();
   const page = await ctx.newPage();
   await page.goto(BASE + '?course=day-skipper', { waitUntil: 'networkidle' });
+  await controlled(page);
+  // Exercise the app under the controller that will receive the explicit
+  // prefetch message, not the uncontrolled first navigation that registered it.
+  await page.reload({ waitUntil: 'load' });
   await page.waitForFunction(() => document.getElementById('boot').hidden);
   await page.click('#study-all');
   await page.waitForSelector(
@@ -336,11 +353,35 @@ async function cachesAt(page) {
   const back = await page.getAttribute(
     '#card-a + .course-media-side[data-media-side="back"] img', 'src',
   );
+  const offline = await page.evaluate(() => {
+    const urls = Array.from(new Set(offlineImages().map((item) =>
+      new URL(courseMediaUrl(item), location.href).href)));
+    globalThis.__v2Prefetch = null;
+    navigator.serviceWorker.addEventListener('message', (event) => {
+      if (event.data?.requestId === 'v2-all-sides') globalThis.__v2Prefetch = event.data;
+    });
+    navigator.serviceWorker.controller.postMessage({
+      type: 'prefetch', urls, requestId: 'v2-all-sides',
+    });
+    return urls;
+  });
+  await page.waitForFunction(() => globalThis.__v2Prefetch?.type === 'prefetched',
+    null, { timeout: 20000 });
+  const offlineResult = await page.evaluate(() => ({
+    message: globalThis.__v2Prefetch,
+    inventory: offlineImages().map((item) => item.source),
+  }));
   ok(front.text.includes('<strong>Which diagram is this?</strong>')
       && front.src?.includes('/courses/day-skipper/img/ds-other-marks.png')
       && front.legacyPlate === false
       && back?.includes('/courses/day-skipper/img/ds-tidal-datums.png'),
   'live app boot validates v2, renders descriptive front/back media, and avoids the legacy plate');
+  ok(offline.length === 3
+      && offlineResult.inventory.includes('img/qa-course-photo.jpg')
+      && offlineResult.message.done === 3 && offlineResult.message.failed === 0
+      && state.requests.includes('courses/day-skipper/img/qa-course-photo.jpg'),
+  `format-2 images on both sides, including JPEG, enter the offline cache (${
+    JSON.stringify({ offline, ...offlineResult })})`);
   await ctx.close();
   state.v2Cards = false;
 }

@@ -222,12 +222,32 @@ const backupOf = (page, extra) => page.evaluate((over) => Object.assign({
     `invisible control characters go while tabs and newlines stay (${JSON.stringify(long.head)})`);
   ok(long.length === 2000, `a note is cut to its stored length once (${long.length})`);
 
+  const unicode = await page.evaluate(() => {
+    const text = noteTextFrom('x'.repeat(1999) + '😀' + 'tail');
+    const last = text.charCodeAt(text.length - 1);
+    return {
+      points: [...text].length,
+      emoji: text.endsWith('😀'),
+      loneSurrogate: last >= 0xd800 && last <= 0xdbff,
+    };
+  });
+  ok(unicode.points === 2000 && unicode.emoji && !unicode.loneSurrogate,
+    'note truncation keeps a complete final Unicode character');
+
+  await page.fill('#notes-text', '   \n  ');
+  await page.click('#notes-save');
   const refused = await page.evaluate(() => ({
-    empty: addNote('   \n  '),
     notes: liveNotes().length,
+    say: document.getElementById('notes-say').textContent,
+    focus: document.activeElement?.id,
+    invalid: document.getElementById('notes-text').getAttribute('aria-invalid'),
+    describedBy: document.getElementById('notes-text').getAttribute('aria-describedby'),
   }));
-  ok(refused.empty === false && refused.notes === 2,
-    'whitespace is not a note — an empty record is what a delete looks like');
+  ok(refused.notes === 2 && /needs some words/i.test(refused.say),
+    'whitespace is refused as a note with a visible explanation');
+  ok(refused.focus === 'notes-text' && refused.invalid === 'true'
+      && refused.describedBy === 'notes-say',
+  'blank-note validation returns focus to the described invalid field');
   ok(errors.length === 0, `hostile note text raises no page errors (${errors.join(' | ') || 'none'})`);
   await ctx.close();
 }

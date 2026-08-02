@@ -227,6 +227,158 @@ async function coursePage(options = {}, id = 'day-skipper') {
   await ctx.close();
 }
 
+/* At the largest supported text size, an extremely short viewport becomes one
+ * scroll surface instead of squeezing the card between fixed chrome. */
+{
+  const { ctx, page, errors } = await coursePage(
+    { viewport: { width: 320, height: 320 } }, 'competent-crew');
+  await page.evaluate(() => {
+    state.settings.fontSize = 'biggest';
+    applyFontSize();
+    startSession(null, {});
+    reveal();
+  });
+  await page.waitForTimeout(300);
+  const geometry = await page.evaluate(() => {
+    const screen = document.getElementById('s-study');
+    const body = document.getElementById('card-scroll');
+    const answer = document.getElementById('card-a').getBoundingClientRect();
+    const dock = document.getElementById('dock').getBoundingClientRect();
+    return {
+      font: parseFloat(getComputedStyle(document.documentElement).fontSize),
+      screenScroll: screen.scrollHeight,
+      screenClient: screen.clientHeight,
+      bodyHeight: body.getBoundingClientRect().height,
+      bodyOverflow: getComputedStyle(body).overflowY,
+      answerHeight: answer.height,
+      ordered: dock.top >= answer.bottom,
+    };
+  });
+  ok(geometry.font === 23 && geometry.screenScroll > geometry.screenClient
+      && geometry.bodyHeight > 300 && geometry.answerHeight >= 28,
+  `320×320 at Biggest preserves a readable card in one scroll surface (${JSON.stringify(geometry)})`);
+  ok(geometry.ordered,
+    'the grading dock follows the enlarged answer in reading order instead of covering it');
+  ok(errors.length === 0,
+    `largest-text short-viewport study raises no page errors (${errors.join(' | ') || 'none'})`);
+  await ctx.close();
+}
+
+/* Dates restored from storage must describe a real calendar day. Native date
+ * inputs blank impossible values, so the scheduler has to reject them too. */
+{
+  const { ctx, page } = await coursePage({}, 'competent-crew');
+  const dates = await page.evaluate(() => {
+    const raw = freshState();
+    raw.settings.examDate = '2027-02-31';
+    state.settings.examDate = '2027-02-31';
+    return {
+      impossible: validExamDate('2027-02-31'),
+      nonLeap: validExamDate('2027-02-29'),
+      leap: validExamDate('2028-02-29'),
+      outOfRange: validExamDate('2041-01-01'),
+      sanitised: sanitise(raw).settings.examDate,
+      scheduled: daysToExam(),
+    };
+  });
+  ok(!dates.impossible && !dates.nonLeap && dates.leap && !dates.outOfRange
+      && dates.sanitised === '' && dates.scheduled === null,
+  'invalid persisted dates are blanked and cannot silently change the study schedule');
+  await ctx.close();
+}
+
+/* Changing pacing while Settings overlays Home must redraw the Home action
+ * immediately; otherwise the visible number and the session disagree. */
+{
+  const { ctx, page } = await coursePage({}, 'competent-crew');
+  await page.click('.setup-btn:visible');
+  await page.click('#setup-studying');
+  await page.fill('#set-new', '5');
+  await page.dispatchEvent('#set-new', 'change');
+  const redrawn = await page.evaluate(() => ({
+    button: document.getElementById('study-all').textContent.replace(/\s+/g, ' ').trim(),
+    note: document.getElementById('today-note').textContent.replace(/\s+/g, ' ').trim(),
+    setting: state.settings.newPerDay,
+  }));
+  await page.click('#setup-close');
+  await page.waitForSelector('#setup', { state: 'hidden' });
+  await page.click('#study-all');
+  const total = await page.evaluate(() => session.total);
+  ok(redrawn.setting === 5 && /5/.test(redrawn.button + redrawn.note) && total === 5,
+    `Home pacing and the new session both update to five immediately (${redrawn.button}; ${total})`);
+  await ctx.close();
+}
+
+/* Idle tabs may author at the same instant. Their whole-document localStorage
+ * writes have to converge to a union, for both review-state notes and the
+ * separate authored-card layer, without starting an event echo. */
+{
+  const ctx = await b.newContext({
+    viewport: { width: 390, height: 844 }, serviceWorkers: 'block',
+  });
+  const a = await ctx.newPage();
+  const c = await ctx.newPage();
+  const errors = [];
+  a.on('pageerror', (error) => errors.push(`a: ${error}`));
+  c.on('pageerror', (error) => errors.push(`c: ${error}`));
+  await Promise.all([
+    a.goto(URL + '?course=competent-crew', { waitUntil: 'networkidle' }),
+    c.goto(URL + '?course=competent-crew', { waitUntil: 'networkidle' }),
+  ]);
+  await Promise.all([
+    a.waitForFunction(() => document.getElementById('boot').hidden),
+    c.waitForFunction(() => document.getElementById('boot').hidden),
+  ]);
+  await Promise.all([a, c].map((page) => page.evaluate(() => {
+    globalThis.__qaStorageEvents = 0;
+    addEventListener('storage', () => { globalThis.__qaStorageEvents++; });
+  })));
+
+  const noteWrites = await Promise.all([
+    a.evaluate(() => addNote('simultaneous note alpha')),
+    c.evaluate(() => addNote('simultaneous note beta')),
+  ]);
+  await Promise.all([
+    a.waitForFunction(() => liveNotes().length === 2),
+    c.waitForFunction(() => liveNotes().length === 2),
+  ]);
+  const notes = await a.evaluate(() => ({
+    live: liveNotes().map((note) => note.text).sort(),
+    stored: Object.values(JSON.parse(localStorage.getItem(KEY)).notes)
+      .filter((note) => note.text).map((note) => note.text).sort(),
+  }));
+
+  const cardWrites = await Promise.all([
+    a.evaluate(() => writeCard({ front: 'simultaneous card alpha' })),
+    c.evaluate(() => writeCard({ front: 'simultaneous card beta' })),
+  ]);
+  await Promise.all([
+    a.waitForFunction(() => writtenCardCount() === 2),
+    c.waitForFunction(() => writtenCardCount() === 2),
+  ]);
+  await a.waitForTimeout(250);
+  const cards = await a.evaluate(() => ({
+    live: Object.values(cardLayer).filter((card) => card.front)
+      .map((card) => card.front).sort(),
+    stored: Object.values(JSON.parse(localStorage.getItem(CARDS_KEY)).cards)
+      .filter((card) => !card.del).map((card) => card.front).sort(),
+    events: globalThis.__qaStorageEvents,
+  }));
+  const otherEvents = await c.evaluate(() => globalThis.__qaStorageEvents);
+  ok(noteWrites.every(Boolean)
+      && notes.live.join('|') === 'simultaneous note alpha|simultaneous note beta'
+      && notes.stored.join('|') === notes.live.join('|'),
+  'simultaneous idle-tab note writes converge in memory and durable storage');
+  ok(cardWrites.every((result) => result.ok)
+      && cards.live.join('|') === 'simultaneous card alpha|simultaneous card beta'
+      && cards.stored.join('|') === cards.live.join('|'),
+  'simultaneous idle-tab card writes converge in memory and durable storage');
+  ok(cards.events < 12 && otherEvents < 12 && errors.length === 0,
+    `the converged tabs stop exchanging storage events (${cards.events}/${otherEvents}; ${
+      errors.join(' | ') || 'no errors'})`);
+  await ctx.close();
+}
+
 /* Held keys and unrevealed numeric grades never answer a card. */
 {
   const { ctx, page, errors } = await coursePage();

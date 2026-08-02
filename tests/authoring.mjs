@@ -604,9 +604,18 @@ const stored = (page) => page.evaluate(() =>
   await page.click('#card-save');
   await page.waitForFunction(() =>
     document.getElementById('card-say').textContent.length > 0);
-  const empty = await page.evaluate(() => document.getElementById('card-say').textContent);
-  ok(empty === 'A card needs a question.',
-    `a card with no question is refused in the sheet's own status line (${empty})`);
+  const empty = await page.evaluate(() => ({
+    say: document.getElementById('card-say').textContent,
+    focus: document.activeElement?.id,
+    invalid: document.getElementById('card-front').getAttribute('aria-invalid'),
+    describedBy: document.getElementById('card-front').getAttribute('aria-describedby'),
+    nativeDisabled: document.getElementById('card-save').disabled,
+  }));
+  ok(empty.say === 'A card needs a question.',
+    `a card with no question is refused in the sheet's own status line (${empty.say})`);
+  ok(empty.focus === 'card-front' && empty.invalid === 'true'
+      && empty.describedBy === 'card-say' && !empty.nativeDisabled,
+  'an invalid async save keeps focus in the question and exposes its status to assistive tech');
 
   await page.fill('#card-front', 'What does **springing off** mean?');
   await page.fill('#card-back', 'Using a spring line to swing the bow or stern off the pontoon.');
@@ -918,7 +927,16 @@ const stored = (page) => page.evaluate(() =>
     'editing mid-session leaves the session exactly where it was');
   ok(fixed.onScreen === 'A card with the mistake taken out',
     `and the card on screen is drawn again from the deck that changed (${fixed.onScreen})`);
-  ok(fixed.focus === 'fix-btn', 'focus comes back to the control that opened the sheet');
+  ok(fixed.focus === 'card-scroll',
+    'a successful in-session edit returns focus to the card, not the edit action');
+  const doneBeforeSpace = await page.evaluate(() => session.done);
+  await page.keyboard.press('Space');
+  const afterSpace = await page.evaluate(() => ({
+    sheet: !document.getElementById('card-sheet').hidden,
+    done: session.done,
+  }));
+  ok(!afterSpace.sheet && afterSpace.done === doneBeforeSpace + 1,
+    'Space after an in-session edit grades the revealed card instead of reopening the editor');
   ok(errors.length === 0, `fixing a card mid-session raises no page errors (${errors.join(' | ') || 'none'})`);
   await ctx.close();
 }
