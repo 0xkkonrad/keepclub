@@ -154,7 +154,10 @@ const seeded = {
       [dayKey(shiftDay(now, -1))]: 1,
       [dayKey(shiftDay(now, -3))]: 1,
       [dayKey(shiftDay(now, -5))]: 1,
-      [previousDay(22)]: 5,
+      // Day 20 and earlier: on the 1st of a month following a 28-day February
+      // the streak reaches back to the 23rd, and an adjacent seeded day would
+      // silently stretch the club streak past seven.
+      [previousDay(20)]: 5,
     },
     answers: 40,
     ach: {
@@ -167,6 +170,20 @@ const seeded = {
   syncSentinel: 'NEVER_SHARE_SYNC_KEY_9ZM',
   storageSentinel: 'NEVER_SHARE_STORAGE_VALUE_4HP',
 };
+
+// The seven streak days hang off `now`, so in the first days of a month some of
+// them land inside the completed month the recap aggregates. Read the expected
+// recap out of the seeded days instead of pinning a mid-month answer, and keep
+// both courses in the sum so the check still proves the club-wide roll-up.
+const recapDays = {};
+for (const state of [seeded.current, seeded.other]) {
+  for (const [key, value] of Object.entries(state.days)) {
+    if (key.startsWith(`${previousMonthKey}-`)) recapDays[key] = (recapDays[key] || 0) + value;
+  }
+}
+const recapStudyDays = Object.keys(recapDays).length;
+const recapAnswers = Object.values(recapDays).reduce((sum, value) => sum + value, 0);
+const recapCopy = `${recapStudyDays} study days · ${recapAnswers} answers · 39 solid now`;
 
 const { server, port } = await listen();
 const baseUrl = `http://127.0.0.1:${port}/`;
@@ -282,8 +299,9 @@ try {
   `the membership stat row agrees with the card (${progress.membershipStats})`);
   ok(!progress.monthHidden
       && progress.monthTitle.endsWith('at the club')
-      && /3 study days · 12 answers · 39 solid now/.test(progress.monthCopy),
-  `the completed monthly recap aggregates both courses (${progress.monthTitle}: ${progress.monthCopy})`);
+      && progress.monthCopy === recapCopy,
+  `the completed monthly recap aggregates both courses (${progress.monthTitle}: ${progress.monthCopy}`
+  + `, expected ${recapCopy})`);
   ok(progress.shareIds.includes('streak-7') && progress.shareIds.includes('solid-10'),
     'club-scoped unlocks earned in another course appear with share actions');
   ok(progress.shareIds.includes('solid-pct-25')
