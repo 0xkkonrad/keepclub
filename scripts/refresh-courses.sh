@@ -24,6 +24,9 @@ CC="${CC:-$HERE/content/competent-crew/build}"
 # Git 101 is authored here too. Its Markdown build produces the legacy deck
 # plus the labelled, code-native figures that the current runtime reads.
 GIT101="${GIT101:-$HERE/content/git-101/build}"
+# Toki Pona is authored here too, same Markdown pipeline as Git 101. v1 ships
+# no figures of its own (content/toki-pona/src/figures.py is an empty set).
+TOKIPONA="${TOKIPONA:-$HERE/content/toki-pona/build}"
 FLAG="${1:-}"
 
 copy() { # src dst
@@ -71,6 +74,10 @@ for id in $IDS; do
     git-101)
       copy "$GIT101/cards.json" "$DEST/cards.json"
       copy "$GIT101/figures.json" "$DEST/figures.json"
+      ;;
+    toki-pona)
+      copy "$TOKIPONA/cards.json" "$DEST/cards.json"
+      copy "$TOKIPONA/figures.json" "$DEST/figures.json"
       ;;
     *)
       # Not fatal: a course authored somewhere else — an .apkg-derived deck

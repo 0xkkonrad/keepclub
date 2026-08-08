@@ -267,9 +267,14 @@ All three built-in courses are authored here now.
 - **Git 101** was added on 30 July 2026 under `content/git-101/`: Markdown
   cards compiled through the shared course parser, plus small labelled SVG
   figures generated from code.
+- **Toki Pona** was added on 7 August 2026 under `content/toki-pona/`: the
+  same Markdown pipeline as Git 101, 151 cards covering essentially the full
+  **nimi pu** vocabulary and core grammar, shipped with no figures or theme
+  of its own yet &mdash; v1 is content-first, dressed up later.
 
 The two sailing rebuilds reproduce their shipped `cards.json` byte for byte;
-Git 101's build is deterministic and owns its shipped output.
+Git 101's and Toki Pona's builds are deterministic and own their shipped
+output.
 
 `content/*/build/` is gitignored. Competent Crew's cards are pointers into Day
 Skipper's — `ref(section, question_text)`, resolved at build time — which used to
