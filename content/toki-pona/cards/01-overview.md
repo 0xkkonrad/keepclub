@@ -14,7 +14,7 @@ The Canadian linguist and translator Sonja Lang, who published its core vocabula
 
 ## Why does Toki Pona use so few words?
 
-Its core vocabulary is about 120 words &mdash; tiny next to a natural language's tens of thousands. The idea is Sapir&ndash;Whorf taken as a design brief: fewer, broader words push you to focus on what actually matters in a sentence and drop the incidental detail, which many speakers describe as calming rather than limiting.
+Its core vocabulary is about 120 words &mdash; tiny next to a natural language's tens of thousands. The deliberate constraint encourages speakers to break ideas into broad, relevant qualities and rely on context instead of reaching for a separate word for every distinction.
 
 ## If the vocabulary is so small, how do you say specific things?
 
@@ -22,8 +22,12 @@ By combining words. There's no word for "car," but <b>tomo tawa</b> &mdash; "mov
 
 ## Is Toki Pona meant to replace other languages?
 
-No. Almost nobody uses it as a sole daily language; it's learned as a second (or fifth) language, for the community around it, as a thinking exercise, or purely for the fun of a genuinely different design. It has no country, no native speakers by birth, and no ambition to be a lingua franca.
+No. People generally learn it as an additional language, for the community around it, as a thinking exercise, for art, or simply for the fun of a genuinely different design. It is not tied to a country and was not designed to become a universal language.
 
 ## Does Toki Pona have its own writing system?
 
 The language itself is usually written with the Latin alphabet, exactly as it's taught here. A separate optional script, <b>sitelen pona</b>, represents each word as a small pictogram instead of letters &mdash; popular in the community for art and signage, but not needed to read, speak, or study the language.
+
+## Build a Toki Pona phrase for "car" from "tomo" (building/container) and "tawa" (moving).
+
+<b>tomo tawa</b> &mdash; literally "moving building/container."

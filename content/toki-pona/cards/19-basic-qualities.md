@@ -23,3 +23,7 @@ New, fresh, additional, or another &mdash; something just arrived or added. <b>t
 ## What does "ante" mean?
 
 Different, other, or changed &mdash; and, as a verb, "to change." <b>ni li ante</b> is "this is different"; <b>mi ante e ni</b> is "I change this."
+
+## Translate into Toki Pona: "This tool is small."
+
+<b>ilo ni li lili.</b>

@@ -26,8 +26,12 @@ Plant, herb, leaf, or vegetation in general &mdash; the living plant itself, as 
 
 ## What does "kili" mean?
 
-Fruit, vegetable, or mushroom &mdash; the edible part harvested from a plant, as distinct from the plant itself. <b>mi moku e kili</b> is "I eat fruit/vegetables."
+Fruit, vegetable, mushroom, or other edible produce. It often refers to something gathered or harvested for food, but it need not be a part of a plant: mushrooms are fungi. <b>mi moku e kili</b> is "I eat fruit, vegetables, or other produce."
 
 ## What does "pan" mean?
 
 Grain, bread, pasta, or any cereal-based food &mdash; the specific edible category kili doesn't cover. <b>pan</b> is what a loaf, a bowl of rice, or a plate of noodles all have in common.
+
+## Translate: "kili ni li pona tawa mi."
+
+"I like this fruit, vegetable, mushroom, or other produce" &mdash; more literally, "this produce is good to me." Context supplies the specific kind of <b>kili</b>.

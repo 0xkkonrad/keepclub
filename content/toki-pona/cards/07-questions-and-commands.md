@@ -18,8 +18,12 @@ By placing <b>o</b> right after their name or description, as a stand-alone voca
 
 ## What does adding "anu seme" to the end of a sentence do?
 
-It turns a statement into a tag question, literally "or what?" <b>sina wile e ni, anu seme?</b> is "you want this, or what?" &mdash; close to English "...right?"
+It adds an open alternative, literally "or what/which?", and is also a common way to make a yes/no question. <b>sina wile e ni, anu seme?</b> asks whether you want this or not. Tone can make it sound tag-like, but it is not inherently the confirmation-seeking English "...right?"
 
 ## What does "ni" mean, and how is it used?
 
 "This" or "that," Toki Pona's one general demonstrative &mdash; it doesn't distinguish near from far the way English does. Alone it acts as a pronoun: <b>ni li pona</b>, "this is good." After a noun it acts as a modifier: <b>tomo ni li suli</b>, "this house is big."
+
+## Correct "seme sina wile e?" so it asks "What do you want?"
+
+<b>sina wile e seme?</b> The question word stays in the same position that the answer would occupy.

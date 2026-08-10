@@ -18,7 +18,7 @@ To eat or drink, and, as a noun, food in general &mdash; Toki Pona doesn't separ
 
 ## What does "alasa" mean?
 
-To hunt, forage, gather, or try to get something &mdash; the effort of pursuing and obtaining, whether that's an animal, food, or an opportunity. <b>mi alasa e kili</b> is "I gather fruit."
+To hunt, forage, gather, or try to get something &mdash; the effort of pursuing and obtaining, whether that's an animal, food, or an opportunity. <b>mi alasa e kili</b> is "I gather fruit." Many modern speakers also use <b>alasa</b> as the preverb "try to."
 
 ## What does "utala" mean?
 
@@ -27,3 +27,7 @@ To fight, and, as a noun, a fight, conflict, battle, or competition &mdash; any 
 ## What does "unpa" mean?
 
 Sex, or to have sex &mdash; the plain, clinical word for sexual or intimate activity, used the same matter-of-fact way any other action word is used.
+
+## Translate into Toki Pona: "I give the tool to you."
+
+<b>mi pana e ilo tawa sina.</b>

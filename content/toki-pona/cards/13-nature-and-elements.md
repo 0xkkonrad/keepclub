@@ -31,3 +31,7 @@ Sun, light, or brightness. <b>suno li lon</b> is "it's daytime/sunny" (literally
 ## What does "telo" mean?
 
 Water, or any liquid. <b>mi moku e telo</b> is "I drink water"; as a modifier, <b>telo</b> marks something as wet or liquid.
+
+## Translate into Toki Pona: "The water is cold."
+
+<b>telo li lete.</b>

@@ -6,8 +6,8 @@ constructed language.
 
 ## Shape
 
-- 22 sections in six groups
-- 151 independently answerable cards
+- 22 sections in seven groups
+- 181 cards, including phrase and sentence application practice
 - No figures yet &mdash; v1 ships text-only, deliberately, to get the content
   live before any drawing work starts
 
@@ -30,14 +30,11 @@ the committed, self-contained `web/courses/toki-pona/` package.
 
 ## Reference basis
 
-Checked on 2026-08-07 against community-standard glosses for the ~120
-official <b>pu</b> words (from <i>Toki Pona: The Language of Good</i>,
-Sonja Lang, 2014) &mdash; not against any single external source, since the
-vocabulary and grammar rules are stable and widely documented. Where a word
-has real dialectal variation (<b>laso</b> covering blue and green; <b>kule</b>'s
-modern queer-identity sense), the card says so rather than picking one
-reading silently.
+Checked on 2026-08-10 against <i>Toki Pona: The Language of Good</i> (Sonja
+Lang, 2014), Lang's later official notes, and established community usage.
+The cards distinguish the <b>pu</b> foundation from later or dialectal patterns
+instead of presenting every widespread form as one fixed rule.
 
 Left for later, on purpose: <b>sitelen pona</b> (the pictogram script),
-example-sentence figures, a course theme, and <b>nimi ku suli</b> (the
-community's widely adopted post-pu vocabulary).
+example-sentence figures, a course theme, and full teaching coverage of
+<b>nimi ku suli</b> (widely used words documented beyond the core set).

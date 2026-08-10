@@ -26,4 +26,12 @@ It generally doesn't mark this either &mdash; <b>soweli</b> can mean "animal" or
 
 ## How can the same word be a noun, a verb, and a describing word?
 
-Toki Pona doesn't sort words into fixed parts of speech; a word's role comes entirely from its position in the sentence. <b>moku</b> is "food" as a noun, "to eat" as a verb, and "edible/food-related" as a modifier &mdash; the grammar around it, not the word itself, decides which.
+Many Toki Pona content words are flexible: syntax and context let the same word fill noun-like, predicate, or modifier roles. <b>moku</b> can be "food," "eat," or "edible/food-related" depending on its place in a phrase. This flexibility does not apply identically to every word; particles such as <b>li</b> and <b>e</b>, prepositions, and preverbs have grammatical jobs of their own.
+
+## Translate into Toki Pona: "I eat fruit."
+
+<b>mi moku e kili.</b> The subject is exactly <b>mi</b>, so it does not take <b>li</b>; <b>e</b> marks <b>kili</b> as the object.
+
+## Correct "jan li pona moku e kili" so it means "The person is good and eats fruit."
+
+<b>jan li pona li moku e kili.</b> Repeat <b>li</b> to introduce each predicate belonging to the same subject.

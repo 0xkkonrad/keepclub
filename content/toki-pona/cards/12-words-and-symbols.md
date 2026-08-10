@@ -22,4 +22,8 @@ The sound an animal makes &mdash; a moo, woof, meow, or similar &mdash; used bot
 
 ## What does "pu" mean?
 
-To interact with the official Toki Pona book, or to act "by the book" &mdash; a self-referential word describing this course's own source material. It's a small piece of the language's own sense of humor about itself.
+Technically, to interact with the official Toki Pona book, as in reading, studying, or using it. Speakers also use <b>pu</b> informally for the book itself, the variety it teaches, or the idea of acting "by the book," but those are extensions of the technical person&ndash;book relationship.
+
+## Translate into Toki Pona: "I write this word."
+
+<b>mi sitelen e nimi ni.</b>

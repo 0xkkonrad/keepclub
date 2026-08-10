@@ -6,7 +6,7 @@ Person, human being, or somebody. It's also the word placed before a personal na
 
 ## What does "mi" mean?
 
-"I," "me," or "we/us" &mdash; Toki Pona doesn't distinguish singular from plural, so <b>mi</b> alone means "I" and <b>mi mute</b> ("I many") specifies "we." It's one of the two subjects that can drop <b>li</b>.
+"I," "me," "we," or "us." <b>mi</b> does not mark singular or plural; context can make either meaning clear. <b>mi mute</b> can emphasize "we" or "many of us," but it is not required for a plural meaning. A subject consisting of <b>mi</b> alone does not take <b>li</b>.
 
 ## What does "sina" mean?
 
@@ -35,3 +35,7 @@ Group, community, organization, or nation &mdash; any collection of people (or t
 ## What does "olin" mean?
 
 To love, or love itself &mdash; deep affection or care, romantic or otherwise. <b>mi olin e sina</b> is "I love you"; as a noun it names the feeling directly.
+
+## Translate: "mi mute li olin e kulupu ni."
+
+"We love this community." Because the subject is the phrase <b>mi mute</b>, not <b>mi</b> alone, it is followed by <b>li</b>.

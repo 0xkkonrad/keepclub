@@ -14,12 +14,20 @@ As a preposition, "to" or "toward": <b>mi tawa tomo</b>, "I go to the house." As
 
 ## What does "kepeken" mean, as a preposition and as a verb?
 
-As a preposition, "using" or "with" an instrument: <b>mi pali kepeken ilo</b>, "I work using a tool." As a verb with <b>e</b> marking the object, it's "to use": <b>mi kepeken e ilo</b>, "I use the tool" &mdash; the same idea from two different grammatical angles.
+In core <i>pu</i> grammar, <b>kepeken</b> is the preposition "using" or "with" an instrument: <b>mi pali kepeken ilo</b>, "I work using a tool." Transitive <b>kepeken e</b>, as in <b>mi kepeken e ilo</b> for "I use the tool," appeared in early usage and is still used by some speakers, but <i>pu</i> teaches the prepositional pattern and most speakers prefer it today.
 
 ## What does "sama" mean?
 
 "Like," "same as," or "similar to," comparing two things: <b>ona li sama mi</b>, "they are like me" or "they are the same as me." As a modifier after a noun it can also mean "fellow" or "peer" &mdash; <b>jan sama</b>, someone on the same level.
 
-## What does "poka" mean, as a preposition and as a noun?
+## What does "poka" mean, and how does it express location? {#ce29aecc65}
 
-As a preposition, "near" or "beside": <b>poki li lon poka mi</b>, "the container is next to me." As a plain noun it names the side or hip of something &mdash; the "near" sense and the body-part sense come from the same idea of what's immediately adjacent.
+In core <i>pu</i> grammar, <b>poka</b> is not itself a preposition. It is a content word meaning "side," "nearby area," or "hip": in <b>poki li lon poka mi</b>, "the container is next to me," <b>lon</b> is the preposition and <b>poka mi</b> is its object phrase, "my side." Some non-<i>pu</i> or variant usage treats <b>poka</b> directly as "beside" or "with," but that is not the core pattern taught here.
+
+## In "poki li lon poka mi," which word is the preposition?
+
+<b>lon</b>. The phrase <b>poka mi</b>, "my side," is the object of the preposition; <b>poka</b> is a content word here.
+
+## How do you say "I work using a tool" without putting "e" after "kepeken"?
+
+<b>mi pali kepeken ilo.</b> Here <b>kepeken</b> is a preposition introducing the instrument <b>ilo</b>.

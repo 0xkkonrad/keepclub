@@ -6,7 +6,7 @@ Strong, powerful, or energetic &mdash; and, as a noun, strength, energy, or powe
 
 ## What does "nasa" mean?
 
-Strange, weird, silly, or crazy &mdash; and, informally, drunk or intoxicated. <b>ni li nasa</b> is "this is weird"; the same word covers "unusual" and "under the influence" depending on context.
+Unusual, strange, odd, unexpected, silly, or intoxicated. <b>ni li nasa</b> can mean "this is unusual"; <b>telo nasa</b> can be an intoxicating drink. Context supplies the intended sense.
 
 ## What does "jaki" mean?
 
@@ -27,3 +27,7 @@ Down, below, or low &mdash; the opposite of <b>sewi</b> &mdash; and, by extensio
 ## What does "namako" mean?
 
 Spice, seasoning, or garnish &mdash; and more generally, something extra or additional layered onto a base. <b>moku namako</b> is "spiced/seasoned food."
+
+## Give one possible Toki Pona sentence for "The person drinks an intoxicating drink."
+
+<b>jan li moku e telo nasa.</b> Here <b>nasa</b> describes the drink. Without an alcohol-related context, <b>telo nasa</b> could instead mean any strange or unusual liquid.

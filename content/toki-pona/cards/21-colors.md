@@ -2,7 +2,7 @@
 
 ## What does "kule" mean?
 
-Color, or colorful/multicolored in general &mdash; the umbrella word before any specific hue is named. In modern community use, <b>kule</b> alone (without a specific color after it) has also become a common way to describe queer identity.
+Color, or colorful/multicolored in general &mdash; the umbrella word before any specific hue is named. In some modern community usage, <b>kule</b> is also used figuratively for queer identity; this sense is not universal, and many speakers use the word only for color.
 
 ## What does "loje" mean?
 
@@ -23,3 +23,7 @@ White, pale, or light-colored &mdash; covering not just white itself but light s
 ## What does "pimeja" mean?
 
 Black, dark, or dark-colored &mdash; the counterpart to <b>walo</b>, covering darkness and dark shades broadly rather than only literal black.
+
+## Translate into Toki Pona: "This house is red."
+
+<b>tomo ni li loje.</b>

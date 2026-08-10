@@ -31,3 +31,7 @@ Face, front, or wall &mdash; the front-facing surface of a person, a place, or a
 ## What does "selo" mean?
 
 Skin, peel, shell, or bark &mdash; and more generally, the outer layer or boundary of anything. <b>selo mi</b> is "my skin"; <b>selo kili</b> is a fruit's peel.
+
+## Translate into Toki Pona: "My back is fine."
+
+<b>monsi mi li pona.</b>

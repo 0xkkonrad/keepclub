@@ -31,3 +31,7 @@ A bump, hill, mountain, or protrusion &mdash; and by extension a button, since i
 ## What does "palisa" mean?
 
 A long, rigid thing &mdash; a stick, rod, or pole. Where <b>linja</b> bends, <b>palisa</b> stays straight and stiff.
+
+## Translate into Toki Pona: "The tool is inside the house."
+
+<b>ilo li lon insa tomo.</b>

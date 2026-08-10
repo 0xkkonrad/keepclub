@@ -2,11 +2,11 @@
 
 ## What are Toki Pona's core number words?
 
-<b>wan</b> (one), <b>tu</b> (two), <b>luka</b> (roughly five), <b>mute</b> (many/several), and <b>ale</b>/<b>ali</b> (all/everything, used loosely for very large or unbounded amounts). Only <b>wan</b> and <b>tu</b> are precise counts in the original design &mdash; the rest are closer to "a handful," "a lot," and "uncountably many" than to exact numerals.
+Toki Pona commonly uses two number systems. In the simple system, <b>ala</b> is none/zero, <b>wan</b> is one, <b>tu</b> is two, <b>mute</b> is three or more/many, and <b>ale</b>/<b>ali</b> is all or an unbounded amount. In the extended exact system, <b>ala</b> is 0, <b>wan</b> is 1, <b>tu</b> is 2, <b>luka</b> is 5, <b>mute</b> is 20, and <b>ale</b>/<b>ali</b> is 100.
 
 ## Why does "luka" mean both "five" and "hand"?
 
-<b>luka</b> is literally the word for "hand" or "arm," and its rough numeral sense of "about five" comes straight from counting on one hand's fingers &mdash; the same everyday logic behind words like "digit" in English. Context tells you which sense is meant: <b>luka mi</b> is "my hand," while <b>kili luka</b> is "about five fruits."
+<b>luka</b> means "hand" or "arm," and one hand has five fingers. In the extended exact number system it therefore means exactly five. Context tells the uses apart: <b>luka mi</b> is "my hand," while <b>kili luka</b> can be "five fruits."
 
 ## What does "wan" mean, and how is it used beyond counting?
 
@@ -16,13 +16,17 @@
 
 "Two." As a modifier it can mean "a pair" or "divided into two" &mdash; describing something split or paired rather than only literally counting a pair of items.
 
+## What can "mute" mean as a quantity or number?
+
+Many, much, several, or very. In the simple counting system it covers three or more without giving an exact total; in the extended exact system it has the value 20. Context and the counting convention tell those uses apart.
+
 ## Does Toki Pona have a word for zero?
 
 Yes &mdash; <b>ala</b>, the same word used to negate ("not"). Zero and "none" are the same idea in Toki Pona's small vocabulary: <b>soweli ala</b> is "no animals" or "zero animals."
 
 ## How do you talk about numbers larger than "two" precisely?
 
-By combining the core words additively (<b>tu tu</b> for "four," roughly) or, more commonly today, by borrowing digits and place-value counting some communities have built on top of <b>nanpa</b>. Toki Pona was never designed for precise large arithmetic in conversation &mdash; for genuinely exact big numbers, speakers usually just say the digits.
+Use the extended exact system and add the values together: <b>tu wan</b> is 3, <b>tu tu</b> is 4, <b>luka tu</b> is 7, and <b>mute luka tu wan</b> is 28. This additive system is useful for ordinary exact counts, although speakers may choose another convention when large numbers need to be communicated efficiently.
 
 ## What does "nanpa" do?
 
@@ -30,4 +34,8 @@ It marks a number as an ordinal &mdash; "-th" rather than a plain count. <b>tomo
 
 ## What does "ale" ("ali") mean?
 
-"All," "everything," or "every" &mdash; the biggest, vaguest quantity word Toki Pona has. <b>jan ale li pona</b> is "everyone is good"; some speakers also use it informally as a rough stand-in for a very large number, the way English "a million" can mean "literally 1,000,000" or just "a lot."
+"All," "everything," or "every." <b>jan ale li pona</b> is "everyone is good." In the extended exact number system, it also has the value 100. <b>ali</b> is an alternate pronunciation and spelling that some speakers use to make it easier to distinguish from <b>ala</b>.
+
+## Translate: "jan luka tu li moku."
+
+"Seven people eat." In the extended exact system, <b>luka tu</b> adds 5 and 2.

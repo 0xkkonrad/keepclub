@@ -27,3 +27,7 @@ Thing, something, or stuff &mdash; the most general placeholder noun for an obje
 ## What does "nasin" mean?
 
 Way, path, road, method, or system &mdash; a route through space or a route through doing something. <b>nasin tawa</b> is literally "a way of going," a road, but also loosely "a way of doing things," a method or custom.
+
+## Translate into Toki Pona: "The thing is at the market."
+
+<b>ijo li lon esun.</b>

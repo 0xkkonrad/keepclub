@@ -6,15 +6,15 @@ Directly after it. <b>tomo pona</b> is "good house" (house + good); modifiers al
 
 ## How do multiple modifiers stack on one noun?
 
-They just line up after it, each one adding another description of the same noun. <b>jan pona mi</b> is "my good friend" &mdash; <b>jan</b> (person) is modified by both <b>pona</b> (good) and <b>mi</b> (mine), stacked flat rather than nested inside each other.
+They build from left to right. Each new modifier describes the entire phrase formed before it: <b>jan pona mi</b> groups as <b>(jan pona) mi</b>, "my good person/friend." It does not group as <b>jan (pona mi)</b>, "a person of my goodness," unless <b>pi</b> explicitly starts that new modifier group.
 
 ## What problem does the particle "pi" solve?
 
-It groups two or more words into a single modifier, when otherwise each word would separately (and wrongly) attach to the noun on its own. Without it, a multi-word description can only stack flat.
+By default, a phrase builds from left to right. <b>pi</b> starts a new modifier group so the words after it are understood together before they modify the phrase before <b>pi</b>. It is used when the intended grouping differs from the default, and it normally introduces at least two content words rather than a single modifier.
 
 ## How does "pi" change the meaning of a phrase?
 
-Compare <b>jan lawa mute</b> ("many leaders" &mdash; <b>lawa</b> and <b>mute</b> each separately modify <b>jan</b>) with <b>jan lawa pi ma tomo</b> ("leader of the city" &mdash; <b>pi</b> groups <b>ma tomo</b>, "city," into one modifier meaning "of the city," attached to <b>jan lawa</b>, "leader"). <b>pi</b> always starts a fresh modifier group and everything up to the next break belongs to it.
+Compare <b>jan lawa mute</b>, which groups as <b>(jan lawa) mute</b> and means "many leaders," with <b>jan lawa pi ma tomo</b>, where <b>pi</b> groups <b>ma tomo</b>, "city," before it modifies <b>jan lawa</b>, "leader." <b>pi</b> starts a fresh modifier group; it is not a general-purpose translation of English "of."
 
 ## How do you negate a word with "ala"?
 
@@ -23,3 +23,11 @@ Place <b>ala</b> right after it, the same slot any other modifier fills. <b>jan 
 ## Does a modifier ever come before the word it describes?
 
 No, that ordering is fixed. The one common exception in how modifiers are talked about is a proper name used as a modifier of <b>jan</b> or <b>ma</b> ("jan Sonja," "ma Kanata") &mdash; it still follows the pattern, since the name modifies the general word before it, just like any other description.
+
+## How does "jan toki pona" group without "pi"?
+
+As <b>(jan toki) pona</b>: a good speaker. The final modifier <b>pona</b> describes the whole phrase <b>jan toki</b>.
+
+## How do you say "person of good speech" using "pi"?
+
+<b>jan pi toki pona</b>. The <b>pi</b> makes <b>toki pona</b>, "good speech/language," a group that modifies <b>jan</b>.

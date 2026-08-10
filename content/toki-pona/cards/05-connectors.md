@@ -10,11 +10,11 @@ Only subjects. Toki Pona has no equivalent particle for joining two objects afte
 
 ## What does the particle "la" do?
 
-It marks a leading clause as context, condition, or setting for the sentence that follows &mdash; roughly "given this," "when this," or "if this." <b>tenpo suno la, mi moku</b> is "in the daytime, I eat" (or "when it's day, I eat").
+It marks a leading clause as context, condition, or setting for the sentence that follows &mdash; roughly "given this," "when this," or "if this." <b>tenpo suno la mi moku</b> is "in the daytime, I eat" (or "when it's day, I eat").
 
 ## Where does a "la" clause sit, and how is it written?
 
-At the very start of the sentence, followed by a comma, with the main sentence completing the thought after it: <b>[context] la, [main sentence]</b>. <b>sina wile la, mi ken pana</b> is "if you want, I can give (it)."
+The context comes before <b>la</b>, and the main sentence follows it: <b>[context] la [main sentence]</b>. A writer may add a comma after <b>la</b> for readability, but punctuation is optional rather than part of the grammar. <b>sina wile la mi ken pana</b> and <b>sina wile la, mi ken pana</b> both mean "if you want, I can give (it)."
 
 ## What does "anu" mean, and where is it used?
 
@@ -23,3 +23,11 @@ At the very start of the sentence, followed by a comma, with the main sentence c
 ## What does "taso" mean?
 
 Most often "but" or "however," opening a sentence that qualifies or contradicts the one before it: <b>mi wile e ni. taso, mi ken ala.</b> &mdash; "I want this. But I can't." As a modifier after a word it can also mean "only" or "alone," so <b>jan taso</b> is "only a/the person" or "a person alone."
+
+## How do you give one subject more than one predicate?
+
+For a subject that takes <b>li</b>, repeat it before each predicate: <b>ona li pona li moku</b> means "they are good and eat." Many modern speakers extend this pattern after bare <b>mi</b> or <b>sina</b>, omitting the first <b>li</b> but using it for later predicates: <b>mi pona li moku</b>. In stricter <i>pu</i> style, those become separate sentences: <b>mi pona. mi moku.</b>
+
+## How do you say "The animal is good and eats fruit"?
+
+<b>soweli li pona li moku e kili.</b> The repeated <b>li</b> gives the one subject, <b>soweli</b>, two predicates.
