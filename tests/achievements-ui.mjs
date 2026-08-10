@@ -145,7 +145,9 @@ const seeded = {
     },
     answers: 100,
     bestClean: 37,
-    ach: { 'solid-pct-25': unlockedAt },
+    // A private club-life find alongside the shareable one, so the sheet's
+    // per-record Share button can be proven both present and absent.
+    ach: { 'solid-pct-25': unlockedAt, 'night-watch': unlockedAt },
     privateNote: 'NEVER_SHARE_PRIVATE_NOTE_7KQ',
   }),
   other: baseState({
@@ -276,10 +278,10 @@ try {
     monthHidden: document.getElementById('month-card').hidden,
     monthTitle: document.getElementById('month-title').textContent.trim(),
     monthCopy: document.getElementById('month-copy').textContent.trim(),
-    shareIds: [...document.querySelectorAll('[data-share-ach]')]
-      .map((button) => button.dataset.shareAch),
-    momentIds: [...document.querySelectorAll('[data-share-moment]')]
-      .map((button) => button.dataset.shareMoment),
+    achIds: [...document.querySelectorAll('#ach-list [data-ach-id]')]
+      .map((button) => button.dataset.achId),
+    momentIds: [...document.querySelectorAll('#ach-list [data-moment-id]')]
+      .map((button) => button.dataset.momentId),
     locked50: [...document.querySelectorAll('#ach-list li.locked')]
       .some((row) => row.querySelector('b')?.textContent.trim() === '50% kept'),
     notificationHidden: document.getElementById('notifications-card').hidden,
@@ -302,15 +304,15 @@ try {
       && progress.monthCopy === recapCopy,
   `the completed monthly recap aggregates both courses (${progress.monthTitle}: ${progress.monthCopy}`
   + `, expected ${recapCopy})`);
-  ok(progress.shareIds.includes('streak-7') && progress.shareIds.includes('solid-10'),
-    'club-scoped unlocks earned in another course appear with share actions');
-  ok(progress.shareIds.includes('solid-pct-25')
-      && !progress.shareIds.includes('solid-pct-50')
+  ok(progress.achIds.includes('streak-7') && progress.achIds.includes('solid-10'),
+    'club-scoped unlocks earned in another course appear as earned rows in Progress');
+  ok(progress.achIds.includes('solid-pct-25')
+      && !progress.achIds.includes('solid-pct-50')
       && progress.locked50,
   'course-scoped unlocks stay with their course while their locked row remains visible');
   ok(progress.momentIds.includes('personal-best:37')
       && progress.momentIds.includes(`section-kept:${daySkipperDeck.sections[0].k}`),
-  'exact personal-best and kept-section moments remain shareable from Progress');
+  'exact personal-best and kept-section moments remain openable from Progress');
   ok(!progress.notificationHidden && progress.permissionRequests === 0,
     'the opt-in is offered without requesting permission during render');
 
@@ -357,7 +359,27 @@ try {
   ok(sharing.storageKeys.includes('rya-ds/v1')
       && sharing.storageKeys.includes('test/private-share-sentinel'),
   'privacy sentinels were present locally when the share boundary was exercised');
-  await page.click('[data-share-ach="solid-pct-25"]');
+
+  // A private achievement's sheet has nothing to leave the device with — the
+  // whole point of dropping the toast that just echoed the row was to give it
+  // something else worth opening instead.
+  await page.click('#ach-list [data-ach-id="night-watch"]');
+  await page.waitForFunction(() => !document.getElementById('ach-sheet').hidden);
+  const privateSheet = await page.evaluate(() => ({
+    title: document.getElementById('ach-sheet-h').textContent.trim(),
+    kind: document.getElementById('ach-sheet-kind').textContent.trim(),
+    shareHidden: document.getElementById('ach-sheet-share').hidden,
+  }));
+  ok(privateSheet.title === 'night watch'
+      && privateSheet.kind === 'club life'
+      && privateSheet.shareHidden,
+  `a private achievement opens its sheet with no share action (${JSON.stringify(privateSheet)})`);
+  await page.keyboard.press('Escape');
+  await page.waitForFunction(() => document.getElementById('ach-sheet').hidden);
+
+  await page.click('#ach-list [data-ach-id="solid-pct-25"]');
+  await page.waitForFunction(() => !document.getElementById('ach-sheet').hidden);
+  await page.click('#ach-sheet-share');
   await page.waitForFunction(() => globalThis.__shareCalls.length === 2, null, { timeout: 10000 });
   const courseShare = new URL(await page.evaluate(() => globalThis.__shareCalls[1].url));
   ok(courseShare.search === '?course=day-skipper',
