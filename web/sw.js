@@ -227,10 +227,14 @@ self.addEventListener('install', (e) => {
           // Optional 404 is part of the course format. A server error or a
           // captive-portal body is a partial deploy, and must reject this
           // generation rather than evicting the last complete one.
-          if (r.status === 404 && !REQUIRED_COURSE.includes(f)) continue;
+          if (r.status === 404 && !REQUIRED_COURSE.includes(f)) {
+            await r.body?.cancel();
+            continue;
+          }
           if (!ok(r, typeFor(f))) {
             healthy = false;
             console.warn('munin: ' + id + '/' + f + ' returned an invalid response');
+            await r.body?.cancel();
             continue;
           }
           await cache.put(path, r);

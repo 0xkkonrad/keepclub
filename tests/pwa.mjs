@@ -438,9 +438,13 @@ async function cachesAt(page) {
     .catch(() => {});
   await page.waitForTimeout(1600);
   const caches = await cachesAt(page);
-  ok(Object.keys(caches).includes('munin-course-day-skipper-qa-optional-one')
-      && !Object.keys(caches).includes('munin-course-day-skipper-qa-optional-two'),
-  `wrong-MIME optional metadata preserves the complete course (${Object.keys(caches).join(', ')})`);
+  const oldCourse = caches['munin-course-day-skipper-qa-optional-one'] || [];
+  const nextCourse = caches['munin-course-day-skipper-qa-optional-two'] || [];
+  const figures = '/courses/day-skipper/figures.json';
+  const videos = '/courses/day-skipper/videos.json';
+  ok(oldCourse.includes(figures) && oldCourse.includes(videos)
+      && !nextCourse.includes(figures) && !nextCourse.includes(videos),
+  `wrong-MIME optional metadata preserves the complete course (old=${oldCourse.length}, next=${nextCourse.length})`);
   state.spoof.delete('courses/day-skipper/figures.json');
   state.spoof.delete('courses/day-skipper/videos.json');
   await ctx.close();

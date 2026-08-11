@@ -43,6 +43,14 @@ default), modal Back/focus behavior, lightbox
 containment, removed optional assets, late video metadata, cached-scene
 sanitization, and chunked large-deck indexing.
 
+`orientation.mjs` — the “This device” auto-rotation setting against a validated
+fake ScreenOrientation API: exact-direction lock, global versioned persistence,
+reload/course reapplication, unlock and storage read/write failure atomicity,
+rejection rollback, saved-choice recovery in unsupported and uninstalled
+contexts, hidden-tab reconciliation, fullscreen eligibility, and the boundary
+keeping the choice out of course settings, their sync timestamp, and the Sync
+payload.
+
 `pwa.mjs` — a disposable local server that changes deploy generations under a
 real service worker: transactional page/code and course updates, partial-cache
 cleanup, captive-portal and wrong-MIME rejection, closed-client completion, and
