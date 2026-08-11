@@ -46,6 +46,37 @@ sync_dir() { # label src dst
   else rsync -rnc --delete --itemize-changes --out-format="$1 %i %n" "$2" "$3"; fi
 }
 
+cc_videos() { # ds-build cc-build dest — the DS clip subset CC's pointer cards share
+  if [ ! -f "$1/videos.json" ] || [ ! -f "$2/cards.json" ]; then echo "MISS  $1/videos.json"; return; fi
+  python3 - "$1" "$2" "$3" "$FLAG" <<'PY'
+import json, os, shutil, sys
+ds_dir, cc_dir, dest, flag = sys.argv[1:5]
+ds = json.load(open(os.path.join(ds_dir, 'videos.json')))
+ids = [c['i'] for c in json.load(open(os.path.join(cc_dir, 'cards.json')))['cards']]
+cards = {i: ds['cards'][i] for i in ids if i in ds['cards']}
+need = {c for lst in cards.values() for c in lst}
+out = {'clips': {k: v for k, v in ds['clips'].items() if k in need},
+       'cards': cards, 'credit': ds.get('credit')}
+text = json.dumps(out, ensure_ascii=False, separators=(',', ':'))
+vj, vdir = os.path.join(dest, 'videos.json'), os.path.join(dest, 'video')
+files = sorted(v['f'] for v in out['clips'].values())
+have = sorted(os.listdir(vdir)) if os.path.isdir(vdir) else []
+if flag == '--write':
+    open(vj, 'w').write(text)
+    os.makedirs(vdir, exist_ok=True)
+    for f in files:
+        shutil.copy2(os.path.join(ds_dir, 'video', f), os.path.join(vdir, f))
+    for f in set(have) - set(files):
+        os.remove(os.path.join(vdir, f))
+    print('wrote %s: %d clips on %d cards' % (vj, len(out['clips']), len(cards)))
+else:
+    same = os.path.exists(vj) and open(vj).read() == text
+    print(('same  ' if same else 'DIFF  ') + vj)
+    for f in sorted(set(files) - set(have)): print('video + %s' % f)
+    for f in sorted(set(have) - set(files)): print('video - %s' % f)
+PY
+}
+
 MISSING_RULE=0
 IDS=$(python3 -c "import json;print(' '.join(json.load(open('$HERE/web/courses/index.json'))['courses']))")
 
@@ -70,6 +101,11 @@ for id in $IDS; do
       # own vocabulary, and the two courses' copies may drift apart on purpose.
       copy "$DS/figures.json" "$DEST/figures.json"
       sync_dir 'img  ' "$CC/media/" "$DEST/img/"
+      # The clips are Day Skipper's: CC's pointer cards share ids with their
+      # originals, so the video map is derived from the DS build, never
+      # authored here. Same separation rule as figures — CC ships its own
+      # copies of the files it uses.
+      cc_videos "$DS" "$CC" "$DEST"
       ;;
     git-101)
       copy "$GIT101/cards.json" "$DEST/cards.json"
