@@ -189,10 +189,8 @@ const recapCopy = `${recapStudyDays} study days · ${recapAnswers} answers · 39
 
 const { server, port } = await listen();
 const baseUrl = `http://127.0.0.1:${port}/`;
-const defaultExecutable = process.env.HOME
-  + '/.cache/ms-playwright/chromium_headless_shell-1217/'
-  + 'chrome-headless-shell-linux64/chrome-headless-shell';
-const executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH || defaultExecutable;
+const executablePath = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
+  || chromium.executablePath();
 if (!existsSync(executablePath)) throw new Error(`Chromium not found at ${executablePath}`);
 
 let browser;
