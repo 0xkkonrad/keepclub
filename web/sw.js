@@ -297,13 +297,13 @@ self.addEventListener('message', (e) => {
   if (e.data && e.data.type === 'prefetch' && Array.isArray(e.data.urls)) {
     e.waitUntil((async () => {
       const total = e.data.urls.length;
-      let done = 0, failed = 0;
+      let done = 0, failed = 0, unreachable = 0;
       const requestId = typeof e.data.requestId === 'string' ? e.data.requestId : '';
       const client = e.source;
       const say = async (type) => {
         try {
           if (client && client.postMessage) {
-            client.postMessage({ type, done, total, failed, requestId });
+            client.postMessage({ type, done, total, failed, unreachable, requestId });
           }
         } catch (err) { /* the requesting tab may close while caching continues */ }
       };
@@ -322,7 +322,16 @@ self.addEventListener('message', (e) => {
           const existing = await cache.match(url.href);
           if (existing && !ok(existing, expected)) await cache.delete(url.href);
           if (!existing || !ok(existing, expected)) {
-            const response = await fetch(url.href, { cache: 'reload' });
+            // A request that never comes back at all is a different problem from
+            // a server that answers with the wrong thing, and only one of the two
+            // is worth telling somebody to go and find a signal for.
+            let response;
+            try {
+              response = await fetch(url.href, { cache: 'reload' });
+            } catch (err) {
+              unreachable++;
+              throw err;
+            }
             if (!ok(response, expected)) throw new Error('not a valid image response');
             await cache.put(url.href, response.clone());
           }

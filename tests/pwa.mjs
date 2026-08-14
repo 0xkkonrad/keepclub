@@ -12,7 +12,7 @@ const EXE = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
 const out = [], fails = [];
 const ok = (c, m) => (c ? out : fails).push((c ? 'PASS  ' : 'FAIL  ') + m);
 const state = {
-  gen: 'one', pageTag: 'base', delayImages: 0,
+  gen: 'one', pageTag: 'base', delayImages: 0, deadImages: false,
   fail: new Set(), spoof: new Set(), requests: [], v2Cards: false,
 };
 const mime = {
@@ -31,6 +31,10 @@ const server = http.createServer(async (req, res) => {
   if (state.fail.has(rel)) {
     res.writeHead(503, { 'content-type': 'text/plain', 'cache-control': 'no-store' });
     res.end('temporarily unavailable');
+    return;
+  }
+  if (state.deadImages && extname(rel) === '.png') {
+    req.socket.destroy();
     return;
   }
   if (state.spoof.has(rel)) {
@@ -508,6 +512,67 @@ async function cachesAt(page) {
   const untouched = await day.textContent('#prefetch-btn');
   ok(untouched === original,
     `another tab's prefetch cannot claim this course is saved (${untouched.trim()})`);
+  await ctx.close();
+}
+
+/* An origin that is not there says so, instead of counting up and printing 0. */
+{
+  state.gen = 'unreachable';
+  const ctx = await b.newContext();
+  const page = await ctx.newPage();
+  await page.goto(BASE + '?course=competent-crew', { waitUntil: 'networkidle' });
+  await controlled(page);
+  await page.reload({ waitUntil: 'load' });
+  await page.waitForFunction(() => document.getElementById('boot').hidden);
+  await page.click('[data-go="stats"]');
+  await page.click('.setup-btn:visible');
+  await page.click('#setup-device');
+  state.deadImages = true;
+  await page.click('#prefetch-btn');
+  await page.waitForFunction(() => !document.getElementById('prefetch-btn').disabled,
+    null, { timeout: 30000 });
+  const dead = await page.evaluate(() => ({
+    button: document.getElementById('prefetch-btn').textContent,
+    toast: document.getElementById('toast').textContent,
+  }));
+  state.deadImages = false;
+  ok(/no connection/i.test(dead.button) && !/\d+ of \d+ saved/.test(dead.button)
+    && /could not reach the server/i.test(dead.toast),
+  `a save with nothing reachable names the connection rather than counting to zero (${
+    dead.button} / ${dead.toast})`);
+  await ctx.close();
+}
+
+/* A settings redraw is not a cancel: the sheet is redrawn by a merge from
+ * another tab, and a save running behind it keeps its own count. */
+{
+  state.gen = 'inflight';
+  const ctx = await b.newContext();
+  const page = await ctx.newPage();
+  await page.goto(BASE + '?course=competent-crew', { waitUntil: 'networkidle' });
+  await controlled(page);
+  await page.reload({ waitUntil: 'load' });
+  await page.waitForFunction(() => document.getElementById('boot').hidden);
+  await page.click('[data-go="stats"]');
+  await page.click('.setup-btn:visible');
+  await page.click('#setup-device');
+  state.delayImages = 600;
+  await page.click('#prefetch-btn');
+  await page.waitForFunction(
+    () => /^Saving [1-9]/.test(document.getElementById('prefetch-btn').textContent),
+    null, { timeout: 20000 });
+  const during = await page.evaluate(() => {
+    renderSetup();
+    const btn = document.getElementById('prefetch-btn');
+    return { text: btn.textContent, disabled: btn.disabled };
+  });
+  ok(/^Saving \d+ of \d+/.test(during.text) && during.disabled,
+    `redrawing the sheet leaves a running save alone (${during.text})`);
+  await page.waitForFunction(() => !document.getElementById('prefetch-btn').disabled,
+    null, { timeout: 30000 });
+  state.delayImages = 0;
+  const after = await page.textContent('#prefetch-btn');
+  ok(/offline ✓/.test(after), `the save still reports itself when it lands (${after})`);
   await ctx.close();
 }
 
