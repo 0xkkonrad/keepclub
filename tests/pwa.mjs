@@ -255,18 +255,24 @@ async function cachesAt(page) {
   await page.click('.setup-btn:visible');
   await page.click('#setup-device');
   await page.click('#prefetch-btn');
-  await page.waitForFunction(() => !document.getElementById('prefetch-btn').disabled,
+  await page.waitForFunction(
+    () => /remaining/.test(document.getElementById('prefetch-btn').textContent),
     null, { timeout: 20000 });
   const result = await page.evaluate(async (path) => {
     const url = new URL(path, location.href).href;
     const hit = await caches.match(url);
     return {
       button: document.getElementById('prefetch-btn').textContent,
+      note: document.getElementById('offline-note').textContent,
+      toast: document.getElementById('toast').textContent,
       cachedType: hit ? hit.headers.get('content-type') : null,
     };
   }, victim);
-  ok(/retry/i.test(result.button) && result.cachedType === null,
-    `HTML returned for an image is reported failed and not cached (${result.button})`);
+  ok(/could not be downloaded/i.test(result.toast) && result.cachedType === null
+    && /Save the remaining 1 diagram/.test(result.button)
+    && /2 of the 3 diagrams are saved/.test(result.note),
+  `HTML returned for an image is reported failed, not cached, and still offered (${
+    result.button} / ${result.note} / ${result.toast})`);
   state.spoof.delete(victim);
   state.requests.length = 0;
   const retried = await page.evaluate(async (path) => {
@@ -529,15 +535,17 @@ async function cachesAt(page) {
   await page.click('#setup-device');
   state.deadImages = true;
   await page.click('#prefetch-btn');
-  await page.waitForFunction(() => !document.getElementById('prefetch-btn').disabled,
+  await page.waitForFunction(
+    () => /could not/.test(document.getElementById('toast').textContent)
+      && !/^Saving/.test(document.getElementById('prefetch-btn').textContent),
     null, { timeout: 30000 });
   const dead = await page.evaluate(() => ({
     button: document.getElementById('prefetch-btn').textContent,
     toast: document.getElementById('toast').textContent,
   }));
   state.deadImages = false;
-  ok(/no connection/i.test(dead.button) && !/\d+ of \d+ saved/.test(dead.button)
-    && /could not reach the server/i.test(dead.toast),
+  ok(/could not reach the server/i.test(dead.toast)
+    && !/\d+ of \d+ saved/.test(dead.button) && !/\u2713/.test(dead.button),
   `a save with nothing reachable names the connection rather than counting to zero (${
     dead.button} / ${dead.toast})`);
   await ctx.close();
@@ -568,11 +576,18 @@ async function cachesAt(page) {
   });
   ok(/^Saving \d+ of \d+/.test(during.text) && during.disabled,
     `redrawing the sheet leaves a running save alone (${during.text})`);
-  await page.waitForFunction(() => !document.getElementById('prefetch-btn').disabled,
+  await page.waitForFunction(() => document.getElementById('prefetch-btn').hidden,
     null, { timeout: 30000 });
   state.delayImages = 0;
-  const after = await page.textContent('#prefetch-btn');
-  ok(/offline ✓/.test(after), `the save still reports itself when it lands (${after})`);
+  const landed = await page.evaluate(() => ({
+    hidden: document.getElementById('prefetch-btn').hidden,
+    note: document.getElementById('offline-note').textContent,
+    toast: document.getElementById('toast').textContent,
+  }));
+  ok(landed.hidden && /All 3 diagrams are saved on this device/.test(landed.note)
+    && /3 diagrams saved on this device/.test(landed.toast),
+  `a finished save leaves a state to read and no button to press (${
+    landed.note} / ${landed.toast} / hidden=${landed.hidden})`);
   await ctx.close();
 }
 
