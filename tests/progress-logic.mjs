@@ -650,6 +650,42 @@ ok(midnightPlan.examDay.plan.ivl === 1
     && midnightPlan.examDay.gap === 1,
   'a plan revealed before the exam day commits its shown interval even when answered after midnight');
 
+const atomicReveal = await page.evaluate((fixedNow) => {
+  const id = DECK.cards[0].cardId;
+  const realNow = Date.now;
+  const before = Date.parse('2026-08-26T23:59:59.999Z');
+  const after = Date.parse('2026-08-27T00:00:00.001Z');
+  let calls = 0;
+  state = freshState();
+  state.settings.examDate = '2026-08-27';
+  state.recs[id] = {
+    st: 'r', step: 0, ivl: 30, ea: 2.5,
+    due: before, rp: 5, sr: 5, lp: 0, pv: 30,
+  };
+  session = { ahead: false };
+  Date.now = () => (++calls <= 3 ? before : after);
+  prepareGradeControls(DECK.cards[0]);
+  const result = {
+    calls,
+    cap: session.gradeCap,
+    exams: Object.values(session.examDates),
+    intervals: Object.values(session.ivls),
+    labels: [2, 3, 4].map((g) => document.getElementById('iv' + g).textContent),
+    valid: !!studyGradePlans(session),
+  };
+  Date.now = realNow;
+  globalThis.__muninNow = fixedNow;
+  state = freshState();
+  session = null;
+  return result;
+}, NOW);
+ok(atomicReveal.calls === 1 && atomicReveal.cap === 1
+    && atomicReveal.exams.every((date) => date === '2026-08-27')
+    && atomicReveal.intervals.slice(1).every((ivl) => ivl === 1)
+    && atomicReveal.labels.every((label) => label === '1 day max')
+    && atomicReveal.valid,
+  'one reveal takes one clock snapshot, so midnight cannot mix grade plans');
+
 /* Malformed provenance cannot erase the only surviving proof or manufacture a
  * lapse epoch newer than the answers that could have caused it. */
 const sanitation = await page.evaluate(() => {

@@ -150,6 +150,34 @@ ok(/no answer to reveal/i.test(immediate.instruction)
 ok(/Space\/Enter grades Good/i.test(immediate.hint),
 'the visible keyboard policy says Space/Enter grades Good');
 
+/* A pre-repair active session has no saved grade-plan bundle. A front-only card
+ * cannot return to a reveal button it never had, so resume visibly prepares a
+ * fresh bounded plan instead of leaving hidden or undefined grade values. */
+await page.evaluate(() => {
+  const saved = JSON.parse(sessionStorage.getItem(ACTIVE_STUDY_KEY));
+  delete saved.active.gradePlans;
+  sessionStorage.setItem(ACTIVE_STUDY_KEY, JSON.stringify(saved));
+});
+await page.reload({ waitUntil: 'networkidle' });
+await page.waitForFunction(() => document.getElementById('boot').hidden);
+const legacyFrontResume = await page.evaluate(() => {
+  const saved = JSON.parse(sessionStorage.getItem(ACTIVE_STUDY_KEY));
+  return {
+    current,
+    card: currentCard()?.cardId,
+    revealed: session?.revealed,
+    revealHidden: $('#reveal-btn').hidden,
+    gradesVisible: !$('#grade-row').hidden,
+    good: session?.ivls?.[3],
+    savedPlans: !!saved?.active?.gradePlans,
+  };
+});
+ok(legacyFrontResume.current === 'study' && legacyFrontResume.card === 'front-text'
+    && legacyFrontResume.revealed && legacyFrontResume.revealHidden
+    && legacyFrontResume.gradesVisible && Number.isInteger(legacyFrontResume.good)
+    && legacyFrontResume.savedPlans,
+'a legacy front-only session resumes with fresh visible, validated grade controls');
+
 /* Mouse grading and Undo use the unchanged answer/snapshot path. */
 await page.click('.grade[data-g="1"]');
 let mouse = await page.evaluate(() => ({

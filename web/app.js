@@ -940,8 +940,8 @@ function daysUntilExam(examDate, now = Date.now()) {
 }
 
 /** Whole days from today to the active exam, or null if no date is set. */
-function daysToExam() {
-  return daysUntilExam(state.settings.examDate);
+function daysToExam(now = Date.now()) {
+  return daysUntilExam(state.settings.examDate, now);
 }
 
 function fuzz(days, roll = Math.random()) {
@@ -964,8 +964,8 @@ function examCeiling(examDate, now = Date.now()) {
   return Math.max(1, Math.min(MAX_IVL, Math.round(d * 0.2)));
 }
 
-function ceiling() {
-  return examCeiling(state.settings.examDate);
+function ceiling(now = Date.now()) {
+  return examCeiling(state.settings.examDate, now);
 }
 
 /** When the answer's ordinary schedule began.
@@ -1042,15 +1042,15 @@ function naturalPreview(rec, g) {
 }
 
 /** What the next scheduled gap would be before jitter. */
-function preview(rec, g) {
+function preview(rec, g, now = Date.now()) {
   const natural = naturalPreview(rec, g);
   if (natural <= 0) return 0;
   // Hard holds the gap that is actually scheduled, even after an exam cap is
   // cleared; it does not suddenly jump from six days to the proven 38.
   if (rec && rec.st === 'r' && g === 2) {
-    return Math.min(ceiling(), MAX_IVL, Math.max(1, Number(rec.ivl) || natural));
+    return Math.min(ceiling(now), MAX_IVL, Math.max(1, Number(rec.ivl) || natural));
   }
-  return Math.min(ceiling(), MAX_IVL, natural);
+  return Math.min(ceiling(now), MAX_IVL, natural);
 }
 
 /** The interval a grade will really schedule — the jitter rolled in, once.
@@ -1060,10 +1060,10 @@ function preview(rec, g) {
  * were wrong, and good and easy often showed the same day with nothing to
  * choose between them. Rolled here, so the number promised and the number
  * applied are the same number. */
-function schedulePlan(rec, g) {
+function schedulePlan(rec, g, now = Date.now()) {
   const natural = naturalPreview(rec, g);
-  const out = preview(rec, g);
-  const exam = daysToExam() > 0 ? state.settings.examDate : '';
+  const out = preview(rec, g, now);
+  const exam = daysToExam(now) > 0 ? state.settings.examDate : '';
   // 0 is "again this session", which is not a date and does not get jittered.
   if (out <= 0) return { ivl: 0, natural: 0, uncapped: 0, exam };
   // Hard means "leave the gap where it is". Fuzzing an unchanged interval turns
@@ -1074,7 +1074,7 @@ function schedulePlan(rec, g) {
   // its short-gap jitter while the stored ordinary schedule is exactly what
   // this same answer and roll would have produced with exam mode off.
   const roll = jitter ? Math.random() : 0.5;
-  const ivl = Math.min(ceiling(), MAX_IVL, Math.max(1, jitter ? fuzz(out, roll) : out));
+  const ivl = Math.min(ceiling(now), MAX_IVL, Math.max(1, jitter ? fuzz(out, roll) : out));
   const uncapped = Math.min(MAX_IVL,
     Math.max(1, jitter ? fuzz(natural, roll) : ivl));
   const prior = provenInterval(rec);
@@ -2131,8 +2131,51 @@ function clearStudySession() {
   catch (e) { /* private/storage-blocked contexts simply cannot resume */ }
 }
 
+/** Copy one revealed card's already-rolled grade plans through Reload.
+ *
+ * A button is a promise: once its interval is visible, midnight, a settings
+ * edit in another tab, or a fresh Math.random() roll must not silently change
+ * what pressing it records. Session storage is untrusted input, so accept only
+ * the exact bounded shape prepareGradeControls() writes. */
+function studyGradePlans(value) {
+  if (!isPlainObject(value)) return null;
+  const fields = ['ivls', 'naturalIvls', 'uncappedIvls', 'examDates'];
+  if (fields.some((field) => !isPlainObject(value[field]))) return null;
+  if (typeof value.gradeCap !== 'number' || !Number.isInteger(value.gradeCap)
+      || value.gradeCap < 1 || value.gradeCap > MAX_IVL) return null;
+  if (typeof value.gradeCardId !== 'string' || value.gradeCardId.length > 128
+      || typeof value.gradeRecordKey !== 'string' || value.gradeRecordKey.length > 4096
+      || typeof value.gradeExamSetting !== 'string'
+      || (value.gradeExamSetting !== '' && !validExamDate(value.gradeExamSetting))) return null;
+  const plans = Object.fromEntries(fields.map((field) => [field, {}]));
+  plans.gradeCap = value.gradeCap;
+  plans.gradeCardId = value.gradeCardId;
+  plans.gradeRecordKey = value.gradeRecordKey;
+  plans.gradeExamSetting = value.gradeExamSetting;
+  let sharedExam = null;
+  for (let g = 1; g <= 4; g++) {
+    const ivl = value.ivls[g];
+    const natural = value.naturalIvls[g];
+    const uncapped = value.uncappedIvls[g];
+    const exam = value.examDates[g];
+    if (![ivl, natural, uncapped].every((n) => typeof n === 'number'
+          && Number.isInteger(n) && n >= 0 && n <= MAX_IVL)
+        || ivl > uncapped
+        || (exam !== '' && !validExamDate(exam))
+        || (sharedExam !== null && exam !== sharedExam)) return null;
+    sharedExam = exam;
+    plans.ivls[g] = ivl;
+    plans.naturalIvls[g] = natural;
+    plans.uncappedIvls[g] = uncapped;
+    plans.examDates[g] = exam;
+  }
+  if (sharedExam && sharedExam !== plans.gradeExamSetting) return null;
+  return plans;
+}
+
 function persistStudySession() {
   if (!session || current !== 'study' || !session.queue.length) return;
+  const gradePlans = session.revealed ? studyGradePlans(session) : null;
   const active = {
     section: session.section || null,
     queue: session.queue.slice(),
@@ -2149,6 +2192,10 @@ function persistStudySession() {
     reelCards: Array.isArray(session.reelCards) ? session.reelCards.slice() : [],
     ahead: !!session.ahead,
     sectionKeys: Array.isArray(session.sectionKeys) ? session.sectionKeys.slice() : [],
+    // Unrevealed cards have made no promise yet. A malformed/partial revealed
+    // plan is deliberately omitted; resume will show the question again rather
+    // than grade against values the learner never saw.
+    gradePlans,
   };
   try {
     sessionStorage.setItem(ACTIVE_STUDY_KEY, JSON.stringify({
@@ -2199,6 +2246,13 @@ function resumableStudySession() {
     ? [...new Set(value.filter((item) => typeof item === 'string' && item.length <= 256))]
       .slice(0, DECK.cards.length)
     : [];
+  const gradePlans = studyGradePlans(raw.gradePlans);
+  // Answers can stay equal while a max-based sync merge replaces this one
+  // card. Never apply a plan rolled against an older schedule revision.
+  const planMatches = !!gradePlans && gradePlans.gradeCardId === queue[0]
+    && gradePlans.gradeRecordKey === stableJson(state.recs[queue[0]] || null)
+    && gradePlans.gradeExamSetting === state.settings.examDate;
+  const revealed = !!raw.revealed && planMatches;
   return {
     section,
     queue,
@@ -2210,13 +2264,14 @@ function resumableStudySession() {
     maxClean: whole(raw.maxClean, 0, DECK.cards.length * 10) || 0,
     missed: ids(raw.missed),
     startedNew: whole(raw.startedNew, 0, total) || 0,
-    revealed: !!raw.revealed,
+    revealed,
     reel: strings(raw.reel),
     reelCards: ids(raw.reelCards),
     ahead: !!raw.ahead,
     sectionKeys: Array.isArray(raw.sectionKeys)
       ? [...new Set(raw.sectionKeys.filter((key) => sectionOf.has(key)))]
       : [],
+    ...(planMatches ? gradePlans : {}),
     // Unlock records shown pre-refresh are already in state.ach; the finish
     // screen simply cannot replay them as this session's hero after a reload.
     newAchievements: [],
@@ -2231,6 +2286,7 @@ function restoreStudySession() {
     return false;
   }
   const wasRevealed = restored.revealed;
+  const savedPlans = wasRevealed ? studyGradePlans(restored) : null;
   session = restored;
   // The pre-refresh club snapshot is gone with the old page. Re-baseline from
   // the current blobs: answers already recorded before the reload now count as
@@ -2254,8 +2310,8 @@ function restoreStudySession() {
   // every refresh.
   stops.push('study');
   history.replaceState({ stop: 'study' }, '');
-  showCard();
-  if (wasRevealed && !session.revealed) reveal();
+  showCard(savedPlans);
+  if (wasRevealed && !session.revealed) reveal(savedPlans);
   return true;
 }
 
@@ -4525,7 +4581,7 @@ function currentCard() {
   return session && session.queue.length ? byId.get(session.queue[0]) : null;
 }
 
-function showCard() {
+function showCard(savedPlans) {
   const card = currentCard();
   if (!card) return finish();
   const backed = hasBackContent(card);
@@ -4614,7 +4670,7 @@ function showCard() {
     $('#keyhint').textContent = 'Space/Enter reveals · 1–4 grades · U undoes';
     $('#reveal-btn').focus({ preventScroll: true });
   } else {
-    prepareGradeControls(card);
+    prepareGradeControls(card, savedPlans);
     $('#grade-ask').textContent = session.ahead
       ? 'No answer to reveal. Rate your confidence; practice does not move the schedule.'
       : 'No answer to reveal. Rate your confidence with Again, Hard, Good, or Easy; keys 1–4 also grade.';
@@ -4672,23 +4728,39 @@ function settleDock(on) {
   settleTimer = setTimeout(() => d.classList.remove('settling'), DOCK_SETTLE);
 }
 
-function prepareGradeControls(card) {
+function prepareGradeControls(card, savedPlans) {
   const rec = state.recs[card.cardId];
-  session.ivls = {};
-  session.naturalIvls = {};
-  session.uncappedIvls = {};
-  session.examDates = {};
+  const restored = studyGradePlans(savedPlans);
+  // One reveal is one point in time. Calling Date.now independently for each
+  // grade could straddle midnight and produce a mixture of exam/no-exam plans
+  // that no single button row ever meant.
+  const planNow = Date.now();
+  session.ivls = restored ? restored.ivls : {};
+  session.naturalIvls = restored ? restored.naturalIvls : {};
+  session.uncappedIvls = restored ? restored.uncappedIvls : {};
+  session.examDates = restored ? restored.examDates : {};
+  session.gradeCap = restored ? restored.gradeCap : ceiling(planNow);
+  session.gradeCardId = restored ? restored.gradeCardId : card.cardId;
+  session.gradeRecordKey = restored ? restored.gradeRecordKey : stableJson(rec || null);
+  session.gradeExamSetting = restored ? restored.gradeExamSetting : state.settings.examDate;
   for (let g = 1; g <= 4; g++) {
-    const plan = schedulePlan(rec, g);
+    const plan = restored ? {
+      ivl: restored.ivls[g],
+      natural: restored.naturalIvls[g],
+      uncapped: restored.uncappedIvls[g],
+      exam: restored.examDates[g],
+    } : schedulePlan(rec, g, planNow);
     const d = plan.ivl;
-    session.ivls[g] = d;
-    session.naturalIvls[g] = plan.natural;
-    session.uncappedIvls[g] = plan.uncapped;
-    session.examDates[g] = plan.exam;
+    if (!restored) {
+      session.ivls[g] = d;
+      session.naturalIvls[g] = plan.natural;
+      session.uncappedIvls[g] = plan.uncapped;
+      session.examDates[g] = plan.exam;
+    }
     // "(max)" explains why two buttons can show the same number: the exam date
     // is holding both down, not a bug.
-    const cap = ceiling();
-    const capped = d > 0 && d === cap && cap < MAX_IVL && daysToExam() > 0;
+    const cap = session.gradeCap;
+    const capped = d > 0 && d === cap && cap < MAX_IVL;
     const label = d === 0 ? 'soon' : fmtDays(d) + (capped ? ' max' : '');
     // Practising promises nothing, so it prints nothing: these dates are the
     // ones the card would get on a day it was actually due, and it is not.
@@ -4700,7 +4772,7 @@ function prepareGradeControls(card) {
   }
 }
 
-function reveal() {
+function reveal(savedPlans) {
   if (!session || session.revealed) return;
   const card = currentCard();
   if (!card) return;
@@ -4736,7 +4808,7 @@ function reveal() {
     ? 'Practice — the schedule does not move' : 'Did you get it right?';
   // Rolled once, here: these are the intervals the buttons promise *and* the
   // ones the card gets, so answer() hands the pressed one back to grade().
-  prepareGradeControls(card);
+  prepareGradeControls(card, savedPlans);
   settleDock();
   persistStudySession();
 }

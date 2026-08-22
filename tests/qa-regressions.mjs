@@ -25,6 +25,25 @@ const fakeClock = (initial) => {
   globalThis.Date = FakeDate;
 };
 
+// Unlike fakeClock(), this clock carries its changed time through a Reload.
+// That is the boundary where a revealed grade plan used to be silently rerolled.
+const reloadClock = ({ initial, storageKey }) => {
+  const RealDate = Date;
+  const stored = Number(sessionStorage.getItem(storageKey));
+  globalThis.__muninNow = Number.isFinite(stored) && stored > 0 ? stored : initial;
+  globalThis.__setMuninNow = (value) => {
+    globalThis.__muninNow = value;
+    sessionStorage.setItem(storageKey, String(value));
+  };
+  class FakeDate extends RealDate {
+    constructor(...args) { super(...(args.length ? args : [globalThis.__muninNow])); }
+    static now() { return globalThis.__muninNow; }
+  }
+  FakeDate.parse = RealDate.parse;
+  FakeDate.UTC = RealDate.UTC;
+  globalThis.Date = FakeDate;
+};
+
 async function coursePage(options = {}, id = 'day-skipper') {
   const ctx = await b.newContext({
     viewport: { width: 390, height: 844 }, serviceWorkers: 'block', ...options,
@@ -468,6 +487,149 @@ async function coursePage(options = {}, id = 'day-skipper') {
     'ending a session clears refresh-resume state instead of resurrecting it');
   ok(errors.length === 0,
     `refresh-resume raises no page errors (${errors.join(' | ') || 'none'})`);
+  await ctx.close();
+}
+
+/* Once revealed, a grade interval is a promise. Reloading after midnight or a
+ * settings change must restore that exact roll, label, and exam commitment. */
+{
+  const before = Date.parse('2026-08-26T23:59:00Z');
+  const after = Date.parse('2026-08-27T00:01:00Z');
+  const clockKey = 'munin-test/revealed-plan-clock';
+  const ctx = await b.newContext({
+    viewport: { width: 390, height: 844 }, timezoneId: 'UTC', serviceWorkers: 'block',
+  });
+  const page = await ctx.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(String(e)));
+  await page.addInitScript(reloadClock, { initial: before, storageKey: clockKey });
+  await page.goto(URL + '?course=competent-crew', { waitUntil: 'networkidle' });
+  await page.waitForFunction(() => document.getElementById('boot').hidden);
+  await page.evaluate(() => {
+    const id = DECK.cards[0].cardId;
+    state = freshState();
+    state.settings.examDate = '2026-08-27';
+    state.settings.newPerDay = 0;
+    state.recs[id] = {
+      st: 'r', step: 0, ivl: 30, ea: 2.5,
+      due: Date.now(), rp: 8, sr: 8, lp: 0, pv: 30,
+    };
+    Math.random = () => 0.5;
+    writeNow();
+    renderHome();
+  });
+  await page.click('#study-all');
+  await page.click('#reveal-btn');
+  const promised = await page.evaluate(() => ({
+    label: document.getElementById('iv3').textContent,
+    aria: document.querySelector('.grade[data-g="3"]').getAttribute('aria-label'),
+    plan: {
+      ivl: session.ivls[3],
+      natural: session.naturalIvls[3],
+      uncapped: session.uncappedIvls[3],
+      exam: session.examDates[3],
+      cap: session.gradeCap,
+    },
+  }));
+  await page.evaluate((next) => __setMuninNow(next), after);
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.waitForFunction(() => document.getElementById('boot').hidden);
+  const restored = await page.evaluate(() => ({
+    revealed: session?.revealed,
+    label: document.getElementById('iv3').textContent,
+    aria: document.querySelector('.grade[data-g="3"]').getAttribute('aria-label'),
+    plan: {
+      ivl: session?.ivls?.[3],
+      natural: session?.naturalIvls?.[3],
+      uncapped: session?.uncappedIvls?.[3],
+      exam: session?.examDates?.[3],
+      cap: session?.gradeCap,
+    },
+  }));
+  await page.keyboard.press('3');
+  const graded = await page.evaluate(() => {
+    const rec = state.recs[DECK.cards[0].cardId];
+    return {
+      ivl: rec.ivl,
+      pv: rec.pv,
+      ec: rec.ec || {},
+      effectiveGap: Math.round((startOfDay(effectiveDue(rec)) - startOfDay(Date.now())) / DAY),
+    };
+  });
+  ok(promised.label === '1 day max'
+      && JSON.stringify(restored) === JSON.stringify({
+        revealed: true,
+        label: promised.label,
+        aria: promised.aria,
+        plan: promised.plan,
+      }),
+  'refresh after midnight restores the exact revealed interval, max label, and accessible promise');
+  ok(graded.ivl === promised.plan.uncapped && graded.pv === promised.plan.natural
+      && graded.ec[promised.plan.exam] === promised.plan.ivl
+      && graded.effectiveGap === promised.plan.ivl,
+  'grading after refresh records and actually schedules the ordinary proof and promised exam interval');
+  ok(errors.length === 0,
+    `revealed-plan refresh raises no page errors (${errors.join(' | ') || 'none'})`);
+  await ctx.close();
+}
+
+/* Old, damaged, or card-stale session snapshots have no trustworthy revealed
+ * plan. Preserve their queue, but make the learner reveal again instead of
+ * grading hidden, attacker-controlled, or freshly rerolled values. */
+{
+  const { ctx, page, errors } = await coursePage({}, 'competent-crew');
+  await page.click('#study-all');
+  await page.click('#reveal-btn');
+  const rejected = await page.evaluate(() => {
+    const saved = JSON.parse(sessionStorage.getItem(ACTIVE_STUDY_KEY));
+    const malformed = structuredClone(saved.active.gradePlans);
+    malformed.ivls[3] = '6';
+    const partial = structuredClone(saved.active.gradePlans);
+    delete partial.examDates[4];
+    const negative = structuredClone(saved.active.gradePlans);
+    negative.naturalIvls[2] = -1;
+    const oversized = structuredClone(saved.active.gradePlans);
+    oversized.uncappedIvls[4] = MAX_IVL + 1;
+    const badDate = structuredClone(saved.active.gradePlans);
+    badDate.examDates[1] = '2026-99-99';
+    const legacy = structuredClone(saved.active);
+    delete legacy.gradePlans;
+    const id = saved.active.queue[0];
+    const priorExam = state.settings.examDate;
+    state.settings.examDate = '2026-09-19';
+    const settingsMismatch = resumableStudySession()?.revealed === false;
+    state.settings.examDate = priorExam;
+    const durable = JSON.parse(localStorage.getItem(KEY) || 'null') || structuredClone(state);
+    const prior = durable.recs[id];
+    durable.recs[id] = {
+      st: 'r', step: 0, ivl: 30, ea: 2.5, due: Date.now() + DAY,
+      rp: n(prior?.rp) + 1, sr: n(prior?.rp) + 1, lp: 0, pv: 30,
+    };
+    // Lifetime answers deliberately stays equal: this is the max-merge shape
+    // the per-record binding, rather than the envelope counter, must catch.
+    state = sanitise(durable);
+    localStorage.setItem(KEY, JSON.stringify(state));
+    return {
+      malformed: [malformed, partial, negative, oversized, badDate]
+        .every((plans) => studyGradePlans(plans) === null),
+      legacy: studyGradePlans(legacy.gradePlans) === null,
+      settingsMismatch,
+    };
+  });
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.waitForFunction(() => document.getElementById('boot').hidden);
+  const resumed = await page.evaluate(() => ({
+    current,
+    revealed: session?.revealed,
+    revealVisible: !document.getElementById('reveal-btn').hidden,
+    gradesHidden: document.getElementById('grade-row').hidden,
+  }));
+  ok(rejected.malformed && rejected.legacy && rejected.settingsMismatch
+      && resumed.current === 'study' && !resumed.revealed
+      && resumed.revealVisible && resumed.gradesHidden,
+  `a malformed, legacy, or record-stale plan resumes at the question instead of trusting or rerolling it (${JSON.stringify({ rejected, resumed })})`);
+  ok(errors.length === 0,
+    `malformed revealed-plan fallback raises no page errors (${errors.join(' | ') || 'none'})`);
   await ctx.close();
 }
 

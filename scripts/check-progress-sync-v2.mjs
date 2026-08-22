@@ -6,6 +6,7 @@
  * Tests may override both with a disposable HTTP server.
  */
 import { readFileSync } from 'node:fs';
+import { randomBytes } from 'node:crypto';
 
 const source = readFileSync(new URL('../web/sync.js', import.meta.url), 'utf8');
 const shipped = (name) => {
@@ -45,7 +46,9 @@ const call = async (name, payload) => {
 };
 
 const app = 'day-skipper';
-const absentKey = '0'.repeat(64);
+// Fresh for every run, so even a row deliberately seeded through the public
+// legacy RPC cannot turn the successful GET capability probe into an adoption.
+const absentKey = randomBytes(32).toString('hex');
 
 // The first published v2 function accidentally accepted NULL and did not fence
 // rows on read. The repair changed both semantics in one fresh migration. This
@@ -77,8 +80,8 @@ if (lockedReadFence.response.status !== 400
 
 const read = await call('sync_get_v2', {
   p_app: app,
-  // SHA-256 cannot realistically produce this value. The read is therefore
-  // both non-secret and non-mutating while exercising resolution and grants.
+  // Nobody could know this value before this process created it. The read is
+  // therefore non-secret and non-mutating while exercising resolution/grants.
   p_key_hash: absentKey,
   p_writer_version: 2,
 });

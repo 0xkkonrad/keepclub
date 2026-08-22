@@ -85,7 +85,9 @@ ok(ready.requests.length === 5
     && ready.requests[1].body.p_writer_version === 2
     && ready.requests[2].url === '/rest/v1/rpc/sync_get_v2'
     && ready.requests[2].body.p_writer_version === 2
-    && ready.requests[2].body.p_key_hash === '0'.repeat(64)
+    && /^[0-9a-f]{64}$/.test(ready.requests[2].body.p_key_hash)
+    && ready.requests[2].body.p_key_hash === ready.requests[0].body.p_key_hash
+    && ready.requests[2].body.p_key_hash === ready.requests[1].body.p_key_hash
     && ready.requests[3].url === '/rest/v1/rpc/sync_put_v2'
     && ready.requests[3].body.p_writer_version === 2
     && ready.requests[3].body.p_key_hash === 'not-a-sha256-key'
@@ -93,6 +95,13 @@ ok(ready.requests.length === 5
     && ready.requests[4].body.p_app === null
     && ready.requests[4].body.p_rev === null,
   'the gate fingerprints all fence repairs and resolves public GET and PUT without creating a row');
+
+const readyAgain = await probe(readyReply);
+ok(readyAgain.exit === 0
+    && /^[0-9a-f]{64}$/.test(readyAgain.requests[2].body.p_key_hash)
+    && ready.requests[2].body.p_key_hash !== '0'.repeat(64)
+    && readyAgain.requests[2].body.p_key_hash !== ready.requests[2].body.p_key_hash,
+  'each gate run uses a fresh unpredictable capability-probe key');
 
 const missing = await probe(() => ({
   status: 404, body: { code: 'PGRST202', message: 'function not found' },
