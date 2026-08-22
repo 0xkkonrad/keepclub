@@ -1,7 +1,7 @@
 /* The Pages copier uses rsync --delete, so its repository preflight is a data
  * safety boundary. Exercise the refusals in disposable repositories without
  * touching the real deployment checkout. */
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -25,6 +25,17 @@ const deploy = (site, ...args) => spawnSync('bash', [SCRIPT, ...args], {
   encoding: 'utf8',
   env: { ...process.env, SITE: site },
 });
+
+const scriptSource = readFileSync(SCRIPT, 'utf8');
+const commitGate = scriptSource.indexOf('if [ "$MODE" = "--commit" ]');
+const commitGateEnd = scriptSource.indexOf('\nfi\n', commitGate);
+const rpcGate = scriptSource.indexOf('env -u KEEPCLUB_SYNC_ENDPOINT -u KEEPCLUB_SYNC_ANON');
+const destructiveCopy = scriptSource.indexOf('rsync -a --delete');
+ok(commitGate >= 0 && commitGateEnd > commitGate
+    && rpcGate > commitGateEnd && rpcGate < destructiveCopy,
+  'both staging and committed modes run the RPC gate before rsync can mutate Pages');
+ok(/env -u KEEPCLUB_SYNC_ENDPOINT -u KEEPCLUB_SYNC_ANON\s+\\\s+node/.test(scriptSource),
+  'a real deploy cannot inherit the checker test endpoint or credential overrides');
 
 const root = mkdtempSync(join(tmpdir(), 'keepclub-deploy-'));
 try {

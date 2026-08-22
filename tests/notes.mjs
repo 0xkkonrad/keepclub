@@ -72,11 +72,11 @@ async function restore(page, payload) {
   await flush(page);
 }
 
-/** A backup of this deck holding whatever is passed in, stamped the way the
- *  exporter stamps one. `notes` is deliberately absent unless asked for: a file
- *  written before this app had notes is the case that lost them. */
+/** A genuine format-1 backup of this deck holding whatever is passed in.
+ * `notes` is deliberately absent unless asked for: a file written before this
+ * app had notes is the case that lost them. */
 const backupOf = (page, extra) => page.evaluate((over) => Object.assign({
-  app: EXPORT_APP,
+  app: LEGACY_EXPORT_APP,
   format: 1,
   exportedAt: '2026-07-01T00:00:00.000Z',
   v: 1,
@@ -514,7 +514,9 @@ const backupOf = (page, extra) => page.evaluate((over) => Object.assign({
   await page.waitForTimeout(200);
 
   const legacy = await backupOf(page);
-  ok(!('notes' in legacy), 'the file under test carries no notes key at all');
+  ok(legacy.app === 'munin/competent-crew' && legacy.format === 1
+      && !('notes' in legacy),
+    'the file under test is a genuine legacy backup with no notes key at all');
   await restore(page, legacy);
   const after = await page.evaluate(() => ({
     records: Object.keys(state.recs).length,
@@ -533,6 +535,30 @@ const backupOf = (page, extra) => page.evaluate((over) => Object.assign({
   ok(/note/i.test(dialogs.join(' ')) && /kept/i.test(dialogs.join(' ')),
     `the confirm says what the restore does to the notes (${dialogs.join(' | ')})`);
   ok(errors.length === 0, `restoring over notes raises no page errors (${errors.join(' | ') || 'none'})`);
+  await ctx.close();
+}
+
+/* A newer backup format must fail before its history can replace this device.
+ * Format coercion remains compatible with genuine old files; an unknown
+ * future version is a hard boundary because its progress meaning is unknown. */
+{
+  const { ctx, page, errors, dialogs } = await coursePage({}, 'competent-crew');
+  const future = await backupOf(page, {
+    app: 'munin/competent-crew:progress-v2',
+    format: 3,
+  });
+  await restore(page, future);
+  const after = await page.evaluate(() => ({
+    records: Object.keys(state.recs).length,
+    toast: document.getElementById('toast').textContent,
+  }));
+  ok(after.records === 0 && /format 3/.test(after.toast)
+      && /cannot restore/i.test(after.toast),
+    `an unsupported future progress format is refused without changing history (${after.toast})`);
+  ok(dialogs.length === 0,
+    'an unsupported future format is rejected before the destructive restore confirmation');
+  ok(errors.length === 0,
+    `refusing a future backup raises no page errors (${errors.join(' | ') || 'none'})`);
   await ctx.close();
 }
 

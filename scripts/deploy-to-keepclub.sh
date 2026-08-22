@@ -43,14 +43,16 @@ if [ "$MODE" = "--commit" ]; then
     || { echo "source repo must be on main for a committed deployment"; exit 1; }
   [ -z "$(git -C "$HERE" status --porcelain)" ] \
     || { echo "source repo has uncommitted work; commit it before deploying"; exit 1; }
-  # The database migration is additive but the row fence is one-way: once a v2
-  # client adopts a key, a pre-v2 frontend must fail closed rather than erase its
-  # progress proof. Deploy the migration first and never roll the web client back
-  # below v2. This live read proves the required RPC/grants exist before rsync can
-  # publish a client that depends on them.
-  node "$HERE/scripts/check-progress-sync-v2.mjs" \
-    || { echo "apply the progress sync migration before deploying the web app"; exit 1; }
 fi
+
+# The database migration is additive but the row fence is one-way: once a v2
+# client adopts a key, a pre-v2 frontend must fail closed rather than erase its
+# progress proof. Gate both staging and committed deploys before either can
+# mutate Pages. Clear the test-only checker overrides so this always probes the
+# endpoint and public key embedded in the exact sync.js being copied.
+env -u KEEPCLUB_SYNC_ENDPOINT -u KEEPCLUB_SYNC_ANON \
+  node "$HERE/scripts/check-progress-sync-v2.mjs" \
+  || { echo "apply the progress sync migration before deploying the web app"; exit 1; }
 node "$HERE/scripts/build-docs.mjs" --check \
   || { echo "docs reference is stale; run node scripts/build-docs.mjs --write"; exit 1; }
 

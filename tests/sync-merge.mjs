@@ -272,12 +272,12 @@ const rec = (overrides = {}) => Object.assign({
       && merged.lp === 2 && merged.st === 'r' && merged.pv === 30,
   'an impossible lapse count is bounded by its causal schedule revision');
 
-  const malformedSr = rec({
-    st: 'r', ivl: 30, rp: 8, sr: 'not-a-number', lp: 0, pv: 0,
-  });
-  const migrated = S.pickRec(malformedSr, null);
-  ok(migrated.sr === 8 && migrated.pv === 30,
-    'malformed sr presence cannot suppress a legacy review interval');
+  const malformed = [null, false, '', '8', 'not-a-number'].map((sr) => S.pickRec(rec({
+    st: 'r', ivl: 30, rp: 8, sr, lp: 2, pv: 0,
+  }), null));
+  ok(malformed.every((migrated) => migrated.sr === 8
+      && migrated.lp === 2 && migrated.pv === 30),
+  'coercible and nonnumeric sr presence cannot suppress a legacy review interval');
 }
 
 /* Deterministic property sweep over canonical production-shaped records. The
@@ -477,8 +477,12 @@ const rec = (overrides = {}) => Object.assign({
   const sql = fs.readFileSync(path.join(dir, file), 'utf8');
   const allSql = fs.readdirSync(dir).sort()
     .map((name) => fs.readFileSync(path.join(dir, name), 'utf8')).join('\n');
+  const repairName = '20260822170000_progress_writer_fence_repair.sql';
+  const repairSql = fs.existsSync(path.join(dir, repairName))
+    ? fs.readFileSync(path.join(dir, repairName), 'utf8') : '';
   const getV2 = /create or replace function public\.sync_get_v2([\s\S]*?)create or replace function public\.sync_put_v2/.exec(allSql)?.[1] || '';
   const putV2 = /create or replace function public\.sync_put_v2([\s\S]*?)revoke execute/.exec(allSql)?.[1] || '';
+  const repairedLegacyPut = /create or replace function public\.sync_put\([\s\S]*?\)([\s\S]*?)create or replace function public\.sync_get_v2/.exec(repairSql)?.[1] || '';
   const column = /max_bytes\s+integer\s+not null\s+default\s+(\d+)/.exec(sql);
   ok(!!column && Number(column[1]) === S.MAX_BYTES,
     `the client's blob ceiling is the backend's own (${column && column[1]} = ${S.MAX_BYTES})`);
@@ -500,6 +504,10 @@ const rec = (overrides = {}) => Object.assign({
   ok(/p_writer_version is distinct from 2/.test(putV2)
       && /v_cur\.rev is distinct from p_rev/.test(putV2),
     'the v2 writer rejects NULL capability and NULL revision rather than bypassing CAS');
+  ok(/update sync\.blobs b\s+set writer_version = 2/s.test(repairSql)
+      && /p_writer_version is distinct from 2/.test(repairSql)
+      && /v_cur\.rev is distinct from p_rev/.test(repairedLegacyPut),
+    'a fresh migration version repairs already-ledgered v2 functions and legacy NULL CAS');
 }
 
 /* `p_data::text` is the jsonb text form, not the JSON we sent: Postgres parses

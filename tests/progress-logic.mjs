@@ -158,9 +158,18 @@ const examToday = await page.evaluate(() => {
   renderHome();
   const pastBanner = document.getElementById('exam-banner').textContent
     .replace(/\s+/g, ' ').trim();
+  renderSetup();
+  const pastHint = document.getElementById('exam-hint').textContent;
   prepareGradeControls(DECK.cards[0]);
   const pastLabels = Array.from(document.querySelectorAll('#grade-row .iv'))
     .map((label) => label.textContent);
+
+  state = freshState();
+  state.settings.examDate = '2026-08-22';
+  renderHome();
+  const freshBanner = document.getElementById('exam-banner').textContent
+    .replace(/\s+/g, ' ').trim();
+  const freshSession = buildSession(null, {});
   session = null;
   return {
     days: daysToExam(),
@@ -170,6 +179,9 @@ const examToday = await page.evaluate(() => {
     record: recordAfterToday,
     todayBanner,
     pastBanner,
+    pastHint,
+    freshBanner,
+    freshSessionSize: freshSession.total,
     todayLabels,
     pastLabels,
   };
@@ -179,12 +191,16 @@ ok(examToday.cap === examToday.max
     && examToday.record.due === examToday.due,
   'an exam date of today does not move a next review to after the exam');
 ok(/spacing window has ended/i.test(examToday.todayBanner)
-    && !/comes back.*before/i.test(examToday.todayBanner),
+    && !/comes back.*before/i.test(examToday.todayBanner)
+    && /normal due, learning, and new-card rules/i.test(examToday.freshBanner)
+    && !/only cards already due/i.test(examToday.freshBanner)
+    && examToday.freshSessionSize === 20,
   'exam-day Home copy does not promise a review the inactive cap cannot schedule');
 ok(/normal spacing is already back/i.test(examToday.pastBanner)
+    && /normal spacing is already active/i.test(examToday.pastHint)
     && examToday.todayLabels.concat(examToday.pastLabels)
       .every((label) => !/max/i.test(label)),
-  'past/today dates describe ordinary spacing and do not label its hard limit as an exam max');
+  'past/today dates agree across Home and Settings and do not label the hard limit as an exam max');
 
 /* Correct reviews under the cap must now make mastery advance. The deterministic
  * random midpoint makes the expected natural sequence 6 -> 15 -> 38. */
@@ -283,13 +299,16 @@ ok(scheduling.afterMergedGrade.rp === 21 && scheduling.afterMergedGrade.sr === 2
 /* Malformed provenance cannot erase the only surviving proof or manufacture a
  * lapse epoch newer than the answers that could have caused it. */
 const sanitation = await page.evaluate(() => {
-  const malformedSr = sanitise({
-    ...freshState(),
-    recs: { x: {
-      st: 'r', step: 0, ivl: 30, ea: 2.5, due: 300,
-      rp: 8, sr: 'not-a-number', lp: 0, pv: 0,
-    } },
-  }).recs.x;
+  const malformedSr = [null, false, '', '8', 'not-a-number'].map((sr) => {
+    const record = sanitise({
+      ...freshState(),
+      recs: { x: {
+        st: 'r', step: 0, ivl: 30, ea: 2.5, due: 300,
+        rp: 8, sr, lp: 2, pv: 0,
+      } },
+    }).recs.x;
+    return { ...record, proof: provenInterval(record) };
+  });
   const valid = sanitise({
     ...freshState(),
     recs: { x: {
@@ -305,7 +324,7 @@ const sanitation = await page.evaluate(() => {
     } },
   }).recs.x;
   return {
-    malformedSr: { ...malformedSr, proof: provenInterval(malformedSr) },
+    malformedSr,
     impossible,
     merged: DSSync.pickRec(valid, impossible),
     exportApp: EXPORT_APP,
@@ -313,9 +332,10 @@ const sanitation = await page.evaluate(() => {
     exportFormat: EXPORT_FORMAT,
   };
 });
-ok(sanitation.malformedSr.sr === 8 && sanitation.malformedSr.pv === 30
-    && sanitation.malformedSr.proof === 30,
-  'a malformed sr marker is treated as legacy and keeps the review interval as proof');
+ok(sanitation.malformedSr.length === 5
+    && sanitation.malformedSr.every((record) => record.sr === 8
+      && record.lp === 2 && record.pv === 30 && record.proof === 30),
+  'coercible and nonnumeric sr markers are legacy-shaped and keep the review interval as proof');
 ok(sanitation.impossible.lp === 0 && sanitation.merged.lp === 2
     && sanitation.merged.pv === 30 && sanitation.merged.st === 'r',
   'an impossible lapse epoch is bounded by its schedule history and cannot poison sync');

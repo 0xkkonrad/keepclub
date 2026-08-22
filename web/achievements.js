@@ -48,8 +48,9 @@
     if (!plainObject(rec) || rec.st !== 'r') return 0;
     const persisted = number(rec.pv);
     const rp = count(rec.rp);
-    const sr = Number(rec.sr);
+    const sr = rec.sr;
     const canonical = Object.prototype.hasOwnProperty.call(rec, 'sr')
+      && typeof sr === 'number'
       && Number.isInteger(sr) && sr >= 0 && sr <= rp;
     const legacy = !canonical;
     return Math.max(0, persisted > 0 || !legacy ? persisted : number(rec.ivl));

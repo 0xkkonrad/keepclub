@@ -329,6 +329,23 @@ ok(A.DEFINITIONS.every(Object.isFrozen),
   ok(canonicalZero.solidCards === 0,
     'a canonical zero proof cannot regain an older interval through achievements');
 
+  const malformedScheduleMarkers = [null, false, '', '8', 'not-a-number']
+    .map((sr) => A.contextFromDeck({
+      at: 1000,
+      state: {
+        answers: 1,
+        recs: { card: { st: 'r', ivl: 30, pv: 0, rp: 8, sr, lp: 2 } },
+      },
+      deck: {
+        sections: [{ sectionId: 'only' }],
+        cards: [{ cardId: 'card', sectionId: 'only' }],
+      },
+      course: { id: 'built-in' },
+    }));
+  ok(malformedScheduleMarkers.every((item) => item.solidCards === 1
+      && item.solidPercent === 100 && item.keptSections === 1 && item.deckKept),
+  'coercible and nonnumeric schedule markers cannot erase legacy mastery proof');
+
   const aggregate = A.aggregateClubStates([{ answers: 6, recs }]);
   ok(aggregate.solidCards === 3,
     'club mastery totals use the same proven-interval definition as deck progress');

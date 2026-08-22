@@ -312,6 +312,17 @@ const listWords = (parts) => (parts.length < 2
   ? (parts[0] || '')
   : parts.slice(0, -1).join(', ') + ' and ' + parts[parts.length - 1]);
 
+/** Whether a stored schedule revision is one this client could have written.
+ * JSON values such as null, false, an empty string, or a numeric string all
+ * become integers through Number(); accepting that coercion would let a
+ * malformed marker turn surviving legacy review proof into canonical zero. */
+function validScheduleRevision(value, answerCount) {
+  return typeof value === 'number'
+    && Number.isInteger(value)
+    && value >= 0
+    && value <= answerCount;
+}
+
 /* Live notes the sanitiser has dropped and nobody has been told about yet. The
  * sanitiser runs before there is a screen to say it on — it is the first thing
  * boot() does — so it counts, and the places that can speak ask. */
@@ -375,14 +386,12 @@ function sanitise(raw) {
       const ivl = Math.round(num(r.ivl, 0, MAX_IVL, st === 'r' ? 1 : 0));
       const savedProof = Math.round(num(r.pv, 0, MAX_IVL, 0));
       const rp = Math.round(num(r.rp, 0, 1e6, 0));
-      const rawScheduleRevision = Number(r.sr);
+      const rawScheduleRevision = r.sr;
       // Presence alone is not provenance. A malformed marker used to turn an
       // otherwise legacy 30-day review into authoritative zero proof. Revisions
       // written by this client are integral and cannot exceed answer history.
       const hasScheduleRevision = Object.hasOwn(r, 'sr')
-        && Number.isInteger(rawScheduleRevision)
-        && rawScheduleRevision >= 0
-        && rawScheduleRevision <= rp;
+        && validScheduleRevision(rawScheduleRevision, rp);
       const scheduleRevision = hasScheduleRevision ? rawScheduleRevision : rp;
       recs[id] = {
         st,
@@ -848,9 +857,12 @@ function provenInterval(rec) {
   if (!rec) return 0;
   const proof = Number(rec.pv);
   if (Number.isFinite(proof) && proof > 0) return Math.min(MAX_IVL, proof);
-  // sr marks a canonical record. On one of those, zero is an explicit proof
-  // value; only records from before sr existed may migrate review ivl.
-  if (Object.hasOwn(rec, 'sr')) return 0;
+  // A valid numeric sr marks a canonical record. On one of those, zero is an
+  // explicit proof value; missing or malformed provenance migrates review ivl.
+  const rp = Number(rec.rp);
+  if (Object.hasOwn(rec, 'sr')
+      && Number.isInteger(rp) && rp >= 0
+      && validScheduleRevision(rec.sr, rp)) return 0;
   if (rec.st !== 'r') return 0;
   const legacy = Number(rec.ivl);
   return Number.isFinite(legacy) ? Math.min(MAX_IVL, Math.max(0, legacy)) : 0;
@@ -2311,7 +2323,7 @@ function renderExamBanner(c) {
   el.innerHTML = (d === 0
     ? `<b>Exam today.</b> ${c.fresh
         ? `${c.fresh} cards have not been seen yet.`
-        : 'You have seen every card at least once.'} The exam spacing window has ended; only cards already due are in today’s Study.`
+        : 'You have seen every card at least once.'} The exam spacing window has ended; today’s Study uses the normal due, learning, and new-card rules.`
     : tight
       ? `<b>Exam ${when}.</b> At ${pace} new cards a day, the ${c.fresh} you have not seen take ${introDays} days. You will not get through the deck — raise the daily number in Settings, or accept that you will skip some sections.`
       : `<b>Exam ${when}.</b> ${c.fresh
@@ -6187,7 +6199,7 @@ function renderSetup() {
   // the row whose job is to hold it once. What the label says is what the
   // control cannot — what setting it does to the spacing.
   $('#exam-hint').textContent = d === null ? ''
-    : d < 0 ? 'That date has passed. Clear it to go back to normal spacing.'
+    : d < 0 ? 'That date has passed. Normal spacing is already active; change or clear the date to remove this reminder.'
       : `No card will be left longer than ${fmtDays(ceiling())} between reviews.`;
   const auto = newBudget();
   $('#new-hint').textContent = auto > state.settings.newPerDay

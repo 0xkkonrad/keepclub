@@ -230,8 +230,9 @@ function stable(value) {
 function hasScheduleRevision(record) {
   if (!record || !Object.prototype.hasOwnProperty.call(record, 'sr')) return false;
   const rp = num(record.rp);
-  const sr = Number(record.sr);
-  return Number.isInteger(sr) && sr >= 0 && sr <= rp;
+  const sr = record.sr;
+  return typeof sr === 'number'
+    && Number.isInteger(sr) && sr >= 0 && sr <= rp;
 }
 
 function provenInterval(record) {
@@ -244,7 +245,7 @@ function provenInterval(record) {
 function canonicalRec(record) {
   if (!record) return undefined;
   const rp = Math.max(0, num(record.rp));
-  const saved = hasScheduleRevision(record) ? Number(record.sr) : rp;
+  const saved = hasScheduleRevision(record) ? record.sr : rp;
   return Object.assign({}, record, {
     rp,
     sr: saved,

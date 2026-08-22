@@ -9,22 +9,24 @@ const passed = [], failed = [];
 const ok = (condition, message) =>
   (condition ? passed : failed).push(`${condition ? 'PASS' : 'FAIL'}  ${message}`);
 
-async function probe(status, responseBody) {
-  let request = null;
+async function probe(handler) {
+  const requests = [];
   const server = http.createServer((incoming, outgoing) => {
     let body = '';
     incoming.setEncoding('utf8');
     incoming.on('data', (chunk) => { body += chunk; });
     incoming.on('end', () => {
-      request = {
+      const request = {
         url: incoming.url,
         method: incoming.method,
         authorization: incoming.headers.authorization,
         apikey: incoming.headers.apikey,
         body: JSON.parse(body),
       };
-      outgoing.writeHead(status, { 'Content-Type': 'application/json' });
-      outgoing.end(JSON.stringify(responseBody));
+      requests.push(request);
+      const reply = handler(request, requests.length - 1);
+      outgoing.writeHead(reply.status, { 'Content-Type': 'application/json' });
+      outgoing.end(JSON.stringify(reply.body));
     });
   });
   await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
@@ -42,26 +44,70 @@ async function probe(status, responseBody) {
   child.stderr.on('data', (chunk) => { stderr += chunk; });
   const exit = await new Promise((resolve) => child.on('close', resolve));
   await new Promise((resolve) => server.close(resolve));
-  return { exit, stdout, stderr, request };
+  return { exit, stdout, stderr, requests };
 }
 
-const ready = await probe(200, []);
-ok(ready.exit === 0 && /RPC is ready/.test(ready.stdout),
-  'the preflight accepts an installed v2 RPC');
-ok(ready.request?.url === '/rest/v1/rpc/sync_get_v2'
-    && ready.request.method === 'POST'
-    && ready.request.authorization === 'Bearer public-test-key'
-    && ready.request.apikey === 'public-test-key'
-    && ready.request.body.p_writer_version === 2
-    && ready.request.body.p_key_hash === '0'.repeat(64),
-  'the probe exercises the exact public RPC capability with a non-user key hash');
+const readyReply = (request) => {
+  if (request.url === '/rest/v1/rpc/sync_get_v2'
+      && request.body.p_writer_version === null) {
+    return { status: 400, body: { code: '22023', message: 'unsupported writer version' } };
+  }
+  if (request.url === '/rest/v1/rpc/sync_get_v2') {
+    return { status: 200, body: [] };
+  }
+  if (request.url === '/rest/v1/rpc/sync_put_v2'
+      && request.body.p_key_hash === 'not-a-sha256-key') {
+    return { status: 400, body: { code: '22023', message: 'bad key' } };
+  }
+  return { status: 500, body: { code: 'TEST', message: 'unexpected probe' } };
+};
 
-const missing = await probe(404, { code: 'PGRST202', message: 'function not found' });
-ok(missing.exit !== 0 && /not deployed.*404.*PGRST202/s.test(missing.stderr),
+const ready = await probe(readyReply);
+ok(ready.exit === 0 && /RPCs and read-fence repair are ready/.test(ready.stdout),
+  'the preflight accepts both installed v2 RPCs with the repaired semantics');
+ok(ready.requests.length === 3
+    && ready.requests.every((request) => request.method === 'POST'
+      && request.authorization === 'Bearer public-test-key'
+      && request.apikey === 'public-test-key')
+    && ready.requests[0].url === '/rest/v1/rpc/sync_get_v2'
+    && ready.requests[0].body.p_writer_version === null
+    && ready.requests[1].url === '/rest/v1/rpc/sync_get_v2'
+    && ready.requests[1].body.p_writer_version === 2
+    && ready.requests[1].body.p_key_hash === '0'.repeat(64)
+    && ready.requests[2].url === '/rest/v1/rpc/sync_put_v2'
+    && ready.requests[2].body.p_writer_version === 2
+    && ready.requests[2].body.p_key_hash === 'not-a-sha256-key',
+  'the gate fingerprints the repair and resolves public GET and PUT without creating a row');
+
+const missing = await probe(() => ({
+  status: 404, body: { code: 'PGRST202', message: 'function not found' },
+}));
+ok(missing.exit !== 0 && /read-fence repair is not deployed/.test(missing.stderr),
   'the preflight refuses a missing migration before web deployment');
 
-const malformed = await probe(200, { ok: true });
-ok(malformed.exit !== 0 && /unexpected response/.test(malformed.stderr),
+const oldRead = await probe((request) => ({
+  status: 200,
+  body: request.url.endsWith('/sync_get_v2') ? [] : { code: 'PGRST202' },
+}));
+ok(oldRead.exit !== 0 && /read-fence repair is not deployed/.test(oldRead.stderr)
+    && oldRead.requests.length === 1,
+  'the preflight refuses the old same-named GET that accepted a NULL capability');
+
+const missingWrite = await probe((request) => (
+  request.url.endsWith('/sync_put_v2')
+    ? { status: 404, body: { code: 'PGRST202', message: 'function not found' } }
+    : readyReply(request)
+));
+ok(missingWrite.exit !== 0 && /PUT is not deployed.*404.*PGRST202/s.test(missingWrite.stderr),
+  'the preflight refuses a missing or ungranted sync_put_v2 capability');
+
+const malformedRead = await probe((request) => {
+  if (request.body.p_writer_version === null) return readyReply(request);
+  return request.url.endsWith('/sync_get_v2')
+    ? { status: 200, body: { ok: true } }
+    : readyReply(request);
+});
+ok(malformedRead.exit !== 0 && /GET returned an unexpected response/.test(malformedRead.stderr),
   'the preflight refuses a response that is not the sync_get_v2 row array');
 
 console.log([...passed, ...failed].join('\n'));
