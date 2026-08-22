@@ -1,0 +1,289 @@
+{
+  "schemaVersion": 1,
+  "audit": {
+    "title": "Keep Club progress plateau audit",
+    "date": "2026-08-22",
+    "target": {
+      "repository": "/workspaces/sandbox/projects/keepclub",
+      "sha": "c702c0a6ab03ef245a509f720d6083c74e918801",
+      "pinnedWorktree": "/tmp/keepclub-audit-20260822-qScH5I",
+      "productionAppJsSha256": "f9e55c41fc290d3be9544b1fc6d390eb5a8e691006c2c0e79ea6090a2ab71408"
+    },
+    "scope": {
+      "in": [
+        "state ingestion and sanitation",
+        "exam-date interval ceiling and scheduling math",
+        "Home and Progress derivation",
+        "mastery achievements",
+        "progress accessibility",
+        "sync behavior relevant to the supplied state",
+        "regression coverage"
+      ],
+      "out": [
+        "course-content correctness",
+        "unrelated media, import, and offline behavior",
+        "backend authorization and security",
+        "visual redesign",
+        "implementation",
+        "unrelated generic sync and practice-session defects"
+      ]
+    },
+    "toolingDeviation": "The Claude Code Workflow runner was unavailable. Independent read-only collaboration agents were used for isolated finder, verifier, and completeness-critic waves.",
+    "secretHandling": "The supplied sync key was used only for a read-only lookup and is omitted from all persisted audit artifacts."
+  },
+  "case": {
+    "course": "competent-crew",
+    "exportPath": "/home/kkonrad/.codex/attachments/b73a720b-2ee1-413d-8a56-abf87fb4f511/pasted-text.txt",
+    "exportedAt": "2026-08-22T11:18:43.458Z",
+    "deckBuild": "7cf550d2",
+    "cards": 200,
+    "sections": 14,
+    "records": 200,
+    "answers": 903,
+    "studyDates": 14,
+    "streak": 10,
+    "repeatTotal": 573,
+    "repeatGood": 565,
+    "lapses": 8,
+    "answersPerCard": {
+      "minimum": 2,
+      "maximum": 11,
+      "mean": 4.515
+    },
+    "examDate": "2026-09-19",
+    "daysToExam": 28,
+    "intervalCeilingDays": 6,
+    "solidThresholdDays": 21,
+    "recordStates": {
+      "review": 200,
+      "learning": 0,
+      "young": 200,
+      "mature": 0
+    },
+    "intervalHistogramDays": {
+      "2": 6,
+      "3": 8,
+      "4": 22,
+      "5": 54,
+      "6": 97,
+      "7": 13
+    },
+    "derived": {
+      "deckStartedPercent": 100,
+      "homeSectionPercents": [50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50, 50],
+      "progressSolid": 0,
+      "progressSeenNotSolid": 200,
+      "progressNotStarted": 0,
+      "keptSections": 0,
+      "deckKept": false
+    },
+    "syncScope": {
+      "revision": 1,
+      "otherBuiltInCourseStatesPresent": [],
+      "qualification": "The supplied identity contains Competent Crew state only; unsupplied device-local state was not audited."
+    }
+  },
+  "stats": {
+    "found": 6,
+    "confirmed": 5,
+    "refuted": 1,
+    "refutedPercent": 16.7,
+    "killedByKillList": 0,
+    "overturnedByHand": 0
+  },
+  "verdicts": [
+    {
+      "id": "C-01",
+      "severity": "MED",
+      "verdict": "CONFIRMED",
+      "claim": "For review cards, exam mode stores its shortened next-review interval in the same field used for mastery; setting an exam no more than 102 days away or giving a correct scheduled answer can demote solid progress, and clearing or postponing the exam does not restore the former interval.",
+      "anchors": [
+        "web/app.js:848-901",
+        "web/app.js:904-970",
+        "web/app.js:988-992",
+        "web/app.js:7043-7071"
+      ],
+      "failureScenario": {
+        "clock": "2026-08-22T12:00:00.000Z",
+        "before": {"examDate": "", "intervalDays": 30, "classification": "mature"},
+        "action": "Set examDate to 2026-09-19, then clear it; separately grade Good and Easy under that exam.",
+        "afterSet": {"ceilingDays": 6, "intervalDays": 6, "classification": "young", "persisted": true},
+        "afterClear": {"intervalDays": 6, "classification": "young", "restored": false},
+        "afterGoodOrEasy": {"button": "6 days max", "intervalDays": 6, "classification": "young", "persisted": true}
+      },
+      "verification": {
+        "independentVerifier": "CONFIRMED",
+        "mainLoopHandRepro": "CONFIRMED",
+        "pageErrors": 0,
+        "narrowing": "Applies to review records and non-practice scheduled grades where the future exam is 102 or fewer calendar days away."
+      },
+      "killList": "The clamp itself is intentional, but no RULING approves mastery demotion or non-restoration."
+    },
+    {
+      "id": "C-02",
+      "severity": "MED",
+      "verdict": "CONFIRMED",
+      "claim": "With only the supplied export loaded, the exam date unchanged, and reviews graded Hard, Good, or Easy through 2026-09-19, no card can reach the 21-day solid threshold; every fully seen section remains 50% and solid-derived course achievements remain locked.",
+      "anchors": [
+        "web/app.js:848-901",
+        "web/app.js:988-1026",
+        "web/app.js:2390-2406",
+        "web/achievements.js:160-197",
+        "web/achievements.js:684-710"
+      ],
+      "failureScenario": {
+        "daysToExam": 28,
+        "ceilingDays": 6,
+        "solidThresholdDays": 21,
+        "successfulGradeMaximumDays": 6,
+        "browserOutput": {"homeRowsAt50Percent": 14, "solid": 0, "seenNotSolid": 200}
+      },
+      "verification": {
+        "independentVerifier": "CONFIRMED",
+        "mainLoopHandRepro": "CONFIRMED",
+        "pageErrors": 0,
+        "boundary": "The cap is below 21 from 102 days before the exam through exam day and returns to 400 on the day after the exam. Again can lower a row below 50%."
+      },
+      "killList": "The clamp and threshold are separately intentional; their unreachable interaction is not settled."
+    },
+    {
+      "id": "C-03",
+      "severity": "MED",
+      "verdict": "CONFIRMED",
+      "claim": "At the export timestamp, Home labels a half-weighted familiarity score as known well in all 14 sections while exact Progress reports zero solid and zero known-well cards.",
+      "anchors": [
+        "web/app.js:981-1026",
+        "web/app.js:2390-2419",
+        "web/app.js:5948-6035"
+      ],
+      "failureScenario": {
+        "formula": "(mature + young * 0.5) / total",
+        "input": {"mature": 0, "young": 200, "learning": 0, "new": 0},
+        "home": "Every section says 50% known well",
+        "progress": "0 solid globally and 0 known well in every expanded section"
+      },
+      "verification": {
+        "independentVerifier": "CONFIRMED through actual Restore-from-file UI",
+        "mainLoopHandRepro": "CONFIRMED",
+        "pageErrors": 0,
+        "narrowing": "When cards become pending, Home replaces the literal percentage sentence with card count metadata, but the 50% meter remains."
+      },
+      "killList": "No RULING approves half-credit young cards or the known-well label."
+    },
+    {
+      "id": "C-04",
+      "severity": "LOW",
+      "verdict": "CONFIRMED",
+      "claim": "When pct is positive and a section has pending or unseen cards, Home displays a meter without exposing an equivalent progress value to assistive technology.",
+      "anchors": ["web/app.js:2390-2419"],
+      "failureScenario": {
+        "section": "cc-seaterms",
+        "visualPercent": 4,
+        "buttonAccessibleName": "01 Sea terms, parts of the boat, rigging and sails. 1 to review. 34 cards. Study this section.",
+        "meterAccessibility": {"role": "generic", "name": "", "value": null}
+      },
+      "verification": {
+        "independentVerifier": "CONFIRMED in Chromium",
+        "mainLoopHandRepro": "CONFIRMED with a distinct mature/young/learning/fresh mix",
+        "pageErrors": 0,
+        "counterexample": "Fully scheduled rows with no pending/fresh cards include the percentage in the button name; zero-percent rows render no meter."
+      }
+    },
+    {
+      "id": "C-05",
+      "severity": "LOW",
+      "verdict": "CONFIRMED",
+      "claim": "Progress can display a kept-achievement threshold as reached while the achievement remains locked because the display rounds and the evaluator compares the raw percentage.",
+      "anchors": [
+        "web/app.js:6028-6034",
+        "web/achievements.js:180-197",
+        "web/achievements.js:444-446",
+        "web/achievements.js:475-490"
+      ],
+      "failureScenario": {
+        "course": "Valid schema-v2 imported course with one titled group and 101 cards",
+        "solidCards": 25,
+        "rawPercent": 24.752475247524753,
+        "display": "25% solid",
+        "achievement": "solid-pct-25 remains locked"
+      },
+      "verification": {
+        "independentVerifier": "CONFIRMED using schema validation and the real evaluator",
+        "mainLoopHandRepro": "Not required for LOW severity",
+        "narrowing": "Requires a titled group, no prior unlock, and a raw value that rounds up to but remains below the threshold."
+      }
+    },
+    {
+      "id": "R-01",
+      "severity": "MED",
+      "verdict": "REFUTED",
+      "claim": "Lost, stale, capped, malformed, or deck-mismatched review records caused the supplied 50% plateau.",
+      "anchors": [
+        "web/app.js:320-468",
+        "web/app.js:988-1026",
+        "web/app.js:3557-3570",
+        "web/sync.js:338-346",
+        "web/sync.js:516-589",
+        "web/sync.js:651-666"
+      ],
+      "evidence": {
+        "exportAndDeckBuildMatch": true,
+        "deckRecords": 200,
+        "exportRecords": 200,
+        "matched": 200,
+        "missing": 0,
+        "orphan": 0,
+        "malformed": 0,
+        "sanitizerDropped": 0,
+        "restoreMemoryRecords": 200,
+        "restoreStoredRecords": 200,
+        "reviewRecordCapExists": false,
+        "syncBlobBytes": 23079,
+        "syncBlobLimitBytes": 262144,
+        "counterChecks": [
+          "answers 903 equals sum of card repetitions",
+          "answers 903 equals sum of daily history",
+          "8 repeat misses equals 8 total lapses"
+        ]
+      },
+      "verification": {
+        "independentVerifier": "REFUTED",
+        "browserRestore": "All 200 records retained; 0 page and console errors",
+        "replacementExplanation": "All intact records are young and therefore contribute exactly 0.5 to Home."
+      }
+    }
+  ],
+  "byDesign": [
+    {
+      "decision": "Keep an exam-date interval clamp so cramming mode changes scheduling.",
+      "by": "0xkkonrad",
+      "date": "2026-07-27",
+      "source": "project.md:295-302",
+      "grade": "RULING"
+    },
+    {
+      "decision": "Define solid/mature as a review interval of at least 21 days.",
+      "by": "0xkkonrad",
+      "date": "2026-07-29",
+      "source": "web/achievements.js:18,160-197,684-695 and tests/achievements.mjs",
+      "grade": "RULING"
+    }
+  ],
+  "tests": [
+    {"suite": "tests/achievements.mjs", "passed": 96, "failed": 0},
+    {"suite": "tests/shell-and-courses.mjs", "passed": 104, "failed": 0},
+    {"suite": "tests/sync-merge.mjs", "passed": 82, "failed": 0},
+    {"suite": "tests/qa-regressions.mjs", "passed": 68, "failed": 0},
+    {"suite": "tests/achievements-ui.mjs", "passed": 17, "failed": 0}
+  ],
+  "coverageGap": "No existing test combines a future exam ceiling below 21 days, the exact solid threshold, Home's half-credit percentage, and the destructive interval rewrite/clear path.",
+  "completenessCritic": {
+    "safeToFinalize": true,
+    "mustFixesApplied": ["Narrowed C-01 from every stored interval to every larger review-card interval."],
+    "shouldFixesApplied": [
+      "Removed draft from the published title.",
+      "Reframed the final open ruling as a repair-validation scope decision."
+    ],
+    "materialMissingLenses": []
+  }
+}

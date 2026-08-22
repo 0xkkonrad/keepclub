@@ -248,7 +248,10 @@ function loseStudyLock() {
 function freshState() {
   return {
     v: 1,
-    recs: {},                    // card id -> {st, step, ivl, ea, due, rp, lp}
+    // ivl is the next scheduled gap; pv is the uncapped interval the learner
+    // has proved. Exam mode may shorten the former, but only forgetting lowers
+    // the latter.
+    recs: {},                    // card id -> {st, step, ivl, ea, due, rp, lp, pv}
     day: dayKey(Date.now()),
     newDone: 0,
     revDone: 0,
@@ -365,15 +368,20 @@ function sanitise(raw) {
     for (const [id, r] of Object.entries(raw.recs)) {
       if (!isPlainObject(r)) continue;
       const st = r.st === 'r' ? 'r' : 'l';
+      const ivl = Math.round(num(r.ivl, 0, MAX_IVL, st === 'r' ? 1 : 0));
+      const savedProof = Math.round(num(r.pv, 0, MAX_IVL, 0));
       recs[id] = {
         st,
         step: Math.round(num(r.step, 0, 9, 0)),
-        ivl: Math.round(num(r.ivl, 0, MAX_IVL, st === 'r' ? 1 : 0)),
+        ivl,
         ea: num(r.ea, MIN_EASE, MAX_EASE, 2.5),
         due: num(r.due, 0, 8.64e15, Date.now()),
         rp: Math.round(num(r.rp, 0, 1e6, 0)),
         lp: Math.round(num(r.lp, 0, 1e6, 0)),
-        pv: Math.round(num(r.pv, 0, MAX_IVL, 0)),
+        // Released builds already carried pv as a relearning target. A
+        // positive value on a review record is therefore safe to preserve;
+        // zero is a legacy record, whose best surviving evidence is ivl.
+        pv: st === 'r' ? (savedProof || ivl) : savedProof,
       };
     }
   }
@@ -804,8 +812,29 @@ function noteAnswered() {
 /* ─────────────────────────── scheduling ─────────────────────────── */
 
 function newRec() {
-  // pv = the interval a relapsed card gets back when it re-graduates
+  // pv = the interval proved without an exam cap. While relearning, it is also
+  // the interval the card works back towards.
   return { st: 'l', step: 0, ivl: 0, ea: 2.5, due: 0, rp: 0, lp: 0, pv: 0 };
+}
+
+/** The interval this record has actually proved.
+ *
+ * Positive pv is authoritative. Review records written before pv carried
+ * mastery use ivl as their migration fallback; learning ivl is never proof. */
+function provenInterval(rec) {
+  if (!rec) return 0;
+  const proof = Number(rec.pv);
+  if (Number.isFinite(proof) && proof > 0) return Math.min(MAX_IVL, proof);
+  if (rec.st !== 'r') return 0;
+  const legacy = Number(rec.ivl);
+  return Number.isFinite(legacy) ? Math.min(MAX_IVL, Math.max(0, legacy)) : 0;
+}
+
+/** Whole progress points that have actually been crossed.
+ * Flooring prevents a displayed 25% from arriving while the raw achievement
+ * fraction is still 24.75%. */
+function wholePercent(done, total) {
+  return total > 0 ? Math.floor((done / total) * 100) : 0;
 }
 
 /** New cards to introduce today.
@@ -859,10 +888,10 @@ function ceiling() {
   return Math.max(1, Math.min(MAX_IVL, Math.round(d * 0.2)));
 }
 
-/** What the next interval would be, in days. 0 means "again this session". */
-function preview(rec, g) {
-  const cap = ceiling();
-  const lim = (d) => Math.min(cap, MAX_IVL, d);
+/** What the next interval would be without an exam cap or due-date jitter.
+ * 0 means "again this session". */
+function naturalPreview(rec, g) {
+  const lim = (d) => Math.min(MAX_IVL, d);
   if (!rec || rec.st === 'l') {
     if (g === 1) return 0;
     // Hard keeps a card in the session, but not forever: three goes and it
@@ -872,15 +901,28 @@ function preview(rec, g) {
     return lim(rec && rec.pv ? Math.max(rec.pv, 2) : 4);
   }
   const ea = rec.ea;
+  const base = provenInterval(rec);
   // Again sends a review card back into this session; the interval it comes out
   // with is decided when it graduates, so there is no number to promise here.
   if (g === 1) return 0;
   // Hard holds the interval where it is. Growing it — which plain SM-2 does —
   // means a card you always find hard drifts out to months and stops being
   // revised at all, which is the opposite of what "hard" is telling you.
-  if (g === 2) return lim(Math.max(1, rec.ivl));
-  if (g === 3) return lim(Math.max(rec.ivl + 1, Math.round(rec.ivl * ea)));
-  return lim(Math.max(rec.ivl + 2, Math.round(rec.ivl * ea * 1.3)));
+  if (g === 2) return lim(Math.max(1, base));
+  if (g === 3) return lim(Math.max(base + 1, Math.round(base * ea)));
+  return lim(Math.max(base + 2, Math.round(base * ea * 1.3)));
+}
+
+/** What the next scheduled gap would be before jitter. */
+function preview(rec, g) {
+  const natural = naturalPreview(rec, g);
+  if (natural <= 0) return 0;
+  // Hard holds the gap that is actually scheduled, even after an exam cap is
+  // cleared; it does not suddenly jump from six days to the proven 38.
+  if (rec && rec.st === 'r' && g === 2) {
+    return Math.min(ceiling(), MAX_IVL, Math.max(1, Number(rec.ivl) || natural));
+  }
+  return Math.min(ceiling(), MAX_IVL, natural);
 }
 
 /** The interval a grade will really schedule — the jitter rolled in, once.
@@ -890,15 +932,28 @@ function preview(rec, g) {
  * were wrong, and good and easy often showed the same day with nothing to
  * choose between them. Rolled here, so the number promised and the number
  * applied are the same number. */
-function scheduled(rec, g) {
+function schedulePlan(rec, g) {
+  const natural = naturalPreview(rec, g);
   const out = preview(rec, g);
   // 0 is "again this session", which is not a date and does not get jittered.
-  if (out <= 0) return 0;
+  if (out <= 0) return { ivl: 0, natural: 0 };
   // Hard means "leave the gap where it is". Fuzzing an unchanged interval turns
   // that into a random walk that drifts over repeated presses; the jitter is
   // only there to break up clumps of cards scheduled together.
   const jitter = !(rec && rec.st === 'r' && g === 2);
-  return Math.min(ceiling(), MAX_IVL, Math.max(1, jitter ? fuzz(out) : out));
+  const ivl = Math.min(ceiling(), MAX_IVL, Math.max(1, jitter ? fuzz(out) : out));
+  const prior = provenInterval(rec);
+  if (!jitter) return { ivl, natural: prior };
+  // With no active cap, ivl remains byte-for-byte the interval the old
+  // scheduler would have stored, preserving ordinary scheduling. Once the
+  // exam cap binds, retain the uncapped result instead of mistaking the
+  // deliberately early review for evidence that memory got worse.
+  const proof = natural > ceiling() ? natural : ivl;
+  return { ivl, natural: Math.max(prior, proof) };
+}
+
+function scheduled(rec, g) {
+  return schedulePlan(rec, g).ivl;
 }
 
 /** Apply a grade. Returns 'stay' if the card should come back this session.
@@ -912,7 +967,7 @@ function scheduled(rec, g) {
  * out of scope with the answer. Answering a card fifteen seconds after you
  * last answered it used to grow its interval as though a day had passed, so a
  * quiet afternoon of extra work pushed the whole deck out to the cap. */
-function grade(id, g, ivl, practising) {
+function grade(id, g, ivl, practising, naturalIvl) {
   const stored = state.recs[id];
   const rec = practising ? Object.assign({}, stored || newRec()) : (stored || newRec());
   const isNew = !stored;
@@ -928,12 +983,15 @@ function grade(id, g, ivl, practising) {
   let outcome = 'done';
   // Worked out before anything below moves the ease, or the card is scheduled
   // off a number the button never showed.
-  const out = Number.isFinite(ivl) ? ivl : scheduled(rec, g);
+  const plan = Number.isFinite(ivl)
+    ? { ivl, natural: Number.isFinite(naturalIvl) ? naturalIvl : ivl }
+    : schedulePlan(rec, g);
+  const out = plan.ivl;
 
   if (rec.st === 'l') {
     if (g === 1) { rec.step = 0; outcome = 'stay'; }
     else if (g === 2 && rec.step < 2) { rec.step++; outcome = 'stay'; }
-    else { rec.st = 'r'; rec.ivl = out; rec.pv = 0; }
+    else { rec.st = 'r'; rec.ivl = out; rec.pv = plan.natural; }
   } else {
     if (g === 1) {
       rec.lp++;
@@ -941,7 +999,7 @@ function grade(id, g, ivl, practising) {
       // Remember 40% of the interval so re-graduating restores most of what was
       // learned instead of dropping the card back to one day. Losing six good
       // reviews over one slip is a punishment nobody has time for.
-      rec.pv = Math.max(1, Math.round(rec.ivl * 0.4));
+      rec.pv = Math.max(1, Math.round(provenInterval(rec) * 0.4));
       rec.st = 'l';
       rec.step = 1;
       outcome = 'stay';
@@ -950,6 +1008,7 @@ function grade(id, g, ivl, practising) {
       // then the ease moves. Bumping first made Easy schedule a day further out
       // than the button had just promised.
       rec.ivl = out;
+      rec.pv = plan.natural;
       if (g === 2) rec.ea = Math.max(MIN_EASE, rec.ea - 0.15);
       if (g === 4) rec.ea = Math.min(MAX_EASE, rec.ea + 0.15);
     }
@@ -989,7 +1048,7 @@ function stateOf(id) {
   const r = state.recs[id];
   if (!r) return 'new';
   if (r.st === 'l') return 'learning';
-  return r.ivl >= 21 ? 'mature' : 'young';
+  return provenInterval(r) >= 21 ? 'mature' : 'young';
 }
 
 function isDue(id, now) {
@@ -1019,7 +1078,7 @@ function counts(sectionKey) {
     seen++;
     if (r.st === 'l') learning++;
     else {
-      if (r.ivl >= 21) mature++;
+      if (provenInterval(r) >= 21) mature++;
       if (r.due <= now) due++;
     }
   }
@@ -2387,8 +2446,7 @@ function renderHome() {
     const ul = document.createElement('ul');
     ul.className = 'sections';
     for (const { s, sc, pending } of rows) {
-      const pct = Math.round(((sc.mature + (sc.seen - sc.learning - sc.mature) * 0.5)
-        / s.cardCount) * 100);
+      const pct = wholePercent(sc.mature, s.cardCount);
       // The meta line says what the number means. A bare badge on an untouched
       // section reads as "12 due" when it means "12 you have never seen".
       let meta;
@@ -2412,11 +2470,15 @@ function renderHome() {
         <span class="sect-name">${escapeHtml(s.title)}</span>
         ${pending ? `<span class="sect-badge">${pending}</span>` : ''}
         <span class="sect-meta">${meta}</span>
-        ${pct > 0 ? `<span class="sect-meter"><i style="width:${Math.min(100, pct)}%"></i></span>` : ''}`;
+        ${pct > 0 ? `<span class="sect-meter" aria-hidden="true"><i style="width:${Math.min(100, pct)}%"></i></span>` : ''}`;
       // The badge is a bare number and reads out as one, so the count it stands
-      // for is spelled into the label the row is announced under.
+      // for is spelled into the label the row is announced under. The meter is
+      // decorative inside that same button, so its value is said here even
+      // when pending/new-card metadata takes the visible line's place.
+      const progress = `${pct}% known well`;
+      const described = meta.includes(progress) ? meta : `${meta} · ${progress}`;
       b.setAttribute('aria-label',
-        `${s.title}. ${pending ? `${pending} to review. ` : ''}${meta}. Study this section.`);
+        `${s.title}. ${pending ? `${pending} to review. ` : ''}${described}. Study this section.`);
       b.addEventListener('click', () => startSession(s.sectionId));
       li.appendChild(b);
       ul.appendChild(li);
@@ -4440,9 +4502,12 @@ function settleDock(on) {
 function prepareGradeControls(card) {
   const rec = state.recs[card.cardId];
   session.ivls = {};
+  session.naturalIvls = {};
   for (let g = 1; g <= 4; g++) {
-    const d = scheduled(rec, g);
+    const plan = schedulePlan(rec, g);
+    const d = plan.ivl;
     session.ivls[g] = d;
+    session.naturalIvls[g] = plan.natural;
     // "(max)" explains why two buttons can show the same number: the exam date
     // is holding both down, not a bug.
     const capped = d > 0 && d === ceiling() && daysToExam() !== null;
@@ -4550,7 +4615,8 @@ function answer(g) {
     if (!session.reelCards.includes(id)) session.reelCards.push(id);
     addReelClips(id);
   }
-  const outcome = grade(id, g, session.ivls && session.ivls[g], session.ahead);
+  const outcome = grade(id, g, session.ivls && session.ivls[g], session.ahead,
+    session.naturalIvls && session.naturalIvls[g]);
   // A clean run is consecutive cards without an Again, inside one session.
   if (g === 1) {
     if (!session.missed.includes(id)) session.missed.push(id);
@@ -6030,7 +6096,7 @@ function renderStats() {
     const tot = inside.reduce((t, s) => t + s.cardCount, 0);
     const solid = inside.reduce((t, s) => t + bySect.get(s.sectionId).mature, 0);
     return (g.title ? `<h3 class="h-part"><span>${escapeHtml(g.title)}</span>`
-      + `<span class="h-part-n">${Math.round((solid / tot) * 100)}% solid</span></h3>` : '')
+      + `<span class="h-part-n">${wholePercent(solid, tot)}% solid</span></h3>` : '')
       + `<ul class="mastery">${rows}</ul>`;
   }).join('');
 
@@ -7046,19 +7112,24 @@ function wire() {
     if (value && !plausibleExam(value)) return false;
     state.settings.examDate = value || '';
     if (value) state.settings.examSkipped = false;
-    // Existing cards may already be scheduled past the new date; pull them in.
+    // Existing cards may already be scheduled past the new date; pull their
+    // next review in without rewriting the interval they have proved.
     // Only for a date in the future: a typo like 2025 instead of 2026 would
-    // otherwise rewrite every card to a one-day interval, and clearing the date
-    // afterwards cannot undo it.
+    // otherwise rewrite every next-review gap to one day.
     const cap = ceiling();
     const d = daysToExam();
     let moved = 0;
     if (d !== null && d >= 0) {
       for (const r of Object.values(state.recs)) {
-        if (r.st === 'r' && r.ivl > cap) {
-          r.ivl = cap;
-          r.due = Math.min(r.due, addCalendarDays(Date.now(), cap));
-          moved++;
+        if (r.st === 'r') {
+          // Review records from older builds have pv=0. Capture their last
+          // surviving interval before exam mode shortens the scheduled gap.
+          if (!(Number(r.pv) > 0)) r.pv = provenInterval(r);
+          if (r.ivl > cap) {
+            r.ivl = cap;
+            r.due = Math.min(r.due, addCalendarDays(Date.now(), cap));
+            moved++;
+          }
         }
       }
     }

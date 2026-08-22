@@ -270,6 +270,56 @@ ok(A.DEFINITIONS.every(Object.isFrozen),
 }
 
 {
+  const deck = {
+    sections: [{ sectionId: 'proven' }, { sectionId: 'young' }],
+    cards: [
+      { cardId: 'capped', sectionId: 'proven' },
+      { cardId: 'legacy-absent', sectionId: 'proven' },
+      { cardId: 'legacy-zero', sectionId: 'proven' },
+      { cardId: 'explicit-young', sectionId: 'young' },
+      { cardId: 'not-recovered', sectionId: 'young' },
+      { cardId: 'learning', sectionId: 'young' },
+    ],
+  };
+  const recs = {
+    capped: { st: 'r', ivl: 6, pv: 30, lp: 0 },
+    'legacy-absent': { st: 'r', ivl: 21, lp: 0 },
+    'legacy-zero': { st: 'r', ivl: 22, pv: 0, lp: 0 },
+    'explicit-young': { st: 'r', ivl: 45, pv: 7, lp: 3 },
+    'not-recovered': { st: 'r', ivl: 45, pv: 6, lp: 3 },
+    learning: { st: 'l', ivl: 99, pv: 30, lp: 3 },
+  };
+  const context = A.contextFromDeck({
+    at: 1000,
+    state: { answers: 6, recs },
+    deck,
+    course: { id: 'built-in' },
+  });
+  ok(context.solidCards === 3 && context.solidPercent === 50,
+    'solid totals use capped pv and both absent and zero legacy fallbacks');
+  ok(context.keptSections === 1 && context.deckSeen && !context.deckKept,
+    'section and deck mastery use the same proven-interval definition');
+  ok(context.tamed,
+    'a lapsed review card is tamed when its explicit proven interval reaches seven days');
+
+  const notRecovered = A.contextFromDeck({
+    at: 1000,
+    state: { answers: 1, recs: { card: recs['not-recovered'] } },
+    deck: {
+      sections: [{ sectionId: 'only' }],
+      cards: [{ cardId: 'card', sectionId: 'only' }],
+    },
+    course: { id: 'built-in' },
+  });
+  ok(!notRecovered.tamed && notRecovered.solidCards === 0,
+    'a larger scheduled ivl cannot override an explicit positive pv below a threshold');
+
+  const aggregate = A.aggregateClubStates([{ answers: 6, recs }]);
+  ok(aggregate.solidCards === 3,
+    'club mastery totals use the same proven-interval definition as deck progress');
+}
+
+{
   const aggregate = A.aggregateClubStates([
     {
       answers: 12,

@@ -147,6 +147,65 @@ const rec = (overrides = {}) => Object.assign({
     'card scheduling merge is associative across three devices');
 }
 
+/* `pv` is the uncapped interval a review has proved. Released clients wrote
+ * zero there, so a review card's ivl is its legacy proof. Proof is monotonic
+ * only within one lapse epoch: a later lapse deliberately starts lower. */
+{
+  const legacy = rec({ rp: 14, lp: 2, st: 'r', ivl: 6, pv: 0, due: 200 });
+  const proved = rec({ rp: 14, lp: 2, st: 'r', ivl: 6, pv: 38, due: 200 });
+  const forward = S.pickRec(legacy, proved);
+  const reverse = S.pickRec(proved, legacy);
+  ok(forward.pv === 38 && same(forward, reverse),
+    'same-epoch sync keeps new proof when the other client still writes pv=0');
+  ok(same(S.pickRec(forward, legacy), forward)
+      && same(S.pickRec(forward, forward), forward),
+  'the upgraded proof is idempotent under repeated legacy and self merges');
+
+  const oldEpoch = rec({ rp: 20, lp: 2, st: 'r', ivl: 6, pv: 55, due: 300 });
+  const lapsedAgain = rec({ rp: 21, lp: 3, st: 'l', ivl: 1, pv: 9, due: 100 });
+  const demoted = S.pickRec(oldEpoch, lapsedAgain);
+  ok(demoted.lp === 3 && demoted.pv === 9 && demoted.st === 'l',
+    'a higher lapse epoch demotes proof instead of inheriting an older high-water mark');
+}
+
+{
+  const oldEpoch = rec({ rp: 10, lp: 1, st: 'r', ivl: 6, pv: 70, due: 300 });
+  const relearning = rec({ rp: 10, lp: 2, st: 'l', ivl: 2, pv: 12, due: 100 });
+  const legacyReview = rec({ rp: 10, lp: 2, st: 'r', ivl: 25, pv: 0, due: 200 });
+  const records = [oldEpoch, relearning, legacyReview];
+  const permutations = [
+    [0, 1, 2], [0, 2, 1], [1, 0, 2],
+    [1, 2, 0], [2, 0, 1], [2, 1, 0],
+  ];
+  const merged = permutations.map((order) => order
+    .map((index) => records[index])
+    .reduce((left, right) => S.pickRec(left, right)));
+  const regrouped = [
+    S.pickRec(S.pickRec(oldEpoch, relearning), legacyReview),
+    S.pickRec(oldEpoch, S.pickRec(relearning, legacyReview)),
+    S.pickRec(S.pickRec(oldEpoch, legacyReview), relearning),
+  ];
+  ok(merged.every((value) => same(value, merged[0]))
+      && regrouped.every((value) => same(value, merged[0])),
+  'proof merge is commutative and associative across every three-device permutation');
+  ok(merged[0].st === 'l' && merged[0].due === 100
+      && merged[0].lp === 2 && merged[0].pv === 25,
+  'the existing schedule winner survives while newest-epoch proof takes its maximum');
+
+  const upgradedLegacy = S.pickRec(legacyReview, null);
+  ok(upgradedLegacy.pv === 25
+      && same(S.pickRec(upgradedLegacy, null), upgradedLegacy),
+  'a lone legacy review upgrades from ivl once and is then idempotent');
+}
+
+{
+  const lowerSchedule = rec({ rp: 7, lp: 4, pv: 90, step: 1, due: 500 });
+  const higherSchedule = rec({ rp: 7, lp: 4, pv: 10, step: 2, due: 500 });
+  const merged = S.pickRec(lowerSchedule, higherSchedule);
+  ok(merged.step === 1 && merged.pv === 90,
+    'derived pv is blanked for stable schedule ties, then restored as proof');
+}
+
 {
   const oldDate = state({
     settings: { newPerDay: 20, maxRev: 120, examDate: '2026-08-01', at: 100 },
@@ -372,8 +431,10 @@ const rec = (overrides = {}) => Object.assign({
   'the later edit of a course card wins while it keeps the moment it was first made');
   ok(merged.cards.c3e8a945bb.was === '1a2b3c4d.z',
     'the fingerprint of the card the author shipped travels with the edit');
-  ok(same(merged.recs['u.aaaa'], phone.recs['u.aaaa']),
-    'and the review history of a written card crosses with it');
+  ok(merged.recs['u.aaaa'].rp === phone.recs['u.aaaa'].rp
+      && merged.recs['u.aaaa'].ivl === phone.recs['u.aaaa'].ivl
+      && merged.recs['u.aaaa'].pv === phone.recs['u.aaaa'].ivl,
+    'and its review history crosses while legacy proof upgrades from the review interval');
 }
 
 {

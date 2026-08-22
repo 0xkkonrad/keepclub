@@ -218,26 +218,48 @@ function stable(value) {
   return JSON.stringify(value === undefined ? null : value);
 }
 
+// `pv` is the strongest interval this lapse epoch has proved, even when an
+// approaching exam keeps the actual scheduled interval (`ivl`) shorter. Old
+// clients wrote pv=0 for review cards, so their interval is the compatible
+// fallback. A learning card's ivl is only its next step, never proof.
+function provenInterval(record) {
+  const proof = num(record && record.pv);
+  if (proof > 0) return proof;
+  return record && record.st === 'r' ? Math.max(0, num(record.ivl)) : 0;
+}
+
 function pickRec(x, y) {
-  if (!x) return y;
-  if (!y) return x;
-  let winner;
-  if (num(x.rp) !== num(y.rp)) winner = num(x.rp) > num(y.rp) ? x : y;
-  // Equal review counts are divergent answers to the same card. Keep the
-  // relearning schedule when only one device lapsed, then the earlier due
-  // date. Lapse count itself cannot choose the schedule: it is merged by max
-  // below, and feeding that derived value back into the comparison made a
-  // three-device merge depend on grouping order.
-  else if ((x.st === 'l') !== (y.st === 'l')) winner = x.st === 'l' ? x : y;
-  else if (num(x.due) !== num(y.due)) winner = num(x.due) < num(y.due) ? x : y;
-  else {
-    const xSchedule = Object.assign({}, x, { lp: 0 });
-    const ySchedule = Object.assign({}, y, { lp: 0 });
-    winner = stable(xSchedule) <= stable(ySchedule) ? x : y;
+  if (!x && !y) return undefined;
+  let winner = x || y;
+  if (x && y) {
+    if (num(x.rp) !== num(y.rp)) winner = num(x.rp) > num(y.rp) ? x : y;
+    // Equal review counts are divergent answers to the same card. Keep the
+    // relearning schedule when only one device lapsed, then the earlier due
+    // date. Lapse count itself cannot choose the schedule: it is merged by max
+    // below, and feeding that derived value back into the comparison made a
+    // three-device merge depend on grouping order.
+    else if ((x.st === 'l') !== (y.st === 'l')) winner = x.st === 'l' ? x : y;
+    else if (num(x.due) !== num(y.due)) winner = num(x.due) < num(y.due) ? x : y;
+    else {
+      // lp and pv are monotonic merge evidence, not schedule fields. Letting
+      // either derived maximum participate here makes a three-device answer
+      // depend on which pair happened to sync first.
+      const xSchedule = Object.assign({}, x, { lp: 0, pv: 0 });
+      const ySchedule = Object.assign({}, y, { lp: 0, pv: 0 });
+      winner = stable(xSchedule) <= stable(ySchedule) ? x : y;
+    }
   }
-  // Lapses are a lifetime counter. A later review record can legitimately win
-  // the schedule while still having forked before a lapse on another device.
-  return Object.assign({}, winner, { lp: Math.max(num(x.lp), num(y.lp)) });
+
+  // A proof belongs to its lapse epoch. Once either device has lapsed again,
+  // older high-water marks must not make the demoted card look mastered. Within
+  // the newest epoch proof is a max, which makes repeated and regrouped merges
+  // converge while still upgrading legacy review records whose pv was zero.
+  const lapses = Math.max(num(x && x.lp), num(y && y.lp));
+  const proof = Math.max(
+    x && num(x.lp) === lapses ? provenInterval(x) : 0,
+    y && num(y.lp) === lapses ? provenInterval(y) : 0
+  );
+  return Object.assign({}, winner, { lp: lapses, pv: proof });
 }
 
 function prevKey(key) {

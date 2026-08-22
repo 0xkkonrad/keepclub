@@ -39,6 +39,13 @@
   const plainObject = (value) => (
     !!value && typeof value === 'object' && !Array.isArray(value)
   );
+  // New records keep the uncapped, proven interval in `pv`; legacy records
+  // predate that meaning, so a missing/zero value falls back to review `ivl`.
+  const provenInterval = (rec) => {
+    if (!plainObject(rec) || rec.st !== 'r') return 0;
+    const persisted = number(rec.pv);
+    return Math.max(0, persisted > 0 ? persisted : number(rec.ivl));
+  };
 
   const metric = (name, comparison) => Object.freeze(Object.assign(
     { metric: name },
@@ -689,13 +696,13 @@
       if (!plainObject(rec)) continue;
       seenCards++;
       sectionSeen.set(section, (sectionSeen.get(section) || 0) + 1);
-      if (rec.st === 'r' && number(rec.ivl) >= SOLID_DAYS) {
+      if (provenInterval(rec) >= SOLID_DAYS) {
         solidCards++;
         sectionSolid.set(section, (sectionSolid.get(section) || 0) + 1);
       }
       // Preserve the original recovery rule: after three lapses, a card is
       // considered untangled once it has re-graduated to at least a week.
-      if (number(rec.lp) >= LEECH_AT && rec.st === 'r' && number(rec.ivl) >= 7) {
+      if (number(rec.lp) >= LEECH_AT && provenInterval(rec) >= 7) {
         tamed = true;
       }
     }
@@ -787,7 +794,7 @@
       const recs = plainObject(raw.recs) ? raw.recs : {};
       if (courseAnswers > 0 || Object.keys(recs).length) courseCount++;
       for (const rec of Object.values(recs)) {
-        if (plainObject(rec) && rec.st === 'r' && number(rec.ivl) >= SOLID_DAYS) {
+        if (provenInterval(rec) >= SOLID_DAYS) {
           solidCards++;
         }
       }
