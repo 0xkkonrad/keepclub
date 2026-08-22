@@ -252,10 +252,10 @@ function loseStudyLock() {
 function freshState() {
   return {
     v: 1,
-    // ivl is the next scheduled gap; pv is the uncapped interval the learner
-    // has proved. Exam mode may shorten the former, but only forgetting lowers
-    // the latter.
-    recs: {},                    // card id -> {st, step, ivl, ea, due, rp, sr, lp, pv}
+    // ivl/due are the answer's ordinary schedule; pv is the interval the
+    // learner has proved. Exam mode derives an earlier effective due date from
+    // them without rewriting either fact.
+    recs: {},                    // card id -> {st, step, ivl, ea, due, rp, sr, lp, pv, ec?}
     day: dayKey(Date.now()),
     newDone: 0,
     revDone: 0,
@@ -389,7 +389,10 @@ function sanitise(raw) {
     for (const [id, r] of Object.entries(raw.recs)) {
       if (!isPlainObject(r)) continue;
       const st = r.st === 'r' ? 'r' : 'l';
-      const ivl = Math.round(num(r.ivl, 0, MAX_IVL, st === 'r' ? 1 : 0));
+      // A review is, by definition, scheduled at least one day out. Keeping an
+      // explicit zero used to let reversible-cap provenance write a value its
+      // own validator could not read back on the next load.
+      const ivl = Math.round(num(r.ivl, st === 'r' ? 1 : 0, MAX_IVL, st === 'r' ? 1 : 0));
       const savedProof = Math.round(num(r.pv, 0, MAX_IVL, 0));
       const rp = Math.round(num(r.rp, 0, 1e6, 0));
       const rawScheduleRevision = r.sr;
@@ -399,7 +402,7 @@ function sanitise(raw) {
       const hasScheduleRevision = Object.hasOwn(r, 'sr')
         && validScheduleRevision(rawScheduleRevision, rp);
       const scheduleRevision = hasScheduleRevision ? rawScheduleRevision : rp;
-      recs[id] = {
+      const record = {
         st,
         step: Math.round(num(r.step, 0, 9, 0)),
         ivl,
@@ -419,6 +422,22 @@ function sanitise(raw) {
         // zero is a legacy record, whose best surviving evidence is ivl.
         pv: st === 'r' && !hasScheduleRevision ? (savedProof || ivl) : savedProof,
       };
+      // A grade may have been revealed just before midnight and answered just
+      // after it. `ec` preserves the future-exam interval printed on that
+      // answer button as part of the resulting schedule revision. It is a map
+      // because two devices can make the same canonical answer under different
+      // exam dates; sync joins those promises by date. Eight concurrent dates
+      // is already far beyond a real device set and keeps hostile input bounded.
+      if (st === 'r' && isPlainObject(r.ec)) {
+        const commits = Object.entries(r.ec)
+          .filter(([date, interval]) => validExamDate(date)
+            && typeof interval === 'number' && Number.isInteger(interval)
+            && interval >= 1 && interval <= ivl)
+          .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+          .slice(0, 8);
+        if (commits.length) record.ec = Object.fromEntries(commits);
+      }
+      recs[id] = record;
     }
   }
   s.recs = recs;
@@ -594,7 +613,9 @@ let settingsShape = null;
  * replacing the tab's pending changes first. */
 function stateDocument(text) {
   if (typeof text !== 'string' || !text) return null;
-  try { return sanitise(JSON.parse(text)); } catch (e) { return null; }
+  try {
+    return sanitise(JSON.parse(text));
+  } catch (e) { return null; }
 }
 
 /** Merge idle-tab copies with the same convergent algebra device Sync uses.
@@ -923,10 +944,10 @@ function daysToExam() {
   return daysUntilExam(state.settings.examDate);
 }
 
-function fuzz(days) {
+function fuzz(days, roll = Math.random()) {
   if (days < 3) return days;
   const spread = Math.max(1, Math.round(days * 0.05));
-  return days + (Math.floor(Math.random() * (spread * 2 + 1)) - spread);
+  return days + (Math.floor(roll * (spread * 2 + 1)) - spread);
 }
 
 /** The longest interval allowed right now — shortened once an exam date is set.
@@ -947,31 +968,50 @@ function ceiling() {
   return examCeiling(state.settings.examDate);
 }
 
-/** Reconcile review schedules with the exam setting in the same document.
+/** When the answer's ordinary schedule began.
  *
- * Settings and per-card schedules merge independently across devices. The
- * newer exam date can therefore meet a newer uncapped schedule that was made
- * on the other device. Apply the same pull-forward as a local date change to
- * that freshly merged document, while leaving its uncapped proof untouched. */
-function capSchedulesForExam(document, now = Date.now()) {
-  const cap = examCeiling(document && document.settings?.examDate, now);
-  if (cap === MAX_IVL) return 0;
-  const latestDue = addCalendarDays(now, cap);
+ * `due - ivl` is stable across devices, reloads, and exam setting changes,
+ * unlike "now". Using it also makes the projection pull-forward-only: clearing
+ * and re-setting a date tomorrow cannot postpone a review already due today. */
+function scheduleOrigin(record) {
+  return addCalendarDays(Number(record.due) || 0, -Math.max(0, Number(record.ivl) || 0));
+}
+
+/** The due date the learner experiences under a settings block.
+ *
+ * The card record stays canonical. This derived projection is what removes
+ * exam settings from card-merge algebra: a stale setting can win an
+ * intermediate merge, but it never rewrites ivl/due for a later clear to
+ * inherit. Anchoring to the answer also means tomorrow's reload cannot
+ * postpone a card that was already pulled forward today. */
+function effectiveDue(record, settings = state.settings) {
+  if (!record || record.st !== 'r') return Number(record && record.due) || 0;
+  const baseDue = Number(record.due) || 0;
+  const anchor = scheduleOrigin(record);
+  const examDate = settings && settings.examDate;
+  // An answer revealed while this exam was future commits the interval printed
+  // on its button. It stays committed if midnight passes before the press (and
+  // afterwards), just as every other displayed plan does. The inactive-date
+  // rule below governs newly computed plans and records without that answer.
+  const committed = record.ec && Number(record.ec[examDate]);
+  if (Number.isInteger(committed) && committed >= 1 && committed <= record.ivl) {
+    return Math.min(baseDue, addCalendarDays(anchor, committed));
+  }
+  // The scheduler's public rule is that today/past dates are inactive. Gate on
+  // the real current day before using the older answer origin, or an exam today
+  // could look future relative to that origin and silently keep cramming on.
+  const currentDistance = daysUntilExam(examDate, Date.now());
+  if (currentDistance === null || currentDistance <= 0) return baseDue;
+  const cap = examCeiling(examDate, anchor);
+  if (cap === MAX_IVL) return baseDue;
+  return Math.min(baseDue, addCalendarDays(anchor, cap));
+}
+
+function examPullForwardCount(document) {
   let moved = 0;
   for (const record of Object.values(document.recs || {})) {
-    if (!record || record.st !== 'r') continue;
-    let changed = false;
-    // Old review records may still carry their only surviving proof in ivl.
-    if (!(Number(record.pv) > 0)) record.pv = provenInterval(record);
-    if (record.ivl > cap) {
-      record.ivl = cap;
-      changed = true;
-    }
-    if (record.due > latestDue) {
-      record.due = latestDue;
-      changed = true;
-    }
-    if (changed) moved++;
+    if (record && record.st === 'r'
+        && effectiveDue(record, document.settings) < record.due) moved++;
   }
   return moved;
 }
@@ -1023,21 +1063,34 @@ function preview(rec, g) {
 function schedulePlan(rec, g) {
   const natural = naturalPreview(rec, g);
   const out = preview(rec, g);
+  const exam = daysToExam() > 0 ? state.settings.examDate : '';
   // 0 is "again this session", which is not a date and does not get jittered.
-  if (out <= 0) return { ivl: 0, natural: 0 };
+  if (out <= 0) return { ivl: 0, natural: 0, uncapped: 0, exam };
   // Hard means "leave the gap where it is". Fuzzing an unchanged interval turns
   // that into a random walk that drifts over repeated presses; the jitter is
   // only there to break up clumps of cards scheduled together.
   const jitter = !(rec && rec.st === 'r' && g === 2);
-  const ivl = Math.min(ceiling(), MAX_IVL, Math.max(1, jitter ? fuzz(out) : out));
+  // One random quantile drives both projections. Under a cap, the button keeps
+  // its short-gap jitter while the stored ordinary schedule is exactly what
+  // this same answer and roll would have produced with exam mode off.
+  const roll = jitter ? Math.random() : 0.5;
+  const ivl = Math.min(ceiling(), MAX_IVL, Math.max(1, jitter ? fuzz(out, roll) : out));
+  const uncapped = Math.min(MAX_IVL,
+    Math.max(1, jitter ? fuzz(natural, roll) : ivl));
   const prior = provenInterval(rec);
-  if (!jitter) return { ivl, natural: prior };
-  // With no active cap, ivl remains byte-for-byte the interval the old
-  // scheduler would have stored, preserving ordinary scheduling. Once the
-  // exam cap binds, retain the uncapped result instead of mistaking the
-  // deliberately early review for evidence that memory got worse.
-  const proof = natural > ceiling() ? natural : ivl;
-  return { ivl, natural: Math.max(prior, proof) };
+  if (!jitter) return { ivl, natural: prior, uncapped: ivl, exam };
+  // With no active cap, both projections are byte-for-byte the interval the
+  // old scheduler would have stored. Once the exam cap binds — including the
+  // boundary where jitter alone makes the ordinary result one day longer —
+  // retain the stronger result instead of mistaking an early review for
+  // evidence that memory got worse.
+  const proof = Math.max(ivl, uncapped);
+  return {
+    ivl,
+    natural: Math.max(prior, proof),
+    uncapped,
+    exam,
+  };
 }
 
 function scheduled(rec, g) {
@@ -1055,12 +1108,15 @@ function scheduled(rec, g) {
  * out of scope with the answer. Answering a card fifteen seconds after you
  * last answered it used to grow its interval as though a day had passed, so a
  * quiet afternoon of extra work pushed the whole deck out to the cap. */
-function grade(id, g, ivl, practising, naturalIvl) {
+function grade(id, g, ivl, practising, naturalIvl, uncappedIvl, examDate) {
   const stored = state.recs[id];
   const rec = practising ? Object.assign({}, stored || newRec()) : (stored || newRec());
   const isNew = !stored;
   const wasReview = rec.st === 'r';
-  if (!practising) state.recs[id] = rec;
+  if (!practising) {
+    state.recs[id] = rec;
+    delete rec.ec;
+  }
   const scheduleRevision = Number.isFinite(Number(rec.sr)) ? Number(rec.sr) : rec.rp;
   rec.rp++;
   rec.sr = scheduleRevision + 1;
@@ -1074,14 +1130,23 @@ function grade(id, g, ivl, practising, naturalIvl) {
   // Worked out before anything below moves the ease, or the card is scheduled
   // off a number the button never showed.
   const plan = Number.isFinite(ivl)
-    ? { ivl, natural: Number.isFinite(naturalIvl) ? naturalIvl : ivl }
+    ? {
+        ivl,
+        natural: Number.isFinite(naturalIvl) ? naturalIvl : ivl,
+        uncapped: g === 2
+          ? ivl
+          : Number.isFinite(uncappedIvl)
+          ? uncappedIvl
+          : (Number.isFinite(naturalIvl) ? naturalIvl : ivl),
+        exam: typeof examDate === 'string'
+          ? examDate
+          : (daysToExam() > 0 ? state.settings.examDate : ''),
+      }
     : schedulePlan(rec, g);
-  const out = plan.ivl;
-
   if (rec.st === 'l') {
     if (g === 1) { rec.step = 0; outcome = 'stay'; }
     else if (g === 2 && rec.step < 2) { rec.step++; outcome = 'stay'; }
-    else { rec.st = 'r'; rec.ivl = out; rec.pv = plan.natural; }
+    else { rec.st = 'r'; rec.ivl = plan.uncapped; rec.pv = plan.natural; }
   } else {
     if (g === 1) {
       rec.lp++;
@@ -1094,10 +1159,9 @@ function grade(id, g, ivl, practising, naturalIvl) {
       rec.step = 1;
       outcome = 'stay';
     } else {
-      // The interval is computed from the ease the button was *labelled* with,
-      // then the ease moves. Bumping first made Easy schedule a day further out
-      // than the button had just promised.
-      rec.ivl = out;
+      // Both the ordinary schedule and its exam projection were computed from
+      // the ease the button was labelled with; only then does the ease move.
+      rec.ivl = plan.uncapped;
       rec.pv = plan.natural;
       if (g === 2) rec.ea = Math.max(MIN_EASE, rec.ea - 0.15);
       if (g === 4) rec.ea = Math.min(MAX_EASE, rec.ea + 0.15);
@@ -1106,6 +1170,11 @@ function grade(id, g, ivl, practising, naturalIvl) {
 
   if (rec.st === 'r') {
     rec.due = addCalendarDays(Date.now(), rec.ivl);
+    if (!practising && plan.exam && plan.ivl > 0) {
+      rec.ec = {
+        [plan.exam]: Math.min(rec.ivl, Math.max(1, Math.round(plan.ivl))),
+      };
+    }
   } else {
     // A learning card is ordered by the session queue, not the clock — but it
     // still needs a real due date, or a session abandoned half way leaves cards
@@ -1143,7 +1212,7 @@ function stateOf(id) {
 
 function isDue(id, now) {
   const r = state.recs[id];
-  return !!r && r.st === 'r' && r.due <= now;
+  return !!r && r.st === 'r' && effectiveDue(r) <= now;
 }
 
 /** The deck walked in theme order: [group, [section, …]] per theme.
@@ -1169,7 +1238,7 @@ function counts(sectionKey) {
     if (r.st === 'l') learning++;
     else {
       if (provenInterval(r) >= 21) mature++;
-      if (r.due <= now) due++;
+      if (effectiveDue(r) <= now) due++;
     }
   }
   return { due, fresh, learning, seen, mature };
@@ -1994,8 +2063,9 @@ function buildSession(sectionKey, opts) {
     // Studying ahead: pull the soonest-due cards even though they are not due yet.
     const notYet = pool
       .filter((c) => state.recs[c.cardId] && state.recs[c.cardId].st === 'r'
-        && state.recs[c.cardId].due > now)
-      .sort((a, b) => state.recs[a.cardId].due - state.recs[b.cardId].due)
+        && effectiveDue(state.recs[c.cardId]) > now)
+      .sort((a, b) => effectiveDue(state.recs[a.cardId])
+        - effectiveDue(state.recs[b.cardId]))
       .slice(0, AHEAD_BATCH);
     reviews = reviews.concat(notYet);
     // Studying ahead is the app's own suggestion, so it honours the daily new
@@ -2201,7 +2271,7 @@ function aheadSize(sectionKey) {
     const r = state.recs[c.cardId];
     if (!r) { fresh++; continue; }
     if (r.st === 'l') learning++;
-    else if (r.due <= now) due++;
+    else if (effectiveDue(r) <= now) due++;
     else notYet++;
   }
   return learning + due + Math.min(AHEAD_BATCH, notYet)
@@ -4606,11 +4676,15 @@ function prepareGradeControls(card) {
   const rec = state.recs[card.cardId];
   session.ivls = {};
   session.naturalIvls = {};
+  session.uncappedIvls = {};
+  session.examDates = {};
   for (let g = 1; g <= 4; g++) {
     const plan = schedulePlan(rec, g);
     const d = plan.ivl;
     session.ivls[g] = d;
     session.naturalIvls[g] = plan.natural;
+    session.uncappedIvls[g] = plan.uncapped;
+    session.examDates[g] = plan.exam;
     // "(max)" explains why two buttons can show the same number: the exam date
     // is holding both down, not a bug.
     const cap = ceiling();
@@ -4720,7 +4794,9 @@ function answer(g) {
     addReelClips(id);
   }
   const outcome = grade(id, g, session.ivls && session.ivls[g], session.ahead,
-    session.naturalIvls && session.naturalIvls[g]);
+    session.naturalIvls && session.naturalIvls[g],
+    session.uncappedIvls && session.uncappedIvls[g],
+    session.examDates && session.examDates[g]);
   // A clean run is consecutive cards without an Again, inside one session.
   if (g === 1) {
     if (!session.missed.includes(id)) session.missed.push(id);
@@ -4910,7 +4986,9 @@ function nextDueLine() {
   let soonest = Infinity;
   for (const c of DECK.cards) {
     const r = state.recs[c.cardId];
-    if (r && r.st === 'r' && r.due > now) soonest = Math.min(soonest, r.due);
+    if (r && r.st === 'r' && effectiveDue(r) > now) {
+      soonest = Math.min(soonest, effectiveDue(r));
+    }
   }
   if (soonest === Infinity) return 'Nothing else is scheduled. You can start new cards whenever you like.';
   const days = Math.max(0, Math.round((startOfDay(soonest) - startOfDay(now)) / DAY));
@@ -5892,9 +5970,10 @@ function sanitiseSynced(raw) {
   return clean;
 }
 
-/** The two independently merged halves of progress must agree before upload. */
+/** Hook for document-level progress invariants before upload/adoption.
+ * Exam scheduling is a pure projection now, so settings-only merges need no
+ * card-record rewrite here. */
 function reconcileSynced(merged) {
-  capSchedulesForExam(merged);
   return merged;
 }
 
@@ -6154,7 +6233,7 @@ function renderStats() {
   for (const c of DECK.cards) {
     const r = state.recs[c.cardId];
     if (!r || r.st !== 'r') continue;
-    const d = Math.round((startOfDay(r.due) - startOfDay(now)) / DAY);
+    const d = Math.round((startOfDay(effectiveDue(r)) - startOfDay(now)) / DAY);
     if (d <= 0) bins[0]++;
     else if (d < 7) bins[d]++;
   }
@@ -7223,11 +7302,9 @@ function wire() {
     if (value && !plausibleExam(value)) return false;
     state.settings.examDate = value || '';
     if (value) state.settings.examSkipped = false;
-    // Existing cards may already be scheduled past the new date; pull their
-    // next review in without rewriting the interval they have proved.
-    // Only for a date in the future: a typo like 2025 instead of 2026 would
-    // otherwise rewrite every next-review gap to one day.
-    const moved = capSchedulesForExam(state);
+    // Count the derived pull-forward for the message. The card records stay on
+    // their ordinary schedules; all due views project the exam setting.
+    const moved = examPullForwardCount(state);
     const wrote = writeNow();
     $('#set-exam').value = state.settings.examDate;
     $('#home-exam').value = state.settings.examDate;

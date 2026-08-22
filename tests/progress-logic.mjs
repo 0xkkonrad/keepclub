@@ -119,20 +119,29 @@ const examMutation = await page.evaluate(() => {
   const input = document.getElementById('set-exam');
   input.value = '2026-09-19';
   input.dispatchEvent(new Event('change', { bubbles: true }));
-  const capped = { ...state.recs[id], state: stateOf(id), cap: ceiling() };
+  const capped = {
+    ...state.recs[id], state: stateOf(id), cap: ceiling(),
+    effective: effectiveDue(state.recs[id]),
+  };
   input.value = '';
   input.dispatchEvent(new Event('change', { bubbles: true }));
-  const cleared = { ...state.recs[id], state: stateOf(id), cap: ceiling() };
+  const cleared = {
+    ...state.recs[id], state: stateOf(id), cap: ceiling(),
+    effective: effectiveDue(state.recs[id]),
+  };
   return { before, capped, cleared };
 });
 ok(examMutation.before.pv === 30 && examMutation.before.state === 'mature',
   'a legacy 30-day review migrates as proven before exam mode touches it');
-ok(examMutation.capped.cap === 6 && examMutation.capped.ivl === 6
+ok(examMutation.capped.cap === 6 && examMutation.capped.ivl === 30
+    && examMutation.capped.due === examMutation.before.due
+    && examMutation.capped.effective <= NOW + 6 * 86400000
     && examMutation.capped.pv === 30 && examMutation.capped.state === 'mature',
-  'setting the exam caps only the next gap and keeps the card solid');
-ok(examMutation.cleared.ivl === 6 && examMutation.cleared.pv === 30
+  'setting the exam derives an earlier due date without rewriting schedule or proof');
+ok(examMutation.cleared.ivl === 30 && examMutation.cleared.pv === 30
+    && examMutation.cleared.effective === examMutation.cleared.due
     && examMutation.cleared.state === 'mature',
-  'clearing the exam cannot demote the stored proof');
+  'clearing the exam exposes the unchanged ordinary schedule and proof');
 
 /* Settings and card schedules can win from different sync branches. The merged
  * document must reapply its winning exam cap before it is uploaded or adopted. */
@@ -154,15 +163,192 @@ const syncedExam = await page.evaluate(() => {
   return {
     examDate: reconciled.settings.examDate,
     record: reconciled.recs.x,
+    effective: effectiveDue(reconciled.recs.x, reconciled.settings),
     latestDue: addCalendarDays(Date.now(), examCeiling(reconciled.settings.examDate)),
   };
 });
 ok(syncedExam.examDate === '2026-08-27'
-    && syncedExam.record.ivl === 1
-    && syncedExam.record.due <= syncedExam.latestDue
+    && syncedExam.record.ivl === 30
+    && syncedExam.record.due === Date.parse('2026-09-21T00:00:00Z')
+    && syncedExam.effective <= syncedExam.latestDue
     && syncedExam.record.pv === 30
     && syncedExam.record.sr === 6,
-  'a synced exam setting pulls the independently winning schedule forward without lowering proof');
+  'a synced exam setting derives an earlier due date without mutating the independently winning schedule');
+
+const ingressReconciliation = await page.evaluate(() => {
+  const due = Date.parse('2026-09-21T00:00:00Z');
+  const inconsistent = freshState();
+  inconsistent.settings = { ...inconsistent.settings, examDate: '2026-08-27', at: 200 };
+  inconsistent.recs.x = {
+    st: 'r', step: 0, ivl: 30, ea: 2.5, due,
+    rp: 6, sr: 6, lp: 0, pv: 30,
+  };
+  const view = (document) => ({
+    ...document.recs.x,
+    effective: effectiveDue(document.recs.x, document.settings),
+  });
+  const throughDocument = view(stateDocument(JSON.stringify(inconsistent)));
+
+  localStorage.setItem(KEY, JSON.stringify(inconsistent));
+  load();
+  writeNow();
+  const throughLoad = view(state);
+  const durableDocument = JSON.parse(localStorage.getItem(KEY));
+  const durable = view(durableDocument);
+
+  state = freshState();
+  state.settings = { ...state.settings, examDate: '', at: 100 };
+  mergeStateDocuments(sanitise(inconsistent));
+  const throughIdleMerge = view(state);
+
+  return {
+    throughDocument, throughLoad, durable, throughIdleMerge,
+    latestDue: addCalendarDays(Date.now(), 1),
+  };
+});
+ok(['throughDocument', 'throughLoad', 'durable', 'throughIdleMerge']
+    .every((key) => ingressReconciliation[key].ivl === 30
+      && ingressReconciliation[key].due === Date.parse('2026-09-21T00:00:00Z')
+      && ingressReconciliation[key].effective <= ingressReconciliation.latestDue
+      && ingressReconciliation[key].pv === 30),
+  'cold load, durable write, idle merge, and document ingress derive the cap without rewriting records');
+
+/* Exam settings can win intermediate pairs, but their projection must never
+ * enter the record merge. Both a final clear and a final active date therefore
+ * converge across groupings while retaining the genuine answer schedule. */
+const examConvergence = await page.evaluate(() => {
+  const base = (examDate, at, record = null) => {
+    const value = freshState();
+    value.settings = { ...value.settings, examDate, at };
+    if (record) value.recs.x = record;
+    return value;
+  };
+  const record = (ivl, due) => ({
+    st: 'r', step: 0, ivl, ea: 2.5, due,
+    rp: 5, sr: 5, lp: 0, pv: 30,
+  });
+  const sep1 = Date.parse('2026-09-01T00:00:00Z');
+  const sep21 = Date.parse('2026-09-21T00:00:00Z');
+  const join = (a, b) => reconcileSynced(DSSync.mergeState(
+    sanitiseSynced(a), sanitiseSynced(b)));
+
+  const exam = base('2026-08-27', 100);
+  const uncapped = base('', 0, record(30, sep21));
+  const cleared = base('', 200);
+  const left = join(join(exam, uncapped), cleared);
+  const right = join(exam, join(uncapped, cleared));
+
+  const nearer = base('', 0, record(10, sep1));
+  const active = base('2026-08-27', 300);
+  const activeLeft = join(join(active, nearer), cleared);
+  const activeRight = join(active, join(nearer, cleared));
+  const ordinaryDue = addCalendarDays(Date.now(), 71);
+  const augustAnswer = base('2026-08-30', 100, {
+    ...record(71, ordinaryDue), pv: 71,
+    ec: { '2026-08-30': 2 },
+  });
+  const septemberAnswer = base('2026-09-19', 200, {
+    ...record(71, ordinaryDue), pv: 71,
+    ec: { '2026-09-19': 5 },
+  });
+  const promiseMerge = join(augustAnswer, septemberAnswer);
+  return {
+    same: DSSync.stable(left) === DSSync.stable(right),
+    left: left.recs.x,
+    right: right.recs.x,
+    activeSame: DSSync.stable(activeLeft) === DSSync.stable(activeRight),
+    activeRecord: activeLeft.recs.x,
+    activeDue: effectiveDue(activeLeft.recs.x, activeLeft.settings),
+    promiseMerge: {
+      settings: promiseMerge.settings,
+      record: promiseMerge.recs.x,
+      effective: effectiveDue(promiseMerge.recs.x, promiseMerge.settings),
+    },
+    sep1,
+    sep21,
+  };
+});
+ok(examConvergence.same
+    && examConvergence.left.ivl === 30
+    && examConvergence.left.due === examConvergence.sep21,
+  'a newer exam clear leaves the canonical schedule identical in either three-device grouping');
+ok(examConvergence.activeSame
+    && examConvergence.activeRecord.ivl === 10
+    && examConvergence.activeRecord.due === examConvergence.sep1
+    && examConvergence.activeDue < examConvergence.sep1,
+  'a final active exam derives one earlier due date without changing the answer winner or grouping result');
+ok(examConvergence.promiseMerge.settings.examDate === '2026-09-19'
+    && examConvergence.promiseMerge.record.ec['2026-08-30'] === 2
+    && examConvergence.promiseMerge.record.ec['2026-09-19'] === 5
+    && examConvergence.promiseMerge.effective === Date.parse('2026-08-27T00:00:00Z'),
+  'equal offline answers retain the button promise belonging to the independently winning exam setting '
+    + `(${JSON.stringify(examConvergence.promiseMerge)})`);
+
+const projectionBoundary = await page.evaluate((fixedNow) => {
+  const record = {
+    st: 'r', step: 0, ivl: 10, ea: 2.5,
+    due: Date.parse('2026-08-31T00:00:00Z'),
+    rp: 2, sr: 2, lp: 0, pv: 10,
+  };
+  const settings = { ...freshState().settings, examDate: '2026-08-27' };
+  globalThis.__muninNow = Date.parse('2026-08-22T12:00:00Z');
+  const first = effectiveDue(record, settings);
+  globalThis.__muninNow = Date.parse('2026-08-23T12:00:00Z');
+  const tomorrow = effectiveDue(record, settings);
+  const cleared = effectiveDue(record, { ...settings, examDate: '' });
+  const reset = effectiveDue(record, settings);
+  globalThis.__muninNow = Date.parse('2026-08-27T12:00:00Z');
+  const onExam = effectiveDue(record, settings);
+  globalThis.__muninNow = fixedNow;
+  return { first, tomorrow, cleared, reset, onExam, base: record.due };
+}, NOW);
+ok(projectionBoundary.first === Date.parse('2026-08-22T00:00:00Z')
+    && projectionBoundary.tomorrow === projectionBoundary.first
+    && projectionBoundary.reset === projectionBoundary.first,
+  'reloads and clear/re-set cycles cannot postpone a review already pulled forward');
+ok(projectionBoundary.cleared === projectionBoundary.base
+    && projectionBoundary.onExam === projectionBoundary.base,
+  'cleared and newly evaluated today/past exams use the ordinary due date');
+
+/* A derived due date only works if every consumer reads it. Exercise the
+ * actual counters, ordinary session builder, completion copy, and forecast
+ * against a record whose canonical date is nine days away but whose exam
+ * projection is due today. */
+const projectedConsumers = await page.evaluate(() => {
+  const card = DECK.cards[0];
+  state = freshState();
+  state.settings = {
+    ...state.settings,
+    examDate: '2026-08-27',
+    newPerDay: 0,
+    maxRev: 20,
+  };
+  state.recs[card.cardId] = {
+    st: 'r', step: 0, ivl: 10, ea: 2.5,
+    due: Date.parse('2026-08-31T00:00:00Z'),
+    rp: 2, sr: 2, lp: 0, pv: 10,
+  };
+  const ordinary = buildSession(null, {});
+  renderStats();
+  return {
+    effective: effectiveDue(state.recs[card.cardId]),
+    due: isDue(card.cardId, Date.now()),
+    count: counts(card.sectionId).due,
+    queued: ordinary.queue.includes(card.cardId),
+    ahead: aheadSize(card.sectionId),
+    next: nextDueLine(),
+    forecast: document.getElementById('forecast').getAttribute('aria-label'),
+  };
+});
+ok(projectedConsumers.effective === Date.parse('2026-08-22T00:00:00Z')
+    && projectedConsumers.due
+    && projectedConsumers.count === 1
+    && projectedConsumers.queued
+    && projectedConsumers.ahead === 1,
+  'due checks, Home counts, ordinary sessions, and ahead sizing all use the exam projection');
+ok(/Nothing else is scheduled/.test(projectedConsumers.next)
+    && /Today 1(?:,|$)/.test(projectedConsumers.forecast),
+  'completion copy and the seven-day forecast use the same projected due date');
 
 /* On the date itself there is no positive interval that can still land before
  * the exam. It must not manufacture a one-day cap and move cards to tomorrow. */
@@ -272,19 +458,33 @@ const scheduling = await page.evaluate(() => {
   };
   const firstPlan = schedulePlan(state.recs[id], 3);
   grade(id, 3, firstPlan.ivl, false, firstPlan.natural);
-  const first = { ...state.recs[id], state: stateOf(id) };
+  const first = {
+    ...state.recs[id], state: stateOf(id), effective: effectiveDue(state.recs[id]),
+  };
   const secondPlan = schedulePlan(state.recs[id], 3);
   grade(id, 3, secondPlan.ivl, false, secondPlan.natural);
-  const second = { ...state.recs[id], state: stateOf(id) };
+  const second = {
+    ...state.recs[id], state: stateOf(id), effective: effectiveDue(state.recs[id]),
+  };
+  const clearAfterGood = {
+    settings: { ...state.settings, examDate: '' },
+    recs: { x: { ...state.recs[id] } },
+  };
+  const restoredAfterGood = {
+    ...clearAfterGood.recs.x,
+    effective: effectiveDue(clearAfterGood.recs.x, clearAfterGood.settings),
+  };
 
   session = { ahead: false };
   prepareGradeControls(DECK.cards[0]);
   const shown = document.getElementById('iv2').textContent;
   const hardPlan = {
     ivl: session.ivls[2], natural: session.naturalIvls[2],
+    uncapped: session.uncappedIvls[2], exam: session.examDates[2],
   };
-  grade(id, 2, hardPlan.ivl, false, hardPlan.natural);
-  const hard = { ...state.recs[id], shown };
+  grade(id, 2, hardPlan.ivl, false, hardPlan.natural,
+    hardPlan.uncapped, hardPlan.exam);
+  const hard = { ...state.recs[id], shown, effective: effectiveDue(state.recs[id]) };
   session = null;
 
   const againPlan = schedulePlan(state.recs[id], 1);
@@ -297,6 +497,13 @@ const scheduling = await page.evaluate(() => {
     due: Date.now(), rp: 3, lp: 0, pv: 10,
   };
   const ordinaryGood = schedulePlan(ordinary, 3);
+  const jittered = { ...ordinary, ivl: 30, pv: 30, ea: 2.5 };
+  state.settings.examDate = '2026-09-19';
+  Math.random = () => 0;
+  const cappedJitter = schedulePlan(jittered, 3);
+  state.settings.examDate = '';
+  Math.random = () => 0;
+  const ordinaryJitter = schedulePlan(jittered, 3);
   const explicitDemotion = sanitise({
     ...freshState(),
     recs: { x: { ...ordinary, ivl: 30, pv: 6 } },
@@ -316,8 +523,8 @@ const scheduling = await page.evaluate(() => {
   const afterMergedGrade = { ...state.recs[id] };
   Math.random = realRandom;
   return {
-    firstPlan, first, secondPlan, second, hardPlan, hard, again,
-    ordinaryGood,
+    firstPlan, first, secondPlan, second, restoredAfterGood, hardPlan, hard, again,
+    ordinaryGood, cappedJitter, ordinaryJitter,
     explicitDemotion: {
       ...explicitDemotion,
       proof: provenInterval(explicitDemotion),
@@ -330,13 +537,23 @@ const scheduling = await page.evaluate(() => {
   };
 });
 ok(scheduling.firstPlan.ivl === 6 && scheduling.first.pv === 15
+    && scheduling.first.ivl === 15 && scheduling.first.ec?.['2026-09-19'] === 6
+    && scheduling.first.effective <= NOW + 6 * 86400000
     && scheduling.first.state === 'young',
-  'first Good stays within the six-day exam gap while proof advances 6 to 15');
+  'first Good keeps a 15-day ordinary schedule while its committed exam due stays within six days');
 ok(scheduling.secondPlan.ivl === 6 && scheduling.second.pv === 38
+    && scheduling.second.ivl === 38 && scheduling.second.ec?.['2026-09-19'] === 6
+    && scheduling.second.effective <= NOW + 6 * 86400000
     && scheduling.second.state === 'mature',
-  'a second Good reaches 38-day proof and crosses the unchanged 21-day threshold');
+  'a second Good reaches a 38-day ordinary schedule and proof while its exam due remains six days');
+ok(scheduling.restoredAfterGood.ivl === 38
+    && scheduling.restoredAfterGood.pv === 38
+    && scheduling.restoredAfterGood.effective === scheduling.restoredAfterGood.due,
+  'clearing exam mode after a correct capped answer exposes that answer’s ordinary schedule');
 ok(scheduling.hardPlan.ivl === 6 && scheduling.hardPlan.natural === 38
     && scheduling.hard.ivl === 6 && scheduling.hard.pv === 38
+    && scheduling.hard.ec?.['2026-09-19'] === 6
+    && scheduling.hard.effective === scheduling.hard.due
     && /6 days max/.test(scheduling.hard.shown),
   'Hard stores the exact six-day button promise without lowering proven mastery');
 ok(scheduling.again.st === 'l' && scheduling.again.pv === 15
@@ -344,6 +561,10 @@ ok(scheduling.again.st === 'l' && scheduling.again.pv === 15
   'Again remains genuine evidence of forgetting and reduces 38-day proof to 15');
 ok(scheduling.ordinaryGood.ivl === 25 && scheduling.ordinaryGood.natural === 25,
   'ordinary no-exam Good scheduling remains the existing 10 to 25 days');
+ok(scheduling.cappedJitter.ivl === 5
+    && scheduling.cappedJitter.uncapped === scheduling.ordinaryJitter.ivl
+    && scheduling.cappedJitter.natural === scheduling.ordinaryJitter.natural,
+  'one random roll drives both capped and ordinary projections of the same answer');
 ok(scheduling.explicitDemotion.ivl === 30 && scheduling.explicitDemotion.pv === 6
     && scheduling.explicitDemotion.proof === 6,
   'an explicit positive pv is authoritative and is not resurrected by a larger ivl');
@@ -352,6 +573,82 @@ ok(scheduling.canonicalZero.ivl === 30 && scheduling.canonicalZero.pv === 0
   'a canonical zero pv stays zero instead of masquerading as a legacy interval');
 ok(scheduling.afterMergedGrade.rp === 21 && scheduling.afterMergedGrade.sr === 20,
   'a local answer advances its schedule revision without copying a merged history floor');
+
+const capBoundaryJitter = await page.evaluate(() => {
+  const id = DECK.cards[0].cardId;
+  const realRandom = Math.random;
+  state = freshState();
+  state.settings.examDate = '2026-11-30';
+  state.recs[id] = {
+    st: 'r', step: 0, ivl: 8, ea: 2.5, due: Date.now(),
+    rp: 2, sr: 2, lp: 0, pv: 8,
+  };
+  Math.random = () => 0.999999;
+  const plan = schedulePlan(state.recs[id], 3);
+  grade(id, 3, plan.ivl, false, plan.natural, plan.uncapped, plan.exam);
+  const record = { ...state.recs[id] };
+  const classification = stateOf(id);
+  clearTimeout(saveTimer);
+  Math.random = realRandom;
+  state = freshState();
+  return { cap: examCeiling('2026-11-30'), plan, record, classification };
+});
+ok(capBoundaryJitter.cap === 20
+    && capBoundaryJitter.plan.ivl === 20
+    && capBoundaryJitter.plan.uncapped === 21
+    && capBoundaryJitter.plan.natural === 21
+    && capBoundaryJitter.record.ivl === 21
+    && capBoundaryJitter.record.pv === 21
+    && capBoundaryJitter.record.ec?.['2026-11-30'] === 20
+    && capBoundaryJitter.classification === 'mature',
+  'cap-boundary jitter preserves the ordinary 21-day proof behind a displayed 20-day exam gap');
+
+const midnightPlan = await page.evaluate((fixedNow) => {
+  const id = DECK.cards[0].cardId;
+  const realRandom = Math.random;
+  const run = (revealedAt, answeredAt, examDate) => {
+    globalThis.__muninNow = revealedAt;
+    Math.random = () => 0.5;
+    state = freshState();
+    state.settings.examDate = examDate;
+    state.recs[id] = {
+      st: 'r', step: 0, ivl: 30, ea: 2.5,
+      due: Date.now(), rp: 5, sr: 5, lp: 0, pv: 30,
+    };
+    const plan = schedulePlan(state.recs[id], 3);
+    globalThis.__muninNow = answeredAt;
+    grade(id, 3, plan.ivl, false, plan.natural, plan.uncapped, plan.exam);
+    const record = { ...state.recs[id] };
+    const due = effectiveDue(record);
+    return {
+      plan, record, due,
+      gap: Math.round((startOfDay(due) - startOfDay(answeredAt)) / DAY),
+    };
+  };
+  const rounding = run(
+    Date.parse('2026-08-22T23:59:00Z'),
+    Date.parse('2026-08-23T00:01:00Z'),
+    '2026-08-30',
+  );
+  const examDay = run(
+    Date.parse('2026-08-26T23:59:00Z'),
+    Date.parse('2026-08-27T00:01:00Z'),
+    '2026-08-27',
+  );
+  clearTimeout(saveTimer);
+  globalThis.__muninNow = fixedNow;
+  Math.random = realRandom;
+  state = freshState();
+  return { rounding, examDay };
+}, NOW);
+ok(midnightPlan.rounding.plan.ivl === 2
+    && midnightPlan.rounding.record.ec?.['2026-08-30'] === 2
+    && midnightPlan.rounding.gap === 2,
+  'a cap-rounding midnight cannot change the interval printed before the answer');
+ok(midnightPlan.examDay.plan.ivl === 1
+    && midnightPlan.examDay.record.ec?.['2026-08-27'] === 1
+    && midnightPlan.examDay.gap === 1,
+  'a plan revealed before the exam day commits its shown interval even when answered after midnight');
 
 /* Malformed provenance cannot erase the only surviving proof or manufacture a
  * lapse epoch newer than the answers that could have caused it. */
@@ -380,9 +677,38 @@ const sanitation = await page.evaluate(() => {
       rp: 0, sr: 0, lp: 999999, pv: 0,
     } },
   }).recs.x;
+  const zeroReview = sanitise({
+    ...freshState(),
+    recs: { x: {
+      st: 'r', step: 0, ivl: 0, ea: 2.5, due: 100,
+      rp: 1, sr: 1, lp: 0, pv: 1,
+    } },
+  }).recs.x;
+  const examCommit = sanitise({
+    ...freshState(),
+    recs: { x: {
+      st: 'r', step: 0, ivl: 30, ea: 2.5, due: 300,
+      rp: 2, sr: 2, lp: 0, pv: 30,
+      ec: { '2026-09-19': 6 },
+    } },
+  }).recs.x;
+  const malformedExamCommits = [
+    { '2026-09-19': '6' },
+    { '2026-09-19': 31 },
+    { '2026-02-31': 6 },
+  ].map((ec) => sanitise({
+    ...freshState(),
+    recs: { x: {
+      st: 'r', step: 0, ivl: 30, ea: 2.5, due: 300,
+      rp: 2, sr: 2, lp: 0, pv: 30, ec,
+    } },
+  }).recs.x);
   return {
     malformedSr,
     impossible,
+    zeroReview,
+    examCommit,
+    malformedExamCommits,
     merged: DSSync.pickRec(valid, impossible),
     exportApp: EXPORT_APP,
     legacyExportApp: LEGACY_EXPORT_APP,
@@ -396,6 +722,11 @@ ok(sanitation.malformedSr.length === 5
 ok(sanitation.impossible.lp === 0 && sanitation.merged.lp === 2
     && sanitation.merged.pv === 30 && sanitation.merged.st === 'r',
   'an impossible lapse epoch is bounded by its schedule history and cannot poison sync');
+ok(sanitation.zeroReview.ivl === 1,
+  'a stored review interval cannot be zero or emit unreadable cap provenance');
+ok(sanitation.examCommit.ec?.['2026-09-19'] === 6
+    && sanitation.malformedExamCommits.every((record) => !record.ec),
+  'only a valid answer-scoped exam interval can survive state ingestion');
 ok(sanitation.exportFormat === 2
     && sanitation.exportApp === `${sanitation.legacyExportApp}:progress-v2`,
   'new backups carry an app stamp cached pre-v2 builds must refuse');

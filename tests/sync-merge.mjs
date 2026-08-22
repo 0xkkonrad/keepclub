@@ -131,6 +131,48 @@ const rec = (overrides = {}) => Object.assign({
     'an equal-review conflict keeps the lapse and the conservative schedule');
 }
 
+/* Byte-identical answer revisions can be produced under different exam dates
+ * on offline devices. Their button promises are facts keyed by date, not a
+ * scalar belonging to whichever settings block later wins. */
+{
+  const base = { rp: 6, sr: 6, lp: 0, ivl: 71, due: 900, pv: 71 };
+  const august = rec({ ...base, ec: { '2026-08-30': 2 } });
+  const september = rec({ ...base, ec: { '2026-09-19': 5 } });
+  const sameDateEarlier = rec({ ...base, ec: { '2026-09-19': 4 } });
+  const forward = S.pickRec(august, september);
+  const reverse = S.pickRec(september, august);
+  ok(same(forward, reverse)
+      && forward.ec['2026-08-30'] === 2
+      && forward.ec['2026-09-19'] === 5,
+    'identical offline answers retain committed intervals for both exam dates');
+  const left = S.pickRec(S.pickRec(august, september), sameDateEarlier);
+  const right = S.pickRec(august, S.pickRec(september, sameDateEarlier));
+  ok(same(left, right) && left.ec['2026-09-19'] === 4,
+    'exam-commit joins are associative and conservatively keep the earlier same-date promise');
+}
+
+/* The same ivl/due can recur at a newer schedule revision. An exam promise
+ * belongs to the exact answer revision which printed it, not merely to those
+ * coincidentally equal dates; otherwise a third device can resurrect that old
+ * promise in one merge grouping after an intermediate winner discarded it in
+ * the other. This shape is scheduler-reachable through Good, wait, then Hard. */
+{
+  const oldPromise = rec({
+    ivl: 37, due: 200, rp: 1, sr: 1, lp: 0, pv: 37,
+    ec: { '2026-10-31': 10 },
+  });
+  const intermediate = rec({
+    ivl: 37, due: 100, rp: 1, sr: 1, lp: 0, pv: 37,
+  });
+  const repeatedSchedule = rec({
+    ivl: 37, due: 200, rp: 2, sr: 2, lp: 0, pv: 37,
+  });
+  const left = S.pickRec(S.pickRec(oldPromise, intermediate), repeatedSchedule);
+  const right = S.pickRec(oldPromise, S.pickRec(intermediate, repeatedSchedule));
+  ok(same(left, right) && left.sr === 2 && !left.ec,
+    'an older exam promise cannot disappear or resurrect across a repeated-schedule grouping');
+}
+
 {
   const earlierReview = state({
     recs: { a: rec({ rp: 10, lp: 0, st: 'r', due: 100, ivl: 30 }) },
@@ -480,6 +522,11 @@ const rec = (overrides = {}) => Object.assign({
   const repairName = '20260822170000_progress_writer_fence_repair.sql';
   const repairSql = fs.existsSync(path.join(dir, repairName))
     ? fs.readFileSync(path.join(dir, repairName), 'utf8') : '';
+  const conflictName = '20260822183000_progress_writer_conflict_fence.sql';
+  const conflictSql = fs.existsSync(path.join(dir, conflictName))
+    ? fs.readFileSync(path.join(dir, conflictName), 'utf8') : '';
+  const finalGetV2 = /create or replace function public\.sync_get_v2([\s\S]*?)create or replace function public\.sync_put_v2/.exec(conflictSql)?.[1] || '';
+  const finalPutV2 = /create or replace function public\.sync_put_v2([\s\S]*?)revoke execute/.exec(conflictSql)?.[1] || '';
   const getV2 = /create or replace function public\.sync_get_v2([\s\S]*?)create or replace function public\.sync_put_v2/.exec(allSql)?.[1] || '';
   const putV2 = /create or replace function public\.sync_put_v2([\s\S]*?)revoke execute/.exec(allSql)?.[1] || '';
   const repairedLegacyPut = /create or replace function public\.sync_put\([\s\S]*?\)([\s\S]*?)create or replace function public\.sync_get_v2/.exec(repairSql)?.[1] || '';
@@ -508,6 +555,26 @@ const rec = (overrides = {}) => Object.assign({
       && /p_writer_version is distinct from 2/.test(repairSql)
       && /v_cur\.rev is distinct from p_rev/.test(repairedLegacyPut),
     'a fresh migration version repairs already-ledgered v2 functions and legacy NULL CAS');
+  const badRevisionAt = finalPutV2.indexOf("raise exception 'bad revision'");
+  const appLookupAt = finalPutV2.indexOf('select a.max_bytes into v_max');
+  const adoptAt = finalPutV2.indexOf('set writer_version = 2');
+  const conflictAt = finalPutV2.indexOf('if v_cur.rev is distinct from p_rev');
+  const throttleAt = finalPutV2.indexOf("raise exception 'too fast'");
+  ok(badRevisionAt >= 0 && badRevisionAt < appLookupAt
+      && adoptAt >= 0 && adoptAt < conflictAt
+      && conflictAt < throttleAt
+      && /if not v_adopted_legacy\s+and v_cur\.updated_at/s.test(finalPutV2),
+    'the exact fresh conflict-fence migration adopts before CAS and cannot roll adoption back through throttle');
+  const lockedReadAt = finalGetV2.indexOf('select * into v_cur');
+  const readAdoptAt = finalGetV2.indexOf('set writer_version = 2');
+  const readReturnAt = finalGetV2.indexOf('return query select v_cur.rev');
+  ok(/raise exception 'bad app' using errcode = '22023'/.test(finalGetV2)
+      && lockedReadAt >= 0
+      && /select \* into v_cur[\s\S]*for update/.test(finalGetV2)
+      && readAdoptAt > lockedReadAt
+      && readReturnAt > readAdoptAt
+      && !/return query[\s\S]*from sync\.blobs/.test(finalGetV2),
+    'the exact fresh GET fingerprints and returns one locked snapshot with no insert gap');
 }
 
 /* `p_data::text` is the jsonb text form, not the JSON we sent: Postgres parses
@@ -882,6 +949,52 @@ const rec = (overrides = {}) => Object.assign({
   globalThis.fetch = originalFetch;
 }
 
+/* Empty GET followed by a logically equal legacy insert is the rollout edge
+ * where the client correctly has nothing else to PUT. The database conflict
+ * path must therefore perform the writer fence itself (asserted against the
+ * exact migration above), rather than relying on a third client request. */
+{
+  storage.clear();
+  const originalFetch = globalThis.fetch;
+  const local = state({
+    recs: { card: rec({ st: 'r', ivl: 30, due: 300, rp: 5, sr: 5, pv: 30 }) },
+  });
+  const legacy = state({
+    recs: { card: rec({ st: 'r', ivl: 30, due: 300, rp: 5, pv: 0 }) },
+  });
+  const sanitiseLegacy = (value) => {
+    const clean = structuredClone(value);
+    for (const record of Object.values(clean.recs || {})) {
+      if (!Object.hasOwn(record, 'sr')) record.sr = record.rp;
+      if (record.st === 'r' && !record.pv) record.pv = record.ivl;
+    }
+    return clean;
+  };
+  const calls = [];
+  globalThis.fetch = async (url) => {
+    const fn = url.split('/').pop();
+    calls.push(fn);
+    const body = fn === 'sync_get_v2'
+      ? []
+      : [{ ok: false, rev: 1, data: legacy }];
+    return { ok: true, status: 200, text: async () => JSON.stringify(body) };
+  };
+  S.init({
+    app: 'day-skipper',
+    supported: true,
+    sanitise: sanitiseLegacy,
+    reconcile: (value) => value,
+    onMerged: () => {},
+  });
+  S.turnOn('0123456789ABCDEFGHJKMNPQR');
+  const merged = await S.sync(local);
+  ok(calls.join(',') === 'sync_get_v2,sync_put_v2'
+      && merged.recs.card.pv === 30 && merged.recs.card.sr === 5,
+    'an equal first-write conflict needs no third upload, so the conflict response itself must fence');
+  S.turnOff();
+  globalThis.fetch = originalFetch;
+}
+
 /* A blob over the bound is refused before it is sent, and marked as a failure
  * only the person can clear: every other failure here is worth another go on
  * its own, and a screen promising that it will try again is a screen telling
@@ -919,7 +1032,7 @@ const rec = (overrides = {}) => Object.assign({
 {
   storage.clear();
   const originalFetch = globalThis.fetch;
-  const remote = state({
+  const local = state({
     settings: { examDate: '2026-08-27', at: 2 },
     recs: { card: rec({ st: 'r', ivl: 30, due: 900, rp: 6, sr: 6, pv: 30 }) },
   });
@@ -929,11 +1042,11 @@ const rec = (overrides = {}) => Object.assign({
     const fn = url.split('/').pop();
     calls.push(fn);
     if (fn === 'sync_get_v2') {
-      return { ok: true, status: 200, text: async () => JSON.stringify([{ rev: 7, data: remote }]) };
+      return { ok: true, status: 200, text: async () => '[]' };
     }
     uploaded = JSON.parse(options.body).p_data;
     return { ok: true, status: 200, text: async () => JSON.stringify([{
-      ok: true, rev: 8, data: uploaded,
+      ok: true, rev: 1, data: uploaded,
     }]) };
   };
   S.init({
@@ -948,11 +1061,11 @@ const rec = (overrides = {}) => Object.assign({
     onMerged: () => {},
   });
   S.turnOn('0123456789ABCDEFGHJKMNPQR');
-  const merged = await S.sync(remote);
+  const merged = await S.sync(local);
   ok(calls.join(',') === 'sync_get_v2,sync_put_v2'
       && uploaded.recs.card.ivl === 1 && uploaded.recs.card.due === 100
       && merged.recs.card.pv === 30,
-    'cross-field reconciliation runs before equality and upload without lowering proof');
+    'an empty-server first upload reconciles cross-field progress without lowering proof');
   S.turnOff();
   globalThis.fetch = originalFetch;
 }

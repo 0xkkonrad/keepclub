@@ -243,17 +243,64 @@ function provenInterval(record) {
   return legacy && record.st === 'r' ? Math.max(0, num(record.ivl)) : 0;
 }
 
+const EXAM_COMMIT_LIMIT = 8;
+
+function examCommits(record) {
+  const out = {};
+  const interval = Math.max(0, num(record && record.ivl));
+  const entries = Object.entries(obj(record && record.ec))
+    .filter(([date, value]) => /^\d{4}-\d{2}-\d{2}$/.test(date)
+      && typeof value === 'number' && Number.isInteger(value)
+      && value >= 1 && value <= interval)
+    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+    .slice(0, EXAM_COMMIT_LIMIT);
+  for (const [date, value] of entries) out[date] = value;
+  return out;
+}
+
+function scheduleKey(record) {
+  return stable(Object.assign({}, record, {
+    rp: 0, lp: 0, pv: 0, ec: {},
+  }));
+}
+
+/** Join answer-button promises only across byte-identical answer revisions.
+ * A losing different schedule can never become the total-order winner later,
+ * so its projection is irrelevant. Identical schedules can arise on devices
+ * with different exam settings at the same revision; retain both dates, and
+ * choose the earlier interval when the same date somehow produced two
+ * promises. `sr` stays in the identity: the same ivl/due can recur at a newer
+ * revision, and allowing an older promise to attach to that answer made a
+ * three-device merge depend on grouping. */
+function joinedExamCommits(records, winner) {
+  const joined = {};
+  const key = scheduleKey(winner);
+  for (const record of records) {
+    if (scheduleKey(record) !== key) continue;
+    for (const [date, interval] of Object.entries(examCommits(record))) {
+      if (!joined[date] || interval < joined[date]) joined[date] = interval;
+    }
+  }
+  return Object.fromEntries(Object.entries(joined)
+    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+    .slice(0, EXAM_COMMIT_LIMIT));
+}
+
 function canonicalRec(record) {
   if (!record) return undefined;
   const rp = Math.max(0, num(record.rp));
   const saved = hasScheduleRevision(record) ? record.sr : rp;
-  return Object.assign({}, record, {
+  const canonical = Object.assign({}, record, {
     rp,
     sr: saved,
     // lp is a causal epoch on this schedule branch, so it cannot outrun sr.
     lp: Math.min(saved, Math.max(0, num(record.lp))),
     pv: provenInterval(record),
   });
+  const commits = examCommits(canonical);
+  if (Object.keys(commits).length) canonical.ec = commits;
+  else delete canonical.ec;
+  return canonical;
 }
 
 function pickRec(rawX, rawY) {
@@ -274,8 +321,8 @@ function pickRec(rawX, rawY) {
     } else {
       // History and proof are derived joins. Blanking them prevents a merge's
       // synthetic maxima from influencing a later schedule tie.
-      const a = Object.assign({}, record, { rp: 0, sr: 0, lp: 0, pv: 0 });
-      const b = Object.assign({}, winner, { rp: 0, sr: 0, lp: 0, pv: 0 });
+      const a = Object.assign({}, record, { rp: 0, sr: 0, lp: 0, pv: 0, ec: {} });
+      const b = Object.assign({}, winner, { rp: 0, sr: 0, lp: 0, pv: 0, ec: {} });
       winner = stable(a) <= stable(b) ? record : winner;
     }
   }
@@ -283,12 +330,16 @@ function pickRec(rawX, rawY) {
   // Schedule, answer history and proof are separate monotonic facts. Restrict
   // schedule and proof to the newest lapse epoch, but retain the largest answer
   // count even when it came from an older offline branch.
-  return Object.assign({}, winner, {
+  const merged = Object.assign({}, winner, {
     rp: Math.max(num(x && x.rp), num(y && y.rp)),
     sr: winner.sr,
     lp: lapses,
     pv: Math.max(...current.map((record) => record.pv)),
   });
+  const commits = joinedExamCommits(current, winner);
+  if (Object.keys(commits).length) merged.ec = commits;
+  else delete merged.ec;
+  return merged;
 }
 
 function prevKey(key) {
@@ -685,7 +736,9 @@ async function syncOnce(local, generation) {
   if (!record) throw new Error('sync is off');
   const keyHash = await hashKey(record.key);
 
-  let state = local;
+  // Reconcile even when GET finds no row: the first upload is still an ingress
+  // boundary and must not publish a schedule inconsistent with its exam.
+  let state = cfg.reconcile(cfg.sanitise(local));
   let rev = 0;
   let changed = false;
   const rows = await rpc('sync_get_v2', {

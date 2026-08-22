@@ -60,6 +60,21 @@ if (repaired.response.status !== 400 || repaired.json?.code !== '22023') {
   throw new Error('progress sync v2 read-fence repair is not deployed');
 }
 
+// The final GET performs one locked read, instead of an UPDATE followed by a
+// separately snapshotted SELECT. NULL cannot name a real app, so this exact
+// error fingerprints the locked implementation without reading or writing a
+// row. The prior two-command function returned an empty array here.
+const lockedReadFence = await call('sync_get_v2', {
+  p_app: null,
+  p_key_hash: absentKey,
+  p_writer_version: 2,
+});
+if (lockedReadFence.response.status !== 400
+    || lockedReadFence.json?.code !== '22023'
+    || lockedReadFence.json?.message !== 'bad app') {
+  throw new Error('progress sync v2 locked read fence is not deployed');
+}
+
 const read = await call('sync_get_v2', {
   p_app: app,
   // SHA-256 cannot realistically produce this value. The read is therefore
@@ -90,4 +105,23 @@ if (write.response.status !== 400 || write.json?.code !== '22023') {
   throw new Error(`progress sync v2 PUT is not deployed (HTTP ${write.response.status}${code ? `, ${code}` : ''})`);
 }
 
-console.log('progress sync v2 RPCs and read-fence repair are ready');
+// The final fence repair validates revision before app lookup. Using an
+// intentionally unknown app and NULL revision cannot create or update a row,
+// while the exact error distinguishes it from the prior function which said
+// "unknown app" before it ever reached revision validation.
+const conflictFence = await call('sync_put_v2', {
+  // sync.apps.app is a primary key and therefore cannot be NULL. Unlike a
+  // made-up string, this is guaranteed never to become a real app later.
+  p_app: null,
+  p_key_hash: absentKey,
+  p_rev: null,
+  p_data: {},
+  p_writer_version: 2,
+});
+if (conflictFence.response.status !== 400
+    || conflictFence.json?.code !== '22023'
+    || conflictFence.json?.message !== 'bad revision') {
+  throw new Error('progress sync v2 conflict fence is not deployed');
+}
+
+console.log('progress sync v2 RPCs and locked conflict fences are ready');

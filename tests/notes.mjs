@@ -565,6 +565,87 @@ const backupOf = (page, extra) => page.evaluate((over) => Object.assign({
   await ctx.close();
 }
 
+/* A restore is also a progress ingress. A valid future exam in the file must
+ * project an over-long schedule forward before the UI claims that the card
+ * will return before the exam. The canonical backup record itself stays
+ * unchanged, which makes clearing the date reversible without hidden history. */
+{
+  const { ctx, page, errors } = await coursePage({ timezoneId: 'UTC' }, 'competent-crew');
+  const current = await page.evaluate(() => {
+    const examDate = dayKey(addCalendarDays(Date.now(), 30));
+    const id = DECK.cards[0].cardId;
+    return {
+      app: EXPORT_APP,
+      format: EXPORT_FORMAT,
+      exportedAt: new Date().toISOString(),
+      v: 1,
+      day: dayKey(Date.now()),
+      days: {},
+      settings: { ...freshState().settings, examDate, at: Date.now() },
+      recs: {
+        [id]: {
+          st: 'r', step: 0, ivl: 90, ea: 2.5,
+          due: addCalendarDays(Date.now(), 90),
+          rp: 10, sr: 10, lp: 0, pv: 90,
+        },
+      },
+      id,
+    };
+  });
+  const id = current.id;
+  delete current.id;
+  await restore(page, current);
+  const capped = await page.evaluate((cardId) => {
+    const durableDocument = JSON.parse(localStorage.getItem(KEY));
+    return {
+      memory: {
+        ...state.recs[cardId],
+        effective: effectiveDue(state.recs[cardId], state.settings),
+      },
+      durable: {
+        ...durableDocument.recs[cardId],
+        effective: effectiveDue(durableDocument.recs[cardId], durableDocument.settings),
+      },
+      cap: ceiling(),
+    };
+  }, id);
+  ok(capped.cap === 6
+      && capped.memory.ivl === 90 && capped.durable.ivl === 90
+      && capped.memory.due === capped.durable.due
+      && capped.memory.effective < capped.memory.due
+      && capped.durable.effective < capped.durable.due
+      && capped.memory.pv === 90 && capped.durable.pv === 90
+      && !capped.memory.ec && !capped.durable.ec,
+    'a restored future-exam schedule projects earlier while its durable schedule and proof stay canonical');
+
+  await page.evaluate(() => {
+    const input = document.getElementById('set-exam');
+    input.value = '';
+    input.dispatchEvent(new Event('change', { bubbles: true }));
+    writeNow();
+  });
+  const cleared = await page.evaluate((cardId) => {
+    const durableDocument = JSON.parse(localStorage.getItem(KEY));
+    return {
+      memory: {
+        ...state.recs[cardId],
+        effective: effectiveDue(state.recs[cardId], state.settings),
+      },
+      durable: {
+        ...durableDocument.recs[cardId],
+        effective: effectiveDue(durableDocument.recs[cardId], durableDocument.settings),
+      },
+    };
+  }, id);
+  ok(cleared.memory.ivl === 90 && cleared.durable.ivl === 90
+      && cleared.memory.effective === cleared.memory.due
+      && cleared.durable.effective === cleared.durable.due,
+    'clearing the restored exam exposes the same ordinary schedule in memory and storage');
+  ok(errors.length === 0,
+    `future-exam restore reconciliation raises no page errors (${errors.join(' | ') || 'none'})`);
+  await ctx.close();
+}
+
 /* A newer backup format must fail before its history can replace this device.
  * Format coercion remains compatible with genuine old files; an unknown
  * future version is a hard boundary because its progress meaning is unknown. */
