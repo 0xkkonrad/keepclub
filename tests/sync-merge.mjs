@@ -135,16 +135,17 @@ const rec = (overrides = {}) => Object.assign({
   const earlierReview = state({
     recs: { a: rec({ rp: 10, lp: 0, st: 'r', due: 100, ivl: 30 }) },
   });
-  const olderLapses = state({
+  const newerLapseEpoch = state({
     recs: { a: rec({ rp: 9, lp: 5, st: 'r', due: 900, ivl: 8 }) },
   });
   const newestReview = state({
     recs: { a: rec({ rp: 10, lp: 3, st: 'r', due: 50, ivl: 20 }) },
   });
-  const left = mergeState(mergeState(earlierReview, olderLapses), newestReview);
-  const right = mergeState(earlierReview, mergeState(olderLapses, newestReview));
-  ok(same(left, right) && left.recs.a.due === 50 && left.recs.a.lp === 5,
-    'card scheduling merge is associative across three devices');
+  const left = mergeState(mergeState(earlierReview, newerLapseEpoch), newestReview);
+  const right = mergeState(earlierReview, mergeState(newerLapseEpoch, newestReview));
+  ok(same(left, right) && left.recs.a.due === 900 && left.recs.a.lp === 5
+      && left.recs.a.rp === 10 && left.recs.a.sr === 9,
+    'card scheduling merge is associative and keeps the newest lapse epoch');
 }
 
 /* `pv` is the uncapped interval a review has proved. Released clients wrote
@@ -204,6 +205,115 @@ const rec = (overrides = {}) => Object.assign({
   const merged = S.pickRec(lowerSchedule, higherSchedule);
   ok(merged.step === 1 && merged.pv === 90,
     'derived pv is blanked for stable schedule ties, then restored as proof');
+}
+
+/* Schedule provenance is separate from the aggregate answer-history floor.
+ * Otherwise a high-rp branch from before the newest lapse steals that lapse's
+ * learning stage, then the derived lp makes the bad record look current. */
+{
+  const olderReview = rec({
+    st: 'r', step: 0, ivl: 90, due: 999999, rp: 20, lp: 1, pv: 90,
+  });
+  const newerLapse = rec({
+    st: 'l', step: 1, ivl: 1, due: 100, rp: 19, lp: 2, pv: 12,
+  });
+  const forward = S.pickRec(olderReview, newerLapse);
+  const reverse = S.pickRec(newerLapse, olderReview);
+  ok(same(forward, reverse) && forward.st === 'l' && forward.step === 1
+      && forward.ivl === 1 && forward.due === 100 && forward.lp === 2
+      && forward.pv === 12 && forward.rp === 20 && forward.sr === 19,
+    'a newer lapse keeps its learning schedule while older history keeps its count');
+}
+
+/* A canonical zero proof cannot be mistaken for a legacy review interval on a
+ * later merge. That distinction is what closes the old grouping-order hole. */
+{
+  const legacy = rec({ st: 'r', ivl: 30, rp: 7, lp: 2, pv: 0 });
+  const canonicalZero = rec({ st: 'r', ivl: 30, rp: 7, sr: 7, lp: 2, pv: 0 });
+  const migrated = S.pickRec(legacy, null);
+  const retained = S.pickRec(canonicalZero, null);
+  ok(migrated.pv === 30 && migrated.sr === 7,
+    'a genuine legacy review migrates zero proof from its surviving interval');
+  ok(retained.pv === 0 && retained.sr === 7,
+    'a canonical review keeps an explicit zero proof instead of inventing 30 days');
+
+  const a = rec({ st: 'r', ivl: 1, due: 300, rp: 1, sr: 1, lp: 2, pv: 1 });
+  const b = rec({ st: 'r', ivl: 30, due: 900, rp: 2, sr: 2, lp: 0, pv: 30 });
+  const c = rec({ st: 'l', step: 1, ivl: 0, due: 100, rp: 1, sr: 1, lp: 2, pv: 0 });
+  const records = [a, b, c];
+  const permutations = [
+    [0, 1, 2], [0, 2, 1], [1, 0, 2],
+    [1, 2, 0], [2, 0, 1], [2, 1, 0],
+  ];
+  const outputs = permutations.map((order) => order
+    .map((index) => records[index])
+    .reduce((left, right) => S.pickRec(left, right)));
+  const grouped = [
+    S.pickRec(S.pickRec(a, b), c),
+    S.pickRec(a, S.pickRec(b, c)),
+    S.pickRec(S.pickRec(a, c), b),
+  ];
+  ok(outputs.concat(grouped).every((value) => same(value, outputs[0]))
+      && outputs[0].st === 'l' && outputs[0].due === 100
+      && outputs[0].rp === 2 && outputs[0].sr === 1
+      && outputs[0].lp === 2 && outputs[0].pv === 1,
+    'the malformed zero-proof vector converges across every order and grouping');
+}
+
+/* Deterministic property sweep over canonical production-shaped records. The
+ * seed and first bad triple are included in the failure so a fuzz result is a
+ * regression vector, not a ghost. */
+{
+  const seed = 0x5eedc0de;
+  let randomState = seed;
+  const random = () => {
+    randomState ^= randomState << 13;
+    randomState ^= randomState >>> 17;
+    randomState ^= randomState << 5;
+    return randomState >>> 0;
+  };
+  const values = [0, 1, 20, 21, 30, 90];
+  const generated = () => {
+    const rp = random() % 16;
+    const lp = random() % (rp + 1);
+    const st = random() % 3 === 0 ? 'l' : 'r';
+    return rec({
+      st,
+      step: random() % 3,
+      ivl: values[random() % values.length],
+      ea: 1.3 + (random() % 16) / 10,
+      due: random() % 100000,
+      rp,
+      sr: random() % (rp + 1),
+      lp,
+      pv: values[random() % values.length],
+    });
+  };
+  const schedule = (record) => stable({
+    st: record.st, step: record.step, ivl: record.ivl,
+    ea: record.ea, due: record.due, sr: record.sr,
+  });
+  let failure = null;
+  for (let i = 0; i < 50000 && !failure; i++) {
+    const records = [generated(), generated(), generated()];
+    const [a, b, c] = records;
+    const ab = S.pickRec(a, b);
+    const left = S.pickRec(ab, c);
+    const right = S.pickRec(a, S.pickRec(b, c));
+    const epoch = Math.max(...records.map((record) => record.lp));
+    const current = records.filter((record) => record.lp === epoch);
+    const invariant = same(ab, S.pickRec(b, a))
+      && same(S.pickRec(a, a), a)
+      && same(left, right)
+      && left.lp === epoch
+      && left.rp === Math.max(...records.map((record) => record.rp))
+      && left.pv === Math.max(...current.map((record) => record.pv))
+      && current.some((record) => schedule(record) === schedule(left));
+    if (!invariant) failure = { index: i, records, left, right };
+  }
+  ok(!failure,
+    `50,000 seeded schedule/proof merges satisfy the algebra (seed ${seed}`
+      + `${failure ? `; ${stable(failure)}` : ''})`);
 }
 
 {
@@ -344,6 +454,8 @@ const rec = (overrides = {}) => Object.assign({
   const dir = path.join(HERE, '..', 'content', 'day-skipper', 'supabase', 'migrations');
   const file = fs.readdirSync(dir).find((name) => name.endsWith('_sync_blobs.sql'));
   const sql = fs.readFileSync(path.join(dir, file), 'utf8');
+  const allSql = fs.readdirSync(dir).sort()
+    .map((name) => fs.readFileSync(path.join(dir, name), 'utf8')).join('\n');
   const column = /max_bytes\s+integer\s+not null\s+default\s+(\d+)/.exec(sql);
   ok(!!column && Number(column[1]) === S.MAX_BYTES,
     `the client's blob ceiling is the backend's own (${column && column[1]} = ${S.MAX_BYTES})`);
@@ -352,6 +464,13 @@ const rec = (overrides = {}) => Object.assign({
   'both built-in courses are inserted at that default rather than a ceiling of their own');
   ok(/octet_length\(p_data::text\) > v_max/.test(sql),
     'and the server measures the bytes it was sent, which is what blobBytes() counts');
+  ok(/writer_version\s+smallint\s+not null\s+default 1/.test(allSql)
+      && /create or replace function public\.sync_get_v2/.test(allSql)
+      && /create or replace function public\.sync_put_v2/.test(allSql),
+    'progress v2 has a separate backend writer capability and durable row fence');
+  ok(/and b\.writer_version < 2/.test(allSql)
+      && /if v_cur\.writer_version >= 2 then\s+raise exception 'sync client update required'/s.test(allSql),
+    'legacy readers cannot receive a v2 row and legacy writers cannot overwrite it');
 }
 
 /* `p_data::text` is the jsonb text form, not the JSON we sent: Postgres parses
@@ -393,7 +512,7 @@ const rec = (overrides = {}) => Object.assign({
   S.turnOn('0123456789ABCDEFGHJKMNPQR');
   let refusal = '';
   await S.sync(huge).catch((error) => { refusal = error.message; });
-  ok(calls.join() === 'sync_get' && /more than sync can carry/.test(refusal),
+  ok(calls.join() === 'sync_get_v2' && /more than sync can carry/.test(refusal),
     `an over-large blob is refused here rather than sent to be refused there (${refusal})`);
   ok(/deleting some of them/.test(refusal),
     'and the refusal names the way out rather than only the problem');
@@ -668,7 +787,7 @@ const rec = (overrides = {}) => Object.assign({
   globalThis.fetch = (url, options) => {
     const fn = url.split('/').pop();
     calls.push(fn);
-    if (fn === 'sync_get') return reply([]);
+    if (fn === 'sync_get_v2') return reply([]);
     puts++;
     if (puts === 1) {
       return reply({ code: '23505', message: 'duplicate key value' }, 409);
@@ -687,8 +806,10 @@ const rec = (overrides = {}) => Object.assign({
   });
   S.turnOn('0123456789ABCDEFGHJKMNPQR');
   const merged = await S.sync(local);
-  ok(calls.join(',') === 'sync_get,sync_put,sync_put,sync_put',
+  ok(calls.join(',') === 'sync_get_v2,sync_put_v2,sync_put_v2,sync_put_v2',
     'a concurrent first-write collision retries through the revision conflict');
+  ok(S.WRITER_VERSION === 2,
+    'the client identifies itself with the fenced progress writer version');
   ok(merged.recs.phone && merged.recs.laptop && same(merged, adopted),
     'the first-write retry retains progress from both devices');
   S.turnOff();

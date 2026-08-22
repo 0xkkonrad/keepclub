@@ -12,8 +12,8 @@
 (function (root) {
 
 const ENDPOINT = 'https://dyaxdgpaideblyhpxyft.supabase.co';
-// Publishable by design. The anon key grants access only to two RPC functions,
-// and both require a non-enumerable key hash.
+// Publishable by design. The anon key grants access only to the versioned sync
+// RPC boundary, and every call requires a non-enumerable key hash.
 const ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR5YXhkZ3BhaWRlYmx5aHB4eWZ0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUxMTg2MjUsImV4cCI6MjEwMDY5NDYyNX0.CDDeyQso3XnxiYg0f5x4uy99n6JoyHgEqm1cJN0wvIk';
 
 // This odd-looking name shipped with the disabled transport. It is retained
@@ -26,6 +26,9 @@ const GROUP = 5;
 const RETRY_WAIT = 1200;
 const MAX_ROUNDS = 4;
 const REQUEST_TIMEOUT = 15000;
+// The RPC name is the writer capability. Once a row has been written by this
+// version, the backend refuses legacy writers that would erase pv and sr.
+const WRITER_VERSION = 2;
 
 const num = (v, d) => (Number.isFinite(Number(v)) ? Number(v) : (d || 0));
 const obj = (v) => (v && typeof v === 'object' && !Array.isArray(v) ? v : {});
@@ -221,45 +224,62 @@ function stable(value) {
 // `pv` is the strongest interval this lapse epoch has proved, even when an
 // approaching exam keeps the actual scheduled interval (`ivl`) shorter. Old
 // clients wrote pv=0 for review cards, so their interval is the compatible
-// fallback. A learning card's ivl is only its next step, never proof.
+// fallback. `sr` marks a canonical record, so zero on one of those stays zero.
+// A learning card's ivl is only its next step, never proof.
 function provenInterval(record) {
   const proof = num(record && record.pv);
   if (proof > 0) return proof;
-  return record && record.st === 'r' ? Math.max(0, num(record.ivl)) : 0;
+  const legacy = record && !Object.prototype.hasOwnProperty.call(record, 'sr');
+  return legacy && record.st === 'r' ? Math.max(0, num(record.ivl)) : 0;
 }
 
-function pickRec(x, y) {
+function canonicalRec(record) {
+  if (!record) return undefined;
+  const rp = Math.max(0, num(record.rp));
+  const saved = Object.prototype.hasOwnProperty.call(record, 'sr')
+    ? Math.max(0, Math.min(rp, num(record.sr)))
+    : rp;
+  return Object.assign({}, record, {
+    rp,
+    sr: saved,
+    lp: Math.max(0, num(record.lp)),
+    pv: provenInterval(record),
+  });
+}
+
+function pickRec(rawX, rawY) {
+  const x = canonicalRec(rawX);
+  const y = canonicalRec(rawY);
   if (!x && !y) return undefined;
-  let winner = x || y;
-  if (x && y) {
-    if (num(x.rp) !== num(y.rp)) winner = num(x.rp) > num(y.rp) ? x : y;
-    // Equal review counts are divergent answers to the same card. Keep the
-    // relearning schedule when only one device lapsed, then the earlier due
-    // date. Lapse count itself cannot choose the schedule: it is merged by max
-    // below, and feeding that derived value back into the comparison made a
-    // three-device merge depend on grouping order.
-    else if ((x.st === 'l') !== (y.st === 'l')) winner = x.st === 'l' ? x : y;
-    else if (num(x.due) !== num(y.due)) winner = num(x.due) < num(y.due) ? x : y;
-    else {
-      // lp and pv are monotonic merge evidence, not schedule fields. Letting
-      // either derived maximum participate here makes a three-device answer
-      // depend on which pair happened to sync first.
-      const xSchedule = Object.assign({}, x, { lp: 0, pv: 0 });
-      const ySchedule = Object.assign({}, y, { lp: 0, pv: 0 });
-      winner = stable(xSchedule) <= stable(ySchedule) ? x : y;
+  const lapses = Math.max(num(x && x.lp), num(y && y.lp));
+  const current = [x, y].filter((record) => record && record.lp === lapses);
+  let winner = current[0];
+  for (const record of current.slice(1)) {
+    if (record.sr !== winner.sr) winner = record.sr > winner.sr ? record : winner;
+    // Equal schedule revisions are divergent answers to the same card. Keep
+    // relearning, then the earlier due date, as the conservative total order.
+    else if ((record.st === 'l') !== (winner.st === 'l')) {
+      winner = record.st === 'l' ? record : winner;
+    } else if (num(record.due) !== num(winner.due)) {
+      winner = num(record.due) < num(winner.due) ? record : winner;
+    } else {
+      // History and proof are derived joins. Blanking them prevents a merge's
+      // synthetic maxima from influencing a later schedule tie.
+      const a = Object.assign({}, record, { rp: 0, sr: 0, lp: 0, pv: 0 });
+      const b = Object.assign({}, winner, { rp: 0, sr: 0, lp: 0, pv: 0 });
+      winner = stable(a) <= stable(b) ? record : winner;
     }
   }
 
-  // A proof belongs to its lapse epoch. Once either device has lapsed again,
-  // older high-water marks must not make the demoted card look mastered. Within
-  // the newest epoch proof is a max, which makes repeated and regrouped merges
-  // converge while still upgrading legacy review records whose pv was zero.
-  const lapses = Math.max(num(x && x.lp), num(y && y.lp));
-  const proof = Math.max(
-    x && num(x.lp) === lapses ? provenInterval(x) : 0,
-    y && num(y.lp) === lapses ? provenInterval(y) : 0
-  );
-  return Object.assign({}, winner, { lp: lapses, pv: proof });
+  // Schedule, answer history and proof are separate monotonic facts. Restrict
+  // schedule and proof to the newest lapse epoch, but retain the largest answer
+  // count even when it came from an older offline branch.
+  return Object.assign({}, winner, {
+    rp: Math.max(num(x && x.rp), num(y && y.rp)),
+    sr: winner.sr,
+    lp: lapses,
+    pv: Math.max(...current.map((record) => record.pv)),
+  });
 }
 
 function prevKey(key) {
@@ -659,7 +679,11 @@ async function syncOnce(local, generation) {
   let state = local;
   let rev = 0;
   let changed = false;
-  const rows = await rpc('sync_get', { p_app: cfg.app, p_key_hash: keyHash });
+  const rows = await rpc('sync_get_v2', {
+    p_app: cfg.app,
+    p_key_hash: keyHash,
+    p_writer_version: WRITER_VERSION,
+  });
   if (Array.isArray(rows) && rows.length) {
     rev = num(rows[0].rev);
     const remote = cfg.sanitise(rows[0].data);
@@ -689,11 +713,12 @@ async function syncOnce(local, generation) {
     }
     let result;
     try {
-      result = await rpc('sync_put', {
+      result = await rpc('sync_put_v2', {
         p_app: cfg.app,
         p_key_hash: keyHash,
         p_rev: rev,
         p_data: state,
+        p_writer_version: WRITER_VERSION,
       });
     } catch (error) {
       // A first-write race produces 23505: both devices observed no row and
@@ -790,6 +815,7 @@ function init(options) {
 root.DSSync = {
   KEY,
   KEY_CHARS,
+  WRITER_VERSION,
   ENDPOINT,
   init,
   enabled,

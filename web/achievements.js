@@ -41,10 +41,13 @@
   );
   // New records keep the uncapped, proven interval in `pv`; legacy records
   // predate that meaning, so a missing/zero value falls back to review `ivl`.
+  // sr is the canonical-record marker that distinguishes an authoritative zero
+  // from those legacy records.
   const provenInterval = (rec) => {
     if (!plainObject(rec) || rec.st !== 'r') return 0;
     const persisted = number(rec.pv);
-    return Math.max(0, persisted > 0 ? persisted : number(rec.ivl));
+    const legacy = !Object.prototype.hasOwnProperty.call(rec, 'sr');
+    return Math.max(0, persisted > 0 || !legacy ? persisted : number(rec.ivl));
   };
 
   const metric = (name, comparison) => Object.freeze(Object.assign(

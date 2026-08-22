@@ -127,6 +127,34 @@ ok(examMutation.cleared.ivl === 6 && examMutation.cleared.pv === 30
     && examMutation.cleared.state === 'mature',
   'clearing the exam cannot demote the stored proof');
 
+/* On the date itself there is no positive interval that can still land before
+ * the exam. It must not manufacture a one-day cap and move cards to tomorrow. */
+const examToday = await page.evaluate(() => {
+  const id = DECK.cards[0].cardId;
+  state.settings.examDate = '';
+  const due = addCalendarDays(Date.now(), 30);
+  state.recs = {
+    [id]: {
+      st: 'r', step: 0, ivl: 30, ea: 2.5,
+      due, rp: 8, lp: 0, pv: 30,
+    },
+  };
+  const input = document.getElementById('set-exam');
+  input.value = '2026-08-22';
+  input.dispatchEvent(new Event('change', { bubbles: true }));
+  return {
+    days: daysToExam(),
+    cap: ceiling(),
+    max: MAX_IVL,
+    due,
+    record: { ...state.recs[id] },
+  };
+});
+ok(examToday.days === 0 && examToday.cap === examToday.max
+    && examToday.record.ivl === 30 && examToday.record.pv === 30
+    && examToday.record.due === examToday.due,
+  'an exam date of today does not move a next review to after the exam');
+
 /* Correct reviews under the cap must now make mastery advance. The deterministic
  * random midpoint makes the expected natural sequence 6 -> 15 -> 38. */
 const scheduling = await page.evaluate(() => {
@@ -170,6 +198,18 @@ const scheduling = await page.evaluate(() => {
     recs: { x: { ...ordinary, ivl: 30, pv: 6 } },
     settings: { ...freshState().settings, examDate: '' },
   }).recs.x;
+  const canonicalZero = sanitise({
+    ...freshState(),
+    recs: { x: { ...ordinary, ivl: 30, pv: 0, sr: ordinary.rp } },
+    settings: { ...freshState().settings, examDate: '' },
+  }).recs.x;
+  const mergedHistory = {
+    ...ordinary, rp: 20, sr: 19,
+  };
+  state.recs[id] = mergedHistory;
+  const mergedPlan = schedulePlan(mergedHistory, 3);
+  grade(id, 3, mergedPlan.ivl, false, mergedPlan.natural);
+  const afterMergedGrade = { ...state.recs[id] };
   Math.random = realRandom;
   return {
     firstPlan, first, secondPlan, second, hardPlan, hard, again,
@@ -178,6 +218,11 @@ const scheduling = await page.evaluate(() => {
       ...explicitDemotion,
       proof: provenInterval(explicitDemotion),
     },
+    canonicalZero: {
+      ...canonicalZero,
+      proof: provenInterval(canonicalZero),
+    },
+    afterMergedGrade,
   };
 });
 ok(scheduling.firstPlan.ivl === 6 && scheduling.first.pv === 15
@@ -198,6 +243,47 @@ ok(scheduling.ordinaryGood.ivl === 25 && scheduling.ordinaryGood.natural === 25,
 ok(scheduling.explicitDemotion.ivl === 30 && scheduling.explicitDemotion.pv === 6
     && scheduling.explicitDemotion.proof === 6,
   'an explicit positive pv is authoritative and is not resurrected by a larger ivl');
+ok(scheduling.canonicalZero.ivl === 30 && scheduling.canonicalZero.pv === 0
+    && scheduling.canonicalZero.proof === 0,
+  'a canonical zero pv stays zero instead of masquerading as a legacy interval');
+ok(scheduling.afterMergedGrade.rp === 21 && scheduling.afterMergedGrade.sr === 20,
+  'a local answer advances its schedule revision without copying a merged history floor');
+
+/* Flooring remains right for milestone gates, but a real first solid card in a
+ * very large section must not be rendered or announced as zero. */
+const subPercent = await page.evaluate(() => {
+  const section = DECK.sections[0];
+  const originalCount = section.cardCount;
+  const first = DECK.cards.find((card) => card.sectionId === section.sectionId);
+  section.cardCount = 200;
+  state.recs = {
+    [first.cardId]: {
+      st: 'r', step: 0, ivl: 6, ea: 2.5,
+      due: addCalendarDays(Date.now(), 6), rp: 5, sr: 5, lp: 0, pv: 21,
+    },
+  };
+  renderHome();
+  const button = document.querySelector('#section-list .sections > li button');
+  const result = {
+    label: button.getAttribute('aria-label'),
+    width: button.querySelector('.sect-meter i')?.style.width || '',
+    hidden: button.querySelector('.sect-meter')?.getAttribute('aria-hidden') || '',
+    homePhrase: progressPercent(1, 200, 'known well'),
+    groupPhrase: progressPercent(1, 200, 'solid'),
+    zeroPhrase: progressPercent(0, 200, 'solid'),
+    completePhrase: progressPercent(200, 200, 'solid'),
+  };
+  section.cardCount = originalCount;
+  return result;
+});
+ok(/less than 1% known well/.test(subPercent.label)
+    && subPercent.homePhrase === 'less than 1% known well'
+    && subPercent.groupPhrase === 'less than 1% solid'
+    && subPercent.zeroPhrase === '0% solid'
+    && subPercent.completePhrase === '100% solid',
+  'one of 200 is described as non-zero while zero and complete stay exact');
+ok(subPercent.width === '0.5%' && subPercent.hidden === 'true',
+  'one of 200 draws a decorative half-percent sliver instead of no meter');
 
 /* Boundary and accessibility: the exact 21-day line is unchanged, and a
  * partial visible meter is represented once in the button's accessible name. */
@@ -233,6 +319,16 @@ ok(surface.meta === '34 cards' && /2% known well/.test(surface.label)
   'a partial pending section exposes its 2% value and marks the visual meter decorative');
 ok(surface.roundedThreshold === 24,
   '25 of 101 displays 24%, so a 25% milestone is never shown early');
+
+// Assert through the accessibility tree, then operate the real control. Direct
+// DOM attributes alone still pass when an inert ancestor hides every control.
+await page.evaluate(() => go('home'));
+const progressButton = page.getByRole('button', { name: /2% known well/i }).first();
+ok(await progressButton.count() === 1 && await progressButton.isVisible(),
+  'partial progress is exposed as one visible section button in the accessibility tree');
+await progressButton.click();
+ok(await page.locator('#s-study').isVisible(),
+  'the accessible partial-progress section control starts a real study session');
 ok(errors.length === 0, `the progress flow raises no page errors (${errors.join(' | ') || 'none'})`);
 
 await context.close();

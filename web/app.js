@@ -251,7 +251,7 @@ function freshState() {
     // ivl is the next scheduled gap; pv is the uncapped interval the learner
     // has proved. Exam mode may shorten the former, but only forgetting lowers
     // the latter.
-    recs: {},                    // card id -> {st, step, ivl, ea, due, rp, lp, pv}
+    recs: {},                    // card id -> {st, step, ivl, ea, due, rp, sr, lp, pv}
     day: dayKey(Date.now()),
     newDone: 0,
     revDone: 0,
@@ -370,18 +370,24 @@ function sanitise(raw) {
       const st = r.st === 'r' ? 'r' : 'l';
       const ivl = Math.round(num(r.ivl, 0, MAX_IVL, st === 'r' ? 1 : 0));
       const savedProof = Math.round(num(r.pv, 0, MAX_IVL, 0));
+      const rp = Math.round(num(r.rp, 0, 1e6, 0));
+      const hasScheduleRevision = Object.hasOwn(r, 'sr');
       recs[id] = {
         st,
         step: Math.round(num(r.step, 0, 9, 0)),
         ivl,
         ea: num(r.ea, MIN_EASE, MAX_EASE, 2.5),
         due: num(r.due, 0, 8.64e15, Date.now()),
-        rp: Math.round(num(r.rp, 0, 1e6, 0)),
+        rp,
+        // Missing means a genuine legacy record, whose schedule revision was
+        // its answer count. A merged history floor may make rp larger later;
+        // sr deliberately stays with the schedule branch that won.
+        sr: Math.round(num(r.sr, 0, rp, rp)),
         lp: Math.round(num(r.lp, 0, 1e6, 0)),
         // Released builds already carried pv as a relearning target. A
         // positive value on a review record is therefore safe to preserve;
         // zero is a legacy record, whose best surviving evidence is ivl.
-        pv: st === 'r' ? (savedProof || ivl) : savedProof,
+        pv: st === 'r' && !hasScheduleRevision ? (savedProof || ivl) : savedProof,
       };
     }
   }
@@ -813,8 +819,10 @@ function noteAnswered() {
 
 function newRec() {
   // pv = the interval proved without an exam cap. While relearning, it is also
-  // the interval the card works back towards.
-  return { st: 'l', step: 0, ivl: 0, ea: 2.5, due: 0, rp: 0, lp: 0, pv: 0 };
+  // the interval the card works back towards. sr is the revision belonging to
+  // this schedule; unlike rp it is not raised by history merged from another
+  // branch, so sync can tell which branch owns the current due date.
+  return { st: 'l', step: 0, ivl: 0, ea: 2.5, due: 0, rp: 0, sr: 0, lp: 0, pv: 0 };
 }
 
 /** The interval this record has actually proved.
@@ -825,6 +833,9 @@ function provenInterval(rec) {
   if (!rec) return 0;
   const proof = Number(rec.pv);
   if (Number.isFinite(proof) && proof > 0) return Math.min(MAX_IVL, proof);
+  // sr marks a canonical record. On one of those, zero is an explicit proof
+  // value; only records from before sr existed may migrate review ivl.
+  if (Object.hasOwn(rec, 'sr')) return 0;
   if (rec.st !== 'r') return 0;
   const legacy = Number(rec.ivl);
   return Number.isFinite(legacy) ? Math.min(MAX_IVL, Math.max(0, legacy)) : 0;
@@ -835,6 +846,13 @@ function provenInterval(rec) {
  * fraction is still 24.75%. */
 function wholePercent(done, total) {
   return total > 0 ? Math.floor((done / total) * 100) : 0;
+}
+
+/** A non-zero fraction is never called zero, while milestone percentages keep
+ * their deliberately conservative whole-point floor. */
+function progressPercent(done, total, noun) {
+  const pct = wholePercent(done, total);
+  return pct === 0 && done > 0 ? `less than 1% ${noun}` : `${pct}% ${noun}`;
 }
 
 /** New cards to introduce today.
@@ -881,10 +899,10 @@ function fuzz(days) {
  * so a card scheduled past the exam is a card you have stopped revising. */
 function ceiling() {
   const d = daysToExam();
-  // A date in the past is a typo or an exam already sat. Either way it must not
-  // cap anything: `Math.round(-300 * 0.2)` floors to 1 day and makes the whole
-  // deck due daily, for ever, with no way back.
-  if (d === null || d < 0) return MAX_IVL;
+  // A date today or in the past cannot produce a positive gap before the exam.
+  // Treat it as inactive for scheduling: flooring it to one day would move the
+  // next review to tomorrow, after the date the cap is meant to serve.
+  if (d === null || d <= 0) return MAX_IVL;
   return Math.max(1, Math.min(MAX_IVL, Math.round(d * 0.2)));
 }
 
@@ -973,7 +991,9 @@ function grade(id, g, ivl, practising, naturalIvl) {
   const isNew = !stored;
   const wasReview = rec.st === 'r';
   if (!practising) state.recs[id] = rec;
+  const scheduleRevision = Number.isFinite(Number(rec.sr)) ? Number(rec.sr) : rec.rp;
   rec.rp++;
+  rec.sr = scheduleRevision + 1;
 
   if (wasReview && !practising) {
     state.revTotal++;
@@ -2447,6 +2467,13 @@ function renderHome() {
     ul.className = 'sections';
     for (const { s, sc, pending } of rows) {
       const pct = wholePercent(sc.mature, s.cardCount);
+      // A real non-zero fraction must not be announced as zero. Keep whole
+      // milestone points everywhere else, but give the first solid card a
+      // visible sliver and an honest accessible name even in a huge section.
+      const progress = progressPercent(sc.mature, s.cardCount, 'known well');
+      const meterPct = pct || (sc.mature > 0
+        ? Math.min(100, (sc.mature / s.cardCount) * 100)
+        : 0);
       // The meta line says what the number means. A bare badge on an untouched
       // section reads as "12 due" when it means "12 you have never seen".
       let meta;
@@ -2461,7 +2488,7 @@ function renderHome() {
       // twenty-four rows it was the same two words twenty-four times.
       else if (sc.seen === 0) meta = plural(s.cardCount, 'card');
       else if (sc.fresh) meta = `${sc.fresh} new left · ${plural(s.cardCount, 'card')}`;
-      else meta = `all ${s.cardCount} scheduled · ${pct}% known well`;
+      else meta = `all ${s.cardCount} scheduled · ${progress}`;
 
       const li = document.createElement('li');
       const b = document.createElement('button');
@@ -2470,12 +2497,11 @@ function renderHome() {
         <span class="sect-name">${escapeHtml(s.title)}</span>
         ${pending ? `<span class="sect-badge">${pending}</span>` : ''}
         <span class="sect-meta">${meta}</span>
-        ${pct > 0 ? `<span class="sect-meter" aria-hidden="true"><i style="width:${Math.min(100, pct)}%"></i></span>` : ''}`;
+        ${meterPct > 0 ? `<span class="sect-meter" aria-hidden="true"><i style="width:${meterPct}%"></i></span>` : ''}`;
       // The badge is a bare number and reads out as one, so the count it stands
       // for is spelled into the label the row is announced under. The meter is
       // decorative inside that same button, so its value is said here even
       // when pending/new-card metadata takes the visible line's place.
-      const progress = `${pct}% known well`;
       const described = meta.includes(progress) ? meta : `${meta} · ${progress}`;
       b.setAttribute('aria-label',
         `${s.title}. ${pending ? `${pending} to review. ` : ''}${described}. Study this section.`);
@@ -6096,7 +6122,7 @@ function renderStats() {
     const tot = inside.reduce((t, s) => t + s.cardCount, 0);
     const solid = inside.reduce((t, s) => t + bySect.get(s.sectionId).mature, 0);
     return (g.title ? `<h3 class="h-part"><span>${escapeHtml(g.title)}</span>`
-      + `<span class="h-part-n">${wholePercent(solid, tot)}% solid</span></h3>` : '')
+      + `<span class="h-part-n">${progressPercent(solid, tot, 'solid')}</span></h3>` : '')
       + `<ul class="mastery">${rows}</ul>`;
   }).join('');
 
@@ -7119,7 +7145,7 @@ function wire() {
     const cap = ceiling();
     const d = daysToExam();
     let moved = 0;
-    if (d !== null && d >= 0) {
+    if (d !== null && d > 0) {
       for (const r of Object.values(state.recs)) {
         if (r.st === 'r') {
           // Review records from older builds have pv=0. Capture their last

@@ -294,7 +294,7 @@ const offer = (pg) => pg.evaluate(() => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
-        body: JSON.stringify(fn === 'sync_get'
+        body: JSON.stringify(fn === 'sync_get_v2'
           ? []
           : [{ ok: true, rev: 1, data: body.p_data }]),
       });
@@ -448,11 +448,11 @@ const offer = (pg) => pg.evaluate(() => {
     'sync gives the learner one readable 25-character key');
   ok(synced.localKey === 'munin/sync-off' && JSON.parse(synced.stored).key,
     'the released sync storage key is retained');
-  ok(syncCalls.some((call) => call.fn === 'sync_get'
-      && call.body.p_app === 'day-skipper')
-      && syncCalls.some((call) => call.fn === 'sync_put'
-        && call.body.p_app === 'day-skipper'),
-    'sync reads then writes the active course through its isolated backend namespace');
+  ok(syncCalls.some((call) => call.fn === 'sync_get_v2'
+      && call.body.p_app === 'day-skipper' && call.body.p_writer_version === 2)
+      && syncCalls.some((call) => call.fn === 'sync_put_v2'
+        && call.body.p_app === 'day-skipper' && call.body.p_writer_version === 2),
+    'sync uses the fenced writer capability in the active course namespace');
   await p6.evaluate(() => {
     globalThis.__resetConfirmCalls = 0;
     globalThis.confirm = () => { globalThis.__resetConfirmCalls++; return true; };

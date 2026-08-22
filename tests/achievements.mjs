@@ -314,6 +314,21 @@ ok(A.DEFINITIONS.every(Object.isFrozen),
   ok(!notRecovered.tamed && notRecovered.solidCards === 0,
     'a larger scheduled ivl cannot override an explicit positive pv below a threshold');
 
+  const canonicalZero = A.contextFromDeck({
+    at: 1000,
+    state: {
+      answers: 1,
+      recs: { card: { st: 'r', ivl: 90, pv: 0, rp: 5, sr: 5, lp: 2 } },
+    },
+    deck: {
+      sections: [{ sectionId: 'only' }],
+      cards: [{ cardId: 'card', sectionId: 'only' }],
+    },
+    course: { id: 'built-in' },
+  });
+  ok(canonicalZero.solidCards === 0,
+    'a canonical zero proof cannot regain an older interval through achievements');
+
   const aggregate = A.aggregateClubStates([{ answers: 6, recs }]);
   ok(aggregate.solidCards === 3,
     'club mastery totals use the same proven-interval definition as deck progress');
