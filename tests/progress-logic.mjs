@@ -64,7 +64,7 @@ const plateau = await page.evaluate(() => {
     .map((button) => ({
       meta: button.querySelector('.sect-meta')?.textContent || '',
       label: button.getAttribute('aria-label') || '',
-      meter: button.querySelector('.sect-meter')?.getAttribute('aria-hidden') || '',
+      meter: !!button.querySelector('.sect-meter'),
     }));
   go('stats');
   return {
@@ -75,9 +75,13 @@ const plateau = await page.evaluate(() => {
     home,
     tiles: Array.from(document.querySelectorAll('#stat-tiles .tile'))
       .map((tile) => tile.textContent.replace(/\s+/g, ' ').trim()),
-    rows: Array.from(document.querySelectorAll('#mastery .m-n'))
-      .map((row) => row.textContent.replace(/\s+/g, ' ').trim()),
   };
+});
+await page.locator('#by-section > summary').click();
+const plateauRows = (await page.locator('#mastery .m-n').allTextContents())
+  .map((row) => row.replace(/\s+/g, ' ').trim());
+const plateauMeters = page.getByRole('img', {
+  name: /known well, .* bedding in, .* learning, .* not started/i,
 });
 ok(plateau.cards === 200 && plateau.sections === 14,
   `the concrete fixture covers all ${plateau.cards} cards and ${plateau.sections} sections`);
@@ -87,13 +91,16 @@ ok(plateau.home.length === 14
     && plateau.home.every(({ meta, label }) => /0% known well/.test(meta)
       && /0% known well/.test(label)),
   'all-young Home rows report an accessible 0% known well, never 50%');
-ok(plateau.home.every(({ meter }) => meter === ''),
+ok(plateau.home.every(({ meter }) => !meter),
   'zero-solid rows do not draw a misleading half-width meter');
 ok(plateau.tiles.some((tile) => /^0solid/.test(tile))
     && plateau.tiles.some((tile) => /^200seen, not solid yet/.test(tile)),
   'Progress agrees: 0 solid and 200 seen, not solid yet');
-ok(plateau.rows.length === 14 && plateau.rows.every((row) => /^0 solid/.test(row)),
+ok(plateauRows.length === 14 && plateauRows.every((row) => /^0 solid/.test(row)),
   'every expanded section agrees that zero cards are solid');
+ok(await plateauMeters.count() === 14
+    && await plateauMeters.first().isVisible(),
+  'all 14 expanded section meters expose their exact four-part progress to assistive technology');
 
 /* A proven 30-day card keeps that proof while exam mode pulls only its next
  * review forward. Clearing the date cannot erase the proof. */
@@ -127,6 +134,36 @@ ok(examMutation.cleared.ivl === 6 && examMutation.cleared.pv === 30
     && examMutation.cleared.state === 'mature',
   'clearing the exam cannot demote the stored proof');
 
+/* Settings and card schedules can win from different sync branches. The merged
+ * document must reapply its winning exam cap before it is uploaded or adopted. */
+const syncedExam = await page.evaluate(() => {
+  const local = freshState();
+  local.settings = { ...local.settings, examDate: '2026-08-27', at: 200 };
+  local.recs.x = {
+    st: 'r', step: 0, ivl: 1, ea: 2.5,
+    due: Date.parse('2026-08-23T00:00:00Z'), rp: 5, sr: 5, lp: 0, pv: 30,
+  };
+  const remote = freshState();
+  remote.settings = { ...remote.settings, examDate: '', at: 100 };
+  remote.recs.x = {
+    st: 'r', step: 0, ivl: 30, ea: 2.5,
+    due: Date.parse('2026-09-21T00:00:00Z'), rp: 6, sr: 6, lp: 0, pv: 30,
+  };
+  const merged = DSSync.mergeState(sanitiseSynced(local), sanitiseSynced(remote));
+  const reconciled = reconcileSynced(merged);
+  return {
+    examDate: reconciled.settings.examDate,
+    record: reconciled.recs.x,
+    latestDue: addCalendarDays(Date.now(), examCeiling(reconciled.settings.examDate)),
+  };
+});
+ok(syncedExam.examDate === '2026-08-27'
+    && syncedExam.record.ivl === 1
+    && syncedExam.record.due <= syncedExam.latestDue
+    && syncedExam.record.pv === 30
+    && syncedExam.record.sr === 6,
+  'a synced exam setting pulls the independently winning schedule forward without lowering proof');
+
 /* On the date itself there is no positive interval that can still land before
  * the exam. It must not manufacture a one-day cap and move cards to tomorrow. */
 const examToday = await page.evaluate(() => {
@@ -137,9 +174,11 @@ const examToday = await page.evaluate(() => {
       st: 'r', step: 0, ivl: 30, ea: 2.5,
       due, rp: 8, sr: 8, lp: 0, pv: 30,
     }]));
+  openSetup(null);
   const input = document.getElementById('set-exam');
   input.value = '2026-08-22';
   input.dispatchEvent(new Event('change', { bubbles: true }));
+  const todayHint = document.getElementById('exam-hint').textContent;
   renderHome();
   const todayBanner = document.getElementById('exam-banner').textContent
     .replace(/\s+/g, ' ').trim();
@@ -155,11 +194,10 @@ const examToday = await page.evaluate(() => {
 
   input.value = '2026-08-21';
   input.dispatchEvent(new Event('change', { bubbles: true }));
+  const pastHint = document.getElementById('exam-hint').textContent;
   renderHome();
   const pastBanner = document.getElementById('exam-banner').textContent
     .replace(/\s+/g, ' ').trim();
-  renderSetup();
-  const pastHint = document.getElementById('exam-hint').textContent;
   prepareGradeControls(DECK.cards[0]);
   const pastLabels = Array.from(document.querySelectorAll('#grade-row .iv'))
     .map((label) => label.textContent);
@@ -171,6 +209,7 @@ const examToday = await page.evaluate(() => {
     .replace(/\s+/g, ' ').trim();
   const freshSession = buildSession(null, {});
   session = null;
+  closeSetup(true);
   return {
     days: daysToExam(),
     cap: ceiling(),
@@ -178,6 +217,7 @@ const examToday = await page.evaluate(() => {
     due,
     record: recordAfterToday,
     todayBanner,
+    todayHint,
     pastBanner,
     pastHint,
     freshBanner,
@@ -197,10 +237,27 @@ ok(/spacing window has ended/i.test(examToday.todayBanner)
     && examToday.freshSessionSize === 20,
   'exam-day Home copy does not promise a review the inactive cap cannot schedule');
 ok(/normal spacing is already back/i.test(examToday.pastBanner)
+    && /spacing window has ended/i.test(examToday.todayHint)
+    && /normal spacing is active today/i.test(examToday.todayHint)
     && /normal spacing is already active/i.test(examToday.pastHint)
     && examToday.todayLabels.concat(examToday.pastLabels)
       .every((label) => !/max/i.test(label)),
-  'past/today dates agree across Home and Settings and do not label the hard limit as an exam max');
+  'an open Settings sheet updates immediately, and past/today copy agrees with Home and scheduling');
+
+/* A zero daily-new setting is a deliberate pause, not a pace that takes an
+ * infinite number of days. Say what will happen and how to change it. */
+const pausedExam = await page.evaluate(() => {
+  state = freshState();
+  state.settings.newPerDay = 0;
+  state.settings.examDate = '2026-09-19';
+  renderHome();
+  return document.getElementById('exam-banner').textContent
+    .replace(/\s+/g, ' ').trim();
+});
+ok(/new cards are switched off/i.test(pausedExam)
+    && /will stay unseen/i.test(pausedExam)
+    && !/infinity/i.test(pausedExam),
+  `a future exam with new cards paused explains the pause without Infinity (${pausedExam})`);
 
 /* Correct reviews under the cap must now make mastery advance. The deterministic
  * random midpoint makes the expected natural sequence 6 -> 15 -> 38. */
@@ -431,8 +488,10 @@ ok(surface.roundedThreshold === 24,
 // Assert through the accessibility tree, then operate the real control. Direct
 // DOM attributes alone still pass when an inert ancestor hides every control.
 await page.evaluate(() => go('home'));
-const progressButton = page.getByRole('button', { name: /2% known well/i }).first();
-ok(await progressButton.count() === 1 && await progressButton.isVisible(),
+const progressButtons = page.getByRole('button', { name: /2% known well/i });
+const progressButtonCount = await progressButtons.count();
+const progressButton = progressButtons.first();
+ok(progressButtonCount === 1 && await progressButton.isVisible(),
   'partial progress is exposed as one visible section button in the accessibility tree');
 await progressButton.click();
 ok(await page.locator('#s-study').isVisible(),

@@ -913,6 +913,50 @@ const rec = (overrides = {}) => Object.assign({
   globalThis.fetch = originalFetch;
 }
 
+/* An app-level invariant can depend on fields that merge independently. The
+ * transport must reconcile the completed document before deciding whether it
+ * differs from the server and before uploading it. */
+{
+  storage.clear();
+  const originalFetch = globalThis.fetch;
+  const remote = state({
+    settings: { examDate: '2026-08-27', at: 2 },
+    recs: { card: rec({ st: 'r', ivl: 30, due: 900, rp: 6, sr: 6, pv: 30 }) },
+  });
+  const calls = [];
+  let uploaded = null;
+  globalThis.fetch = async (url, options) => {
+    const fn = url.split('/').pop();
+    calls.push(fn);
+    if (fn === 'sync_get_v2') {
+      return { ok: true, status: 200, text: async () => JSON.stringify([{ rev: 7, data: remote }]) };
+    }
+    uploaded = JSON.parse(options.body).p_data;
+    return { ok: true, status: 200, text: async () => JSON.stringify([{
+      ok: true, rev: 8, data: uploaded,
+    }]) };
+  };
+  S.init({
+    app: 'day-skipper',
+    supported: true,
+    sanitise: (value) => value,
+    reconcile: (value) => {
+      value.recs.card.ivl = 1;
+      value.recs.card.due = 100;
+      return value;
+    },
+    onMerged: () => {},
+  });
+  S.turnOn('0123456789ABCDEFGHJKMNPQR');
+  const merged = await S.sync(remote);
+  ok(calls.join(',') === 'sync_get_v2,sync_put_v2'
+      && uploaded.recs.card.ivl === 1 && uploaded.recs.card.due === 100
+      && merged.recs.card.pv === 30,
+    'cross-field reconciliation runs before equality and upload without lowering proof');
+  S.turnOff();
+  globalThis.fetch = originalFetch;
+}
+
 console.log([...passed, ...failed].join('\n'));
 console.log(`\n${passed.length} passed, ${failed.length} failed`);
 process.exit(failed.length ? 1 : 0);

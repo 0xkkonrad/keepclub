@@ -518,14 +518,41 @@ const backupOf = (page, extra) => page.evaluate((over) => Object.assign({
       && !('notes' in legacy),
     'the file under test is a genuine legacy backup with no notes key at all');
   await restore(page, legacy);
-  const after = await page.evaluate(() => ({
-    records: Object.keys(state.recs).length,
-    notes: liveNotes().map((note) => note.text),
-    stored: JSON.parse(localStorage.getItem(KEY)).notes,
-    row: document.getElementById('notes-row-say').textContent,
-    toast: document.getElementById('toast').textContent,
-  }));
+  const after = await page.evaluate(async () => {
+    // A restored format-1 envelope is file metadata, never durable app state.
+    // Capture the next real export to prove the current v2 envelope wins too.
+    const stateEnvelope = [
+      'app', 'format', 'exportedAt', 'deckBuild', 'cardsWithHistory', 'cardsWritten',
+    ].filter((key) => Object.prototype.hasOwnProperty.call(state, key));
+    let captured = null;
+    const create = URL.createObjectURL;
+    const click = HTMLAnchorElement.prototype.click;
+    URL.createObjectURL = (blob) => { captured = blob; return create.call(URL, blob); };
+    HTMLAnchorElement.prototype.click = function () {};
+    document.getElementById('export-btn').click();
+    URL.createObjectURL = create;
+    HTMLAnchorElement.prototype.click = click;
+    const exported = JSON.parse(await captured.text());
+    return {
+      records: Object.keys(state.recs).length,
+      notes: liveNotes().map((note) => note.text),
+      stored: JSON.parse(localStorage.getItem(KEY)).notes,
+      row: document.getElementById('notes-row-say').textContent,
+      toast: document.getElementById('toast').textContent,
+      stateEnvelope,
+      exportApp: exported.app,
+      exportFormat: exported.format,
+      exportProofs: Object.values(exported.recs).map((record) => record.pv),
+    };
+  });
   ok(after.records === 3, `the review history in the file is restored (${after.records})`);
+  ok(after.stateEnvelope.length === 0,
+    `legacy file metadata is not retained as state (${after.stateEnvelope.join(', ') || 'none'})`);
+  ok(after.exportApp === 'munin/competent-crew:progress-v2'
+      && after.exportFormat === 2
+      && after.exportProofs.length === 3
+      && after.exportProofs.every((proof) => proof === 4),
+    're-export after a legacy restore is stamped v2 and preserves the migrated proof');
   ok(after.notes.join() === 'Kept across a restore',
     `a backup from before notes existed does not take this device's (${after.notes.length} left)`);
   ok(after.stored[deletedId] && after.stored[deletedId].text === '',

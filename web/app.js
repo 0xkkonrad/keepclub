@@ -347,6 +347,12 @@ function sanitise(raw) {
   // object, the block would be written into the document that must not hold it
   // and would sit there as a second, staler copy of somebody's cards.
   delete s.cards;
+  // Backup envelope fields describe the file, not the state inside it. Keeping
+  // a legacy file's app/format stamps on state lets them overwrite the current
+  // v2 envelope on the next export and makes that fresh file look legacy.
+  for (const key of [
+    'app', 'format', 'exportedAt', 'deckBuild', 'cardsWithHistory', 'cardsWritten',
+  ]) delete s[key];
   s.settings = Object.assign(freshState().settings, isPlainObject(raw.settings) ? raw.settings : {});
 
   const num = (v, lo, hi, dflt) => {
@@ -901,16 +907,20 @@ function newBudget() {
   return Math.max(manual, Math.ceil(unseen / Math.max(1, Math.round(d * 0.6))));
 }
 
-/** Whole days from today to the exam, or null if no date is set. */
-function daysToExam() {
+/** Whole days from a clock to an exam date, or null if the date is inactive. */
+function daysUntilExam(examDate, now = Date.now()) {
   // A course with no exam has no countdown, whatever a restored backup or a
   // synced settings block happens to carry in this field.
   if (!EXAM_ON) return null;
-  const d = state.settings.examDate;
-  if (!validExamDate(d)) return null;
-  const [year, month, day] = d.split('-').map(Number);
+  if (!validExamDate(examDate)) return null;
+  const [year, month, day] = examDate.split('-').map(Number);
   const t = new Date(year, month - 1, day).getTime();
-  return Math.round((startOfDay(t) - startOfDay(Date.now())) / DAY);
+  return Math.round((startOfDay(t) - startOfDay(now)) / DAY);
+}
+
+/** Whole days from today to the active exam, or null if no date is set. */
+function daysToExam() {
+  return daysUntilExam(state.settings.examDate);
 }
 
 function fuzz(days) {
@@ -924,13 +934,46 @@ function fuzz(days) {
  * Cepeda et al. (2008) put the best gap at roughly 10–20% of the interval you
  * need to remember over. Studying for a date, that interval is the days left,
  * so a card scheduled past the exam is a card you have stopped revising. */
-function ceiling() {
-  const d = daysToExam();
+function examCeiling(examDate, now = Date.now()) {
+  const d = daysUntilExam(examDate, now);
   // A date today or in the past cannot produce a positive gap before the exam.
   // Treat it as inactive for scheduling: flooring it to one day would move the
   // next review to tomorrow, after the date the cap is meant to serve.
   if (d === null || d <= 0) return MAX_IVL;
   return Math.max(1, Math.min(MAX_IVL, Math.round(d * 0.2)));
+}
+
+function ceiling() {
+  return examCeiling(state.settings.examDate);
+}
+
+/** Reconcile review schedules with the exam setting in the same document.
+ *
+ * Settings and per-card schedules merge independently across devices. The
+ * newer exam date can therefore meet a newer uncapped schedule that was made
+ * on the other device. Apply the same pull-forward as a local date change to
+ * that freshly merged document, while leaving its uncapped proof untouched. */
+function capSchedulesForExam(document, now = Date.now()) {
+  const cap = examCeiling(document && document.settings?.examDate, now);
+  if (cap === MAX_IVL) return 0;
+  const latestDue = addCalendarDays(now, cap);
+  let moved = 0;
+  for (const record of Object.values(document.recs || {})) {
+    if (!record || record.st !== 'r') continue;
+    let changed = false;
+    // Old review records may still carry their only surviving proof in ivl.
+    if (!(Number(record.pv) > 0)) record.pv = provenInterval(record);
+    if (record.ivl > cap) {
+      record.ivl = cap;
+      changed = true;
+    }
+    if (record.due > latestDue) {
+      record.due = latestDue;
+      changed = true;
+    }
+    if (changed) moved++;
+  }
+  return moved;
 }
 
 /** What the next interval would be without an exam cap or due-date jitter.
@@ -2308,7 +2351,8 @@ function renderExamBanner(c) {
   const when = d === 0 ? 'today' : d === 1 ? 'tomorrow' : `in ${d} days`;
   const pace = newBudget();
   const introDays = c.fresh ? daysToSeeAll(c.fresh) : 0;
-  const tight = c.fresh > 0 && introDays > Math.max(1, d);
+  const paused = c.fresh > 0 && pace === 0;
+  const tight = !paused && c.fresh > 0 && introDays > Math.max(1, d);
   el.className = 'banner' + (tight ? ' tight' : '');
   // "the remaining 527" over a deck of 537 read as a countdown of the whole
   // deck, ten cards short, beside a note underneath that counted all 537. It
@@ -2324,6 +2368,8 @@ function renderExamBanner(c) {
     ? `<b>Exam today.</b> ${c.fresh
         ? `${c.fresh} cards have not been seen yet.`
         : 'You have seen every card at least once.'} The exam spacing window has ended; today’s Study uses the normal due, learning, and new-card rules.`
+    : paused
+      ? `<b>Exam ${when}.</b> New cards are switched off, so the ${c.fresh} you have not seen will stay unseen unless you raise the daily number in Settings.`
     : tight
       ? `<b>Exam ${when}.</b> At ${pace} new cards a day, the ${c.fresh} you have not seen take ${introDays} days. You will not get through the deck — raise the daily number in Settings, or accept that you will skip some sections.`
       : `<b>Exam ${when}.</b> ${c.fresh
@@ -5846,6 +5892,12 @@ function sanitiseSynced(raw) {
   return clean;
 }
 
+/** The two independently merged halves of progress must agree before upload. */
+function reconcileSynced(merged) {
+  capSchedulesForExam(merged);
+  return merged;
+}
+
 // The adoption a merge started, resolving to whether it already said what the
 // round cost. Rebuilding the deck around a card that arrived is asynchronous, so
 // a caller with something to print has to wait for it — and then has to know
@@ -6200,6 +6252,7 @@ function renderSetup() {
   // control cannot — what setting it does to the spacing.
   $('#exam-hint').textContent = d === null ? ''
     : d < 0 ? 'That date has passed. Normal spacing is already active; change or clear the date to remove this reminder.'
+      : d === 0 ? 'The exam spacing window has ended. Normal spacing is active today.'
       : `No card will be left longer than ${fmtDays(ceiling())} between reviews.`;
   const auto = newBudget();
   $('#new-hint').textContent = auto > state.settings.newPerDay
@@ -7174,28 +7227,15 @@ function wire() {
     // next review in without rewriting the interval they have proved.
     // Only for a date in the future: a typo like 2025 instead of 2026 would
     // otherwise rewrite every next-review gap to one day.
-    const cap = ceiling();
-    const d = daysToExam();
-    let moved = 0;
-    if (d !== null && d > 0) {
-      for (const r of Object.values(state.recs)) {
-        if (r.st === 'r') {
-          // Review records from older builds have pv=0. Capture their last
-          // surviving interval before exam mode shortens the scheduled gap.
-          if (!(Number(r.pv) > 0)) r.pv = provenInterval(r);
-          if (r.ivl > cap) {
-            r.ivl = cap;
-            r.due = Math.min(r.due, addCalendarDays(Date.now(), cap));
-            moved++;
-          }
-        }
-      }
-    }
+    const moved = capSchedulesForExam(state);
     const wrote = writeNow();
     $('#set-exam').value = state.settings.examDate;
     $('#home-exam').value = state.settings.examDate;
     $('#home-exam-parsed').textContent = value ? longDate(value) : '';
     if (current === 'stats') renderStats(); else renderHome();
+    // The Settings sheet can remain open while Home or Progress redraws behind
+    // it. Refresh its derived hints in the same event as the date itself.
+    renderSetup();
     if (moved && wrote) toast(`${moved} cards moved earlier so you see them before your exam.`);
     return wrote;
   };
@@ -7315,18 +7355,19 @@ function wire() {
     // by an id minted on this device, and restore refuses a file stamped for
     // any other. No screen may offer this file as the way to move a deck.
     //
-    // The layer is assigned after `state` rather than into the header, because
-    // `state` is spread over the header: a `cards` key that ever appeared on
-    // that object — which sanitise() exists to make sure it does not — would
-    // silently win over the layer this line is putting in.
-    const payload = Object.assign({
+    // File metadata and the card layer are assigned after `state`. That makes
+    // the current envelope authoritative even if a malformed in-memory object
+    // somehow carries a legacy header, while sanitise() removes those fields at
+    // every real ingress as the first line of defence.
+    const payload = Object.assign({}, state, {
       app: EXPORT_APP,
       format: EXPORT_FORMAT,
       exportedAt: new Date(Date.now()).toISOString(),
       deckBuild: DECK.buildFingerprint,
       cardsWithHistory: Object.keys(state.recs).length,
       cardsWritten: writtenCardCount(),
-    }, state, { cards: cardLayer });
+      cards: cardLayer,
+    });
     const blob = new Blob([JSON.stringify(payload, null, 1)], { type: 'application/json' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -8203,6 +8244,7 @@ async function boot() {
       // cards layer's sync path hangs off this one line being false there.
       supported: !/^local-[a-z0-9]+$/.test(COURSE.id),
       sanitise: sanitiseSynced,
+      reconcile: reconcileSynced,
       onMerged: adoptSynced,
       onStatus: (s) => {
         syncBusy = !!s.busy;

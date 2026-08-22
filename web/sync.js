@@ -38,6 +38,7 @@ let cfg = {
   app: '',
   supported: false,
   sanitise: (s) => s,
+  reconcile: (s) => s,
   onMerged: () => {},
   onStatus: () => {},
 };
@@ -695,7 +696,7 @@ async function syncOnce(local, generation) {
   if (Array.isArray(rows) && rows.length) {
     rev = num(rows[0].rev);
     const remote = cfg.sanitise(rows[0].data);
-    const merged = mergeState(local, remote);
+    const merged = cfg.reconcile(mergeState(local, remote));
     changed = stable(merged) !== stable(remote);
     state = merged;
   } else {
@@ -748,7 +749,7 @@ async function syncOnce(local, generation) {
     }
     rev = num(row && row.rev);
     const theirs = cfg.sanitise(row && row.data);
-    state = mergeState(state, theirs);
+    state = cfg.reconcile(mergeState(state, theirs));
     changed = stable(state) !== stable(theirs);
     if (changed) await sleep(RETRY_WAIT);
   }
