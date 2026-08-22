@@ -237,9 +237,9 @@ const rec = (overrides = {}) => Object.assign({
   ok(retained.pv === 0 && retained.sr === 7,
     'a canonical review keeps an explicit zero proof instead of inventing 30 days');
 
-  const a = rec({ st: 'r', ivl: 1, due: 300, rp: 1, sr: 1, lp: 2, pv: 1 });
+  const a = rec({ st: 'r', ivl: 1, due: 300, rp: 2, sr: 2, lp: 2, pv: 1 });
   const b = rec({ st: 'r', ivl: 30, due: 900, rp: 2, sr: 2, lp: 0, pv: 30 });
-  const c = rec({ st: 'l', step: 1, ivl: 0, due: 100, rp: 1, sr: 1, lp: 2, pv: 0 });
+  const c = rec({ st: 'l', step: 1, ivl: 0, due: 100, rp: 2, sr: 2, lp: 2, pv: 0 });
   const records = [a, b, c];
   const permutations = [
     [0, 1, 2], [0, 2, 1], [1, 0, 2],
@@ -255,9 +255,29 @@ const rec = (overrides = {}) => Object.assign({
   ];
   ok(outputs.concat(grouped).every((value) => same(value, outputs[0]))
       && outputs[0].st === 'l' && outputs[0].due === 100
-      && outputs[0].rp === 2 && outputs[0].sr === 1
+      && outputs[0].rp === 2 && outputs[0].sr === 2
       && outputs[0].lp === 2 && outputs[0].pv === 1,
-    'the malformed zero-proof vector converges across every order and grouping');
+    'the canonical zero-proof vector converges across every order and grouping');
+}
+
+{
+  const valid = rec({
+    st: 'r', ivl: 30, due: 900, rp: 10, sr: 10, lp: 2, pv: 30,
+  });
+  const impossible = rec({
+    st: 'l', step: 1, ivl: 1, due: 100, rp: 0, sr: 0, lp: 999999, pv: 0,
+  });
+  const merged = S.pickRec(valid, impossible);
+  ok(S.pickRec(impossible, null).lp === 0
+      && merged.lp === 2 && merged.st === 'r' && merged.pv === 30,
+  'an impossible lapse count is bounded by its causal schedule revision');
+
+  const malformedSr = rec({
+    st: 'r', ivl: 30, rp: 8, sr: 'not-a-number', lp: 0, pv: 0,
+  });
+  const migrated = S.pickRec(malformedSr, null);
+  ok(migrated.sr === 8 && migrated.pv === 30,
+    'malformed sr presence cannot suppress a legacy review interval');
 }
 
 /* Deterministic property sweep over canonical production-shaped records. The
@@ -275,7 +295,8 @@ const rec = (overrides = {}) => Object.assign({
   const values = [0, 1, 20, 21, 30, 90];
   const generated = () => {
     const rp = random() % 16;
-    const lp = random() % (rp + 1);
+    const sr = random() % (rp + 1);
+    const lp = random() % (sr + 1);
     const st = random() % 3 === 0 ? 'l' : 'r';
     return rec({
       st,
@@ -284,7 +305,7 @@ const rec = (overrides = {}) => Object.assign({
       ea: 1.3 + (random() % 16) / 10,
       due: random() % 100000,
       rp,
-      sr: random() % (rp + 1),
+      sr,
       lp,
       pv: values[random() % values.length],
     });
@@ -456,6 +477,8 @@ const rec = (overrides = {}) => Object.assign({
   const sql = fs.readFileSync(path.join(dir, file), 'utf8');
   const allSql = fs.readdirSync(dir).sort()
     .map((name) => fs.readFileSync(path.join(dir, name), 'utf8')).join('\n');
+  const getV2 = /create or replace function public\.sync_get_v2([\s\S]*?)create or replace function public\.sync_put_v2/.exec(allSql)?.[1] || '';
+  const putV2 = /create or replace function public\.sync_put_v2([\s\S]*?)revoke execute/.exec(allSql)?.[1] || '';
   const column = /max_bytes\s+integer\s+not null\s+default\s+(\d+)/.exec(sql);
   ok(!!column && Number(column[1]) === S.MAX_BYTES,
     `the client's blob ceiling is the backend's own (${column && column[1]} = ${S.MAX_BYTES})`);
@@ -471,6 +494,12 @@ const rec = (overrides = {}) => Object.assign({
   ok(/and b\.writer_version < 2/.test(allSql)
       && /if v_cur\.writer_version >= 2 then\s+raise exception 'sync client update required'/s.test(allSql),
     'legacy readers cannot receive a v2 row and legacy writers cannot overwrite it');
+  ok(/update sync\.blobs b\s+set writer_version = 2/s.test(getV2)
+      && /p_writer_version is distinct from 2/.test(getV2),
+    'the first v2 read durably fences an equal-state legacy row and rejects NULL capability');
+  ok(/p_writer_version is distinct from 2/.test(putV2)
+      && /v_cur\.rev is distinct from p_rev/.test(putV2),
+    'the v2 writer rejects NULL capability and NULL revision rather than bypassing CAS');
 }
 
 /* `p_data::text` is the jsonb text form, not the JSON we sent: Postgres parses
@@ -769,6 +798,35 @@ const rec = (overrides = {}) => Object.assign({
     'turning Sync off during a request cannot restore the old identity');
   ok(!adopted && calls === 1,
     'turning Sync off aborts the old transport before it uploads or merges');
+  globalThis.fetch = originalFetch;
+}
+
+{
+  storage.clear();
+  const originalFetch = globalThis.fetch;
+  const identical = state({
+    recs: { card: rec({ st: 'l', rp: 20, sr: 20, lp: 1, pv: 15 }) },
+  });
+  const calls = [];
+  globalThis.fetch = async (url) => {
+    const fn = url.split('/').pop();
+    calls.push(fn);
+    return {
+      ok: true,
+      status: 200,
+      text: async () => JSON.stringify([{ rev: 7, data: identical }]),
+    };
+  };
+  S.init({
+    app: 'day-skipper',
+    supported: true,
+    sanitise: (value) => value,
+  });
+  S.turnOn('0123456789ABCDEFGHJKMNPQR');
+  const merged = await S.sync(identical);
+  ok(calls.join() === 'sync_get_v2' && same(merged, identical),
+    'an equal-state adoption needs only the v2 read that durably fences the backend row');
+  S.turnOff();
   globalThis.fetch = originalFetch;
 }
 

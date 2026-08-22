@@ -41,12 +41,17 @@
   );
   // New records keep the uncapped, proven interval in `pv`; legacy records
   // predate that meaning, so a missing/zero value falls back to review `ivl`.
-  // sr is the canonical-record marker that distinguishes an authoritative zero
-  // from those legacy records.
+  // A valid sr is the canonical-record marker that distinguishes an
+  // authoritative zero from those legacy records. Mere property presence is
+  // not enough: malformed imported provenance must not erase surviving proof.
   const provenInterval = (rec) => {
     if (!plainObject(rec) || rec.st !== 'r') return 0;
     const persisted = number(rec.pv);
-    const legacy = !Object.prototype.hasOwnProperty.call(rec, 'sr');
+    const rp = count(rec.rp);
+    const sr = Number(rec.sr);
+    const canonical = Object.prototype.hasOwnProperty.call(rec, 'sr')
+      && Number.isInteger(sr) && sr >= 0 && sr <= rp;
+    const legacy = !canonical;
     return Math.max(0, persisted > 0 || !legacy ? persisted : number(rec.ivl));
   };
 

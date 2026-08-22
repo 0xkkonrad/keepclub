@@ -224,25 +224,32 @@ function stable(value) {
 // `pv` is the strongest interval this lapse epoch has proved, even when an
 // approaching exam keeps the actual scheduled interval (`ivl`) shorter. Old
 // clients wrote pv=0 for review cards, so their interval is the compatible
-// fallback. `sr` marks a canonical record, so zero on one of those stays zero.
+// fallback. A valid `sr` marks a canonical record, so zero on one of those stays
+// zero; malformed property presence is not allowed to certify zero proof.
 // A learning card's ivl is only its next step, never proof.
+function hasScheduleRevision(record) {
+  if (!record || !Object.prototype.hasOwnProperty.call(record, 'sr')) return false;
+  const rp = num(record.rp);
+  const sr = Number(record.sr);
+  return Number.isInteger(sr) && sr >= 0 && sr <= rp;
+}
+
 function provenInterval(record) {
   const proof = num(record && record.pv);
   if (proof > 0) return proof;
-  const legacy = record && !Object.prototype.hasOwnProperty.call(record, 'sr');
+  const legacy = record && !hasScheduleRevision(record);
   return legacy && record.st === 'r' ? Math.max(0, num(record.ivl)) : 0;
 }
 
 function canonicalRec(record) {
   if (!record) return undefined;
   const rp = Math.max(0, num(record.rp));
-  const saved = Object.prototype.hasOwnProperty.call(record, 'sr')
-    ? Math.max(0, Math.min(rp, num(record.sr)))
-    : rp;
+  const saved = hasScheduleRevision(record) ? Number(record.sr) : rp;
   return Object.assign({}, record, {
     rp,
     sr: saved,
-    lp: Math.max(0, num(record.lp)),
+    // lp is a causal epoch on this schedule branch, so it cannot outrun sr.
+    lp: Math.min(saved, Math.max(0, num(record.lp))),
     pv: provenInterval(record),
   });
 }

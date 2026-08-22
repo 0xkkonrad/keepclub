@@ -82,9 +82,13 @@ const COURSE_CARD_ID = /^[a-z0-9][a-z0-9._-]{0,127}$/;
 // hand. A card is never dropped for it; see cardsWithLayer().
 const LOOSE_SECTION = 'u.loose';
 // Stamped into every exported file so restore can tell a real backup from any
-// other JSON someone happens to pick.
-const EXPORT_APP = 'munin/' + COURSE.id;
-const EXPORT_FORMAT = 1;
+// other JSON someone happens to pick. The progress-v2 app stamp is deliberately
+// different: a cached pre-v2 app must refuse a new backup rather than accept it,
+// drop schedule provenance, and export weakened proof. This build still reads
+// the legacy stamp so existing backups continue to restore.
+const LEGACY_EXPORT_APP = 'munin/' + COURSE.id;
+const EXPORT_APP = LEGACY_EXPORT_APP + ':progress-v2';
+const EXPORT_FORMAT = 2;
 // A <input type="date"> fires `change` on every keystroke in the year segment,
 // so typing 2026 walks through 0002, 0020 and 0202 on its way. Anything outside
 // this window is someone mid-keystroke, not a date they mean.
@@ -371,7 +375,15 @@ function sanitise(raw) {
       const ivl = Math.round(num(r.ivl, 0, MAX_IVL, st === 'r' ? 1 : 0));
       const savedProof = Math.round(num(r.pv, 0, MAX_IVL, 0));
       const rp = Math.round(num(r.rp, 0, 1e6, 0));
-      const hasScheduleRevision = Object.hasOwn(r, 'sr');
+      const rawScheduleRevision = Number(r.sr);
+      // Presence alone is not provenance. A malformed marker used to turn an
+      // otherwise legacy 30-day review into authoritative zero proof. Revisions
+      // written by this client are integral and cannot exceed answer history.
+      const hasScheduleRevision = Object.hasOwn(r, 'sr')
+        && Number.isInteger(rawScheduleRevision)
+        && rawScheduleRevision >= 0
+        && rawScheduleRevision <= rp;
+      const scheduleRevision = hasScheduleRevision ? rawScheduleRevision : rp;
       recs[id] = {
         st,
         step: Math.round(num(r.step, 0, 9, 0)),
@@ -382,8 +394,11 @@ function sanitise(raw) {
         // Missing means a genuine legacy record, whose schedule revision was
         // its answer count. A merged history floor may make rp larger later;
         // sr deliberately stays with the schedule branch that won.
-        sr: Math.round(num(r.sr, 0, rp, rp)),
-        lp: Math.round(num(r.lp, 0, 1e6, 0)),
+        sr: scheduleRevision,
+        // Every lapse is itself an answer on this schedule branch. A corrupt
+        // counter above sr cannot be a newer causal epoch and must not eclipse
+        // a valid record forever during sync.
+        lp: Math.min(scheduleRevision, Math.round(num(r.lp, 0, 1e6, 0))),
         // Released builds already carried pv as a relearning target. A
         // positive value on a review record is therefore safe to preserve;
         // zero is a legacy record, whose best surviving evidence is ivl.
@@ -2275,7 +2290,7 @@ function renderExamBanner(c) {
   el.hidden = false;
   if (d < 0) {
     el.className = 'banner';
-    el.innerHTML = `<b>Exam date has passed.</b> Clear it in Settings → Studying to go back to normal spacing.`;
+    el.innerHTML = `<b>Exam date has passed.</b> Normal spacing is already back. Change or clear the date in Settings → Studying.`;
     return false;
   }
   const when = d === 0 ? 'today' : d === 1 ? 'tomorrow' : `in ${d} days`;
@@ -2293,11 +2308,15 @@ function renderExamBanner(c) {
   // amend it, quietly, the way the rest of the app's second offers are drawn.
   const amend = ' <button class="link-btn banner-link" type="button"'
     + ' data-open-setup>Change it in settings</button>';
-  el.innerHTML = (tight
-    ? `<b>Exam ${when}.</b> At ${pace} new cards a day, the ${c.fresh} you have not seen take ${introDays} days. You will not get through the deck — raise the daily number in Settings, or accept that you will skip some sections.`
-    : `<b>Exam ${when}.</b> ${c.fresh
-        ? `${pace} new cards a day gets you through the ${c.fresh} you have not seen in time.`
-        : 'You have seen every card at least once.'} Every card comes back at least once before you sit it.`) + amend;
+  el.innerHTML = (d === 0
+    ? `<b>Exam today.</b> ${c.fresh
+        ? `${c.fresh} cards have not been seen yet.`
+        : 'You have seen every card at least once.'} The exam spacing window has ended; only cards already due are in today’s Study.`
+    : tight
+      ? `<b>Exam ${when}.</b> At ${pace} new cards a day, the ${c.fresh} you have not seen take ${introDays} days. You will not get through the deck — raise the daily number in Settings, or accept that you will skip some sections.`
+      : `<b>Exam ${when}.</b> ${c.fresh
+          ? `${pace} new cards a day gets you through the ${c.fresh} you have not seen in time.`
+          : 'You have seen every card at least once.'} Every card comes back at least once before you sit it.`) + amend;
   return true;
 }
 
@@ -4536,7 +4555,8 @@ function prepareGradeControls(card) {
     session.naturalIvls[g] = plan.natural;
     // "(max)" explains why two buttons can show the same number: the exam date
     // is holding both down, not a bug.
-    const capped = d > 0 && d === ceiling() && daysToExam() !== null;
+    const cap = ceiling();
+    const capped = d > 0 && d === cap && cap < MAX_IVL && daysToExam() > 0;
     const label = d === 0 ? 'soon' : fmtDays(d) + (capped ? ' max' : '');
     // Practising promises nothing, so it prints nothing: these dates are the
     // ones the card would get on a day it was actually due, and it is not.
@@ -7443,8 +7463,12 @@ function wire() {
       toast('That is not a backup of this course — it has no review history in it.');
       return;
     }
-    if (s.app && s.app !== EXPORT_APP) {
+    if (s.app && s.app !== EXPORT_APP && s.app !== LEGACY_EXPORT_APP) {
       toast(`That backup is from ${String(s.app).slice(0, 30)}, not this deck.`);
+      return;
+    }
+    if (s.format !== undefined && ![1, EXPORT_FORMAT].includes(Number(s.format))) {
+      toast(`That backup uses format ${String(s.format).slice(0, 20)}, which this version cannot restore.`);
       return;
     }
 

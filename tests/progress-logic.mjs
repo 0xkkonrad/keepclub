@@ -133,27 +133,58 @@ const examToday = await page.evaluate(() => {
   const id = DECK.cards[0].cardId;
   state.settings.examDate = '';
   const due = addCalendarDays(Date.now(), 30);
-  state.recs = {
-    [id]: {
+  state.recs = Object.fromEntries(DECK.cards.map((card) => [card.cardId, {
       st: 'r', step: 0, ivl: 30, ea: 2.5,
-      due, rp: 8, lp: 0, pv: 30,
-    },
-  };
+      due, rp: 8, sr: 8, lp: 0, pv: 30,
+    }]));
   const input = document.getElementById('set-exam');
   input.value = '2026-08-22';
   input.dispatchEvent(new Event('change', { bubbles: true }));
+  renderHome();
+  const todayBanner = document.getElementById('exam-banner').textContent
+    .replace(/\s+/g, ' ').trim();
+  const recordAfterToday = { ...state.recs[id] };
+
+  state.recs[id].ivl = MAX_IVL;
+  state.recs[id].pv = MAX_IVL;
+  state.recs[id].due = Date.now();
+  session = { ahead: false };
+  prepareGradeControls(DECK.cards[0]);
+  const todayLabels = Array.from(document.querySelectorAll('#grade-row .iv'))
+    .map((label) => label.textContent);
+
+  input.value = '2026-08-21';
+  input.dispatchEvent(new Event('change', { bubbles: true }));
+  renderHome();
+  const pastBanner = document.getElementById('exam-banner').textContent
+    .replace(/\s+/g, ' ').trim();
+  prepareGradeControls(DECK.cards[0]);
+  const pastLabels = Array.from(document.querySelectorAll('#grade-row .iv'))
+    .map((label) => label.textContent);
+  session = null;
   return {
     days: daysToExam(),
     cap: ceiling(),
     max: MAX_IVL,
     due,
-    record: { ...state.recs[id] },
+    record: recordAfterToday,
+    todayBanner,
+    pastBanner,
+    todayLabels,
+    pastLabels,
   };
 });
-ok(examToday.days === 0 && examToday.cap === examToday.max
+ok(examToday.cap === examToday.max
     && examToday.record.ivl === 30 && examToday.record.pv === 30
     && examToday.record.due === examToday.due,
   'an exam date of today does not move a next review to after the exam');
+ok(/spacing window has ended/i.test(examToday.todayBanner)
+    && !/comes back.*before/i.test(examToday.todayBanner),
+  'exam-day Home copy does not promise a review the inactive cap cannot schedule');
+ok(/normal spacing is already back/i.test(examToday.pastBanner)
+    && examToday.todayLabels.concat(examToday.pastLabels)
+      .every((label) => !/max/i.test(label)),
+  'past/today dates describe ordinary spacing and do not label its hard limit as an exam max');
 
 /* Correct reviews under the cap must now make mastery advance. The deterministic
  * random midpoint makes the expected natural sequence 6 -> 15 -> 38. */
@@ -249,11 +280,60 @@ ok(scheduling.canonicalZero.ivl === 30 && scheduling.canonicalZero.pv === 0
 ok(scheduling.afterMergedGrade.rp === 21 && scheduling.afterMergedGrade.sr === 20,
   'a local answer advances its schedule revision without copying a merged history floor');
 
+/* Malformed provenance cannot erase the only surviving proof or manufacture a
+ * lapse epoch newer than the answers that could have caused it. */
+const sanitation = await page.evaluate(() => {
+  const malformedSr = sanitise({
+    ...freshState(),
+    recs: { x: {
+      st: 'r', step: 0, ivl: 30, ea: 2.5, due: 300,
+      rp: 8, sr: 'not-a-number', lp: 0, pv: 0,
+    } },
+  }).recs.x;
+  const valid = sanitise({
+    ...freshState(),
+    recs: { x: {
+      st: 'r', step: 0, ivl: 30, ea: 2.5, due: 900,
+      rp: 10, sr: 10, lp: 2, pv: 30,
+    } },
+  }).recs.x;
+  const impossible = sanitise({
+    ...freshState(),
+    recs: { x: {
+      st: 'l', step: 1, ivl: 1, ea: 2.5, due: 100,
+      rp: 0, sr: 0, lp: 999999, pv: 0,
+    } },
+  }).recs.x;
+  return {
+    malformedSr: { ...malformedSr, proof: provenInterval(malformedSr) },
+    impossible,
+    merged: DSSync.pickRec(valid, impossible),
+    exportApp: EXPORT_APP,
+    legacyExportApp: LEGACY_EXPORT_APP,
+    exportFormat: EXPORT_FORMAT,
+  };
+});
+ok(sanitation.malformedSr.sr === 8 && sanitation.malformedSr.pv === 30
+    && sanitation.malformedSr.proof === 30,
+  'a malformed sr marker is treated as legacy and keeps the review interval as proof');
+ok(sanitation.impossible.lp === 0 && sanitation.merged.lp === 2
+    && sanitation.merged.pv === 30 && sanitation.merged.st === 'r',
+  'an impossible lapse epoch is bounded by its schedule history and cannot poison sync');
+ok(sanitation.exportFormat === 2
+    && sanitation.exportApp === `${sanitation.legacyExportApp}:progress-v2`,
+  'new backups carry an app stamp cached pre-v2 builds must refuse');
+
 /* Flooring remains right for milestone gates, but a real first solid card in a
  * very large section must not be rendered or announced as zero. */
 const subPercent = await page.evaluate(() => {
   const section = DECK.sections[0];
   const originalCount = section.cardCount;
+  const group = Array.from(groupOf.values())
+    .find((candidate) => candidate.sectionIds.includes(section.sectionId));
+  const originalTitle = group.title;
+  // Competent Crew's one legacy group is untitled. Give that existing group a
+  // temporary title so this fixture exercises the real titled-group renderer.
+  group.title = 'Progress QA theme';
   const first = DECK.cards.find((card) => card.sectionId === section.sectionId);
   section.cardCount = 200;
   state.recs = {
@@ -264,16 +344,22 @@ const subPercent = await page.evaluate(() => {
   };
   renderHome();
   const button = document.querySelector('#section-list .sections > li button');
-  const result = {
+  const home = {
     label: button.getAttribute('aria-label'),
     width: button.querySelector('.sect-meter i')?.style.width || '',
     hidden: button.querySelector('.sect-meter')?.getAttribute('aria-hidden') || '',
+  };
+  renderStats();
+  const result = {
+    ...home,
+    progressHeading: document.querySelector('#mastery .h-part-n')?.textContent || '',
     homePhrase: progressPercent(1, 200, 'known well'),
     groupPhrase: progressPercent(1, 200, 'solid'),
     zeroPhrase: progressPercent(0, 200, 'solid'),
     completePhrase: progressPercent(200, 200, 'solid'),
   };
   section.cardCount = originalCount;
+  group.title = originalTitle;
   return result;
 });
 ok(/less than 1% known well/.test(subPercent.label)
@@ -284,6 +370,8 @@ ok(/less than 1% known well/.test(subPercent.label)
   'one of 200 is described as non-zero while zero and complete stay exact');
 ok(subPercent.width === '0.5%' && subPercent.hidden === 'true',
   'one of 200 draws a decorative half-percent sliver instead of no meter');
+ok(/less than 1% solid/.test(subPercent.progressHeading),
+  'the real Progress heading exposes a non-zero sub-one-percent value');
 
 /* Boundary and accessibility: the exact 21-day line is unchanged, and a
  * partial visible meter is represented once in the button's accessible name. */

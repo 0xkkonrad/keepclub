@@ -99,8 +99,9 @@ $$;
 
 
 -- Current clients use a separate capability and explicitly state the version
--- for diagnostics. They can adopt a v1 row; their first successful write makes
--- the boundary permanent for that key and course.
+-- for diagnostics. Reading through this capability adopts a v1 row immediately:
+-- an equal local/remote merge has no reason to write, but must still close the
+-- window in which a legacy client could erase progress proof.
 create or replace function public.sync_get_v2(
   p_app text,
   p_key_hash text,
@@ -112,12 +113,22 @@ security definer
 set search_path = ''
 as $$
 begin
-  if p_writer_version <> 2 then
+  if p_writer_version is distinct from 2 then
     raise exception 'unsupported writer version' using errcode = '22023';
   end if;
   if p_key_hash !~ '^[0-9a-f]{64}$' then
     raise exception 'bad key' using errcode = '22023';
   end if;
+
+  -- Do not touch updated_at: capability adoption is not a content write and
+  -- must not trip the one-write-per-second throttle for the client that read it.
+  -- The row lock from UPDATE serialises with legacy sync_put; after this point
+  -- any such writer observes version 2 and fails closed.
+  update sync.blobs b
+     set writer_version = 2
+   where b.app = p_app
+     and b.key_hash = p_key_hash
+     and b.writer_version < 2;
 
   return query
     select b.rev, b.data, b.updated_at
@@ -144,7 +155,7 @@ declare
   v_max integer;
   v_cur sync.blobs%rowtype;
 begin
-  if p_writer_version <> 2 then
+  if p_writer_version is distinct from 2 then
     raise exception 'unsupported writer version' using errcode = '22023';
   end if;
   if p_key_hash !~ '^[0-9a-f]{64}$' then
@@ -175,7 +186,7 @@ begin
   if v_cur.updated_at > now() - interval '1 second' then
     raise exception 'too fast' using errcode = '53400';
   end if;
-  if v_cur.rev <> p_rev then
+  if v_cur.rev is distinct from p_rev then
     return query select false, v_cur.rev, v_cur.data;
     return;
   end if;
