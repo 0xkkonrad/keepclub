@@ -285,5 +285,100 @@
       "Reframed the final open ruling as a repair-validation scope decision."
     ],
     "materialMissingLenses": []
+  },
+  "repair": {
+    "status": "DEPLOYED_AND_VERIFIED",
+    "date": "2026-08-22",
+    "scope": "Progress scheduling, proof, presentation, accessibility, ingestion, backup, sync convergence, revealed-plan reload safety, and the progress-sync rollout fence only.",
+    "source": {
+      "baselineSha": "c702c0a6ab03ef245a509f720d6083c74e918801",
+      "codeSha": "ce0046eb6969d2ca7410f224f0d0456f9c044f8b",
+      "pagesSha": "e40bdaa348ed32707cac0901cd13997f55ffae6a",
+      "liveUrl": "https://keepclub.app/"
+    },
+    "behavior": {
+      "homeProgress": "mature/total, using the same >=21-day proven interval as Progress and achievements; young cards receive no synthetic half credit",
+      "examScheduling": "effectiveDue projects the active exam cap from the canonical answer schedule without rewriting ordinary ivl/due or pv",
+      "correctGrades": "Good and Easy retain same-roll uncapped schedule/proof; Hard stores its exact displayed actual gap while retaining stronger proof",
+      "failureGrade": "Again remains evidence of forgetting and retains 40 percent of prior proof",
+      "dueConsumers": [
+        "isDue",
+        "Home and section counts",
+        "ordinary study queue",
+        "study-ahead filter, sort, and size",
+        "completion next-due copy",
+        "seven-day forecast"
+      ],
+      "revealedPlans": "The four already-rolled plans survive same-record/same-setting reload and midnight; malformed, legacy, record-stale, or settings-stale bundles resume unrevealed.",
+      "ingress": "pv, sr, lp, ivl, and answer-scoped exam commitments are bounded and canonicalized across cold load, restore, durable writes, and sync.",
+      "sync": "Schedule/proof merges converge by lapse epoch and schedule revision; v2 RPCs fence legacy writers under locked GET/adopt-before-CAS ordering."
+    },
+    "historicalLimitation": "The larger uncapped intervals overwritten by the old scheduler were never recorded and cannot be reconstructed exactly. The supplied legacy 2-7 day intervals remain the initial surviving proof; future correct answers can now grow proof beyond 21 days while exam due dates remain capped.",
+    "migrations": [
+      "20260822152000_progress_writer_fence.sql",
+      "20260822170000_progress_writer_fence_repair.sql",
+      "20260822183000_progress_writer_conflict_fence.sql"
+    ],
+    "finalAdversarialReview": {
+      "targetSha": "ce0046eb6969d2ca7410f224f0d0456f9c044f8b",
+      "detachedTreeCleanBeforeAndAfter": true,
+      "lenses": [
+        {"name": "scheduler and UI/session", "claims": 4, "refuted": 4, "survivingMedHigh": 0},
+        {"name": "sync and rollout", "claims": 15, "refuted": 15, "survivingMedHigh": 0},
+        {"name": "cross-cutting completeness", "claims": 12, "refuted": 12, "survivingMedHigh": 0}
+      ],
+      "stats": {
+        "found": 31,
+        "refuted": 31,
+        "refutedPercent": 100,
+        "confirmed": 0,
+        "killedByKillList": 0,
+        "overturnedByHand": 0,
+        "survivingFindings": 0
+      },
+      "independentSeededChecks": {
+        "projectionRecords": 100000,
+        "cappedGrades": 50000,
+        "wholeDeckStates": 250,
+        "dueConsumerRecordChecks": 50000,
+        "mergeTriples": 200000,
+        "failures": 0
+      },
+      "rawArtifacts": [
+        "/tmp/keepclub-progress-fix-review2-scratch-20260822-ROTfe4/final5-scheduler-verifier.json",
+        "/tmp/keepclub-progress-fix-review2-scratch-20260822-ROTfe4/final5-rollout-verifier.json",
+        "/tmp/keepclub-progress-fix-review2-scratch-20260822-ROTfe4/final5-completeness-critic.json"
+      ],
+      "toolingDeviation": "Claude Workflow was unavailable; isolated read-only collaboration agents preserved finder/verifier separation against the pinned SHA."
+    },
+    "localVerification": {
+      "fullNpmTest": {"suitesPassed": 34, "suitesFailed": 0, "exitCode": 0},
+      "focused": [
+        {"suite": "tests/progress-logic.mjs", "passed": 51, "failed": 0},
+        {"suite": "tests/sync-merge.mjs", "passed": 110, "failed": 0},
+        {"suite": "tests/progress-sync-preflight.mjs", "passed": 9, "failed": 0},
+        {"suite": "tests/notes.mjs", "passed": 77, "failed": 0},
+        {"suite": "tests/qa-regressions.mjs", "passed": 73, "failed": 0},
+        {"suite": "tests/front-only-ui.mjs", "passed": 27, "failed": 0}
+      ],
+      "localDatabase": "Fresh reset through all migrations; catalog/grant fingerprints, REST boundary, locked read/adoption/conflict races, legacy fail-closed behavior, and v2 CAS passed."
+    },
+    "productionVerification": {
+      "migrationOrder": "All three progress migrations applied before the web publish.",
+      "readiness": "progress sync v2 RPCs and locked conflict fences are ready",
+      "syncLifecycle": "Legacy seed, v2 adoption on stale conflict, legacy GET invisibility, legacy PUT SQLSTATE 55000, v2 proof/provenance write, and stale v2 CAS all passed.",
+      "probeRowsAfterCleanup": 0,
+      "liveHashesSha256": {
+        "app.js": "1ea4db4a7fa5f1fb8832d48755fccd2cc7aac8bcfda2760c412aec7c402c0300",
+        "sync.js": "bb52be6dcd7573160ba7b7ebf11b19a44b42cd0419fc4863aa39c5c3457c699b"
+      },
+      "serviceWorkerShell": "ffd6488ead",
+      "browserE2E": [
+        {"suite": "tests/progress-logic.mjs", "passed": 51, "failed": 0},
+        {"suite": "tests/qa-regressions.mjs", "passed": 73, "failed": 0},
+        {"suite": "tests/front-only-ui.mjs", "passed": 27, "failed": 0}
+      ],
+      "pageErrors": 0
+    }
   }
 }

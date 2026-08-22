@@ -1,98 +1,84 @@
-# Keep Club progress plateau audit
+# Keep Club progress plateau audit and repair
 
-Verdict: the reported 50% plateau is reproducible and is a product/code smell, not a corrupt-state symptom. Exam mode intentionally shortens review spacing, but the implementation uses that shortened spacing as the only mastery signal and Home then presents a synthetic half-credit score as “known well.”
+Verdict: the reported 50% plateau was a real code smell, not expected progress behavior and not corrupt user data. The app awarded every merely-seen card half credit while exam mode kept overwriting the same interval used as the mastery signal. The progress-only repair is deployed.
 
-## Pre-flight
-
-- Target: Keep Club `c702c0a6ab03ef245a509f720d6083c74e918801`, audited from detached worktree `/tmp/keepclub-audit-20260822-qScH5I`; production `app.js` had the same SHA-256 (`f9e55c41fc290d3be9544b1fc6d390eb5a8e691006c2c0e79ea6090a2ab71408`) during the audit.
-- Case: supplied Competent Crew export at `2026-08-22T11:18:43.458Z`, deck build `7cf550d2`; the current read-only sync snapshot matched it. The supplied secret is not copied into this report or verdict data.
-- In scope: state ingestion/sanitation; the scheduler’s exam ceiling; section/deck progress; Home, Progress, accessibility, and mastery achievements; relevant sync behavior; regression coverage.
-- Out of scope: course-content correctness, unrelated media/import/offline behavior, backend authorization/security, visual redesign, implementation, and unrelated generic sync/practice-session bugs surfaced by broad finders.
-- Lenses: scheduling/math/reachability; state/persistence/sync integrity; UI semantics/accessibility/tests.
-- Stakes: MED for false/stalled/backwards progress; LOW for secondary presentation/test gaps. MED findings require an independent verifier and main-loop browser reproduction.
-- Kill-list: `keepclub-progress-audit/kill-list.md`. It contains RULING-grade decisions that the exam clamp itself and the exact 21-day solid threshold are intentional; neither ruling approves their interaction, the 50% label, or destructive mastery demotion.
-- Tooling deviation: the required Claude Code Workflow runner was unavailable. Three isolated read-only finder agents and fresh claim-by-claim verifier agents preserved finder/verifier separation; the pinned target remained clean after every wave.
-
-Scoping inconsistencies identified before finder launch:
-
-1. The exam ceiling is `round(days remaining × 0.2)`, while solid/mature requires an interval of at least 21 days. The ceiling first reaches 21 only at 103 days; at 102 days or closer the threshold cannot be scheduled.
-2. Home awards young cards 50% credit and labels the result “known well,” while Progress and achievements reserve known well/solid for the 21-day state.
-3. The supplied identity contains state only for Competent Crew. The concrete symptom is all 14 sections of that one 200-card course; no conclusion is possible about unsupplied device-local state for the other built-ins.
+- Case: supplied Competent Crew export from `2026-08-22T11:18:43.458Z`, build `7cf550d2`; 200 cards across 14 sections and 903 internally consistent answers. The supplied Sync secret is omitted from every artifact.
+- Audited baseline: `c702c0a6ab03ef245a509f720d6083c74e918801`.
+- Repaired source: `ce0046eb6969d2ca7410f224f0d0456f9c044f8b`; Pages deployment: `e40bdaa348ed32707cac0901cd13997f55ffae6a`.
+- Scope: scheduling proof, exam due projection, Home/Progress semantics and accessibility, progress ingestion/backup/sync, revealed-plan reload safety, and the progress-sync rollout fence. No course content, visual redesign, or unrelated app subsystem was changed.
+- Review method: isolated read-only finder/verifier waves against detached clean worktrees, a RULING-grade kill-list, main-loop browser reproductions for material claims, a final immutable completeness review, and production end-to-end QA. Claude Workflow was unavailable, so collaboration agents preserved the required role separation.
 
 ## Confirmed
 
-### C-01 · MED · Exam mode can persistently erase visible mastery
+### C-01 · The 50% display was synthetic, not earned mastery — fixed
 
-The scheduler and mastery model share the mutable `ivl` field. Setting a valid exam no more than 102 days away rewrites every larger review-card interval down below 21; clearing or postponing the exam does not restore it. A later correct, scheduled Good/Easy answer under the cap also stores the shorter interval and can demote a mature card. Anchors: `web/app.js:848-901`, `web/app.js:904-970`, `web/app.js:988-992`, `web/app.js:7043-7071`.
+Home used `(mature + young × 0.5) / total` and labelled the result “known well.” The supplied deck had 200 young cards and zero mature cards, so all 14 fully seen sections were forced to exactly 50% even though expanded Progress correctly said `0 solid`. No render freeze was required: the formula itself manufactured the plateau.
 
-Failure scenario: at 2026-08-22, start with `ivl=30`, due 2026-09-21, and no exam. The card is mature. Set 2026-09-19: ceiling 6, stored `ivl=6`, due 2026-08-28, state young. Progress changes from 1 solid to 0; clearing the date leaves the card at 6/young. In a separate run, Good and Easy each displayed “6 days max,” persisted `ivl=6`, and demoted the correctly answered mature card.
+Home and Progress now use the same definition: `known well = proven interval ≥ 21 days`. An all-young section is therefore honestly 0%, a real fraction below 1% is announced as “less than 1%,” and milestone percentages floor instead of rounding up early. Partial meters put the value once in the section button’s accessible name and leave the visual bar decorative. Anchors: `web/app.js:1197-1215`, `web/app.js:2671-2709`, `web/app.js:6337-6362`, `web/achievements.js:682-717`.
 
-Repro status: confirmed twice — an independent verifier and main-loop Chromium repro, with no page errors. The source comment at `web/app.js:7049-7052` explicitly acknowledges that clearing cannot undo an interval rewrite.
+For the supplied state, the immediate visible change is 14 rows at 0% known well rather than 14 false rows at 50%. That is deliberately honest: the app cannot prove historical mastery that the old scheduler already erased. Future correct answers can now build the underlying proof past 21 days even while the next review remains pulled forward for the exam.
 
-### C-02 · MED · The supplied deck cannot advance beyond its 50% all-young plateau before the exam
+### C-02 · Exam scheduling destructively rewrote mastery — fixed
 
-With the supplied exam date unchanged and reviews graded Hard/Good/Easy through 2026-09-19, every scheduled interval is below the 21-day solid threshold. Home’s fully-seen, non-learning formula then gives every section exactly 50%, while all solid-derived course milestones remain locked. Anchors: `web/app.js:848-901`, `web/app.js:988-1026`, `web/app.js:2390-2406`, `web/achievements.js:160-197`, and `web/achievements.js:684-710`.
+The old scheduler stored the exam-capped gap in `ivl`, and `ivl` was also the only mastery signal. With 28 days to the supplied exam, the cap was six days, below the intentional 21-day solid threshold. Setting the date or pressing Good/Easy could therefore rewrite a 30-day mature card to six days, demote it to young, and leave it demoted after the exam was cleared.
 
-Case evidence: 28 days remained, so the ceiling was 6. All 200 shipped cards had valid review records, every interval was 2–7, and zero cards were mature. All 14 sections were fully seen and had no learning cards. Browser restoration rendered fourteen 50% meters, `0 solid`, `200 seen, not solid yet`, `0% solid`, zero kept sections, and no solid/kept unlocks. Enumerating every successful grade preview produced a maximum of 6.
+The repaired model separates three ideas:
 
-Boundary: Again can temporarily push a section below 50%; the exact 50% invariant is for successful grades. The cap returns to normal on the day after the exam. Club-wide solid-count milestones could be supplied by another locally stored course, but none exists in the isolated supplied state.
+- `ivl`/`due` hold the ordinary schedule produced by the answer.
+- `pv` holds proven stability and does not fall merely because an exam asks for an earlier review.
+- `effectiveDue()` projects the active exam cap without mutating the canonical record. Every due consumer—counts, ordinary sessions, study-ahead selection, completion copy, and forecast—uses that projection.
 
-Repro status: confirmed twice — an independent verifier and main-loop Chromium restoration of the supplied export.
+Good and Easy preserve the same-roll uncapped result as proof; Hard keeps the exact displayed actual gap without lowering existing proof; Again remains real evidence of forgetting and retains 40% of proof. Today or past exam dates are inactive. An answer revealed before midnight commits the interval printed on its button, including its accessible label, even if it is pressed after midnight. Anchors: `web/app.js:931-1008`, `web/app.js:1019-1093`, `web/app.js:1111-1183`.
 
-### C-03 · MED · Home calls a hybrid familiarity score “known well” while exact Progress says zero
+### C-03 · Reload, merge, and rollout seams could have reintroduced loss — fixed before release
 
-Home computes `(mature + young × 0.5) / total` and then prints `% known well`. Elsewhere, `known well`, `mature`, and `solid` all mean `ivl >= 21`. At the export timestamp, every one of the 200 cards was young and none known well, yet each Home row and accessible button name said `50% known well`; expanded Progress said `0 known well` in every section. Anchors: `web/app.js:981-1026`, `web/app.js:2390-2419`, and `web/app.js:5948-6035`.
+Adversarial implementation waves found additional progress-only seams: capped provenance could attach to a different merge winner, malformed schedule revisions could poison proof, a revealed button promise could be rerolled on reload or across midnight, an exam-setting change could leave a stale promise visible, and a legacy sync writer could race the v2 transition.
 
-This is not a rounding oddity: with an all-young section, the formula is algebraically fixed at exactly one half. The literal Home sentence is time-dependent because pending cards replace it with a card count, but the half-width meter remains.
+The repair now validates and bounds `pv`, `sr`, `lp`, and the answer-scoped exam-commit map; joins proof only within the winning lapse/schedule epoch; persists an already-revealed four-button plan in tab-local session storage; binds it to the exact card record and literal exam setting; and falls back visibly to an unrevealed question when that bundle is legacy, malformed, or stale. One clock snapshot builds all four grade plans. Anchors: `web/app.js:315-439`, `web/app.js:2134-2278`, `web/app.js:4731-4777`, `web/sync.js:225-348`.
 
-Repro status: confirmed twice — an independent verifier restored the actual file through the browser UI, and the main loop independently rendered the same state.
-
-### C-04 · LOW · Some visible Home meters have no accessible progress value
-
-When a section has positive progress plus pending or unseen cards, Home draws a meter but replaces the metadata with a pending/new/card count. The enclosing button’s accessible name therefore omits the percentage, while the meter span has no progress role, name, or value. Anchor: `web/app.js:2390-2419`.
-
-Failure scenario: in the real 34-card Sea terms section, one mature card, one young/due card, and 32 unseen cards produced a visible 4% meter. Chromium exposed the button as `1 to review. 34 cards. Study this section.` and the meter as an unnamed generic node with no value. A fresh-only variant behaved the same. Fully scheduled/no-pending rows are a counterexample because their button name includes the percentage.
-
-Repro status: confirmed twice — independent verifier plus main-loop Chromium repro.
-
-### C-05 · LOW · A displayed milestone percentage can be reached while its achievement stays locked
-
-Progress rounds titled-group solid percentages to a whole number, while achievement evaluation compares the unrounded course fraction. A valid one-group 101-card imported course with 25 solid cards therefore displays `25% solid`, but evaluates `24.752… < 25` and leaves `25% kept` locked. Anchors: `web/app.js:6028-6034` and `web/achievements.js:180-197,444-446,475-490`.
-
-This is reachable within the supported schema and uses identical group/course denominators. Shipped multi-group examples alone would not prove it because their displayed group denominator differs from the course achievement denominator. A previously unlocked achievement also stays earned, so the mismatch applies before the threshold has ever truly been crossed.
-
-Repro status: independently verified with schema validation and the real achievement evaluator; LOW severity, so no main-loop browser gate was required.
+Database migrations `20260822152000`, `20260822170000`, and `20260822183000` add the writer capability and close the read/adoption/conflict races. The final GET uses one locked snapshot; PUT adopts legacy rows before CAS, commits the fence on a stale conflict, and preserves throttling for existing v2 rows. The deployment script refuses to copy web files unless non-mutating production fingerprints prove that exact boundary is installed.
 
 ## Refuted with evidence
 
-### R-01 · The plateau is caused by lost, capped, stale, or deck-mismatched review data
+### R-01 · The user’s records were lost, capped by storage, malformed, stale, or from the wrong deck
 
-REFUTED. Export build and shipped build both equal `7cf550d2`; the export and deck each contain 200 unique cards with an exact ID-set match: 0 missing, 0 orphan, 0 malformed, 0 sanitizer-dropped. Restoring the file left 200 records in memory and durable storage. The review-record set has no 200-entry cap; the sync blob was 23,079 bytes, 8.8% of its 262,144-byte limit. Counters reconcile exactly: `answers=903`, sum of per-card repetitions `=903`, sum of 14 daily counts `=903`, and 8 repeat misses equal 8 total lapses. An empty/self sync merge preserves all records.
+REFUTED. Export and shipped build both equal `7cf550d2`; each has the same 200 unique card IDs. There were zero missing, orphaned, malformed, or sanitizer-dropped records. Restore, cold load, and a self sync merge retained all 200. The 23,079-byte blob was only 8.8% of the 262,144-byte limit. Counters reconcile: 903 answers equal both summed card repetitions and summed daily history, while eight repeat misses equal eight lapses.
 
-The stronger explanation is the intact state itself: all 200 records are young, and Home gives each exactly half credit. This also refutes a literal frozen-render theory: the UI recomputes from current records; it is deterministically pinned by the scheduler/metric interaction.
+The stronger explanation was the intact state itself: all 200 records had surviving intervals of 2–7 days, so the old Home formula gave each exactly half credit.
+
+### R-02 · The final repair still contains a reachable progress regression
+
+REFUTED on the immutable `ce0046e` tree. Three independent final lenses attacked 31 scheduler, UI/session, merge, migration, and rollout claims; all 31 were refuted and no high, medium, or low implementation finding survived. Independent seeded checks covered 100,000 projection records, 50,000 capped grades, 250 whole-deck states/50,000 due-consumer checks, and 200,000 merge triples with zero invariant failure.
+
+Material boundary reproductions also passed: the exact 200-card/14-section plateau rendered 14 honest 0% Home rows and 14 `0 solid` Progress rows; a reveal at 23:59 followed by reload/grade after midnight kept its exact displayed promise while storing 75-day ordinary proof and a one-day exam commitment; malformed, legacy, settings-mismatched, and record-stale plans resumed at the question with grades hidden.
+
+### R-03 · The repair expanded into unrelated product behavior
+
+REFUTED. Production changes are confined to progress scheduling/presentation/session/backup hooks, progress merge/transport capability, achievement proof derivation, additive sync migrations, and the DB-first deployment gate. All other touched files are progress-focused tests or these audit artifacts.
 
 ## By design — do not fix
 
-1. Do not remove exam/cramming spacing wholesale. The named project decision says the exam-date clamp is what makes cramming mode materially different (`project.md:295-302`, 0xkkonrad, 2026-07-27). Fix the state model and progress semantics around it.
-2. Do not lower the 21-day solid threshold merely to make this meter move. The exact threshold is a named, tested product decision (`web/achievements.js:18,160-197,684-695`; 0xkkonrad, 2026-07-29).
+1. Keep the exam-date clamp. Cramming mode must change when cards are reviewed; it now does so as a derived due-date projection instead of erasing mastery.
+2. Keep the 21-day solid/known-well threshold. The repair makes it reachable under exam mode without weakening its meaning.
+3. Hard holds the actual scheduled gap while retaining stronger proof. It does not jump from a displayed six-day choice to a hidden 38-day schedule.
+4. Again is evidence of forgetting and may reduce proof, currently to 40%; a near exam by itself may not.
+5. Once a row is adopted by v2, old sync clients fail closed. Allowing them to keep writing could erase `pv`, `sr`, or exam provenance.
+6. Browser session storage is not a security boundary. Malformed/stale shapes are rejected, but a deliberate same-origin actor able to rewrite it can also rewrite durable local progress.
 
 ## Reassuring negatives
 
-- No critical/high-severity defect was confirmed in the scoped audit; the three material findings are MED.
-- The supplied state is substantial and internally coherent: 903 answers over 14 study dates, a 10-day streak, 573 repeats, 565 repeat successes, 8 lapses, and 2–11 answers per card (mean 4.515).
-- The live sync snapshot matched the supplied course state at revision 1. No state for Day Skipper, Git 101, or Toki Pona was present under the supplied identity.
-- Production `app.js` byte-for-byte matched the pinned audited file; production and local Competent Crew were both build `7cf550d2`, 200 cards, 14 sections.
-- Sanitization, restore, merge, and browser boot retained all 200 records; all browser repros had zero page errors.
-- Progress’s exact stacked bars and accessible labels agree with the underlying buckets: 0 mature, 200 young, 0 learning, 0 new. The fault is Home’s incompatible synthetic metric, not those exact counts.
-- The `100% started` headline and Progress’s `0 solid / 200 seen / 0 not started` are each internally correct.
-- Relevant existing suites all passed: achievements 96/96, shell/courses 104/104, sync merge 82/82, QA regressions 68/68, and achievement UI 17/17 (367 checks). None combines a near-term exam ceiling, the 21-day threshold, Home’s half-credit score, and destructive interval rewrite.
-- Finder and verifier tree sweeps left the pinned and original Keep Club worktrees clean. The mono workspace showed unrelated modified gitlinks during those sweeps; no audit agent targeted them.
+- The complete local `npm test` command passed all 34 suites at the pinned SHA. Focused totals included progress 51/51, sync merge 110/110, QA regressions 73/73, front-only UI 27/27, notes 77/77, and deployment preflight 9/9.
+- All final browser and hand reproductions reported zero page errors. The detached target was clean before and after every final verifier.
+- Production received all three migrations before the frontend. The live readiness checker confirms locked read/conflict fences and public grants.
+- A disposable production row completed the legacy-write → v2-adoption → legacy-refusal → v2 proof/provenance write → stale-CAS path. It was deleted through the linked management boundary; a follow-up database query found zero probe rows.
+- Live `app.js` SHA-256 is `1ea4db4a7fa5f1fb8832d48755fccd2cc7aac8bcfda2760c412aec7c402c0300`; live `sync.js` is `bb52be6dcd7573160ba7b7ebf11b19a44b42cd0419fc4863aa39c5c3457c699b`; the service-worker shell generation is `ffd6488ead`. These match the reviewed source and Pages tree.
+- Production E2E passed progress 51/51, QA regressions 73/73, and front-only UI 27/27 against `https://keepclub.app/`.
+- The supplied state’s 903 answers, 14 study dates, ten-day streak, 573 repeats, 565 repeat successes, and eight lapses were coherent. This was never a storage-loss incident.
 
 ## Open rulings
 
-1. **What should the Home meter mean?** Evidence: Home says 50% known well while exact Progress says 0 known well. Recommendation: stop presenting a synthetic `young × 0.5` score as mastery; show honest, named buckets or two explicit measures (`100% started`, `0% solid`). Default if unanswered: use mature/total for “known well” and retain started/total separately.
-2. **Should exam spacing be allowed to decrease mastery?** Evidence: setting the date or giving a correct answer can persistently move `ivl` 30→6 and solid→young. Recommendation: separate the scheduling constraint (`due`/next gap) from an intrinsic mastery/stability field that does not fall merely because an exam pulls the next review forward. Default: preserve the maximum demonstrated stability across correct early reviews; decrease it only on failure/evidence of forgetting.
-3. **How should already-clamped users recover?** Evidence: there is no per-review log, so the former uncapped interval cannot be reconstructed exactly after `ivl` is overwritten. Recommendation: keep existing due dates, stop further mastery erasure, begin storing stability independently, and avoid inventing historical precision. Default: forward-only repair with explicit migration notes; do not infer 21-day mastery merely from repetition count.
-4. **Should repair validation cover Competent Crew only or every course?** Evidence: this identity contains only Competent Crew state; the observed 14/14 plateau is across sections. Recommendation: if other devices/courses show the symptom, collect their exports before generalizing. Default: validate the concrete repair against Competent Crew plus a synthetic cross-course regression fixture, without claiming unsupplied local course states were audited.
+There is no blocking product or deployment ruling left.
 
-found 6 · refuted 1 (16.7%) · killed-by-kill-list 0 · overturned-by-hand 0
+One historical limitation remains: old capped intervals contain no trustworthy record of the larger interval they overwrote, so exact past mastery cannot be reconstructed. The repair is forward-only: retain the surviving evidence, stop erasing it, and let future correct answers establish uncapped proof. Automatically awarding 21-day mastery from repetition count would invent evidence and is intentionally not done.
+
+Final immutable adversarial wave: found 31 · refuted 31 (100%) · killed-by-kill-list 0 · overturned-by-hand 0 · surviving findings 0.
