@@ -32,6 +32,28 @@ ok(tiles === REGISTERED.length + 1,
 const teal = await p.evaluate(() =>
   getComputedStyle(document.querySelector('.shelf-mark .dood')).color);
 ok(teal === 'rgb(14, 63, 57)', `shelf raven wears ink teal (${teal})`);
+const coldFeedback = await p.evaluate(() => {
+  const link = document.getElementById('shelf-feedback');
+  const url = new URL(link.href);
+  const rect = link.getBoundingClientRect();
+  return {
+    recipient: url.pathname,
+    subject: url.searchParams.get('subject'),
+    body: url.searchParams.get('body'),
+    label: link.getAttribute('aria-label'),
+    mark: link.textContent.trim(),
+    width: rect.width,
+    height: rect.height,
+    theme: !!document.getElementById('shelf-theme'),
+  };
+});
+ok(coldFeedback.recipient === 'konrad+keepclub@peanut.me'
+    && coldFeedback.subject === '[keep club] feedback'
+    && coldFeedback.body.includes('Screen: courses'),
+  'the shelf Help mark opens a prefilled email to the feedback alias');
+ok(coldFeedback.label === 'Email feedback' && coldFeedback.mark === '?'
+    && coldFeedback.width >= 48 && coldFeedback.height >= 48 && !coldFeedback.theme,
+  `Help quietly replaces Theme in the same tap target (${coldFeedback.width}×${coldFeedback.height})`);
 
 /* ── share keep club, without leaking a course or local state ── */
 ok(await p.locator('#shelf-share').isVisible(), 'the course selector carries a share button');
@@ -74,6 +96,24 @@ ok(indigo === '#3a30d8', `Day Skipper accent is indigo (${indigo})`);
 /* ── the courses pill overlays the shelf; switch to Competent Crew ── */
 await p.click('.shelf-btn');
 await p.waitForSelector('.shelf.on');
+const overlayFeedback = await p.evaluate(() => {
+  const help = document.getElementById('shelf-feedback');
+  const close = document.getElementById('shelf-x');
+  const url = new URL(help.href);
+  return {
+    recipient: url.pathname,
+    body: url.searchParams.get('body'),
+    beforeClose: help.nextElementSibling === close,
+    focus: document.activeElement === close,
+    overflow: document.querySelector('.shelf-inner').scrollWidth
+      - document.querySelector('.shelf-inner').clientWidth,
+  };
+});
+ok(overlayFeedback.recipient === 'konrad+keepclub@peanut.me'
+    && overlayFeedback.body.includes('Course: day-skipper'),
+  'course-overlay feedback adds only the built-in course id');
+ok(overlayFeedback.beforeClose && overlayFeedback.focus && overlayFeedback.overflow === 0,
+  'overlay Help sits before Close without changing Close focus or causing overflow');
 await Promise.all([p.waitForEvent('load'), p.click('[data-course="competent-crew"]')]);
 await p.waitForSelector('#study-all');
 ok((await p.textContent('#course-title')).trim().toLowerCase() === 'competent crew', 'Competent Crew title');
@@ -119,7 +159,7 @@ ok(await p.evaluate(() => current === 'study' && session.done === 2),
 await p.click('#study-back');
 await p.waitForSelector('#study-all:visible');
 
-/* ── the theme is Munin's: light until you say otherwise, then yours ── */
+/* ── the theme is Munin's: light until changed in Settings, then yours ── */
 {
   // A device that prefers dark, which Munin does not ask. Every assertion in
   // this block is run on that device on purpose: "the default is light" is only
@@ -131,27 +171,49 @@ await p.waitForSelector('#study-all:visible');
   const fresh = await p2.evaluate(() => ({
     attr: document.documentElement.dataset.theme,
     stored: localStorage.getItem('munin/theme'),
-    glyph: document.querySelector('#shelf-theme [data-theme-glyph]').dataset.themeGlyph,
     bg: getComputedStyle(document.documentElement).getPropertyValue('--bg').trim(),
+    themeOnShelf: !!document.getElementById('shelf-theme'),
   }));
   ok(fresh.stored === null, `a fresh install has chosen nothing (${fresh.stored})`);
   ok(fresh.bg === '#f0eee7', `and opens on paper on a dark phone anyway (${fresh.bg})`);
   ok(fresh.attr === 'light', `the attribute says so out loud (${fresh.attr})`);
-  ok(fresh.glyph === 'day', `and the button says which one it is showing (${fresh.glyph})`);
-  ok(await p2.locator('#shelf-theme').isVisible(), 'the picker carries the theme button');
+  ok(!fresh.themeOnShelf, 'the picker leaves Theme in Settings');
 
-  // The button shows you the other one, so the first tap on an unchosen install
+  await Promise.all([p2.waitForEvent('load'), p2.click('[data-course="day-skipper"]')]);
+  await p2.waitForFunction(() => document.getElementById('boot').hidden);
+  await p2.click('.setup-btn:visible');
+  const settingsFeedback = await p2.evaluate(() => {
+    const link = document.getElementById('settings-feedback');
+    const url = new URL(link.href);
+    return {
+      label: link.querySelector('span').textContent.trim(),
+      detail: link.querySelectorAll('small, p').length,
+      recipient: url.pathname,
+      body: url.searchParams.get('body'),
+      glyph: document.getElementById('theme-glyph').dataset.themeGlyph,
+    };
+  });
+  ok(settingsFeedback.label === 'Help & feedback' && settingsFeedback.detail === 0,
+    'Settings carries one plain Help & feedback row with no explanatory copy');
+  ok(settingsFeedback.recipient === 'konrad+keepclub@peanut.me'
+      && settingsFeedback.body.includes('Screen: settings')
+      && settingsFeedback.body.includes('Course: day-skipper'),
+    'the Settings row opens the same safe email handoff');
+  ok(settingsFeedback.glyph === 'day',
+    `the Settings control says which theme is showing (${settingsFeedback.glyph})`);
+
+  // The Settings button shows the other one, so the first tap on an unchosen install
   // is dark whatever the phone prefers.
-  await p2.click('#shelf-theme');
+  await p2.click('#theme-btn');
   const picked = await p2.evaluate(() => localStorage.getItem('munin/theme'));
   ok(picked === 'dark', `the first tap chooses the other one (${picked})`);
-  await p2.click('#shelf-theme');
+  await p2.click('#theme-btn');
   const back = await p2.evaluate(() => localStorage.getItem('munin/theme'));
   ok(back === 'light', `and the next tap comes back (${back})`);
   // Two states and no third: tapping can never land on "follow the device".
   const seen = new Set([picked, back]);
   for (let i = 0; i < 4; i++) {
-    await p2.click('#shelf-theme');
+    await p2.click('#theme-btn');
     seen.add(await p2.evaluate(() => localStorage.getItem('munin/theme')));
   }
   ok(seen.size === 2 && seen.has('light') && seen.has('dark'),
@@ -169,27 +231,28 @@ await p.waitForSelector('#study-all:visible');
     ok(await bg() === '#f0eee7', 'an unchosen install is light');
     await p3.emulateMedia({ colorScheme: 'dark' });
     ok(await bg() === '#f0eee7', 'and stays light when the device goes dark under it');
+    await Promise.all([p3.waitForEvent('load'), p3.click('[data-course="day-skipper"]')]);
+    await p3.waitForFunction(() => document.getElementById('boot').hidden);
+    await p3.click('.setup-btn:visible');
     const glyph = await p3.evaluate(() =>
-      document.querySelector('#shelf-theme [data-theme-glyph]').dataset.themeGlyph);
-    ok(glyph === 'day', `the drawing does not move either (${glyph})`);
+      document.getElementById('theme-glyph').dataset.themeGlyph);
+    ok(glyph === 'day', `the Settings drawing does not move either (${glyph})`);
 
-    await p3.click('#shelf-theme');           // light showing → chooses dark
+    await p3.click('#theme-btn');              // light showing → chooses dark
     await p3.emulateMedia({ colorScheme: 'light' });
     ok(await bg() === '#141519', 'and a chosen dark survives a device that turns light');
     await c3.close();
   }
 
-  await p2.click('#shelf-theme');             // land on dark for the course check
+  await p2.click('#theme-btn');                // land on dark for the course check
   ok(await p2.evaluate(() => localStorage.getItem('munin/theme')) === 'dark', 'dark chosen');
-  await Promise.all([p2.waitForEvent('load'), p2.click('[data-course="day-skipper"]')]);
-  await p2.waitForFunction(() => document.getElementById('boot').hidden);
   const inCourse = await p2.evaluate(() => ({
     attr: document.documentElement.dataset.theme,
     glyph: document.getElementById('theme-glyph').dataset.themeGlyph,
     drawn: !!document.querySelector('#theme-glyph .dood-glyph path'),
   }));
-  ok(inCourse.attr === 'dark', 'a course inherits the theme chosen on the picker');
-  ok(inCourse.glyph === 'night', 'the course header agrees with the picker');
+  ok(inCourse.attr === 'dark', 'the course applies the theme chosen in Settings');
+  ok(inCourse.glyph === 'night', 'the Settings drawing agrees with the course');
   ok(inCourse.drawn, 'and says so with a drawing, not a character');
   await c2.close();
 }

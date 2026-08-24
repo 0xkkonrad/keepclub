@@ -586,6 +586,7 @@ const stored = (page) => page.evaluate(() =>
     labels: [...document.querySelectorAll('.sheet-label')].map((el) => el.textContent),
     placeholder: document.getElementById('card-back').placeholder,
     preview: document.querySelectorAll('#card-sheet [data-preview], #card-sheet .preview').length,
+    feedbackHidden: document.getElementById('card-feedback').hidden,
   }));
   ok(/^new card$/i.test(opened.title) && opened.focus === 'card-front',
     `Write a card opens the sheet with the cursor in the question (${opened.title})`);
@@ -596,6 +597,7 @@ const stored = (page) => page.evaluate(() =>
   `the app's own words, and an answer that says it may be left empty (${opened.labels.join(', ')})`);
   ok(opened.more && !opened.idShown,
     'a new card offers nothing to take away, and its id is never on screen');
+  ok(opened.feedbackHidden, 'a new card has no contextual feedback mark');
   ok(opened.preview === 0
       && /\*emphasis\*, \*\*strong\*\*, lists and https links also work; nothing else does/i
         .test(opened.fine),
@@ -692,6 +694,21 @@ const stored = (page) => page.evaluate(() =>
     where: !document.getElementById('card-where').hidden,
     more: document.getElementById('card-more').textContent.replace(/\s+/g, ' ').trim(),
     warn: document.getElementById('card-warn').hidden,
+    feedback: (() => {
+      const link = document.getElementById('card-feedback');
+      const url = new URL(link.href);
+      const rect = link.getBoundingClientRect();
+      return {
+        hidden: link.hidden,
+        recipient: url.pathname,
+        subject: url.searchParams.get('subject'),
+        body: url.searchParams.get('body'),
+        label: link.getAttribute('aria-label'),
+        beforeClose: link.nextElementSibling?.id === 'card-close',
+        width: rect.width,
+        height: rect.height,
+      };
+    })(),
   }), target);
   ok(/^edit card$/i.test(seeded.title) && seeded.front.length > 0
       && !/[<>]/.test(seeded.front),
@@ -702,6 +719,64 @@ const stored = (page) => page.evaluate(() =>
     `and the course ships it, so it is hidden rather than deleted (${seeded.more})`);
   ok(seeded.warn,
     'a card the subset can write says nothing about what it cannot');
+  ok(!seeded.feedback.hidden
+      && seeded.feedback.recipient === 'konrad+keepclub@peanut.me'
+      && seeded.feedback.subject === '[keep club] card problem · competent-crew'
+      && seeded.feedback.body.includes(`Card: ${target}`)
+      && seeded.feedback.body.includes('Course: competent-crew'),
+    'an existing built-in card gets a prefilled email with stable references');
+  ok(seeded.feedback.label === 'Email a problem with this card'
+      && seeded.feedback.beforeClose
+      && seeded.feedback.width >= 48 && seeded.feedback.height >= 48,
+    `its quiet mark sits in the 48px slot before Close (${seeded.feedback.width}×${seeded.feedback.height})`);
+
+  await page.fill('#card-front', 'Unsaved private question');
+  await page.fill('#card-back', 'Unsaved private answer');
+  await page.evaluate(() => {
+    document.getElementById('card-feedback').addEventListener('click', (event) => {
+      event.preventDefault();
+      globalThis.__feedbackClicked = true;
+    }, { once: true });
+  });
+  await page.click('#card-feedback');
+  const afterFeedback = await page.evaluate((id) => {
+    const url = new URL(document.getElementById('card-feedback').href);
+    const body = url.searchParams.get('body');
+    const syncSecret = '01234-56789-ABCDE-FGHJK-MNPQR';
+    const urlSecret = 'private-url-sentinel';
+    localStorage.setItem(DSSync.KEY, JSON.stringify({ key: syncSecret }));
+    const originalUrl = location.href;
+    history.replaceState(history.state, '', `${location.pathname}?private=${urlSecret}`);
+    const hostileBody = new URL(courseFeedbackHref('card', id)).searchParams.get('body');
+    history.replaceState(history.state, '', originalUrl);
+    localStorage.removeItem(DSSync.KEY);
+    return {
+      clicked: globalThis.__feedbackClicked,
+      front: document.getElementById('card-front').value,
+      back: document.getElementById('card-back').value,
+      card: cardSheet.cardId,
+      open: !document.getElementById('card-sheet').hidden,
+      modals: [...document.querySelectorAll('[aria-modal="true"]')]
+        .filter((el) => !el.hidden).length,
+      safe: !body.includes('Unsaved private')
+        && !hostileBody.includes(syncSecret)
+        && !hostileBody.includes(urlSecret),
+      importedBody: new URL(MUNIN.feedbackHref({
+        surface: 'card',
+        imported: true,
+        courseId: 'local-privatedeck',
+        cardId: 'private-card',
+        deckBuild: 'private-build',
+      }))
+        .searchParams.get('body'),
+    };
+  }, target);
+  ok(afterFeedback.clicked && afterFeedback.open && afterFeedback.card === target
+      && afterFeedback.front === 'Unsaved private question'
+      && afterFeedback.back === 'Unsaved private answer' && afterFeedback.modals === 1,
+    'opening email leaves the same editor, card, modal, and dirty fields intact');
+  ok(afterFeedback.safe && afterFeedback.importedBody === 'What happened?\n\n\n—\nScreen: edit card\nCourse: imported',
+    'the mail body excludes private state and imported identifiers');
 
   await page.fill('#card-front', 'What is the *sheet* on a sail?');
   await page.fill('#card-back', 'The line that controls it.');
