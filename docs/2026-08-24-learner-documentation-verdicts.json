@@ -1,0 +1,667 @@
+{
+  "audit": "Keep Club learner-documentation adversarial review",
+  "date": "2026-08-24",
+  "baseline": "10c63993a7c378815cb059d66db3197d46629e14",
+  "reviewedProductManifestSha256": "d11a28660426d9c03073dd6f8b9ac5d38af768d1fda22af086ee77279c41cef1",
+  "reviewedProductManifestScope": "C-sorted output of git ls-files --cached --others --exclude-standard, hashed as sha256sum records, excluding this report, this verdict JSON, and the two unrelated pre-existing 2026-08-22 feedback-minimal-placement artifacts",
+  "scope": "Learner-facing progress and scheduling explanations, their in-app discovery, responsive and offline access, progress-adjacent Sync/backup boundaries, and the maintainer drift contract",
+  "statistics": {
+    "found": 63,
+    "refuted": 13,
+    "refutedRate": "20.6%",
+    "killedByKillList": 0,
+    "overturnedByHand": 0,
+    "confirmed": 50,
+    "fixed": 49,
+    "openProductRulings": 1,
+    "openArtifactDefects": 0,
+    "note": "Unique candidates only. Repair reopenings and repeated regression observations are verification history, not new found cases."
+  },
+  "waveAccounting": [
+    { "wave": "initial", "newConfirmed": 18, "newRefuted": 0, "reopenObservations": 0 },
+    { "wave": "post-repair", "newConfirmed": 14, "newRefuted": 0, "reopenObservations": 0 },
+    { "wave": "first refute attack", "newConfirmed": 0, "newRefuted": 7, "reopenObservations": 0 },
+    { "wave": "immutable completeness review", "newConfirmed": 6, "newRefuted": 6, "reopenObservations": 4 },
+    { "wave": "final user-copy critic", "newConfirmed": 11, "newRefuted": 0, "reopenObservations": 2 },
+    { "wave": "final immutable acceptance", "newConfirmed": 1, "newRefuted": 0, "reopenObservations": 1 }
+  ],
+  "reopenObservations": [
+    { "observationId": "CLARITY-01", "canonicalId": "V13", "result": "REOPENED_THEN_FIXED", "reason": "The first repair still lacked the concrete old-50-to-honest-0 explanation." },
+    { "observationId": "IA-01", "canonicalId": "V02", "result": "REOPENED_THEN_FIXED", "reason": "Progress itself still lacked a contextual guide link." },
+    { "observationId": "IA-02", "canonicalId": "V04", "result": "REOPENED_THEN_FIXED", "reason": "The mobile disclosure label hid sibling-guide navigation." },
+    { "observationId": "DRIFT-PROBE", "canonicalId": "GATE01", "result": "REOPENED_THEN_FIXED", "reason": "Equivalent Practice mutations still escaped the first token tripwire." },
+    { "observationId": "SECTION_EXTRA_01", "canonicalId": "V18", "result": "REOPENED_THEN_FIXED", "reason": "The guide misstated the extra-card trigger when a repeat cap excludes due cards." },
+    { "observationId": "PRACTICE_SUMMARY_01", "canonicalId": "BTR02", "result": "REOPENED_THEN_FIXED", "reason": "Home still said nothing was due when a spent cap left a due backlog." },
+    { "observationId": "FINAL2-CAP-COMPLETION-01", "canonicalId": "BTR02", "result": "REOPENED_THEN_FIXED", "reason": "The recorded-Study completion screen still said nothing was due after the repeat cap excluded a due backlog." }
+  ],
+  "killList": {
+    "summary": { "recorded": 6, "ruling": 0, "killed": 0 },
+    "entries": [
+      { "id": "K01", "grade": "RECORDED", "settles": "Exam mode pulls reviews forward without erasing mastery proof", "source": "docs/2026-08-22-progress-plateau-audit.md:61", "spotCheck": "Matches effectiveDue(); unnamed author means it cannot kill a finding" },
+      { "id": "K02", "grade": "RECORDED", "settles": "Solid requires at least 21 days of proven spacing and seen cards get no half-credit", "source": "docs/2026-08-22-progress-plateau-audit.md:17", "spotCheck": "Matches stateOf()/provenInterval(); no named ruling" },
+      { "id": "K03", "grade": "RECORDED", "settles": "Ordinary-review Hard holds the displayed scheduled gap", "source": "docs/2026-08-22-progress-plateau-audit.md:31", "spotCheck": "Matches naturalPreview()/preview(); no named ruling" },
+      { "id": "K04", "grade": "RECORDED", "settles": "Again retains roughly 40% of proven spacing", "source": "docs/2026-08-22-progress-plateau-audit.md:31", "spotCheck": "Matches grade(); no named ruling" },
+      { "id": "K05", "grade": "RECORDED", "settles": "The shipped scheduler is simplified SM-2-inspired rather than FSRS", "source": "project.md:297", "spotCheck": "Matches source; historical opening contradiction was corrected; no named ruling" },
+      { "id": "K06", "grade": "RECORDED", "settles": "Exam-focused planning is a named product posture", "source": "project.md:86", "spotCheck": "Matches current exam mode; no named ruling" }
+    ]
+  },
+  "candidateRegistry": [
+    {
+      "id": "V01", "aliases": [], "wave": "initial", "severity": "HIGH",
+      "bareClaim": "No public learner guide",
+      "failureScenario": "A learner sees a progress plateau but has no public explanation of grades, solid progress, exam mode, Practice, repeated misses, spread, or limits.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["web/docs/studying/index.html", "README.md:54"],
+      "handRepro": "Baseline route inventory and learner journey", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["finder", "independent verifier", "main-loop route inventory"]
+    },
+    {
+      "id": "V02", "aliases": ["IA-01"], "wave": "initial", "severity": "HIGH",
+      "bareClaim": "Learner help was not discoverable from the app",
+      "failureScenario": "First-run, Settings, About, and Progress could leave a learner without a direct route to the explanation.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["web/munin.js#how", "web/index.html#studying-guide", "web/index.html#about-study-guide", "web/index.html#progress-guide"],
+      "handRepro": "Browser journeys from all four entry points", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["finder", "independent verifier", "reopened for Progress link", "fixed and browser-verified"]
+    },
+    {
+      "id": "V03", "aliases": [], "wave": "initial", "severity": "HIGH",
+      "bareClaim": "No canonical learner contract or deployment drift tripwire",
+      "failureScenario": "Observable scheduler behavior could change while learner prose stayed stale and deployment still succeeded.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["docs/scheduler.md", "scripts/build-docs.mjs#behavioralContractProblems", "scripts/deploy-to-keepclub.sh"],
+      "handRepro": "Preflight order and mutation probes", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["finder", "independent verifier", "main-loop mutation probes"]
+    },
+    {
+      "id": "V04", "aliases": ["IA-02"], "wave": "initial", "severity": "MEDIUM",
+      "bareClaim": "Mobile documentation navigation was incomplete or misleading",
+      "failureScenario": "At phone width a learner could not reliably discover every section or sibling guide.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["web/docs/index.html", "web/docs/studying/index.html", "web/docs/reference/errors/index.html", "web/docs/docs.css"],
+      "handRepro": "Chromium at 320px and 375px", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["finder", "independent verifier", "reopened for disclosure label", "fixed and remeasured"]
+    },
+    {
+      "id": "V05", "aliases": [], "wave": "initial", "severity": "MEDIUM",
+      "bareClaim": "Documentation pointed to stale Sync and deck-file locations",
+      "failureScenario": "A learner was sent to Progress for controls that live in Settings or About.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["README.md", "course-format.md", "web/docs/index.html"],
+      "handRepro": "Live UI and documentation comparison", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["finder", "independent verifier", "main-loop path check"]
+    },
+    {
+      "id": "V06", "aliases": [], "wave": "initial", "severity": "HIGH",
+      "bareClaim": "Learner documentation was not reliably available offline",
+      "failureScenario": "An offline help navigation could fail or resolve to the app shell.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["web/sw.js#docsResponseOk", "tests/pwa.mjs"],
+      "handRepro": "Offline navigation with cached app and docs", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["finder", "independent verifier", "main-loop service-worker repro"]
+    },
+    {
+      "id": "V07", "aliases": [], "wave": "initial", "severity": "HIGH",
+      "bareClaim": "First-run help falsely promised that ordinary-review Hard returns within minutes",
+      "failureScenario": "A correct-but-slow established review can return after the displayed gap, potentially weeks.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["web/app.js#naturalPreview", "web/app.js#preview", "web/munin.js#how"],
+      "handRepro": "Real ordinary-review Hard sequence", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["finder", "independent verifier", "main-loop scheduler repro"]
+    },
+    {
+      "id": "V08", "aliases": [], "wave": "initial", "severity": "HIGH",
+      "bareClaim": "Plain-language grade definitions were missing",
+      "failureScenario": "A learner could grade by an attractive date instead of whether recall was wrong, slow, good, or immediate.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["web/docs/studying/index.html#grades"],
+      "handRepro": "Grade journey and copy review", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["finder", "independent verifier", "main-loop learner-language review"]
+    },
+    {
+      "id": "V09", "aliases": [], "wave": "initial", "severity": "HIGH",
+      "bareClaim": "Learning and relearning behavior was undocumented",
+      "failureScenario": "A learner could expect minute timers or one universal Hard path while queue positions and state steps behave differently.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["web/app.js#grade", "web/app.js#answer", "web/docs/studying/index.html#learning"],
+      "handRepro": "New-card and missed-review sequences", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["finder", "independent verifier", "main-loop deterministic sequences"]
+    },
+    {
+      "id": "V10", "aliases": [], "wave": "initial", "severity": "HIGH",
+      "bareClaim": "Exam due-date projection and ordinary progress proof were not distinguished",
+      "failureScenario": "A learner could mistake an earlier exam due date for lost or manufactured mastery.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["web/app.js#examCeiling", "web/app.js#effectiveDue", "web/app.js#provenInterval", "web/docs/studying/index.html#exam"],
+      "handRepro": "Set, clear, reload, and midnight scenarios", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["finder", "independent verifier", "main-loop projection repro"]
+    },
+    {
+      "id": "V11", "aliases": [], "wave": "initial", "severity": "HIGH",
+      "bareClaim": "Exam introduction pacing and the zero-new pause were undocumented",
+      "failureScenario": "A future exam raises a non-zero daily value to fit the first 60% while zero remains an absolute pause.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["web/app.js#newBudget", "web/docs/studying/index.html#exam"],
+      "handRepro": "Zero and non-zero future-exam cases", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["finder", "independent verifier", "main-loop pacing repro"]
+    },
+    {
+      "id": "V12", "aliases": [], "wave": "initial", "severity": "HIGH",
+      "bareClaim": "The app falsely promised every card before an exam",
+      "failureScenario": "More reviews can be due than the daily repeat limit serves.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["web/app.js#buildSession", "web/app.js#renderExamBanner", "web/docs/studying/index.html#exam"],
+      "handRepro": "Capped exam queue", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["finder", "independent verifier", "main-loop capped-queue repro"]
+    },
+    {
+      "id": "V13", "aliases": ["CLARITY-01"], "wave": "initial", "severity": "HIGH",
+      "bareClaim": "Solid progress and the old synthetic 50% were not explained",
+      "failureScenario": "A fully seen 200-card course can honestly be 0% solid, while the old display manufactured exactly 50% from half-credit.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["web/app.js#stateOf", "web/app.js#provenInterval", "web/docs/studying/index.html#progress", "tests/progress-logic.mjs"],
+      "handRepro": "Exact 200-card all-young fixture", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["finder", "independent verifier", "reopened for case-specific ELI5", "fixed and browser-verified"]
+    },
+    {
+      "id": "V14", "aliases": [], "wave": "initial", "severity": "HIGH",
+      "bareClaim": "Known-well and three-weeks-later wording misdescribed earned future spacing",
+      "failureScenario": "The UI implied recall already demonstrated after three weeks while measuring an interval earned for the future.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["web/app.js#STATE_WORDS", "web/achievements.js", "web/docs/studying/index.html#progress"],
+      "handRepro": "Home, Progress, and achievement comparison", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["finder", "independent verifier", "main-loop vocabulary comparison"]
+    },
+    {
+      "id": "V15", "aliases": [], "wave": "initial", "severity": "MEDIUM",
+      "bareClaim": "Practice Ahead selection and non-recording behavior were undocumented",
+      "failureScenario": "A learner could expect optional rehearsal to move dates, progress, totals, streaks, or achievements.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["web/app.js#buildSession", "web/app.js#grade", "web/docs/studying/index.html#practice"],
+      "handRepro": "Complete Practice browser round", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["finder", "independent verifier", "main-loop state comparison"]
+    },
+    {
+      "id": "V16", "aliases": [], "wave": "initial", "severity": "MEDIUM",
+      "bareClaim": "The repeated-miss filter looked like current weakness rather than lifetime history",
+      "failureScenario": "Three lifetime Again answers keep a recovered card flagged.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["web/app.js#LEECH_AT", "web/app.js#leeches", "web/docs/studying/index.html#slipping"],
+      "handRepro": "Recovered-card state", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["finder", "independent verifier", "main-loop recovered-card repro"]
+    },
+    {
+      "id": "V17", "aliases": [], "wave": "initial", "severity": "MEDIUM",
+      "bareClaim": "Interval spread and answer-scoped plan persistence were undocumented",
+      "failureScenario": "A learner could not explain small date variation or know whether a revealed plan rerolls on reload or midnight.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["web/app.js#fuzz", "web/app.js#schedulePlan", "tests/qa-regressions.mjs", "web/docs/studying/index.html#details"],
+      "handRepro": "Reload and midnight before grade", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["finder", "independent verifier", "main-loop persisted-plan repro"]
+    },
+    {
+      "id": "V18", "aliases": ["SECTION_EXTRA_01"], "wave": "initial", "severity": "HIGH",
+      "bareClaim": "The daily new setting was presented as a universal hard cap",
+      "failureScenario": "Exam mode can raise a non-zero value, and a section with an empty eligible queue after caps can add up to 20 recorded unseen cards even while due repeats wait outside the cap.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["web/app.js#newBudget", "web/app.js#startSession", "web/docs/studying/index.html#daily-plan", "tests/progress-logic.mjs"],
+      "handRepro": "Exam pacing and cap-spent section-extra scenario", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["finder", "independent verifier", "reopened for exact trigger", "fixed and behavior-tested"]
+    },
+    {
+      "id": "BTR01", "aliases": [], "wave": "post-repair", "severity": "MEDIUM",
+      "bareClaim": "Relearning Hard differs from new-card Hard",
+      "failureScenario": "A missed 30-day review retains about 12 days and normally leaves on its second uninterrupted Hard, not a new card's third Hard at one day.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["web/app.js#naturalPreview", "web/app.js#grade", "web/docs/studying/index.html#learning"],
+      "handRepro": "Deterministic relearning sequence", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["post-repair finder", "independent verifier", "main-loop scheduler repro"]
+    },
+    {
+      "id": "BTR02", "aliases": ["PRACTICE_SUMMARY_01", "FINAL2-CAP-COMPLETION-01"], "wave": "post-repair", "severity": "MEDIUM",
+      "bareClaim": "Practice can include a due backlog and the repaired summary still denied it",
+      "failureScenario": "With the daily repeat cap spent, all due cards enter Practice before the two capped optional additions, so neither Home nor the recorded-Study completion screen may claim nothing is due.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["web/app.js#buildSession", "web/app.js#renderHome", "web/app.js#startSession", "web/app.js#finish", "web/docs/studying/index.html#practice", "tests/progress-logic.mjs"],
+      "handRepro": "Constructed cap-spent due backlog", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["post-repair finder", "independent verifier", "reopened for Home summary", "fixed and behavior-tested", "reopened for completion summary", "fixed and behavior-tested again"]
+    },
+    {
+      "id": "BTR03", "aliases": [], "wave": "post-repair", "severity": "MEDIUM",
+      "bareClaim": "Excess repeats do not universally wait until tomorrow",
+      "failureScenario": "A card due only through an exam projection can stop being due when the exam becomes today.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["web/app.js#effectiveDue", "web/index.html", "web/docs/studying/index.html#daily-plan"],
+      "handRepro": "Exam date-boundary scenario", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["post-repair finder", "independent verifier", "main-loop date repro"]
+    },
+    {
+      "id": "GATE01", "aliases": ["DRIFT-PROBE"], "wave": "post-repair", "severity": "MEDIUM",
+      "bareClaim": "The documentation drift gate overclaimed token checks as behavioral proof",
+      "failureScenario": "Practice batch or persistence semantics could change while the original tokens remained.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["scripts/build-docs.mjs#behavioralContractProblems", "docs/scheduler.md#documentation-drift-gate", "tests/progress-logic.mjs"],
+      "handRepro": "In-memory batch and durable-counter mutations", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["post-repair finder", "independent verifier", "reopened by equivalent mutations", "fixed with probes and behavior tests"]
+    },
+    {
+      "id": "OFF01", "aliases": [], "wave": "post-repair", "severity": "MEDIUM",
+      "bareClaim": "Offline validation accepted the wrong Keep Club guide",
+      "failureScenario": "Creator HTML returned for the learner URL could pass generic docs markers.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["web/sw.js#docsResponseOk", "tests/pwa.mjs"],
+      "handRepro": "Wrong-guide service-worker substitution", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["post-repair finder", "independent verifier", "main-loop substitution"]
+    },
+    {
+      "id": "OFF02", "aliases": [], "wave": "post-repair", "severity": "LOW",
+      "bareClaim": "Headerless portal bodies could be accepted as documentation assets",
+      "failureScenario": "A 200 response without Content-Type could populate CSS, SVG, or schema cache entries.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["web/sw.js#docsResponseOk", "tests/pwa.mjs"],
+      "handRepro": "Headerless asset substitutions", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["post-repair finder", "independent verifier", "automated captive-portal attack"]
+    },
+    {
+      "id": "IA01", "aliases": [], "wave": "post-repair", "severity": "LOW",
+      "bareClaim": "Visible progress vocabulary drifted between surfaces",
+      "failureScenario": "Browse used alternate terms for the four statuses used by Home and Progress.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["web/app.js#STATE_WORDS", "docs/scheduler.md#progress-language"],
+      "handRepro": "Rendered copy comparison", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["post-repair finder", "independent verifier", "main-loop copy comparison"]
+    },
+    {
+      "id": "IA02", "aliases": [], "wave": "post-repair", "severity": "LOW",
+      "bareClaim": "The learner guide used undefined scheduler jargon",
+      "failureScenario": "A first-time learner had to infer internal terms such as ease and established review.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["web/docs/studying/index.html", "web/munin.js"],
+      "handRepro": "Learner-language pass", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["post-repair finder", "independent verifier", "independent negative recheck"]
+    },
+    {
+      "id": "IA03", "aliases": [], "wave": "post-repair", "severity": "LOW",
+      "bareClaim": "Narrow fragment targets hid beneath the wrapped sticky header",
+      "failureScenario": "At 320px, a deep-linked heading landed partly under navigation.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["web/docs/docs.css", "tests/docs-site.mjs"],
+      "handRepro": "320px and 375px fragment measurements", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["post-repair finder", "independent verifier", "independent negative recheck"]
+    },
+    {
+      "id": "LC01", "aliases": [], "wave": "post-repair", "severity": "MEDIUM",
+      "bareClaim": "Closed mobile navigation overlaid introductory content",
+      "failureScenario": "Links inside a closed disclosure remained laid over the page and interfered with hit testing.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["web/docs/docs.css:.mobile-nav:not([open])", "tests/docs-site.mjs"],
+      "handRepro": "Phone hit testing and keyboard disclosure", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["post-repair finder", "independent verifier", "main-loop browser repro"]
+    },
+    {
+      "id": "LC04", "aliases": [], "wave": "post-repair", "severity": "MEDIUM",
+      "bareClaim": "Solid documentation omitted relearning precedence and one achievement contradicted it",
+      "failureScenario": "A lapsed card can retain 21+ days of proof but count as learning, while recovery copy called seven days solid.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["web/app.js#stateOf", "web/achievements.js", "web/docs/studying/index.html#progress"],
+      "handRepro": "Pure state and achievement-engine scenario", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["post-repair finder", "independent verifier", "main-loop engine repro"]
+    },
+    {
+      "id": "LC07", "aliases": [], "wave": "post-repair", "severity": "LOW",
+      "bareClaim": "Browse described cumulative misses as current slipping",
+      "failureScenario": "A fully recovered card was still called one that keeps slipping.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["web/app.js#scopeName", "web/app.js#renderBrowse"],
+      "handRepro": "Recovered-card Browse copy", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["post-repair finder", "independent verifier", "main-loop rendered-copy check"]
+    },
+    {
+      "id": "MOBILE01", "aliases": [], "wave": "post-repair", "severity": "LOW",
+      "bareClaim": "Long diagnostic codes widened phone documentation",
+      "failureScenario": "Generated error terms pushed the page beyond a 320px viewport.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["web/docs/reference/errors/index.html", "web/docs/docs.css", "tests/docs-site.mjs"],
+      "handRepro": "320px and 375px scroll-width measurement", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["post-repair finder", "independent verifier", "independent negative recheck"]
+    },
+    {
+      "id": "PRACTICE01", "aliases": [], "wave": "post-repair", "severity": "LOW",
+      "bareClaim": "Unseen Practice Hard does not retain temporary learning steps",
+      "failureScenario": "Every answer uses a fresh temporary record, so repeated Hard never reaches recorded Study's three-Hard exit.",
+      "verifierVerdict": "CONFIRMED", "resolution": "OPEN_RULING_DOCUMENTED",
+      "exactAnchors": ["web/app.js#grade", "web/docs/studying/index.html#practice"],
+      "handRepro": "Repeated unseen-card Practice sequence", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["post-repair finder", "independent verifier", "documented without behavior change"]
+    },
+    {
+      "id": "SEC-01", "aliases": [], "wave": "immutable completeness review", "severity": "HIGH",
+      "bareClaim": "A draft audit artifact persisted the supplied Sync capability",
+      "failureScenario": "A secret included in the user report could have been committed with the audit.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["docs/2026-08-24-learner-documentation-adversarial-review.md", "source-tree credential scan"],
+      "handRepro": "Main-loop source and temporary-snapshot scan without emitting the value", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["immutable critic", "main-loop removal", "temporary snapshot trashed", "never committed or deployed"]
+    },
+    {
+      "id": "AUDIT-01", "aliases": [], "wave": "immutable completeness review", "severity": "HIGH",
+      "bareClaim": "The final reviewed product lacked a reproducible manifest digest",
+      "failureScenario": "A critic could not prove which moving-tree bytes the verdict reviewed.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["reviewedProductManifestSha256", "reviewedProductManifestScope"],
+      "handRepro": "Main-loop C-sorted Git file manifest", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["immutable critic", "manifest frozen", "second immutable review"]
+    },
+    {
+      "id": "AUDIT-02", "aliases": [], "wave": "immutable completeness review", "severity": "HIGH",
+      "bareClaim": "Audit artifacts lacked a canonical registry and reconciled statistics",
+      "failureScenario": "Findings, refutations, reopenings, and open contexts could not be independently recounted.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["candidateRegistry", "waveAccounting", "reopenObservations", "statistics"],
+      "handRepro": "Programmatic ID/status recount", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["immutable critic", "main-loop reconciliation", "second immutable review"]
+    },
+    {
+      "id": "AUDIT-03", "aliases": [], "wave": "immutable completeness review", "severity": "MEDIUM",
+      "bareClaim": "Recorded defaults were incorrectly labelled by-design decisions",
+      "failureScenario": "An unnamed RECORDED context could suppress a future finding despite no RULING-grade decision.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["killList.entries", "byDesign", "openRulings"],
+      "handRepro": "Kill-list provenance and grade check", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["immutable critic", "moved contexts to Open rulings"]
+    },
+    {
+      "id": "AUDIT04", "aliases": ["STALE-CANDIDATE-ANCHORS", "STALE-KILL-LIST-PROVENANCE"], "wave": "final immutable acceptance", "severity": "MEDIUM",
+      "bareClaim": "Persisted audit evidence anchors were stale or misattributed",
+      "failureScenario": "A reviewer following an exact candidate, kill-list, or test pointer could land on a blank, unrelated statement, nonexistent symbol, or a suite that did not make the claimed assertion.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["candidateRegistry[*].exactAnchors", "killList.entries[*].source", "candidateRegistry[R12]", "docs/2026-08-24-learner-documentation-adversarial-review.md#refuted-with-evidence"],
+      "handRepro": "Independent line/symbol follow-through and deploy-test assertion inventory", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["final immutable artifact critic", "independent PWA/deploy critic", "main-loop anchor correction and machine/report alignment"]
+    },
+    {
+      "id": "SWUPDATE01", "aliases": [], "wave": "immutable completeness review", "severity": "HIGH",
+      "bareClaim": "A same-build service-worker install could overwrite the active shell before validation",
+      "failureScenario": "Reusing the same cache name let a failed install damage an already complete offline generation.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["web/sw.js#install", "tests/pwa.mjs same-BUILD attack"],
+      "handRepro": "Same-stamp portal substitution with existing complete cache", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["immutable critic", "main-loop service-worker attack", "fixed and regression-tested"]
+    },
+    {
+      "id": "SWASSET01", "aliases": [], "wave": "immutable completeness review", "severity": "MEDIUM",
+      "bareClaim": "Correct-MIME impostor bodies could poison documentation assets",
+      "failureScenario": "Portal content labelled text/css, image/svg+xml, or application/json passed type-only validation.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["web/sw.js#docsResponseOk", "web/docs/docs.css sentinel", "web/docs/tower.svg sentinel", "tests/pwa.mjs same-MIME attacks"],
+      "handRepro": "Correct-MIME wrong-body substitutions", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["immutable critic", "main-loop substitution", "fixed and regression-tested"]
+    },
+    {
+      "id": "SYNC_SCOPE_01", "aliases": [], "wave": "final user-copy critic", "severity": "HIGH",
+      "bareClaim": "Settings understated the scope of a Sync key",
+      "failureScenario": "A learner could share a key believing it covered one deck although the capability covers synced data for every built-in course using it.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["web/sync.js#KEY", "web/index.html#setup-keeping", "web/app.js#renderSyncState", "web/docs/studying/index.html#details"],
+      "handRepro": "Shared-key source and Settings journey", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["independent final critic", "main-loop copy/source comparison", "docs regression gate"]
+    },
+    {
+      "id": "LOCAL_BACKUP_01", "aliases": [], "wave": "final user-copy critic", "severity": "HIGH",
+      "bareClaim": "Local-deck backup copy implied migration or disaster recovery it cannot provide",
+      "failureScenario": "A reimported deck receives a new local identity, so the old backup cannot move its review history to another browser or phone.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["web/index.html#backup-state", "web/munin.js#how", "web/app.js#renderBackupState", "web/docs/studying/index.html#details"],
+      "handRepro": "Backup stamp and wrong-deck restore path", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["independent final critic", "main-loop restore-boundary check", "docs regression gate"]
+    },
+    {
+      "id": "SHOWN_GAP_01", "aliases": [], "wave": "final user-copy critic", "severity": "MEDIUM",
+      "bareClaim": "The guide called a rounded month/year label an exact displayed interval",
+      "failureScenario": "A stored 38-day plan is shown as one month even though the exact underlying day count remains 38.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["web/app.js#fmtDays", "web/docs/studying/index.html#grades", "tests/progress-logic.mjs"],
+      "handRepro": "29-day versus 38-day labels", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["independent final critic", "main-loop label check", "behavior test"]
+    },
+    {
+      "id": "RELEARN_EASY_01", "aliases": [], "wave": "final user-copy critic", "severity": "MEDIUM",
+      "bareClaim": "Generic Easy copy was false during learning and relearning",
+      "failureScenario": "Good and Easy can graduate to the same retained gap there, and Easy does not raise ease.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["web/app.js#naturalPreview", "web/app.js#grade", "web/docs/studying/index.html#grades", "tests/progress-logic.mjs"],
+      "handRepro": "Retained 12-day relearning Good/Easy sequence", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["independent final critic", "main-loop scheduler repro", "behavior test"]
+    },
+    {
+      "id": "EXAM_ANCHOR_01", "aliases": [], "wave": "final user-copy critic", "severity": "MEDIUM",
+      "bareClaim": "Exam-cap prose omitted the historical schedule-origin anchor",
+      "failureScenario": "Enabling an exam later projects an existing interval from its answer date and can make a card immediately due.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["web/app.js#scheduleOrigin", "web/app.js#effectiveDue", "web/docs/studying/index.html#exam", "tests/progress-logic.mjs"],
+      "handRepro": "Older answer made immediately due by a new exam", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["independent final critic", "main-loop projection repro", "behavior test"]
+    },
+    {
+      "id": "STORAGE_BOUNDARY_01", "aliases": [], "wave": "final user-copy critic", "severity": "MEDIUM",
+      "bareClaim": "Local progress copy said device where the real boundary is a browser profile and origin",
+      "failureScenario": "Two browsers on one phone do not share IndexedDB, Cache Storage, or localStorage.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["web/docs/studying/index.html#details", "web/import.js", "web/lib/receipt.js", "web/app.js#renderSyncState"],
+      "handRepro": "Storage implementation and all learner-copy surfaces", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["independent final critic", "residual import-flow critic", "fixed and docs-gated"]
+    },
+    {
+      "id": "IMPORTED_ACHIEVEMENT_01", "aliases": [], "wave": "final user-copy critic", "severity": "MEDIUM",
+      "bareClaim": "Imported-review achievement wording did not match its metric",
+      "failureScenario": "The rule counts all recorded answers in any local deck, including first presentations and self-created decks.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["web/achievements.js#anki-keeper", "web/app.js#achievementContext", "tests/achievements.mjs"],
+      "handRepro": "Achievement context and exact catalog copy", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["independent final critic", "main-loop metric check", "pure engine tests"]
+    },
+    {
+      "id": "DECK_FILE_COPY_01", "aliases": [], "wave": "final user-copy critic", "severity": "MEDIUM",
+      "bareClaim": "Local-deck help denied or hid the separate card export",
+      "failureScenario": "A learner could believe no file carries a self-made deck even though Settings offers Deck file, while Backup serves a different purpose.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["web/app.js#renderSyncState", "web/index.html#deck-file-state", "web/import.js#own", "web/lib/receipt.js#yours"],
+      "handRepro": "Create-deck and Settings journeys", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["independent final critic", "residual creation-flow critic", "fixed and browser-tested"]
+    },
+    {
+      "id": "RELEARN_RESET_01", "aliases": [], "wave": "final user-copy critic", "severity": "LOW",
+      "bareClaim": "The guide omitted that another Again resets relearning to step zero",
+      "failureScenario": "After Again then another Again, three uninterrupted Hards are needed rather than two.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["web/app.js#grade", "web/docs/studying/index.html#learning", "tests/progress-logic.mjs"],
+      "handRepro": "Again, Again, Hard, Hard, Hard sequence", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["independent final critic", "main-loop sequence", "behavior test"]
+    },
+    {
+      "id": "FUZZ_ZERO_01", "aliases": [], "wave": "final user-copy critic", "severity": "LOW",
+      "bareClaim": "Minimum one-day variation falsely implied the result must change",
+      "failureScenario": "The spread extends a day each way but its center bucket can return the unchanged interval.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["web/app.js#fuzz", "web/docs/studying/index.html#details", "tests/progress-logic.mjs"],
+      "handRepro": "Low, midpoint, and high deterministic rolls", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["independent final critic", "main-loop deterministic rolls", "behavior test"]
+    },
+    {
+      "id": "ACHIEVEMENT_LUNCH_01", "aliases": [], "wave": "final user-copy critic", "severity": "LOW",
+      "bareClaim": "Lunch achievement copy claimed memory retention from any answer event",
+      "failureScenario": "The hour-based rule unlocks even on Again, so kept a memory was unsupported.",
+      "verifierVerdict": "CONFIRMED", "resolution": "FIXED",
+      "exactAnchors": ["web/achievements.js#lunch-break", "tests/achievements.mjs"],
+      "handRepro": "Rule and neutral-description check", "killListResult": "NOT_KILLED_NO_RULING",
+      "verificationHistory": ["independent final critic", "main-loop rule check", "pure engine test"]
+    },
+    {
+      "id": "R01", "aliases": [], "wave": "first refute attack", "severity": "MEDIUM",
+      "bareClaim": "The repaired app still uses standard Anki or FSRS scheduling",
+      "failureScenario": "Scheduler and import documentation would misidentify the algorithm or preserve Anki history.",
+      "verifierVerdict": "REFUTED", "resolution": "NOT_APPLICABLE",
+      "exactAnchors": ["web/app.js", "web/lib/anki.js", "web/docs/studying/index.html#details", "docs/scheduler.md#scheduler-and-learner-documentation-contract"],
+      "handRepro": "Implementation/import boundary comparison", "killListResult": "NOT_APPLICABLE",
+      "verificationHistory": ["refute-framed finder", "independent verifier"]
+    },
+    {
+      "id": "R02", "aliases": [], "wave": "first refute attack", "severity": "HIGH",
+      "bareClaim": "A merely seen card still receives half progress",
+      "failureScenario": "The repaired 200-card all-young fixture would show a non-zero solid percentage.",
+      "verifierVerdict": "REFUTED", "resolution": "NOT_APPLICABLE",
+      "exactAnchors": ["web/app.js#stateOf", "tests/progress-logic.mjs"],
+      "handRepro": "Exact fixture remains 0% solid", "killListResult": "NOT_APPLICABLE",
+      "verificationHistory": ["refute-framed finder", "independent verifier", "main-loop browser repro"]
+    },
+    {
+      "id": "R03", "aliases": [], "wave": "first refute attack", "severity": "HIGH",
+      "bareClaim": "Exam mode still overwrites ordinary mastery proof",
+      "failureScenario": "Set/clear or sync grouping would mutate the canonical ordinary schedule or proof.",
+      "verifierVerdict": "REFUTED", "resolution": "NOT_APPLICABLE",
+      "exactAnchors": ["web/app.js#effectiveDue", "tests/progress-logic.mjs", "tests/sync-merge.mjs"],
+      "handRepro": "Set, clear, reload, and merge grouping", "killListResult": "NOT_APPLICABLE",
+      "verificationHistory": ["refute-framed finder", "independent verifier", "main-loop state comparison"]
+    },
+    {
+      "id": "R04", "aliases": [], "wave": "first refute attack", "severity": "HIGH",
+      "bareClaim": "Practice mutates durable scheduling, totals, streaks, or achievements",
+      "failureScenario": "A complete Practice round would alter durable progress facts.",
+      "verifierVerdict": "REFUTED", "resolution": "NOT_APPLICABLE",
+      "exactAnchors": ["web/app.js#grade", "tests/shell-and-courses.mjs", "tests/progress-logic.mjs"],
+      "handRepro": "Byte-equivalent durable state after Practice", "killListResult": "NOT_APPLICABLE",
+      "verificationHistory": ["refute-framed finder", "independent verifier", "main-loop complete round"]
+    },
+    {
+      "id": "R05", "aliases": [], "wave": "first refute attack", "severity": "MEDIUM",
+      "bareClaim": "Repeated-miss represents current weakness and clears after recovery",
+      "failureScenario": "Later Good/Easy answers would remove the cumulative marker.",
+      "verifierVerdict": "REFUTED", "resolution": "NOT_APPLICABLE",
+      "exactAnchors": ["web/app.js#leeches", "web/docs/studying/index.html#slipping"],
+      "handRepro": "Recovered-card state remains historically flagged", "killListResult": "NOT_APPLICABLE",
+      "verificationHistory": ["refute-framed finder", "independent verifier", "main-loop state check"]
+    },
+    {
+      "id": "R06", "aliases": [], "wave": "first refute attack", "severity": "MEDIUM",
+      "bareClaim": "A revealed interval rerolls after reload or midnight",
+      "failureScenario": "The interval pressed after restore would differ from the plan revealed before it.",
+      "verifierVerdict": "REFUTED", "resolution": "NOT_APPLICABLE",
+      "exactAnchors": ["web/app.js#prepareGradeControls", "tests/qa-regressions.mjs"],
+      "handRepro": "Reload and midnight plan persistence", "killListResult": "NOT_APPLICABLE",
+      "verificationHistory": ["refute-framed finder", "independent verifier", "main-loop browser repro"]
+    },
+    {
+      "id": "R07", "aliases": [], "wave": "first refute attack", "severity": "HIGH",
+      "bareClaim": "Offline learner help can resolve to the app, another guide, or a portal",
+      "failureScenario": "Route or asset substitution would be accepted into the current offline shell.",
+      "verifierVerdict": "REFUTED", "resolution": "NOT_APPLICABLE",
+      "exactAnchors": ["web/sw.js#docsResponseOk", "tests/pwa.mjs"],
+      "handRepro": "Wrong-page, app-shell, missing-MIME, and portal attacks", "killListResult": "NOT_APPLICABLE",
+      "verificationHistory": ["refute-framed finder", "multiple independent verifiers", "main-loop PWA attacks"]
+    },
+    {
+      "id": "R08", "aliases": [], "wave": "immutable completeness review", "severity": "MEDIUM",
+      "bareClaim": "Keyboard users cannot skip repeated navigation or operate mobile docs navigation",
+      "failureScenario": "Skip links or disclosure focus would fail under keyboard-only use.",
+      "verifierVerdict": "REFUTED", "resolution": "NOT_APPLICABLE",
+      "exactAnchors": ["web/docs/index.html", "web/docs/studying/index.html", "web/docs/reference/errors/index.html"],
+      "handRepro": "Keyboard traversal and focus handoff", "killListResult": "NOT_APPLICABLE",
+      "verificationHistory": ["immutable refute critic", "browser keyboard check"]
+    },
+    {
+      "id": "R09", "aliases": [], "wave": "immutable completeness review", "severity": "MEDIUM",
+      "bareClaim": "A shipped documentation link, fragment, canonical, or local asset route is broken",
+      "failureScenario": "At least one current navigation target would fail to resolve.",
+      "verifierVerdict": "REFUTED", "resolution": "NOT_APPLICABLE",
+      "exactAnchors": ["tests/docs-site.mjs"],
+      "handRepro": "Exhaustive local link and fragment resolver", "killListResult": "NOT_APPLICABLE",
+      "verificationHistory": ["immutable refute critic", "main-loop docs-site gate"]
+    },
+    {
+      "id": "R10", "aliases": [], "wave": "immutable completeness review", "severity": "MEDIUM",
+      "bareClaim": "The persisted audit lacks the required five-section topology or parseable JSON",
+      "failureScenario": "The report or machine verdict could not be consumed as the required artifact pair.",
+      "verifierVerdict": "REFUTED", "resolution": "NOT_APPLICABLE",
+      "exactAnchors": ["docs/2026-08-24-learner-documentation-adversarial-review.md", "docs/2026-08-24-learner-documentation-verdicts.json"],
+      "handRepro": "Heading-order and JSON-parse check", "killListResult": "NOT_APPLICABLE",
+      "verificationHistory": ["immutable refute critic", "main-loop artifact parser"]
+    },
+    {
+      "id": "R11", "aliases": [], "wave": "immutable completeness review", "severity": "MEDIUM",
+      "bareClaim": "A partial new-generation update deletes the last complete offline generation",
+      "failureScenario": "A failed install under a distinct cache name would remove the currently working shell.",
+      "verifierVerdict": "REFUTED", "resolution": "NOT_APPLICABLE",
+      "exactAnchors": ["web/sw.js#install", "web/sw.js#activate", "tests/pwa.mjs"],
+      "handRepro": "Distinct-generation partial-install attack", "killListResult": "NOT_APPLICABLE",
+      "verificationHistory": ["immutable refute critic", "automated PWA attack"]
+    },
+    {
+      "id": "R12", "aliases": [], "wave": "immutable completeness review", "severity": "MEDIUM",
+      "bareClaim": "Deployment copies files before checking generated documentation",
+      "failureScenario": "Stale learner or generated references could reach the Pages worktree before preflight failed.",
+      "verifierVerdict": "REFUTED", "resolution": "NOT_APPLICABLE",
+      "exactAnchors": ["scripts/deploy-to-keepclub.sh", "tests/docs-site.mjs:269"],
+      "handRepro": "Script order inspection and docs-site preflight-order check", "killListResult": "NOT_APPLICABLE",
+      "verificationHistory": ["immutable refute critic", "main-loop deploy preflight check"]
+    },
+    {
+      "id": "R13", "aliases": [], "wave": "immutable completeness review", "severity": "LOW",
+      "bareClaim": "Checked-in schema or diagnostic documentation is stale",
+      "failureScenario": "Generated public references would differ from their canonical sources.",
+      "verifierVerdict": "REFUTED", "resolution": "NOT_APPLICABLE",
+      "exactAnchors": ["scripts/build-docs.mjs --check", "tests/docs-site.mjs"],
+      "handRepro": "Byte comparison and generated-docs check", "killListResult": "NOT_APPLICABLE",
+      "verificationHistory": ["immutable refute critic", "main-loop generation check"]
+    }
+  ],
+  "byDesign": [],
+  "byDesignNote": "None. The kill list has zero RULING-grade entries.",
+  "openRulings": [
+    {
+      "candidateId": "PRACTICE01", "countedInCandidateStats": true, "grade": "NO_RULING",
+      "topic": "Unseen Practice cards do not retain temporary learning steps",
+      "evidence": "web/app.js practising grade path", "recommendation": "Keep the explicit warning in this scoped release; consider session-only ephemeral state separately", "default": "Keep current behavior and warning"
+    },
+    {
+      "candidateId": null, "countedInCandidateStats": false, "grade": "RECORDED",
+      "topic": "21-day solid threshold", "evidence": "K02", "recommendation": "Keep because all repaired surfaces agree", "default": "Do not suppress a future explicit proposal"
+    },
+    {
+      "candidateId": null, "countedInCandidateStats": false, "grade": "RECORDED",
+      "topic": "Exam mode as derived due-date overlay", "evidence": "K01", "recommendation": "Keep the non-destructive overlay", "default": "Keep pending explicit product review"
+    },
+    {
+      "candidateId": null, "countedInCandidateStats": false, "grade": "RECORDED",
+      "topic": "Ordinary-review Hard holds the displayed gap", "evidence": "K03", "recommendation": "Keep the honest displayed-gap behavior", "default": "Keep pending explicit scheduler decision"
+    },
+    {
+      "candidateId": null, "countedInCandidateStats": false, "grade": "RECORDED",
+      "topic": "Again retains roughly 40% of proven spacing", "evidence": "K04", "recommendation": "Keep the current retention rule", "default": "Keep pending explicit scheduler decision"
+    },
+    {
+      "candidateId": null, "countedInCandidateStats": false, "grade": "RECORDED",
+      "topic": "Custom simplified SM-2-inspired scheduler rather than FSRS", "evidence": "K05", "recommendation": "Document what ships and decide migration separately", "default": "No scheduler migration in this release"
+    },
+    {
+      "candidateId": null, "countedInCandidateStats": false, "grade": "RECORDED",
+      "topic": "Exam-focused planning posture", "evidence": "K06", "recommendation": "Keep learner-facing exam explanations", "default": "Treat future changes as open product decisions"
+    }
+  ],
+  "reassuringNegatives": [
+    { "claim": "No card question, card answer, media, scheduler formula, threshold, sync protocol, or authoring-format rule changed", "evidence": "Scoped diff and separation/scheduler suites" },
+    { "claim": "Home, Progress, and achievements share proven-spacing semantics", "evidence": "Progress renderers and achievement context tests" },
+    { "claim": "Exam pull-forward does not itself remove solid proof", "evidence": "Progress and sync suites" },
+    { "claim": "Practice remains non-recording even when it includes a due backlog", "evidence": "Complete browser Practice round and durable-state comparison" },
+    { "claim": "All learner entry points resolve to one guide", "evidence": "docs-site and browser suites" },
+    { "claim": "Phone docs do not overflow and fragments clear the header", "evidence": "320px/375px browser measurements" },
+    { "claim": "Offline routes retain exact page and asset identity across failed updates", "evidence": "PWA adversarial suite" },
+    { "claim": "The supplied Sync capability is absent from source and audit artifacts", "evidence": "Credential-shaped source scan; temporary contaminated snapshot removed before commit/deploy" },
+    { "claim": "The complete sequential release gate passes on the frozen product tree", "evidence": "npm test exit code 0 plus focused progress, authoring, importer, and PWA suites" }
+  ],
+  "artifacts": {
+    "learnerGuide": "web/docs/studying/index.html",
+    "maintainerContract": "docs/scheduler.md",
+    "report": "docs/2026-08-24-learner-documentation-adversarial-review.md",
+    "verdicts": "docs/2026-08-24-learner-documentation-verdicts.json"
+  }
+}

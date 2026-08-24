@@ -104,8 +104,9 @@ stay as the fallback for a course without them.)
 - `groups` — **optional.** Named runs of sections, used for the syllabus view
   and done-screen badges. Absent or empty, the app synthesises one unnamed
   group holding every section, and nothing else changes.
-- `build` — short hash of the deck content. Shown on the Progress screen and
-  stamped into progress exports, so a bug report can say which deck it saw.
+- `build` — short hash of the deck content. Available with deck information in
+  Settings/About and stamped into progress exports, so a bug report can say
+  which deck it saw.
 - `name`, and Competent Crew's `course` / `ds` (the Day Skipper commit it was
   built against) — provenance for humans reading the file. The app reads none
   of them.

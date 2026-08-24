@@ -16,7 +16,8 @@ or production.
 - One source repository: `0xkkonrad/keepclub`.
 - One flattened Pages deployment: `0xkkonrad/keepclub-pages`, `main` / root.
 - One Pages custom domain: `keepclub.app`.
-- The app stays at `/`; the creator docs are part of the same deployed tree at
+- The app stays at `/`; the learner guide and creator docs are part of the same
+  deployed tree at `https://keepclub.app/docs/studying/` and
   `https://keepclub.app/docs/`.
 - The immutable schema is deployed at
   `https://keepclub.app/docs/schema/course-v2.schema.json`.
@@ -49,11 +50,12 @@ drifted from `schema/`.
    ./scripts/deploy-to-keepclub.sh --commit
    ```
 
-4. Confirm all three canonical resources return `200` before creating the
+4. Confirm all four canonical resources return `200` before creating the
    vanity hostname:
 
    ```sh
    curl -fsSIL https://keepclub.app/docs/
+   curl -fsSIL https://keepclub.app/docs/studying/
    curl -fsSIL https://keepclub.app/docs/reference/errors/
    curl -fsSIL https://keepclub.app/docs/schema/course-v2.schema.json
    ```

@@ -253,7 +253,7 @@ ok(/^local-[a-z0-9]+$/.test(id), `the imported deck becomes the resume target ($
 
 /* Re-importing the same deck: your progress is the thing at risk, so it is the
  * thing the screen is about — along with the other thing in this deck that only
- * this device has, which no file being imported can put back. */
+ * this browser profile has, which no file being imported can put back. */
 {
   // One of each kind of record, so the layer under this deck holds both a card
   // that exists because somebody typed it and an edit over a card the file
@@ -277,7 +277,7 @@ ok(/^local-[a-z0-9]+$/.test(id), `the imported deck becomes the resume target ($
   const said = await p.textContent('.imp-inner');
   ok(said.includes('keeping my progress'), 'and offers to keep the progress');
   ok(/written or edited 2 cards in this deck/.test(said) && /Yours are kept/.test(said),
-    `the receipt accounts for the cards only this device has (${
+    `the receipt accounts for the cards only this browser profile has (${
       /You have written[^.]*\.[^.]*\./.exec(said)?.[0] || said.slice(0, 90)})`);
   await Promise.all([p.waitForEvent('load'), p.click('[data-keep="replace"]')]);
   await p.waitForFunction(() => document.getElementById('boot').hidden, null, { timeout: 20000 });
@@ -320,7 +320,8 @@ ok(/^local-[a-z0-9]+$/.test(id), `the imported deck becomes the resume target ($
   // keyed by the outgoing deck's card ids, so what would survive is edits over
   // nothing and cards written into a deck that is not here any more.
   ok(/written or edited 2 cards in this deck/.test(said)
-      && /Starting over takes them/.test(said) && /export a backup/.test(said),
+      && /Starting over takes them/.test(said) && /Settings → Deck file/.test(said)
+      && /separate Backup captures history/.test(said),
   `and says the cards you wrote go with the progress, and where to put them first (${
     /You have written[^.]*\.[^.]*\./.exec(said)?.[0] || said.slice(0, 90)})`);
   await Promise.all([p.waitForEvent('load'), p.click('[data-keep="replace"]')]);
@@ -622,8 +623,8 @@ ok(errors.length === 0, `no uncaught errors in the whole run (${errors.slice(0, 
       `the name and the two boxes each have a label of their own (${sheet.labels.join(' · ')})`);
     ok(/\*\*strong\*\*/.test(sheet.fine),
       'and the sheet’s own line about what Markdown does comes with them');
-    ok(/stays on this device/.test(sheet.says) && /does not sync/.test(sheet.says)
-        && /backup/.test(sheet.says),
+    ok(/stays in this browser profile/.test(sheet.says) && /does not Sync/.test(sheet.says)
+        && /Settings → Deck file/.test(sheet.says) && /Backup separately/.test(sheet.says),
     `it says plainly where a deck you write lives (${sheet.says.replace(/\s+/g, ' ')})`);
   }
 
@@ -671,8 +672,9 @@ ok(errors.length === 0, `no uncaught errors in the whole run (${errors.slice(0, 
   const made = await pw.evaluate(() => document.querySelector('.imp-body').textContent);
   ok(/Knots I keep forgetting/.test(made) && /one card/.test(made),
     'the deck is made, and the screen says what it holds');
-  ok(/Browse is where you write the next card/.test(made) && /does not sync/.test(made),
-    'and where the second card goes, and that this one stays here');
+  ok(/Browse is where you write the next card/.test(made) && /does not Sync/.test(made)
+      && /Deck file/.test(made) && /cannot move that history/.test(made),
+    'and where the second card goes, how cards move, and why backup history does not');
   ok((await mediaKeys()).join(', ') === neighbourMedia.join(', '),
     'the imported deck standing beside it keeps every one of its pictures');
 

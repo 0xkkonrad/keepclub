@@ -200,6 +200,9 @@ ok(A.DEFINITIONS.every(Object.isFrozen),
   ok(imported.payload.imported && imported.payload.courseId === null
     && imported.payload.courseTitle === null,
   'default imported-deck share payloads omit the private deck name and id');
+  ok(imported.title === '1,000 local-deck answers'
+    && imported.description === 'recorded 1,000 answers in a local deck',
+  'local-deck milestones name the answer events their rule actually counts');
   ok(A.bestMoment(result.newlyUnlocked)?.id === 'deck-kept',
     'the highest-value simultaneous achievement becomes the session hero');
   ok(result.newlyUnlocked.find((record) => record.id === 'deck-kept').scope === 'course'
@@ -207,6 +210,10 @@ ok(A.DEFINITIONS.every(Object.isFrozen),
     && result.newlyUnlocked.find((record) => record.id === 'solid-pct-100').scope === 'course',
   'absolute memory counts stay club-wide while deck completion and percentages stay course-local');
 }
+
+ok(A.DEFINITIONS.find((record) => record.id === 'lunch-break')?.description
+    === 'studied over lunch',
+  'the lunch achievement describes study rather than claiming a successful recall');
 
 {
   const deck = {

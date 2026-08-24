@@ -452,6 +452,7 @@ const offer = (pg) => pg.evaluate(() => {
     shortcuts: document.getElementById('about-shortcuts').textContent,
     author: document.getElementById('about-author').href,
     source: document.getElementById('about-source').href,
+    guide: document.getElementById('about-study-guide').href,
   }));
   ok(said.hoard === "Ship's log", `the course names the hoard in its own world (${said.hoard})`);
   ok(said.first === 'cast off', `and names what is in it (${said.first})`);
@@ -462,6 +463,8 @@ const offer = (pg) => pg.evaluate(() => {
     'About names keep club, its open source, and kkonrad');
   ok(said.source === 'https://github.com/0xkkonrad/keepclub',
     'About links to the source repository');
+  ok(said.guide.endsWith('/docs/studying/'),
+    'About links directly to the learner scheduling guide');
   ok(/keyboard.*space shows the answer.*1–4.*u undoes/is.test(said.shortcuts),
     'About documents the desktop study shortcuts');
   ok(said.offlineShown && said.offline.includes(`${said.diagrams} diagrams`),
@@ -474,6 +477,8 @@ const offer = (pg) => pg.evaluate(() => {
   ok((await p6.textContent('#how')).replace(/\s+/g, ' ')
     .includes('only share it if you turn on Sync'),
     'the getting-started privacy copy describes opt-in Sync truthfully');
+  ok((await p6.getAttribute('#how a[href="docs/studying/"]', 'href')) === 'docs/studying/',
+    'getting-started help links directly to the full learner guide');
   await p6.click('#shelf-x');
   await p6.waitForSelector('.shelf.on', { state: 'detached' });
 

@@ -12,8 +12,9 @@ const EXE = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH
 const out = [], fails = [];
 const ok = (c, m) => (c ? out : fails).push((c ? 'PASS  ' : 'FAIL  ') + m);
 const state = {
-  gen: 'one', pageTag: 'base', delayImages: 0, deadImages: false,
-  fail: new Set(), spoof: new Set(), requests: [], v2Cards: false,
+  gen: 'one', workerTag: 'base', pageTag: 'base', delayImages: 0, deadImages: false,
+  fail: new Set(), spoof: new Set(), headerlessSpoof: new Set(),
+  sameMimeSpoof: new Map(), replace: new Map(), requests: [], v2Cards: false,
 };
 const mime = {
   '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css',
@@ -37,13 +38,26 @@ const server = http.createServer(async (req, res) => {
     req.socket.destroy();
     return;
   }
+  if (state.headerlessSpoof.has(rel)) {
+    res.writeHead(200, { 'cache-control': 'no-store' });
+    res.end('<!doctype html><title>Sign in to Wi-Fi</title>');
+    return;
+  }
   if (state.spoof.has(rel)) {
     res.writeHead(200, { 'content-type': 'text/html', 'cache-control': 'no-store' });
     res.end('<!doctype html><title>Sign in to Wi-Fi</title>');
     return;
   }
+  if (state.sameMimeSpoof.has(rel)) {
+    res.writeHead(200, {
+      'content-type': mime[extname(rel)] || 'application/octet-stream',
+      'cache-control': 'no-store',
+    });
+    res.end(state.sameMimeSpoof.get(rel));
+    return;
+  }
   try {
-    const path = resolve(ROOT, rel);
+    const path = resolve(ROOT, state.replace.get(rel) || rel);
     if (!path.startsWith(ROOT + '/')) throw new Error('outside');
     // A real JPEG byte stream is unnecessary here: the worker's boundary is
     // the same MIME contract the server declares and the runtime accepts. Use
@@ -92,7 +106,7 @@ const server = http.createServer(async (req, res) => {
       body = Buffer.from(String(body).replace(
         /^const BUILD = .*;$/m,
         `const BUILD = { shell: 'qa-${state.gen}', courses: { 'day-skipper': 'qa-${state.gen}', 'competent-crew': 'qa-${state.gen}', 'git-101': 'qa-${state.gen}' } };`,
-      ));
+      ) + `\n/* qa worker ${state.workerTag} */`);
     }
     res.writeHead(200, {
       'content-type': mime[extname(rel)] || 'application/octet-stream',
@@ -224,6 +238,89 @@ async function cachesAt(page) {
   ];
   ok(readerPaths.every((path) => shellPaths.includes(path)),
     'the complete format-2 JSON/YAML, Markdown, and media reader graph is offline');
+  const docsPaths = [
+    '/docs/',
+    '/docs/studying/',
+    '/docs/reference/errors/',
+    '/docs/docs.css',
+    '/docs/tower.svg',
+    '/docs/schema/course-v2.schema.json',
+  ];
+  ok(docsPaths.every((path) => shellPaths.includes(path)),
+    'learner help, creator help, diagnostics, and their assets are in the offline shell');
+  state.spoof.add('docs/studying/index.html');
+  await page.evaluate(() => fetch('./docs/studying/?revalidate=portal'));
+  await page.waitForTimeout(100);
+  state.spoof.delete('docs/studying/index.html');
+  state.replace.set('docs/studying/index.html', 'docs/index.html');
+  await page.evaluate(() => fetch('./docs/studying/?revalidate=wrong-doc'));
+  await page.waitForTimeout(100);
+  state.replace.delete('docs/studying/index.html');
+  state.headerlessSpoof.add('docs/docs.css');
+  await page.evaluate(() => fetch('./docs/docs.css?revalidate=headerless-portal'));
+  await page.waitForTimeout(100);
+  state.headerlessSpoof.delete('docs/docs.css');
+  state.sameMimeSpoof.set('docs/docs.css', 'body { display: none }');
+  state.sameMimeSpoof.set('docs/tower.svg', '<svg xmlns="http://www.w3.org/2000/svg"></svg>');
+  state.sameMimeSpoof.set('docs/schema/course-v2.schema.json', '{"courses":[]}');
+  await Promise.all([
+    './docs/docs.css?revalidate=wrong-css',
+    './docs/tower.svg?revalidate=wrong-svg',
+    './docs/schema/course-v2.schema.json?revalidate=wrong-json',
+  ].map((url) => page.evaluate((path) => fetch(path), url)));
+  await page.waitForTimeout(100);
+  state.sameMimeSpoof.clear();
+  await ctx.setOffline(true);
+  const offlineDocs = await page.evaluate(async () => {
+    const pages = await Promise.all(['./docs/', './docs/studying/', './docs/reference/errors/']
+      .map(async (url) => {
+        const response = await fetch(url);
+        return { url, status: response.status, body: await response.text() };
+      }));
+    return pages.map(({ url, status, body }) => ({
+      url,
+      status,
+      docs: /<main\b/i.test(body) && /docs\.css/i.test(body),
+      rightPage: url.includes('studying')
+        ? /<title>How studying works/.test(body)
+        : url.includes('errors')
+          ? /<title>Diagnostic codes/.test(body)
+          : /<title>Course creator docs/.test(body),
+      app: /\bid=["']app["']/.test(body),
+      portal: /Sign in to Wi-Fi/.test(body),
+    }));
+  });
+  const offlineAssets = await page.evaluate(async () => {
+    const css = await (await fetch('./docs/docs.css')).text();
+    const schema = await (await fetch('./docs/schema/course-v2.schema.json')).json();
+    const tower = await (await fetch('./docs/tower.svg')).text();
+    return {
+      css: css.includes('--paper:') && !css.includes('Sign in to Wi-Fi'),
+      schema: schema.$id === 'https://docs.keepclub.app/schema/course-v2.schema.json',
+      tower: /<svg\b/.test(tower),
+    };
+  });
+  await ctx.setOffline(false);
+  ok(offlineDocs.every((item) => item.status === 200 && item.docs && item.rightPage
+      && !item.app && !item.portal)
+      && Object.values(offlineAssets).every(Boolean),
+  `offline docs retain the right page and typed assets, never the app, another guide, or a portal (${
+    JSON.stringify({ offlineDocs, offlineAssets })})`);
+  state.workerTag = 'same-build-portal-attack';
+  state.spoof.add('index.html');
+  await page.evaluate(() => navigator.serviceWorker.getRegistration().then((r) => r.update()))
+    .catch(() => {});
+  await page.waitForTimeout(1600);
+  state.spoof.delete('index.html');
+  const sameBuildShell = await page.evaluate(async () => {
+    const cache = await caches.open('munin-shell-qa-one');
+    const response = await cache.match('index.html');
+    const body = response ? await response.text() : '';
+    return { app: /\bid=["']app["']/.test(body), portal: /Sign in to Wi-Fi/.test(body) };
+  });
+  ok(sameBuildShell.app && !sameBuildShell.portal,
+    `a worker-only update cannot overwrite its active same-stamp cache (${
+      JSON.stringify(sameBuildShell)})`);
   state.gen = 'two';
   state.fail.add('app.js');
   await page.evaluate(() => navigator.serviceWorker.getRegistration().then((r) => r.update()))

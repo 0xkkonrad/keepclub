@@ -1505,7 +1505,7 @@ const stored = (page) => page.evaluate(() =>
     };
   }, shipped);
   ok(swept.gone, 'a card deleted on another device takes its review history here too');
-  ok(/deleted on another device/.test(swept.toast) && swept.sticky,
+  ok(/deleted in another synced browser/.test(swept.toast) && swept.sticky,
     `and the app says so rather than letting the number fall quietly (${swept.toast})`);
   ok(swept.hiddenGone && swept.hiddenHistory && swept.hidden === 1,
     'a card only hidden over there keeps its history, because bringing it back is free');
@@ -1631,10 +1631,12 @@ cards:
     };
   });
   ok(/^local-[a-z0-9]+$/.test(local.id) && local.wrote,
-    `a card can be written into a deck that stays on this device (${local.id})`);
+    `a card can be written into a deck that stays in this browser profile (${local.id})`);
   ok(local.available === false && local.on === false,
     'and the sync path is inert there: there is no identity to sync it under');
-  ok(/stays on this device/.test(local.line) && /backup file/.test(local.line)
+  ok(/stay in this browser profile/.test(local.line)
+      && /backup restores only into this exact local deck/i.test(local.line)
+      && /Deck file below/.test(local.line)
       && local.actions === '',
   `the screen says so where somebody would ask (${local.line})`);
   ok(errors.length === 0, `a local deck raises no page errors (${errors.join(' | ') || 'none'})`);
@@ -1691,7 +1693,7 @@ async function restore(page, payload) {
     document.getElementById('backup-state').textContent);
   ok(/your 1 note, the 3 cards you have written or edited and your settings\./.test(offer),
     `the line above the button counts the whole layer, edits and all (${offer})`);
-  ok(await page.evaluate(() => /your own\s+cards are merged/.test(
+  ok(await page.evaluate(() => /Notes and cards you wrote\s+are merged/.test(
     document.getElementById('backup-state').previousElementSibling.textContent)),
   'and the standing copy above it does not promise a restore replaces them');
 
@@ -1760,7 +1762,7 @@ async function restore(page, payload) {
   ok(/4 cards you have written or edited/.test(landed.toast),
     `and the message afterwards counts them (${landed.toast})`);
 
-  /* The sharp edge, on the restore path. The same file again, over a device
+  /* The sharp edge, on the restore path. The same file again, over a profile
    * that has since deleted one of its cards: the delete is the newer record and
    * it stands, so the history the file is putting back has nothing left to be
    * about. It goes, and it is said — a number on Progress falling on its own is
@@ -1775,16 +1777,16 @@ async function restore(page, payload) {
     toast: document.getElementById('toast').textContent,
   }), wrote.doomed);
   ok(!after.inDeck,
-    'an older file does not resurrect a card deleted on this device');
+    'an older file does not resurrect a card deleted in this browser profile');
   ok(!after.record && !after.stored,
     'and the review history it brought back for that card does not stay behind it');
   // And said as what it is. The card was deleted HERE, so the sentence about a
-  // card another device deleted is not the one this is: what happened is that a
+  // card another synced browser deleted is not the one this is: what happened is that a
   // file offered history back for a card that is not in this deck any more.
-  ok(/deleted on this device/.test(after.toast) && /did not come back/.test(after.toast),
+  ok(/deleted in this browser profile/.test(after.toast) && /did not come back/.test(after.toast),
     `said out loud rather than found later (${after.toast})`);
-  ok(!/another device/.test(after.toast),
-    'and not blamed on a device that had nothing to do with it');
+  ok(!/another synced browser/.test(after.toast),
+    'and not blamed on a synced browser that had nothing to do with it');
   ok(next.errors.length === 0,
     `restoring a layer raises no page errors (${next.errors.join(' | ') || 'none'})`);
   await next.ctx.close();

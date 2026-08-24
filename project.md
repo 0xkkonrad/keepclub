@@ -8,8 +8,10 @@
 
 Membership pays in memories.
 
-Anki's scheduler is the best thing in the category and its interface is the reason most
-people who try it stop. Munin keeps the first and replaces the second.
+Spaced repetition is the best thing in the category and its interface is the reason most
+people who try it stop. Keep club keeps the idea and replaces the interface. It
+now ships a custom, simplified SM-2-inspired scheduler rather than Anki's
+legacy scheduler or FSRS; see [docs/scheduler.md](docs/scheduler.md).
 
 Named for Odin's raven of memory — a small friendly raven who remembers things for you.
 (Huginn was thought. We only need the other one.) A hundred-name sweep across Slavic,

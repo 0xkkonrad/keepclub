@@ -4,7 +4,8 @@ Membership pays in memories.
 
 keep club is a local-first progressive web app. It ships built-in courses,
 imports public `.keep.yml` / `.keep` courses and Anki `.apkg` decks, keeps
-study progress on the device, and works offline after the first visit.
+study progress in the current browser profile, and works offline after the
+first visit.
 
 - App: [keepclub.app](https://keepclub.app/)
 - Source: [github.com/0xkkonrad/keepclub](https://github.com/0xkkonrad/keepclub)
@@ -46,13 +47,18 @@ transactional PWA updates.
 - `content/` — authored course sources and generators
 - `design/` — naming and visual-system source
 - `schema/` — public course format, diagnostics, and fixtures
-- `web/docs/` — creator guide and generated public reference artifacts
+- `web/docs/` — learner guide, creator guide, and generated public references
 - `tests/` — Node and Playwright regression suites
 - `scripts/` — course refresh, asset generation, and deployment
 
-The creator guide is deployed with the app at
-[keepclub.app/docs](https://keepclub.app/docs/). Refresh its generated schema
-download and diagnostic reference after changing the contract:
+The public [learner guide](https://keepclub.app/docs/studying/) explains grades,
+scheduling, exam mode, Practice Ahead, and exactly what “solid” progress means.
+Its maintainer-facing rules and drift checklist live in
+[`docs/scheduler.md`](docs/scheduler.md).
+
+The [course creator guide](https://keepclub.app/docs/) is deployed beside it.
+Refresh its generated schema download and diagnostic reference after changing
+the public contract:
 
 ```sh
 node scripts/build-docs.mjs --write
@@ -68,17 +74,21 @@ identity would orphan existing progress and installs for no user-visible gain.
 ## Sync
 
 Built-in courses can sync progress across devices without an account. Turn it
-on in Progress and keep the 25-character key: the same key follows every
-built-in course on that device, and only its SHA-256 hash is sent to the
-server.
+on in Settings → Keeping your progress and protect the 25-character key like a
+password. One key follows every built-in course in that browser profile;
+possession grants access to the synced progress, notes, and user-written cards
+for all of them. Only the key's SHA-256 hash is sent to the server.
 
 Imported decks remain local because their cards and media live in IndexedDB
-and can be much larger than the bounded progress-sync payload. Exported backup
-files remain the recovery path for every deck.
+and can be much larger than the bounded progress-sync payload. Their backups
+are point-in-time restores for the exact local deck while it remains in that
+browser profile; they cannot transfer imported-deck review history. Keep the
+original `.apkg` or course file to recreate the deck elsewhere.
 
-Club-wide totals are derived from the course records present on the device.
-Sync remains deliberately namespaced per built-in course, so on a new device
-open each course once to pull it before expecting the club total to include it.
+Club-wide totals are derived from the course records present in the browser
+profile. Sync remains deliberately namespaced per built-in course, so in a new
+profile open each course once to pull it before expecting the club total to
+include it.
 
 ## Achievements and sharing
 

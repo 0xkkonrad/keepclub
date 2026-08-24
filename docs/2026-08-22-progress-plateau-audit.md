@@ -14,9 +14,9 @@ Verdict: the reported 50% plateau was a real code smell, not expected progress b
 
 Home used `(mature + young × 0.5) / total` and labelled the result “known well.” The supplied deck had 200 young cards and zero mature cards, so all 14 fully seen sections were forced to exactly 50% even though expanded Progress correctly said `0 solid`. No render freeze was required: the formula itself manufactured the plateau.
 
-Home and Progress now use the same definition: `known well = proven interval ≥ 21 days`. An all-young section is therefore honestly 0%, a real fraction below 1% is announced as “less than 1%,” and milestone percentages floor instead of rounding up early. Partial meters put the value once in the section button’s accessible name and leave the visual bar decorative. Anchors: `web/app.js:1197-1215`, `web/app.js:2671-2709`, `web/app.js:6337-6362`, `web/achievements.js:682-717`.
+Home and Progress now use the same definition: `solid = proven interval ≥ 21 days`. An all-young section is therefore honestly 0%, a real fraction below 1% is announced as “less than 1%,” and milestone percentages floor instead of rounding up early. Partial meters put the value once in the section button’s accessible name and leave the visual bar decorative. Anchors: `web/app.js:1197-1215`, `web/app.js:2671-2709`, `web/app.js:6337-6362`, `web/achievements.js:682-717`.
 
-For the supplied state, the immediate visible change is 14 rows at 0% known well rather than 14 false rows at 50%. That is deliberately honest: the app cannot prove historical mastery that the old scheduler already erased. Future correct answers can now build the underlying proof past 21 days even while the next review remains pulled forward for the exam.
+For the supplied state, the immediate visible change is 14 rows at 0% solid rather than 14 false rows at 50%. That is deliberately honest: the app cannot prove historical mastery that the old scheduler already erased. Future correct answers can now build the underlying proof past 21 days even while the next review remains pulled forward for the exam.
 
 ### C-02 · Exam scheduling destructively rewrote mastery — fixed
 
@@ -59,7 +59,7 @@ REFUTED. Production changes are confined to progress scheduling/presentation/ses
 ## By design — do not fix
 
 1. Keep the exam-date clamp. Cramming mode must change when cards are reviewed; it now does so as a derived due-date projection instead of erasing mastery.
-2. Keep the 21-day solid/known-well threshold. The repair makes it reachable under exam mode without weakening its meaning.
+2. Keep the 21-day solid threshold. The repair makes it reachable under exam mode without weakening its meaning.
 3. Hard holds the actual scheduled gap while retaining stronger proof. It does not jump from a displayed six-day choice to a hidden 38-day schedule.
 4. Again is evidence of forgetting and may reduce proof, currently to 40%; a near exam by itself may not.
 5. Once a row is adopted by v2, old sync clients fail closed. Allowing them to keep writing could erase `pv`, `sr`, or exam provenance.

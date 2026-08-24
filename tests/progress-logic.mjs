@@ -81,16 +81,16 @@ await page.locator('#by-section > summary').click();
 const plateauRows = (await page.locator('#mastery .m-n').allTextContents())
   .map((row) => row.replace(/\s+/g, ' ').trim());
 const plateauMeters = page.getByRole('img', {
-  name: /known well, .* bedding in, .* learning, .* not started/i,
+  name: /solid, .* bedding in, .* learning, .* not started/i,
 });
 ok(plateau.cards === 200 && plateau.sections === 14,
   `the concrete fixture covers all ${plateau.cards} cards and ${plateau.sections} sections`);
 ok(plateau.proofs.every((proof, index) => proof === plateau.intervals[index]),
   'legacy review records migrate pv=0 to their surviving interval without inventing history');
 ok(plateau.home.length === 14
-    && plateau.home.every(({ meta, label }) => /0% known well/.test(meta)
-      && /0% known well/.test(label)),
-  'all-young Home rows report an accessible 0% known well, never 50%');
+    && plateau.home.every(({ meta, label }) => /0% solid/.test(meta)
+      && /0% solid/.test(label)),
+  'all-young Home rows report an accessible 0% solid, never 50%');
 ok(plateau.home.every(({ meter }) => !meter),
   'zero-solid rows do not draw a misleading half-width meter');
 ok(plateau.tiles.some((tile) => /^0solid/.test(tile))
@@ -349,6 +349,157 @@ ok(projectedConsumers.effective === Date.parse('2026-08-22T00:00:00Z')
 ok(/Nothing else is scheduled/.test(projectedConsumers.next)
     && /Today 1(?:,|$)/.test(projectedConsumers.forecast),
   'completion copy and the seven-day forecast use the same projected due date');
+
+/* Practice takes the whole due/learning backlog, but each optional category is
+ * deliberately bounded. Prove the two uses of AHEAD_BATCH through the real
+ * session builder so multiplying either slice cannot pass as documentation-only
+ * drift. */
+const aheadCaps = await page.evaluate(() => {
+  state = freshState();
+  state.settings.newPerDay = 20;
+  const unseen = buildSession(null, { ahead: true }).total;
+
+  state = freshState();
+  state.settings.newPerDay = 0;
+  const futureDue = addCalendarDays(Date.now(), 30);
+  state.recs = Object.fromEntries(DECK.cards.map((card) => [card.cardId, {
+    st: 'r', step: 0, ivl: 30, ea: 2.5, due: futureDue,
+    rp: 2, sr: 2, lp: 0, pv: 30,
+  }]));
+  const future = buildSession(null, { ahead: true }).total;
+  return { unseen, future };
+});
+ok(aheadCaps.unseen === 20 && aheadCaps.future === 20,
+  'Practice Ahead caps both unseen and future-review additions at 20 cards');
+
+/* A spent repeat cap can leave genuinely due cards behind. Home and a section
+ * must describe the actual trigger instead of claiming that nothing is due. */
+const cappedEntryCopy = await page.evaluate(() => {
+  state = freshState();
+  state.settings.newPerDay = 0;
+  state.settings.maxRev = 1;
+  state.revDone = 1;
+  const due = addCalendarDays(Date.now(), -1);
+  state.recs = Object.fromEntries(DECK.cards.map((card) => [card.cardId, {
+    st: 'r', step: 0, ivl: 2, ea: 2.5, due,
+    rp: 2, sr: 2, lp: 0, pv: 2,
+  }]));
+  renderHome();
+  const home = document.getElementById('today-note').textContent;
+
+  state = freshState();
+  state.settings.newPerDay = 0;
+  state.settings.maxRev = 1;
+  state.revDone = 1;
+  state.recs[DECK.cards[0].cardId] = {
+    st: 'r', step: 0, ivl: 2, ea: 2.5, due,
+    rp: 2, sr: 2, lp: 0, pv: 2,
+  };
+  session = buildSession(null, {});
+  session.done = 1;
+  finish();
+  const completion = {
+    due: counts(null).due,
+    line: document.getElementById('done-line').textContent,
+    moreHidden: document.getElementById('done-more').hidden,
+  };
+
+  state = freshState();
+  state.settings.newPerDay = 1;
+  state.settings.maxRev = 1;
+  state.newDone = 1;
+  state.revDone = 1;
+  const section = DECK.sections[0].sectionId;
+  const sectionCards = DECK.cards.filter((card) => card.sectionId === section);
+  state.recs[sectionCards[0].cardId] = {
+    st: 'r', step: 0, ivl: 2, ea: 2.5, due,
+    rp: 2, sr: 2, lp: 0, pv: 2,
+  };
+  const dueBefore = counts(section).due;
+  startSession(section);
+  const extra = {
+    ahead: session && session.ahead,
+    total: session && session.total,
+    containsDue: session && session.queue.includes(sectionCards[0].cardId),
+    toast: document.getElementById('toast').textContent,
+  };
+  flushAndReleaseStudyLock();
+  clearStudySession();
+  session = null;
+  go('home');
+  return { home, completion, dueBefore, extra };
+});
+ok(cappedEntryCopy.home.includes('Recorded Study has nothing left')
+    && cappedEntryCopy.home.includes('due cards outside the repeat limit')
+    && !/nothing is due/i.test(cappedEntryCopy.home),
+  'Home explains Practice after a spent cap without denying the remaining due backlog');
+ok(cappedEntryCopy.completion.due === 1
+    && /Recorded Study is finished for today/.test(cappedEntryCopy.completion.line)
+    && /1 due card remains outside today’s repeat limit/.test(cappedEntryCopy.completion.line)
+    && /Back to sections lets you practise it without moving the schedule/.test(cappedEntryCopy.completion.line)
+    && !/nothing (?:else is scheduled|is due)/i.test(cappedEntryCopy.completion.line)
+    && cappedEntryCopy.completion.moreHidden,
+  'completion admits a due backlog after the repeat limit instead of claiming nothing is due '
+    + `(${JSON.stringify(cappedEntryCopy.completion)})`);
+ok(cappedEntryCopy.dueBefore === 1
+    && cappedEntryCopy.extra.ahead === false
+    && cappedEntryCopy.extra.total > 0
+    && cappedEntryCopy.extra.total <= 20
+    && !cappedEntryCopy.extra.containsDue
+    && /extra cards/i.test(cappedEntryCopy.extra.toast),
+  'a section can offer up to 20 recorded extra cards while a due repeat waits outside its cap');
+
+const relearningDetails = await page.evaluate(() => {
+  state = freshState();
+  const id = DECK.cards[0].cardId;
+  state.recs[id] = {
+    st: 'l', step: 1, ivl: 1, ea: 2.2, due: Date.now(),
+    rp: 3, sr: 3, lp: 1, pv: 12,
+  };
+  const good = naturalPreview(state.recs[id], 3);
+  const easy = naturalPreview(state.recs[id], 4);
+  const easeBefore = state.recs[id].ea;
+  grade(id, 4, easy, false, easy, easy, '');
+  const easyGraduation = { ...state.recs[id], easeBefore, good, easy };
+
+  state = freshState();
+  state.recs[id] = {
+    st: 'r', step: 0, ivl: 30, ea: 2.5,
+    due: Date.now(), rp: 4, sr: 4, lp: 0, pv: 30,
+  };
+  const firstAgain = grade(id, 1);
+  const secondAgain = grade(id, 1);
+  const hard1 = grade(id, 2);
+  const hard2 = grade(id, 2);
+  const hard3 = grade(id, 2);
+  return {
+    easyGraduation,
+    reset: { firstAgain, secondAgain, hard1, hard2, hard3, record: state.recs[id] },
+    fuzz: {
+      low: fuzz(10, 0), midpoint: fuzz(10, 0.5), high: fuzz(10, 0.999999),
+    },
+    labels: { days: fmtDays(29), month: fmtDays(38) },
+  };
+});
+ok(relearningDetails.easyGraduation.good === 12
+    && relearningDetails.easyGraduation.easy === 12
+    && relearningDetails.easyGraduation.ivl === 12
+    && relearningDetails.easyGraduation.ea === relearningDetails.easyGraduation.easeBefore,
+  'relearning Good and Easy can share retained spacing, and Easy does not raise ease there');
+ok(relearningDetails.reset.firstAgain === 'stay'
+    && relearningDetails.reset.secondAgain === 'stay'
+    && relearningDetails.reset.hard1 === 'stay'
+    && relearningDetails.reset.hard2 === 'stay'
+    && relearningDetails.reset.hard3 === 'done'
+    && relearningDetails.reset.record.st === 'r',
+  'another Again resets relearning, so graduation then takes three uninterrupted Hards');
+ok(relearningDetails.fuzz.low === 9
+    && relearningDetails.fuzz.midpoint === 10
+    && relearningDetails.fuzz.high === 11,
+  'the interval spread includes the unchanged midpoint as well as both one-day edges');
+ok(relearningDetails.labels.days === '29 days'
+    && relearningDetails.labels.month === '1 month',
+  'sub-month labels expose exact days while longer labels summarize the stored count');
 
 /* On the date itself there is no positive interval that can still land before
  * the exam. It must not manufacture a one-day cap and move cards to tomorrow. */
@@ -797,7 +948,7 @@ const subPercent = await page.evaluate(() => {
   const result = {
     ...home,
     progressHeading: document.querySelector('#mastery .h-part-n')?.textContent || '',
-    homePhrase: progressPercent(1, 200, 'known well'),
+    homePhrase: progressPercent(1, 200, 'solid'),
     groupPhrase: progressPercent(1, 200, 'solid'),
     zeroPhrase: progressPercent(0, 200, 'solid'),
     completePhrase: progressPercent(200, 200, 'solid'),
@@ -806,8 +957,8 @@ const subPercent = await page.evaluate(() => {
   group.title = originalTitle;
   return result;
 });
-ok(/less than 1% known well/.test(subPercent.label)
-    && subPercent.homePhrase === 'less than 1% known well'
+ok(/less than 1% solid/.test(subPercent.label)
+    && subPercent.homePhrase === 'less than 1% solid'
     && subPercent.groupPhrase === 'less than 1% solid'
     && subPercent.zeroPhrase === '0% solid'
     && subPercent.completePhrase === '100% solid',
@@ -846,7 +997,7 @@ const surface = await page.evaluate(() => {
 });
 ok(surface.boundary[0] === 'young' && surface.boundary[1] === 'mature',
   '20 days remains young and exactly 21 days remains solid');
-ok(surface.meta === '34 cards' && /2% known well/.test(surface.label)
+ok(surface.meta === '34 cards' && /2% solid/.test(surface.label)
     && surface.width === '2%' && surface.hidden === 'true',
   'a partial pending section exposes its 2% value and marks the visual meter decorative');
 ok(surface.roundedThreshold === 24,
@@ -855,7 +1006,7 @@ ok(surface.roundedThreshold === 24,
 // Assert through the accessibility tree, then operate the real control. Direct
 // DOM attributes alone still pass when an inert ancestor hides every control.
 await page.evaluate(() => go('home'));
-const progressButtons = page.getByRole('button', { name: /2% known well/i });
+const progressButtons = page.getByRole('button', { name: /2% solid/i });
 const progressButtonCount = await progressButtons.count();
 const progressButton = progressButtons.first();
 ok(progressButtonCount === 1 && await progressButton.isVisible(),

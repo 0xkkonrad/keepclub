@@ -214,8 +214,10 @@ answer "none of them exist".
 - Deck/media fetches go through `COURSE.base`.
 - **Sync is on for built-in courses** — `sync.js` uses one device key across
   course-specific progress blobs. The merge is commutative, idempotent and
-  associative; imported deck cards/media remain local and every deck still has
-  file backup. Three blocks travel: the review history, the notes, and the cards
+  associative; imported deck cards/media and review history remain local. Every
+  deck can export a backup, but a local deck's backup restores only into that
+  exact deck while it still exists in the same browser profile; it is not a
+  migration file. Three blocks travel for built-in courses: the review history, the notes, and the cards
   you have written and fixed — the last as its own block beside the state, never
   inside it, because `mergeState` rebuilds that document key by key. The blob is
   bounded at 262,144 bytes by `sync.apps.max_bytes` in the backend's own
@@ -226,6 +228,14 @@ answer "none of them exist".
   A merge is adopted whole or not at all: `adoptMerged()` asks the single-writer
   lease once, before it touches either document, and it says what the round cost
   itself rather than leaving that to whatever asked for the sync.
+
+## Scheduler and learner help
+
+Keep club uses its own simplified SM-2-inspired scheduler. It does not run
+Anki's legacy scheduler or FSRS, and Anki imports do not bring review history.
+The public `docs/studying/` page is the learner-facing explanation of grades,
+exam planning, practice, and solid progress. The precise internal contract and
+documentation-drift checklist live in `../docs/scheduler.md`.
 
 ## Deploy
 

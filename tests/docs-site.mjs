@@ -11,6 +11,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const WEB = path.join(ROOT, 'web');
 const DOCS = path.join(WEB, 'docs');
 const GUIDE = path.join(DOCS, 'index.html');
+const LEARNER = path.join(DOCS, 'studying', 'index.html');
 const ERRORS = path.join(DOCS, 'reference', 'errors', 'index.html');
 const SCHEMA = path.join(DOCS, 'schema', 'course-v2.schema.json');
 const passed = [], failed = [];
@@ -28,9 +29,21 @@ ok(fs.readFileSync(SCHEMA).equals(
 'the downloadable schema is byte-identical to the frozen source schema');
 
 const guide = read(GUIDE);
+const learner = read(LEARNER);
+const learnerText = learner.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
 const errors = read(ERRORS);
+const docsCss = read(path.join(DOCS, 'docs.css'));
+ok(docsCss.includes('.mobile-nav:not([open]) nav')
+    && /\.mobile-nav:not\(\[open\]\) nav\s*\{\s*display: none;/s.test(docsCss),
+  'closed mobile documentation menus do not overlap the page they disclose');
+ok(docsCss.includes('.top-links a:not(:last-child)')
+    && learner.includes('<a href="../">Create a course</a>'),
+  'phone headers stay one line while the mobile guide retains cross-doc navigation');
+ok(/@media \(max-width: 760px\)[\s\S]*?html\s*\{[\s\S]*?scroll-padding-top:\s*7\.5rem;/s.test(docsCss),
+  'narrow deep links clear the wrapped sticky documentation header');
 for (const [name, html, canonical] of [
   ['creator guide', guide, 'https://keepclub.app/docs/'],
+  ['learner guide', learner, 'https://keepclub.app/docs/studying/'],
   ['error reference', errors, 'https://keepclub.app/docs/reference/errors/'],
 ]) {
   ok(/<!doctype html>/i.test(html) && /<html lang="en">/.test(html)
@@ -41,6 +54,8 @@ for (const [name, html, canonical] of [
   ok(/<a class="skip" href="#content">/.test(html)
       && /<nav\b/.test(html) && /<main id="content">/.test(html),
   `${name} has keyboard skip, navigation, and main landmarks`);
+  ok(html.includes('<summary>Guides and this page</summary>'),
+    `${name} names its mobile sibling-guide navigation honestly`);
 }
 
 const requiredGuideSections = [
@@ -49,6 +64,7 @@ const requiredGuideSections = [
 ];
 for (const id of requiredGuideSections) {
   ok(guide.includes(`id="${id}"`), `creator journey includes #${id}`);
+  ok(guide.includes(`href="#${id}"`), `creator mobile navigation reaches #${id}`);
 }
 for (const phrase of [
   'schemaVersion: 2',
@@ -66,6 +82,49 @@ for (const phrase of [
   'loadingAnimation',
 ]) {
   ok(guide.includes(phrase), `creator guide covers “${phrase}”`);
+}
+
+const requiredLearnerSections = [
+  'daily-study', 'grades', 'learning', 'daily-plan', 'exam', 'progress',
+  'practice', 'slipping', 'details',
+];
+for (const id of requiredLearnerSections) {
+  ok(learner.includes(`id="${id}"`), `learner journey includes #${id}`);
+  ok(learner.includes(`href="#${id}"`), `learner mobile navigation reaches #${id}`);
+}
+for (const phrase of [
+  'Hard is still a correct answer',
+  'retains roughly 40% of its ordinary spacing',
+  'behind about four other cards',
+  'third Hard moves it into ordinary reviews',
+  'a second moves it back to roughly the ordinary spacing',
+  'Another Again during relearning resets that step',
+  'Good and Easy can graduate to the same retained gap',
+  'first 60% of the remaining time',
+  'about one fifth of the whole days left',
+  'existing schedules from the date each current interval was originally earned',
+  'can make an older card due immediately',
+  'daily repeat limit still decides',
+  'Due repeats can still be waiting outside a spent repeat limit',
+  'ordinary spacing has reached at least 21 days',
+  'receives no half-credit',
+  'old 50% can become 0%',
+  'manufactured exactly 50%',
+  'does not delete your answers',
+  'up to 20 of the soonest future reviews',
+  'Practice even while due cards remain',
+  'Practice does not change due dates',
+  'cumulative history flag',
+  'spread by about 5%',
+  'random roll can still land on the original day',
+  'month and year labels are rounded summaries',
+  'simplified SM-2-inspired scheduler',
+  '400 days',
+  'browser profile on this device',
+  'One Sync key is permission',
+  'cannot move imported-deck review history',
+]) {
+  ok(learnerText.includes(phrase), `learner guide explains “${phrase}”`);
 }
 
 const examples = [...guide.matchAll(
@@ -89,10 +148,17 @@ for (const code of diagnosticCodes) {
   const id = code.replace(/[._]/g, '-');
   ok(errors.includes(`id="${id}"`), `error reference owns #${id}`);
 }
+for (const title of [...diagnostics.matchAll(/^## (.+)$/gm)].map((match) => match[1])) {
+  const id = title.toLowerCase().replace(/[._\s]+/g, '-')
+    .replace(/[^a-z0-9-]/g, '').replace(/-+/g, '-');
+  ok(errors.includes(`href="#${id}"`), `error mobile navigation reaches #${id}`);
+}
 ok(errors.includes('id="legacy-compatibility"')
     && errors.includes('This is not a public authoring format.')
     && errors.includes('format-2 <code>.keep.yml</code>'),
   'the error reference separates legacy troubleshooting from the public authoring contract');
+ok(errors.includes('.diagnostics dt code { overflow-wrap: anywhere; }'),
+  'long diagnostic codes wrap instead of widening a phone-sized document');
 
 const legacyFailure = normalizeLegacyCourse({
   format: 1,
@@ -123,7 +189,7 @@ function resolveDocument(file, value) {
   return { target, fragment };
 }
 
-for (const file of [GUIDE, ERRORS]) {
+for (const file of [GUIDE, LEARNER, ERRORS]) {
   const html = read(file);
   const attributes = [...html.matchAll(/\b(?:href|src)="([^"]+)"/g)]
     .map((match) => match[1]);
@@ -151,10 +217,55 @@ ok(schemaUrl.hostname === 'docs.keepclub.app'
 'the immutable docs-host schema URL maps to a deployed same-tree artifact');
 
 const serviceWorker = read(path.join(WEB, 'sw.js'));
-const docsBypass = serviceWorker.indexOf("url.pathname === SCOPE + 'docs'");
+const docsHandling = serviceWorker.indexOf("const docsRoot = SCOPE + 'docs'");
 const navigation = serviceWorker.indexOf("if (req.mode === 'navigate')");
-ok(docsBypass >= 0 && docsBypass < navigation,
-  'the app service worker leaves docs routing alone before navigation fallback');
+ok(docsHandling >= 0 && docsHandling < navigation
+    && serviceWorker.includes("'docs/'")
+    && serviceWorker.includes("'docs/studying/'")
+    && serviceWorker.includes("'docs/reference/errors/'")
+    && serviceWorker.includes('hit || Response.error()'),
+  'the service worker gives cached docs their own offline path before app navigation fallback');
+const appHtml = read(path.join(WEB, 'index.html'));
+const shelf = read(path.join(WEB, 'munin.js'));
+const appCode = read(path.join(WEB, 'app.js'));
+const achievements = read(path.join(WEB, 'achievements.js'));
+const importCode = read(path.join(WEB, 'import.js'));
+const importReceipt = read(path.join(WEB, 'lib', 'receipt.js'));
+ok(/id="studying-guide"[^>]+href="docs\/studying\/"/.test(appHtml)
+    && /id="about-study-guide"[^>]+href="docs\/studying\/"/.test(appHtml)
+    && /id="progress-guide"[^>]+href="docs\/studying\/#progress"/.test(appHtml)
+    && /href="docs\/studying\/"[^>]*>Read the full/.test(shelf),
+  'Progress, Settings, About, and first-run help all lead to the learner guide');
+ok(!/Cards you find hard come back within minutes/.test(shelf)
+    && !/Every card comes back at least once before you sit it/.test(appCode)
+    && !/Anything over this waits until tomorrow/.test(appHtml)
+    && !/cards that keep slipping|No cards are slipping yet/.test(appCode)
+    && !/kept slipping is solid again/.test(achievements),
+  'known misleading scheduler promises are absent from shipped copy');
+const settingsText = appHtml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+ok(settingsText.includes('same key covers every built-in course')
+    && settingsText.includes('cannot move review history to another browser or phone')
+    && shelf.includes('cannot move that history to another browser or phone')
+    && appCode.includes('browser profile only'),
+  'in-app help states the Sync capability and browser-profile backup boundary');
+ok(!/shares your deck|no file holds the deck|Nothing is due\. Practice/.test(
+  `${appHtml}\n${appCode}`)
+    && !/imported reviews|kept a memory over lunch/.test(achievements)
+    && achievements.includes('local-deck answers')
+    && achievements.includes('studied over lunch'),
+  'shipped progress and achievement copy does not overclaim its underlying metric');
+ok(importCode.includes('stays in this browser profile')
+    && importCode.includes('Settings → Deck file')
+    && importCode.includes('Backup separately protects')
+    && importReceipt.includes('studying starts in this browser profile')
+    && !/stays on this device|no backup file holds|only place it exists|studying stays on this device/.test(
+      `${importCode}\n${importReceipt}`),
+  'import and creation help distinguishes browser storage, Deck file, and local backup');
+const rootReadme = read(path.join(ROOT, 'README.md'));
+ok(rootReadme.includes('Settings → Keeping your progress')
+    && rootReadme.includes('docs/scheduler.md')
+    && guide.includes('Settings →\n          Keeping your progress → Deck file'),
+  'repository and creator docs point to the current controls and scheduler contract');
 const deploy = read(path.join(ROOT, 'scripts', 'deploy-to-keepclub.sh'));
 ok(deploy.includes('scripts/build-docs.mjs" --check')
     && deploy.indexOf('scripts/build-docs.mjs" --check') < deploy.indexOf('rsync -a'),
@@ -188,6 +299,7 @@ try {
   const origin = `http://127.0.0.1:${server.address().port}`;
   for (const [route, expectedType] of [
     ['/docs/', 'text/html'],
+    ['/docs/studying/', 'text/html'],
     ['/docs/reference/errors/', 'text/html'],
     ['/docs/docs.css', 'text/css'],
     ['/docs/tower.svg', 'image/svg+xml'],
