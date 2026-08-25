@@ -1,0 +1,181 @@
+{
+  "schemaVersion": 1,
+  "review": {
+    "title": "Keep Club minimal feedback placement review (02/03)",
+    "date": "2026-08-22",
+    "target": {
+      "repository": "/workspaces/sandbox/projects/keepclub",
+      "sha": "c702c0a6ab03ef245a509f720d6083c74e918801",
+      "pinnedWorktree": "/tmp/keepclub-feedback-minimal-review.jLmyUj/target"
+    },
+    "scope": [
+      "proposal 02 shelf placement",
+      "proposal 03 existing-card Edit placement",
+      "narrow, Biggest, and short-landscape layout",
+      "focus order and accessible naming",
+      "modal ownership and dirty-edit preservation",
+      "built-in versus imported-card context privacy"
+    ],
+    "killList": {
+      "path": "/tmp/keepclub-feedback-minimal-review.jLmyUj/kill-list.md",
+      "rulings": ["Full text only in Settings", "Contextual duplicates are tiny ? marks", "Layered approach accepted", "Edit remains one tap from Study and Browse", "2026-08-24: Theme belongs in Settings and is removed from shelf screens"],
+      "recordedOnly": ["48px target convention", "Imported card content remains local and absent from automatic report context"]
+    },
+    "toolingDeviation": "Workflow was unavailable; independent read-only collaboration waves and main-loop Chromium probes were used against a pinned worktree."
+  },
+  "stats": {
+    "found": 11,
+    "verified": 8,
+    "refuted": 3,
+    "inconclusive": 0,
+    "refutedPercent": 27.3,
+    "killedByKillList": 0,
+    "overturnedByHand": 0
+  },
+  "survivingRecommendation": {
+    "proposal02": {
+      "placement": "Replace the existing 48x48 shelf Theme control with Help in .shelf-mark",
+      "coldShelf": "Show one 48x48 visual ? in the former Theme slot; keep Share completely unchanged.",
+      "courseOverlay": "Show the same 48x48 ? immediately before Close, preserving the existing two-control header geometry.",
+      "accessibleName": "Help and feedback",
+      "owner": "munin.js or a shell module loaded by it",
+      "modalRule": "Replace the overlay shelf or use an internal view; never stack aria-modal siblings."
+    },
+    "proposal03": {
+      "placement": "Immediately before Close in the sticky existing-card Edit sheet bar",
+      "target": "48x48px with a 15-17px painted ?",
+      "accessibleName": "Report a problem with this card",
+      "visibility": "existing card only; hidden for New card",
+      "navigation": "Internal card-sheet feedback subview; preserve textareas and card identity; visible Back, Escape, and browser/Android Back return to Edit first.",
+      "privacy": "Attach only a safe built-in card reference. Imported cards attach no identifier or content.",
+      "studyTradeoff": "No permanent Study-header icon in the minimal pass; active non-card Study issues remain uncovered."
+    }
+  },
+  "verdicts": [
+    {
+      "id": "M02-1",
+      "verdict": "REFUTED",
+      "severity": "MED",
+      "claim": "The best shelf option converts Share to an icon and pairs it with ?.",
+      "evidence": "Keeping the existing Share pill plus ? preserves the stateful share labels and has the same reachable-state height with no overflow.",
+      "anchors": ["web/munin.js:1385-1392", "web/munin.js:1792-1805", "web/munin.js:1889-1893"],
+      "failureScenario": {"state": "320px cold/default shelf", "input": "Replace the stateful Share pill with a fixed 48px glyph button", "wrongOutput": "shareShelf replaces the glyph with shared/copied/try again text that overflows, then restores literal share text instead of the icon"},
+      "verification": {"independentVerifier": "REFUTED", "mainLoopHandRepro": "Counterexample confirmed: unchanged Share plus ? stays 48px high with no overflow"}
+    },
+    {
+      "id": "M02-2",
+      "verdict": "VERIFIED",
+      "severity": "MED",
+      "claim": "Adding a shelf-header ? while retaining Theme is not viable in the current 320px overlay/Biggest layout.",
+      "evidence": "Independent probes reproduced 7-8px overflow for Theme + Help + Close. The 2026-08-24 ruling removes Theme; Help + Close reuses the baseline geometry with zero overflow.",
+      "anchors": ["web/munin.js:1372-1384", "web/munin.js:1965-1986", "web/munin.js:2006-2012"],
+      "failureScenario": {"state": "320x568 course overlay at Biggest text", "input": "Insert a 48px Help target without removing Theme", "wrongOutput": "The 280px header scroll width grows to 287-288px and runs into right padding"},
+      "verification": {"independentVerifier": "VERIFIED for the additive variant", "mainLoopHandRepro": "Amended replacement variant verified: Help x194-242, Close x252-300, zero overflow"}
+    },
+    {
+      "id": "M02-3",
+      "verdict": "VERIFIED",
+      "severity": "MED",
+      "claim": "A visually tiny glyph still needs a 44-48px target, visible focus, and explicit accessible name.",
+      "evidence": "Keep Club's target convention is 48px; injected controls exposed visible focus and predictable keyboard order.",
+      "anchors": ["web/app.css:69", "web/app.css:205-208", "web/app.css:382-387"],
+      "failureScenario": {"state": "Keyboard or screen-reader use", "input": "Render only a glyph-sized unnamed ?", "wrongOutput": "The target is too small and announces only an ambiguous question mark"},
+      "verification": {"independentVerifier": "VERIFIED", "mainLoopHandRepro": "VERIFIED 48x48 geometry and focus-visible treatment"}
+    },
+    {
+      "id": "M02-4",
+      "verdict": "REFUTED",
+      "severity": "MED",
+      "claim": "How/footer/corner placements are categorically inferior.",
+      "evidence": "How and footer were below the first viewport, but absolute positioning does not inherently break DOM focus order.",
+      "anchors": ["web/munin.js:1894-1930", "web/app.css:616-624"],
+      "failureScenario": {"state": "320x568 shelf", "input": "Place Help in collapsed How, footer, or an unspecified absolute corner", "wrongOutput": "How/footer are offscreen, but no universal wrong output was proven for every possible corner implementation"},
+      "verification": {"independentVerifier": "REFUTED as a categorical combined claim", "mainLoopHandRepro": "How/footer reachability confirmed; blanket corner failure not confirmed"}
+    },
+    {
+      "id": "M02-5",
+      "verdict": "VERIFIED",
+      "severity": "HIGH",
+      "claim": "The cold-shelf entry cannot be implemented only in app.js.",
+      "evidence": "munin.js renders the cold shelf before app.js loads.",
+      "anchors": ["web/munin.js:1-8", "web/munin.js:1831-1951", "web/index.html:746-754"],
+      "failureScenario": {"state": "Fresh profile with no selected course", "input": "Implement shelf Help only in app.js", "wrongOutput": "The shelf renders without the Help markup or handler because app.js is not loaded"},
+      "verification": {"independentVerifier": "VERIFIED", "mainLoopHandRepro": "VERIFIED: fresh cold shelf loaded munin.js and related shell scripts, not app.js"}
+    },
+    {
+      "id": "M03-1",
+      "verdict": "VERIFIED",
+      "severity": "MED",
+      "claim": "A 48px ? immediately before Close is the least intrusive existing-card Edit placement and fits 320x568/Biggest.",
+      "evidence": "The bar remained 316x74px without overflow; Help and Close had 48px targets and 8px gaps.",
+      "anchors": ["web/index.html:480-486", "web/app.css:1767-1795", "web/app.js:3971-4084"],
+      "failureScenario": {"state": "Existing-card Edit at 320x568/Biggest and 568x320/Biggest", "input": "Insert a 48px ? immediately before Close", "wrongOutput": "Candidate would fail if it overflowed, grew the sticky bar, or appeared for New card; none occurred when visibility was conditional"},
+      "verification": {"independentVerifier": "VERIFIED", "mainLoopHandRepro": "VERIFIED portrait and short-landscape geometry; mockup New-card state hides ?"}
+    },
+    {
+      "id": "M03-2",
+      "verdict": "VERIFIED",
+      "severity": "HIGH",
+      "claim": "Edit feedback must use an internal subview and preserve dirty values across Back/Escape.",
+      "evidence": "closeCardSheet clears cardSheet and both textareas; the live Close/reopen probe lost the dirty sentinel.",
+      "anchors": ["web/app.js:4041-4106", "web/app.js:6271-6362", "web/app.js:7680-7686"],
+      "failureScenario": {"state": "Dirty Question and Answer in Edit", "input": "Open feedback, then press visible Back, Escape, or browser/Android Back", "wrongOutput": "Current closeCardSheet path clears the edit and leaves the sheet instead of returning to Edit"},
+      "verification": {"independentVerifier": "VERIFIED", "mainLoopHandRepro": "VERIFIED dirty loss in current close/reopen path; mockup preserves the sentinel for all three return mechanisms"}
+    },
+    {
+      "id": "M03-3",
+      "verdict": "VERIFIED",
+      "severity": "MED",
+      "claim": "Form-footer and per-Browse-row report controls are inferior.",
+      "evidence": "At Biggest, the form action began below the 568px viewport; Browse exposed 40 repeated Edit targets and a 58px gutter before any report control.",
+      "anchors": ["web/index.html:495-518", "web/app.css:1315-1359", "web/app.css:1773-1795"],
+      "failureScenario": {"state": "320x568/Biggest Edit or a 40-row Browse result", "input": "Put Report in the form footer or beside every row Edit", "wrongOutput": "Footer starts below the viewport; per-row cluster grows to 109px and overlaps or forces substantially narrower questions"},
+      "verification": {"independentVerifier": "VERIFIED", "mainLoopHandRepro": "VERIFIED footer position and Browse repetition/gutter"}
+    },
+    {
+      "id": "M03-4",
+      "verdict": "REFUTED",
+      "severity": "MED",
+      "claim": "Settings already covers active non-card Study problems, so a Study icon has no coverage value.",
+      "evidence": "Study has no Settings control; leaving clears the active session. Omitting the icon is an accepted minimalism tradeoff, not equivalent coverage.",
+      "anchors": ["web/index.html:135-146", "web/index.html:199-210", "web/app.js:2084-2108", "web/app.js:7895-7905"],
+      "failureScenario": {"state": "Active Study queue with a non-card bug", "input": "Try to reach generic feedback through Settings", "wrongOutput": "No Settings control exists; leaving Study clears the session before the user can report"},
+      "verification": {"independentVerifier": "REFUTED", "mainLoopHandRepro": "Coverage gap confirmed; omission retained only as an explicit scope tradeoff"}
+    },
+    {
+      "id": "M03-5",
+      "verdict": "VERIFIED",
+      "severity": "MED",
+      "claim": "The Edit ? needs an explicit card-report name and must precede Close in DOM and visual order.",
+      "evidence": "This preserves an edge-most Close control, predictable Report -> Close -> form traversal, and a meaningful accessible name.",
+      "anchors": ["web/index.html:480-486", "web/app.css:205-208", "web/app.css:382-387", "web/app.css:1773-1795"],
+      "failureScenario": {"state": "Keyboard or screen-reader use in Edit", "input": "Use an unnamed ? or append it after Close", "wrongOutput": "The action is announced ambiguously and Close stops being the familiar edge-most dismissal control"},
+      "verification": {"independentVerifier": "VERIFIED", "mainLoopHandRepro": "VERIFIED 48px targets, 8px gap, visible focus, explicit name, and Report -> Close -> form order"}
+    }
+  ],
+  "additionalFinding": {
+    "id": "M02-6",
+    "verdict": "VERIFIED",
+    "severity": "MED",
+    "claim": "Opening feedback from the already-modal course shelf overlay must not stack another modal.",
+    "anchors": ["web/munin.js:1874-1880", "web/munin.js:1953-2012", "web/app.js:6322-6362"],
+    "failureScenario": {"state": "Course overlay open with its focus/Escape trap active", "input": "Stack and focus a sibling aria-modal feedback dialog, then press Escape", "wrongOutput": "The shelf handler removes the shelf and leaves the sibling feedback modal orphaned"},
+    "verification": {"independentVerifier": "VERIFIED from source ownership", "mainLoopHandRepro": "VERIFIED by runtime sibling-dialog injection: two modals before Escape, orphan feedback modal after Escape"}
+  },
+  "mainLoopHandRepro": {
+    "shelfColdDefault": {"viewport": "320x568", "headerHeight": 48, "help": "48x48 in former Theme slot", "overflow": 0},
+    "shelfOverlayBiggest": {"viewport": "320x568", "headerHeight": 92.6875, "help": "x194-242", "close": "x252-300", "overflow": 0, "initialFocus": "Close courses", "shiftTab": "Help and feedback"},
+    "editBiggest": {"viewport": "320x568", "bar": "316x74", "help": "x194-242", "close": "x250-298", "overflow": 0},
+    "editShortLandscape": {"viewport": "568x320", "barHeight": 74, "help": "48x48", "close": "48x48", "gap": 8, "overflow": 0},
+    "dirtyEdit": {"sentinelSurvivedCloseReopen": false, "restoredOriginal": "What is Git?", "mockBrowserBackPreservedSentinel": true},
+    "stackedShelfModal": {"visibleModalsBeforeEscape": ["shelf", "probe-feedback"], "visibleModalsAfterEscape": ["probe-feedback"], "shelfRemoved": true},
+    "coldShelfScripts": ["sync.js", "doodles-munin.js", "achievements.js", "share.js", "notifications.js", "munin.js"]
+  },
+  "amendments": [
+    {
+      "date": "2026-08-24",
+      "ruling": "Theme already lives in Settings and is removed from the shelf screens.",
+      "effect": "Proposal 02 moves Help from the shelf intro row into the vacated Theme slot; the prior additive header-overflow finding no longer applies to the surviving design."
+    }
+  ]
+}
