@@ -1,0 +1,2081 @@
+{
+  "date": "2026-09-22",
+  "originalCandidate": "a6df992c05d2fa669f0eb74c3909f92a705d8a88",
+  "correctedCandidate": "1ca2a160ff40f37c4a4514288ecc934c05d2e65c",
+  "finalCardsSha256": "19635742cfe81cf0159d65cb836d67c515b19603b59dac5cdb470f5e54971143",
+  "coverage": {
+    "cards": 87,
+    "terms": 100,
+    "sections": 20,
+    "singleTermCards": 78,
+    "pairedTermCards": 6,
+    "threeTermCards": 2,
+    "fourTermCards": 1,
+    "illustratedCards": 25,
+    "reusedDiagrams": 7,
+    "omittedCards": []
+  },
+  "checkedCards": [
+    {
+      "id": "e90241f3fe",
+      "question": "der Bug / das Heck",
+      "verdict": "PASS",
+      "rationale": "Both noun genders and translations match PONS; figure distinguishes fore and aft.",
+      "sourceUrls": [
+        "https://pons-langenscheidt-zusatzmaterial.de/shop-daten/landingpages/bildwoerterbuch/PONS_Bildwoerterbuch_Download_D-E_nach_Kapitel.pdf"
+      ],
+      "figureChecked": {
+        "figureId": "hull-plan",
+        "highlightedLabels": [
+          "bow",
+          "stern"
+        ],
+        "verdict": "PASS"
+      },
+      "reviewerScope": "01–07",
+      "finalQuestion": "der Bug / das Heck",
+      "finalSection": "boat-directions",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "287d7a86d1",
+      "question": "Backbord / Steuerbord",
+      "verdict": "PASS",
+      "rationale": "Both sides use the bow-facing reference; figure highlights the correct side and colour.",
+      "sourceUrls": [
+        "https://www.endeavour-sailing.co.uk/training-information/glossary-of-sailing-terms",
+        "https://www.segelschule-schweiz.ch/lexikon.php"
+      ],
+      "figureChecked": {
+        "figureId": "hull-plan",
+        "highlightedLabels": [
+          "port",
+          "starboard"
+        ],
+        "verdict": "PASS"
+      },
+      "reviewerScope": "01–07",
+      "finalQuestion": "Backbord / Steuerbord",
+      "finalSection": "boat-directions",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "3fd524f9e0",
+      "question": "mittschiffs",
+      "verdict": "PASS",
+      "rationale": "Adverb and amidships meaning correct; helm command accurately means rudder centred. Figure applies.",
+      "sourceUrls": [
+        "https://www.duden.de/rechtschreibung/mittschiffs",
+        "https://www.royal-yacht-academy.de/start/service/tipps-grundbegriffe/"
+      ],
+      "figureChecked": {
+        "figureId": "hull-plan",
+        "highlightedLabels": [
+          "amidships"
+        ],
+        "verdict": "PASS"
+      },
+      "reviewerScope": "01–07",
+      "finalQuestion": "mittschiffs",
+      "finalSection": "boat-directions",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "2f5544e458",
+      "question": "voraus",
+      "verdict": "PASS",
+      "rationale": "Ahead and forward motion are correct senses; example adds the movement context.",
+      "sourceUrls": [
+        "https://www.duden.de/rechtschreibung/voraus",
+        "https://www.endeavour-sailing.co.uk/training-information/glossary-of-sailing-terms"
+      ],
+      "reviewerScope": "01–07",
+      "finalQuestion": "voraus",
+      "finalSection": "relative-directions",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "979a4cc592",
+      "question": "achteraus",
+      "verdict": "PASS",
+      "rationale": "Astern and backward motion are correct; does not conflate behind the boat with its aft deck.",
+      "sourceUrls": [
+        "https://www.duden.de/rechtschreibung/achteraus",
+        "https://www.endeavour-sailing.co.uk/training-information/glossary-of-sailing-terms"
+      ],
+      "reviewerScope": "01–07",
+      "finalQuestion": "achteraus",
+      "finalSection": "relative-directions",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "7955561190",
+      "question": "querab",
+      "verdict": "PASS",
+      "rationale": "Correct right-angle relationship to the boat; no port or starboard reversal.",
+      "sourceUrls": [
+        "https://www.duden.de/rechtschreibung/querab",
+        "https://www.endeavour-sailing.co.uk/training-information/glossary-of-sailing-terms"
+      ],
+      "reviewerScope": "01–07",
+      "finalQuestion": "querab",
+      "finalSection": "relative-directions",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "ca5bc7403b",
+      "question": "an Bord",
+      "verdict": "PASS",
+      "rationale": "Correct idiom for aboard and boarding; imperative Komm an Bord is grammatical.",
+      "sourceUrls": [
+        "https://www.duden.de/rechtschreibung/Bord_Schiffsdeck"
+      ],
+      "reviewerScope": "01–07",
+      "finalQuestion": "an Bord",
+      "finalSection": "relative-directions",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "ad78c0c3fc",
+      "question": "der Rumpf",
+      "verdict": "PASS",
+      "rationale": "PONS confirms masculine noun and hull translation.",
+      "sourceUrls": [
+        "https://pons-langenscheidt-zusatzmaterial.de/shop-daten/landingpages/bildwoerterbuch/PONS_Bildwoerterbuch_Download_D-E_nach_Kapitel.pdf"
+      ],
+      "reviewerScope": "01–07",
+      "finalQuestion": "der Rumpf",
+      "finalSection": "hull-and-steering",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "cb8f07ceb2",
+      "question": "der Kiel",
+      "verdict": "PASS",
+      "rationale": "Typical-yacht qualifier makes the fin-keel definition appropriate; drift resistance and ballast are correct.",
+      "sourceUrls": [
+        "https://www.duden.de/rechtschreibung/Kiel_am_Schiff",
+        "https://www.uksailmakers.com/encyclopedia/glossary/keel/"
+      ],
+      "reviewerScope": "01–07",
+      "finalQuestion": "der Kiel",
+      "finalSection": "hull-and-steering",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "8a43f43948",
+      "question": "das Ruder",
+      "verdict": "PASS",
+      "rationale": "Correct neuter and rudder translation; helm qualification avoids equating Ruder with only the wheel.",
+      "sourceUrls": [
+        "https://pons-langenscheidt-zusatzmaterial.de/shop-daten/landingpages/bildwoerterbuch/PONS_Bildwoerterbuch_Download_D-E_nach_Kapitel.pdf",
+        "https://www.royal-yacht-academy.de/start/service/tipps-grundbegriffe/",
+        "https://www.endeavour-sailing.co.uk/training-information/glossary-of-sailing-terms"
+      ],
+      "reviewerScope": "01–07",
+      "finalQuestion": "das Ruder",
+      "finalSection": "hull-and-steering",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "d86879dd55",
+      "question": "die Pinne",
+      "verdict": "PASS",
+      "rationale": "Feminine and tiller translation correct; steering lever definition matches the nautical sense.",
+      "sourceUrls": [
+        "https://www.duden.de/rechtschreibung/Pinne",
+        "https://pons-langenscheidt-zusatzmaterial.de/shop-daten/landingpages/bildwoerterbuch/PONS_Bildwoerterbuch_Download_D-E_nach_Kapitel.pdf"
+      ],
+      "reviewerScope": "01–07",
+      "finalQuestion": "die Pinne",
+      "finalSection": "hull-and-steering",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "1b819ffb97",
+      "question": "das Steuerrad",
+      "verdict": "PASS",
+      "rationale": "Neuter article and steering-wheel meaning correct.",
+      "sourceUrls": [
+        "https://www.duden.de/rechtschreibung/Steuerrad"
+      ],
+      "reviewerScope": "01–07",
+      "finalQuestion": "das Steuerrad",
+      "finalSection": "hull-and-steering",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "bed24d1f76",
+      "question": "die Wasserlinie",
+      "verdict": "PASS",
+      "rationale": "Waterline meaning correct; highlighted horizontal line crosses the hull at water level.",
+      "sourceUrls": [
+        "https://www.endeavour-sailing.co.uk/training-information/glossary-of-sailing-terms",
+        "https://www.segelschule-schweiz.ch/lexikon.php"
+      ],
+      "figureChecked": {
+        "figureId": "hull-profile",
+        "highlightedLabels": [
+          "waterline"
+        ],
+        "verdict": "PASS"
+      },
+      "reviewerScope": "01–07",
+      "finalQuestion": "die Wasserlinie",
+      "finalSection": "hull-in-water",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "b844d2633a",
+      "question": "der Tiefgang",
+      "verdict": "PASS",
+      "rationale": "Masculine and draught/draft correct; illustrated measurement ends at keel bottom, not seabed.",
+      "sourceUrls": [
+        "https://www.duden.de/rechtschreibung/Tiefgang",
+        "https://www.endeavour-sailing.co.uk/training-information/glossary-of-sailing-terms"
+      ],
+      "figureChecked": {
+        "figureId": "hull-profile",
+        "highlightedLabels": [
+          "draught",
+          "waterline"
+        ],
+        "verdict": "PASS"
+      },
+      "reviewerScope": "01–07",
+      "finalQuestion": "der Tiefgang",
+      "finalSection": "hull-in-water",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "d553c9df09",
+      "question": "das Freibord",
+      "verdict": "FINDING",
+      "rationale": "German article is wrong: Freibord is masculine; definition and measurement figure otherwise pass.",
+      "sourceUrls": [
+        "https://www.duden.de/rechtschreibung/Freibord",
+        "https://www.collinsdictionary.com/de/worterbuch/deutsch-englisch/freibord"
+      ],
+      "figureChecked": {
+        "figureId": "hull-profile",
+        "highlightedLabels": [
+          "freeboard",
+          "waterline"
+        ],
+        "verdict": "PASS"
+      },
+      "reviewerScope": "01–07",
+      "finalQuestion": "der Freibord",
+      "finalSection": "hull-in-water",
+      "finalVerdict": "PASS_AFTER_CORRECTION"
+    },
+    {
+      "id": "61114a3d8e",
+      "question": "die Krängung",
+      "verdict": "PASS",
+      "rationale": "Feminine noun, spelling, heeling definition and verb krängen are correct.",
+      "sourceUrls": [
+        "https://www.duden.de/rechtschreibung/Kraengung",
+        "https://www.segelschule-schweiz.ch/lexikon.php",
+        "https://www.endeavour-sailing.co.uk/training-information/glossary-of-sailing-terms"
+      ],
+      "reviewerScope": "01–07",
+      "finalQuestion": "die Krängung",
+      "finalSection": "hull-in-water",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "1340bb654a",
+      "question": "die Bilge",
+      "verdict": "PASS",
+      "rationale": "Feminine noun and internal collecting-space meaning correct; does not confuse bilge with keel.",
+      "sourceUrls": [
+        "https://www.duden.de/rechtschreibung/Bilge"
+      ],
+      "reviewerScope": "01–07",
+      "finalQuestion": "die Bilge",
+      "finalSection": "hull-in-water",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "608c09e7a4",
+      "question": "das Deck",
+      "verdict": "PASS",
+      "rationale": "Correct neuter, top-surface definition and article-free idiom an Deck.",
+      "sourceUrls": [
+        "https://www.duden.de/rechtschreibung/Deck"
+      ],
+      "reviewerScope": "01–07",
+      "finalQuestion": "das Deck",
+      "finalSection": "deck-and-openings",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "f4e6795142",
+      "question": "das Cockpit",
+      "verdict": "PASS",
+      "rationale": "PONS confirms das Cockpit; Duden confirms die Plicht as its nautical synonym.",
+      "sourceUrls": [
+        "https://pons-langenscheidt-zusatzmaterial.de/shop-daten/landingpages/bildwoerterbuch/PONS_Bildwoerterbuch_Download_D-E_nach_Kapitel.pdf",
+        "https://www.duden.de/rechtschreibung/Plicht"
+      ],
+      "reviewerScope": "01–07",
+      "finalQuestion": "das Cockpit",
+      "finalSection": "deck-and-openings",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "0dc6bbfd8a",
+      "question": "der Niedergang",
+      "verdict": "PASS",
+      "rationale": "Correct masculine nautical sense and companionway translation; entrance plus steps are appropriately described.",
+      "sourceUrls": [
+        "https://www.duden.de/rechtschreibung/Niedergang",
+        "https://www.segelschule-schweiz.ch/lexikon.php",
+        "https://www.endeavour-sailing.co.uk/training-information/glossary-of-sailing-terms"
+      ],
+      "reviewerScope": "01–07",
+      "finalQuestion": "der Niedergang",
+      "finalSection": "deck-and-openings",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "d067d153ab",
+      "question": "die Luke",
+      "verdict": "PASS",
+      "rationale": "Correct feminine noun and closable opening; deck/cabin-top context is suitable.",
+      "sourceUrls": [
+        "https://www.duden.de/rechtschreibung/Luke",
+        "https://www.endeavour-sailing.co.uk/training-information/glossary-of-sailing-terms"
+      ],
+      "reviewerScope": "01–07",
+      "finalQuestion": "die Luke",
+      "finalSection": "deck-and-openings",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "f56f4faa94",
+      "question": "die Backskiste",
+      "verdict": "PASS",
+      "rationale": "Cockpit-seat stowage is the intended Backskiste sense; often qualifier is appropriate.",
+      "sourceUrls": [
+        "https://www.segelschule-schweiz.ch/lexikon.php"
+      ],
+      "reviewerScope": "01–07",
+      "finalQuestion": "die Backskiste",
+      "finalSection": "deck-and-openings",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "fbcfbf5d68",
+      "question": "die Reling / die Relingsstütze",
+      "verdict": "PASS",
+      "rationale": "Related two-term set works; rail wires and upright posts are clearly distinguished by definition and figure.",
+      "sourceUrls": [
+        "https://www.duden.de/rechtschreibung/Reling",
+        "https://www.uksailmakers.com/encyclopedia/glossary/stanchion/"
+      ],
+      "figureChecked": {
+        "figureId": "deck-fittings",
+        "highlightedLabels": [
+          "guardrails",
+          "stanchions"
+        ],
+        "verdict": "PASS"
+      },
+      "reviewerScope": "01–07",
+      "finalQuestion": "die Reling / die Relingsstütze",
+      "finalSection": "rails-and-cleats",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "ea99fb2db0",
+      "question": "der Bugkorb",
+      "verdict": "PASS",
+      "rationale": "Bow rail/pulpit correct; highlighted rigid rail is at the pointed bow.",
+      "sourceUrls": [
+        "https://www.endeavour-sailing.co.uk/training-information/glossary-of-sailing-terms"
+      ],
+      "figureChecked": {
+        "figureId": "deck-fittings",
+        "highlightedLabels": [
+          "pulpit"
+        ],
+        "verdict": "PASS"
+      },
+      "reviewerScope": "01–07",
+      "finalQuestion": "der Bugkorb",
+      "finalSection": "rails-and-cleats",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "08dfc889c8",
+      "question": "der Heckkorb",
+      "verdict": "PASS",
+      "rationale": "Stern rail/pushpit correct; highlighted rigid rail is at the flat transom.",
+      "sourceUrls": [
+        "https://www.endeavour-sailing.co.uk/training-information/glossary-of-sailing-terms"
+      ],
+      "figureChecked": {
+        "figureId": "deck-fittings",
+        "highlightedLabels": [
+          "pushpit"
+        ],
+        "verdict": "PASS"
+      },
+      "reviewerScope": "01–07",
+      "finalQuestion": "der Heckkorb",
+      "finalSection": "rails-and-cleats",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "c77f1e709b",
+      "question": "die Klampe",
+      "verdict": "PASS",
+      "rationale": "Feminine and cleat correct; illustrated fitting is a horn cleat, matching the definition.",
+      "sourceUrls": [
+        "https://www.duden.de/rechtschreibung/Klampe",
+        "https://www.endeavour-sailing.co.uk/training-information/glossary-of-sailing-terms"
+      ],
+      "figureChecked": {
+        "figureId": "deck-fittings",
+        "highlightedLabels": [
+          "cleat"
+        ],
+        "verdict": "PASS"
+      },
+      "reviewerScope": "01–07",
+      "finalQuestion": "die Klampe",
+      "finalSection": "rails-and-cleats",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "4d5f075010",
+      "question": "der Mast",
+      "verdict": "PASS",
+      "rationale": "PONS confirms masculine mast; upright spar is correctly highlighted.",
+      "sourceUrls": [
+        "https://pons-langenscheidt-zusatzmaterial.de/shop-daten/landingpages/bildwoerterbuch/PONS_Bildwoerterbuch_Download_D-E_nach_Kapitel.pdf"
+      ],
+      "figureChecked": {
+        "figureId": "sail-parts",
+        "highlightedLabels": [
+          "mast"
+        ],
+        "verdict": "PASS"
+      },
+      "reviewerScope": "01–07",
+      "finalQuestion": "der Mast",
+      "finalSection": "mast-and-stays",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "5f747e355b",
+      "question": "der Baum",
+      "verdict": "PASS",
+      "rationale": "PONS confirms masculine boom; figure highlights the spar beneath the sail foot.",
+      "sourceUrls": [
+        "https://pons-langenscheidt-zusatzmaterial.de/shop-daten/landingpages/bildwoerterbuch/PONS_Bildwoerterbuch_Download_D-E_nach_Kapitel.pdf",
+        "https://www.segelschule-schweiz.ch/lexikon.php"
+      ],
+      "figureChecked": {
+        "figureId": "sail-parts",
+        "highlightedLabels": [
+          "boom"
+        ],
+        "verdict": "PASS"
+      },
+      "reviewerScope": "01–07",
+      "finalQuestion": "der Baum",
+      "finalSection": "mast-and-stays",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "d60b668d74",
+      "question": "das Vorstag",
+      "verdict": "PASS",
+      "rationale": "Correct neuter, forward mast support and forestay translation; diagram highlights the bow-leading stay.",
+      "sourceUrls": [
+        "https://www.segelschule-schweiz.ch/lexikon.php",
+        "https://www.endeavour-sailing.co.uk/training-information/glossary-of-sailing-terms",
+        "https://www.svb.de/de/kategorie/stagen-wantenspanner"
+      ],
+      "figureChecked": {
+        "figureId": "rigging",
+        "highlightedLabels": [
+          "forestay"
+        ],
+        "verdict": "PASS"
+      },
+      "reviewerScope": "01–07",
+      "finalQuestion": "das Vorstag",
+      "finalSection": "mast-and-stays",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "0969f5b69c",
+      "question": "das Achterstag",
+      "verdict": "PASS",
+      "rationale": "Correct neuter and aft mast support; diagram highlights the stern-leading backstay.",
+      "sourceUrls": [
+        "https://www.segelschule-schweiz.ch/lexikon.php",
+        "https://www.svb.de/de/kategorie/stagen-wantenspanner"
+      ],
+      "figureChecked": {
+        "figureId": "rigging",
+        "highlightedLabels": [
+          "backstay"
+        ],
+        "verdict": "PASS"
+      },
+      "reviewerScope": "01–07",
+      "finalQuestion": "das Achterstag",
+      "finalSection": "mast-and-stays",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "ed8c84f696",
+      "question": "die Wanten",
+      "verdict": "PASS",
+      "rationale": "Plural and feminine singular are valid; lateral-support meaning and selected shrouds match.",
+      "sourceUrls": [
+        "https://www.duden.de/rechtschreibung/Want",
+        "https://www.endeavour-sailing.co.uk/training-information/glossary-of-sailing-terms"
+      ],
+      "figureChecked": {
+        "figureId": "rigging",
+        "highlightedLabels": [
+          "shrouds"
+        ],
+        "verdict": "PASS"
+      },
+      "reviewerScope": "01–07",
+      "finalQuestion": "die Wanten",
+      "finalSection": "mast-and-stays",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "53972dcd54",
+      "question": "das Fall",
+      "section": "08 Sail-control lines",
+      "file": "content/sailing-in-german/cards/08-sail-control-lines.md",
+      "line": 3,
+      "verdict": "PASS",
+      "rationale": "Correct neuter article, Fallen plural and hoisting meaning. Rigging image highlights the halyard beside the mast; no incorrect control is highlighted.",
+      "sourceUrls": [
+        "https://www.segeln-lernen.de/segellexikon-fall.html",
+        "https://www.duden.de/rechtschreibung/Fall_Seemannssprache"
+      ],
+      "figure": {
+        "n": "rigging",
+        "on": [
+          "halyard"
+        ]
+      },
+      "reviewerScope": "08–14",
+      "finalQuestion": "das Fall",
+      "finalSection": "sail-control-lines",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "9ed1f79557",
+      "question": "die Schot",
+      "section": "08 Sail-control lines",
+      "file": "content/sailing-in-german/cards/08-sail-control-lines.md",
+      "line": 9,
+      "verdict": "PASS",
+      "rationale": "Correct feminine noun and sheet function. The highlighted mainsheet is a valid example of the general term.",
+      "sourceUrls": [
+        "https://www.segeln-lernen.de/segellexikon-schot.html"
+      ],
+      "figure": {
+        "n": "rigging",
+        "on": [
+          "sheet"
+        ]
+      },
+      "reviewerScope": "08–14",
+      "finalQuestion": "die Schot",
+      "finalSection": "sail-control-lines",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "824261ed2b",
+      "question": "die Großschot",
+      "section": "08 Sail-control lines",
+      "file": "content/sailing-in-german/cards/08-sail-control-lines.md",
+      "line": 15,
+      "verdict": "PASS",
+      "rationale": "Correct compound, gender and mainsheet translation. Usually through its boom appropriately permits boomless arrangements.",
+      "sourceUrls": [
+        "https://www.segeln-lernen.de/segellexikon-grossschot.html",
+        "https://www.segeln-lernen.de/segellexikon-schot.html"
+      ],
+      "figure": null,
+      "reviewerScope": "08–14",
+      "finalQuestion": "die Großschot",
+      "finalSection": "sail-control-lines",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "808aaf2d02",
+      "question": "die Fockschot",
+      "section": "08 Sail-control lines",
+      "file": "content/sailing-in-german/cards/08-sail-control-lines.md",
+      "line": 19,
+      "verdict": "PASS",
+      "rationale": "Correct feminine compound and jib-sheet translation; the answer distinguishes it from the mainsheet.",
+      "sourceUrls": [
+        "https://www.segeln-lernen.de/segellexikon-schot.html",
+        "https://www.segeln-lernen.de/segellexikon-fock.html"
+      ],
+      "figure": null,
+      "reviewerScope": "08–14",
+      "finalQuestion": "die Fockschot",
+      "finalSection": "sail-control-lines",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "2f0e5cfcb3",
+      "question": "die Dirk",
+      "section": "08 Sail-control lines",
+      "file": "content/sailing-in-german/cards/08-sail-control-lines.md",
+      "line": 23,
+      "verdict": "PASS",
+      "rationale": "Correct topping-lift meaning and endpoints. Highlighted line runs from masthead to boom end, distinct from the dimmed backstay.",
+      "sourceUrls": [
+        "https://www.segeln-lernen.de/segellexikon-dirk.html"
+      ],
+      "figure": {
+        "n": "rigging",
+        "on": [
+          "topping-lift"
+        ]
+      },
+      "reviewerScope": "08–14",
+      "finalQuestion": "die Dirk",
+      "finalSection": "sail-control-lines",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "cfaf3bb2b8",
+      "question": "der Baumniederholer",
+      "section": "09 Sail trim and hardware",
+      "file": "content/sailing-in-german/cards/09-trim-and-hardware.md",
+      "line": 3,
+      "verdict": "PASS",
+      "rationale": "Correct boom-vang/kicker equivalence and restraining function. Diagram highlights the diagonal control below the boom.",
+      "sourceUrls": [
+        "https://www.segeln-lernen.de/segellexikon-baumniederholer.html",
+        "https://www.boomkicker.com/1000in.html"
+      ],
+      "figure": {
+        "n": "rigging",
+        "on": [
+          "kicker"
+        ]
+      },
+      "reviewerScope": "08–14",
+      "finalQuestion": "der Baumniederholer",
+      "finalSection": "trim-and-hardware",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "43c1fd41d6",
+      "question": "der Unterliekstrecker",
+      "section": "09 Sail trim and hardware",
+      "file": "content/sailing-in-german/cards/09-trim-and-hardware.md",
+      "line": 9,
+      "verdict": "PASS",
+      "rationale": "Correct masculine compound and outhaul function: clew movement changes foot tension, not luff tension.",
+      "sourceUrls": [
+        "https://www.segeln-lernen.de/segellexikon-unterliekstrecker.html"
+      ],
+      "figure": null,
+      "reviewerScope": "08–14",
+      "finalQuestion": "der Unterliekstrecker",
+      "finalSection": "trim-and-hardware",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "2cb599651f",
+      "question": "die Winsch",
+      "section": "09 Sail trim and hardware",
+      "file": "content/sailing-in-german/cards/09-trim-and-hardware.md",
+      "line": 13,
+      "verdict": "PASS",
+      "rationale": "Correct feminine Winsch spelling and English winch meaning. Description identifies its loaded-line and mechanical-advantage purpose.",
+      "sourceUrls": [
+        "https://www.duden.de/rechtschreibung/Winsch",
+        "https://gallery.harken.com/gallery/05cb5217-4c76-4dc4-9fb8-6079826c0992.pdf"
+      ],
+      "figure": null,
+      "reviewerScope": "08–14",
+      "finalQuestion": "die Winsch",
+      "finalSection": "trim-and-hardware",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "084efae95f",
+      "question": "die Winschkurbel",
+      "section": "09 Sail trim and hardware",
+      "file": "content/sailing-in-german/cards/09-trim-and-hardware.md",
+      "line": 17,
+      "verdict": "PASS",
+      "rationale": "Correct feminine compound and removable winch-handle function; manufacturer instructions describe handle insertion and removal.",
+      "sourceUrls": [
+        "https://gallery.harken.com/gallery/05cb5217-4c76-4dc4-9fb8-6079826c0992.pdf",
+        "https://www.lewmar.com/Catalogue/Catalogue%20Edition%2014%20LR.pdf"
+      ],
+      "figure": null,
+      "reviewerScope": "08–14",
+      "finalQuestion": "die Winschkurbel",
+      "finalSection": "trim-and-hardware",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "cb292ab232",
+      "question": "der Block",
+      "section": "09 Sail trim and hardware",
+      "file": "content/sailing-in-german/cards/09-trim-and-hardware.md",
+      "line": 21,
+      "verdict": "PASS",
+      "rationale": "Correct masculine nautical Block and housed-pulley definition; line redirection and tackle are appropriate uses.",
+      "sourceUrls": [
+        "https://www.svb.de/de/ratgeber/bootsbloecke-so-finden-sie-den-richtigen-block-fuer-ihre-yacht.html",
+        "https://gallery.harkenindustrial.com/gallery/d259f5d3-f301-4efb-93f3-06f369c0a6ee.pdf"
+      ],
+      "figure": null,
+      "reviewerScope": "08–14",
+      "finalQuestion": "der Block",
+      "finalSection": "trim-and-hardware",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "0bacef3b0d",
+      "question": "das Großsegel",
+      "section": "10 Sails and battens",
+      "file": "content/sailing-in-german/cards/10-sails.md",
+      "line": 3,
+      "verdict": "PASS",
+      "rationale": "Correct neuter compound and mainsail translation in this modern yacht course. Main-mast qualifier avoids confusing a mizzen.",
+      "sourceUrls": [
+        "https://www.segeln.uni-kiel.de/de/informationen/downloads/segeln-lernen-2013-kleines-kursbuch-fur-anfanger.pdf",
+        "https://www.uksailmakers.com/encyclopedia/glossary/mainsail/"
+      ],
+      "figure": null,
+      "reviewerScope": "08–14",
+      "finalQuestion": "das Großsegel",
+      "finalSection": "sails",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "e65bd7e719",
+      "question": "die Fock",
+      "section": "10 Sails and battens",
+      "file": "content/sailing-in-german/cards/10-sails.md",
+      "line": 7,
+      "verdict": "PASS",
+      "rationale": "Correct feminine Fock and jib equivalence. Explicit modern-yacht qualifier handles traditional-rig exceptions; non-overlap distinction is supported by sailmaker terminology.",
+      "sourceUrls": [
+        "https://www.segeln-lernen.de/segellexikon-fock.html",
+        "https://www.uksailmakers.com/accessories/non-overlapping-jib-genoa/"
+      ],
+      "figure": null,
+      "reviewerScope": "08–14",
+      "finalQuestion": "die Fock",
+      "finalSection": "sails",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "5a6633fc50",
+      "question": "die Genua",
+      "section": "10 Sails and battens",
+      "file": "content/sailing-in-german/cards/10-sails.md",
+      "line": 11,
+      "verdict": "PASS",
+      "rationale": "Correct feminine Genua and English Genoa spelling. Mast overlap correctly distinguishes this sail from the preceding jib.",
+      "sourceUrls": [
+        "https://www.segeln-lernen.de/segellexikon-genua.html",
+        "https://www.uksailmakers.com/accessories/non-overlapping-jib-genoa/"
+      ],
+      "figure": null,
+      "reviewerScope": "08–14",
+      "finalQuestion": "die Genua",
+      "finalSection": "sails",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "19fe6e5fea",
+      "question": "der Spinnaker",
+      "section": "10 Sails and battens",
+      "file": "content/sailing-in-german/cards/10-sails.md",
+      "line": 15,
+      "verdict": "PASS",
+      "rationale": "Correct masculine noun and English spelling. Broad reaching/downwind description is valid without claiming one precise wind-angle limit.",
+      "sourceUrls": [
+        "https://www.segeln-lernen.de/segellexikon-spinnaker.html",
+        "https://www.northsails.com/en-ca/blogs/north-sails-blog/trim-an-asymmetric-spinnaker-on-a-sport-boat"
+      ],
+      "figure": null,
+      "reviewerScope": "08–14",
+      "finalQuestion": "der Spinnaker",
+      "finalSection": "sails",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "bcfc0f41e6",
+      "question": "die Segellatte",
+      "section": "10 Sails and battens",
+      "file": "content/sailing-in-german/cards/10-sails.md",
+      "line": 19,
+      "verdict": "PASS",
+      "rationale": "Correct feminine compound and batten function. The sail-pocket and shape-support description covers both short and full-length battens.",
+      "sourceUrls": [
+        "https://www.segeln-lernen.de/segellexikon-segellatte.html"
+      ],
+      "figure": null,
+      "reviewerScope": "08–14",
+      "finalQuestion": "die Segellatte",
+      "finalSection": "sails",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "e6aad46196",
+      "question": "das Vorliek / das Achterliek / das Unterliek",
+      "section": "11 Sail edges and corners",
+      "file": "content/sailing-in-german/cards/11-sail-edges-and-corners.md",
+      "line": 3,
+      "verdict": "PASS",
+      "rationale": "All three articles and edge translations are correct. Triangular-sail qualifier is useful; browser rendering highlights the correct luff, leech and foot.",
+      "sourceUrls": [
+        "https://bootsschule1.de/lexikon/achterliek/",
+        "https://www.spinnaker-sailing.com/online-courses/lesson-1/sail-terms",
+        "https://www.uksailmakers.com/encyclopedia/glossary/luff/"
+      ],
+      "figure": {
+        "n": "sail-parts",
+        "on": [
+          "luff",
+          "leech",
+          "foot"
+        ]
+      },
+      "reviewerScope": "08–14",
+      "finalQuestion": "das Vorliek / das Achterliek / das Unterliek",
+      "finalSection": "sail-edges-and-corners",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "fcd87b0f0a",
+      "question": "der Segelkopf / der Hals / das Schothorn",
+      "section": "11 Sail edges and corners",
+      "file": "content/sailing-in-german/cards/11-sail-edges-and-corners.md",
+      "line": 12,
+      "verdict": "PASS",
+      "rationale": "All three articles and corner translations are correct. Browser rendering puts tack at the mast, clew aft, head at the top; three related terms are an acceptable recall set.",
+      "sourceUrls": [
+        "https://bootsschule1.de/lexikon/achterliek/",
+        "https://www.spinnaker-sailing.com/online-courses/lesson-1/sail-terms"
+      ],
+      "figure": {
+        "n": "sail-parts",
+        "on": [
+          "head",
+          "tack",
+          "clew"
+        ]
+      },
+      "reviewerScope": "08–14",
+      "finalQuestion": "der Segelkopf / der Hals / das Schothorn",
+      "finalSection": "sail-edges-and-corners",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "6b75599557",
+      "question": "Luv / Lee",
+      "section": "12 Wind around the boat",
+      "file": "content/sailing-in-german/cards/12-wind.md",
+      "line": 3,
+      "verdict": "PASS",
+      "rationale": "Correct Luv/Lee directional pairing. Wind arrows and highlighted windward/leeward positions agree; dimmed shore labels do not reverse the boat-side meanings.",
+      "sourceUrls": [
+        "https://www.segeln.uni-kiel.de/de/informationen/downloads/segeln-lernen-2013-kleines-kursbuch-fur-anfanger.pdf"
+      ],
+      "figure": {
+        "n": "windward-lee",
+        "on": [
+          "wind",
+          "windward",
+          "leeward"
+        ]
+      },
+      "reviewerScope": "08–14",
+      "finalQuestion": "Luv / Lee",
+      "finalSection": "wind",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "cf0172c8fd",
+      "question": "der wahre Wind",
+      "section": "12 Wind around the boat",
+      "file": "content/sailing-in-german/cards/12-wind.md",
+      "line": 10,
+      "verdict": "PASS",
+      "rationale": "Correct adjective inflection and true-wind distinction. The text intentionally stays at introductory level and does not assert a disputed water-versus-ground reference.",
+      "sourceUrls": [
+        "https://www.segeln-lernen.de/segellexikon-wahrer-wind.html"
+      ],
+      "figure": null,
+      "reviewerScope": "08–14",
+      "finalQuestion": "der wahre Wind",
+      "finalSection": "wind",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "1305dc7a8e",
+      "question": "der scheinbare Wind",
+      "section": "12 Wind around the boat",
+      "file": "content/sailing-in-german/cards/12-wind.md",
+      "line": 14,
+      "verdict": "PASS",
+      "rationale": "Correct adjective inflection and apparent-wind meaning. Combining with the effect of motion avoids the mistaken scalar addition of wind speeds.",
+      "sourceUrls": [
+        "https://www.segeln-lernen.de/segellexikon-scheinbarer-wind.html"
+      ],
+      "figure": null,
+      "reviewerScope": "08–14",
+      "finalQuestion": "der scheinbare Wind",
+      "finalSection": "wind",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "a8ab2774d7",
+      "question": "die Bö",
+      "section": "12 Wind around the boat",
+      "file": "content/sailing-in-german/cards/12-wind.md",
+      "line": 18,
+      "verdict": "PASS",
+      "rationale": "Correct feminine article, Bö/Böe variants, Böen plural and gust meaning; the rare-looking short form is standard, not a typo.",
+      "sourceUrls": [
+        "https://www.duden.de/rechtschreibung/Boee",
+        "https://www.duden.de/deklination/substantive/Boe"
+      ],
+      "figure": null,
+      "reviewerScope": "08–14",
+      "finalQuestion": "die Bö",
+      "finalSection": "wind",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "e5d35db1ec",
+      "question": "am Wind / Halbwind / raumschots / vor dem Wind",
+      "section": "13 Points of sail",
+      "file": "content/sailing-in-german/cards/13-points-of-sail.md",
+      "line": 3,
+      "verdict": "PASS",
+      "rationale": "Four tightly related points of sail are within the requested grouping scope. Instructor sources support this beginner close-hauled use of am Wind; beam, broad and dead-downwind descriptions are coherent.",
+      "sourceUrls": [
+        "https://www.segeln-lernen.de/segellexikon-amwindkurs.html",
+        "https://www.segeln-lernen.de/segellexikon-halber-wind.html",
+        "https://www.svb.de/media/snr/504618/pdf/excerpt_de_2015-07-27.pdf"
+      ],
+      "figure": null,
+      "reviewerScope": "08–14",
+      "finalQuestion": "am Wind / Halbwind / raumschots / vor dem Wind",
+      "finalSection": "points-of-sail",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "d8fd0cd5d3",
+      "question": "im Wind",
+      "section": "13 Points of sail",
+      "file": "content/sailing-in-german/cards/13-points-of-sail.md",
+      "line": 10,
+      "verdict": "PASS",
+      "rationale": "Correct head-to-wind meaning. The statement concerns sail drive rather than claiming a boat cannot retain forward momentum or move under engine.",
+      "sourceUrls": [
+        "https://www.segeln.uni-kiel.de/de/informationen/downloads/segeln-lernen-2013-kleines-kursbuch-fur-anfanger.pdf"
+      ],
+      "figure": null,
+      "reviewerScope": "08–14",
+      "finalQuestion": "im Wind",
+      "finalSection": "points-of-sail",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "d0a24fa730",
+      "question": "anluven",
+      "section": "14 Turning under sail",
+      "file": "content/sailing-in-german/cards/14-turning-under-sail.md",
+      "line": 3,
+      "verdict": "PASS",
+      "rationale": "Correct infinitive and head-up/luff-up translation. Direction is relative to wind, not a fixed port/starboard turn.",
+      "sourceUrls": [
+        "https://www.segeln-lernen.de/segellexikon-anluven.html"
+      ],
+      "figure": null,
+      "reviewerScope": "08–14",
+      "finalQuestion": "anluven",
+      "finalSection": "turning-under-sail",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "b9692b02ca",
+      "question": "abfallen",
+      "section": "14 Turning under sail",
+      "file": "content/sailing-in-german/cards/14-turning-under-sail.md",
+      "line": 7,
+      "verdict": "PASS",
+      "rationale": "Correct infinitive and bear-away/bear-off translation. Opposite direction to anluven is stated unambiguously.",
+      "sourceUrls": [
+        "https://www.segeln-lernen.de/segellexikon-abfallen.html"
+      ],
+      "figure": null,
+      "reviewerScope": "08–14",
+      "finalQuestion": "abfallen",
+      "finalSection": "turning-under-sail",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "41f21e8a58",
+      "question": "wenden",
+      "section": "14 Turning under sail",
+      "file": "content/sailing-in-german/cards/14-turning-under-sail.md",
+      "line": 11,
+      "verdict": "PASS",
+      "rationale": "Correct bow-through-wind maneuver and established preparatory command. Ready about is a recognized English equivalent, distinct from the execution command.",
+      "sourceUrls": [
+        "https://www.segeln-lernen.de/segellexikon-wende.html",
+        "https://www.northsails.com/blogs/north-sails-blog/how-to-improve-your-tacks-north-sails"
+      ],
+      "figure": null,
+      "reviewerScope": "08–14",
+      "finalQuestion": "wenden",
+      "finalSection": "turning-under-sail",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "c8a0248bab",
+      "question": "halsen",
+      "section": "14 Turning under sail",
+      "file": "content/sailing-in-german/cards/14-turning-under-sail.md",
+      "line": 15,
+      "verdict": "PASS",
+      "rationale": "Correct stern-through-wind maneuver, gybe/jibe variants and preparatory command. ISAF instruction uses Stand by to gybe.",
+      "sourceUrls": [
+        "https://www.segeln-lernen.de/segellexikon-halse.html",
+        "https://www.sailing.org/tools/documents/ISAFLearnToSailProgrammeA4-%5B6277%5D.pdf"
+      ],
+      "figure": null,
+      "reviewerScope": "08–14",
+      "finalQuestion": "halsen",
+      "finalSection": "turning-under-sail",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "eee20ad733",
+      "question": "kreuzen",
+      "section": "14 Turning under sail",
+      "file": "content/sailing-in-german/cards/14-turning-under-sail.md",
+      "line": 19,
+      "verdict": "PASS",
+      "rationale": "Correct upwind beating meaning. Successive tacks describes the maneuver sequence without confusing kreuzen with a single turn.",
+      "sourceUrls": [
+        "https://www.segeln-lernen.de/segellexikon-kreuzen.html"
+      ],
+      "figure": null,
+      "reviewerScope": "08–14",
+      "finalQuestion": "kreuzen",
+      "finalSection": "turning-under-sail",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "a69a302a2d",
+      "question": "die Segel setzen",
+      "section": "handling-sails",
+      "verdict": "PASS",
+      "rationale": "Set/hoist matches setzen; raise or deploy accommodates conventional and furling sails. Großsegel setzen is a valid infinitive command.",
+      "sourceUrls": [
+        "https://www.segeln-lernen.de/segellexikon-setzen.html"
+      ],
+      "reviewerScope": "15–20",
+      "finalQuestion": "die Segel setzen",
+      "finalSection": "handling-sails",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "ecce91cdfa",
+      "question": "die Segel bergen",
+      "section": "handling-sails",
+      "verdict": "PASS",
+      "rationale": "Bergen correctly means taking sails out of use; phrasing does not wrongly restrict the term to downhauling. Correct verb and object.",
+      "sourceUrls": [
+        "https://www.segeln-lernen.de/segellexikon-bergen.html"
+      ],
+      "reviewerScope": "15–20",
+      "finalQuestion": "die Segel bergen",
+      "finalSection": "handling-sails",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "2dd69fa519",
+      "question": "reffen",
+      "section": "handling-sails",
+      "verdict": "PASS",
+      "rationale": "Reffen means reducing set sail area. Infinitive and Großsegel example are correct.",
+      "sourceUrls": [
+        "https://www.segeln-lernen.de/segellexikon-reffen.html"
+      ],
+      "reviewerScope": "15–20",
+      "finalQuestion": "reffen",
+      "finalSection": "handling-sails",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "7447c6d447",
+      "question": "dichtholen",
+      "section": "handling-sails",
+      "verdict": "PASS",
+      "rationale": "Dichtholen means hauling in, with sheet in valid for the stated Schot example; no direction reversal.",
+      "sourceUrls": [
+        "https://www.segeln-lernen.de/segellexikon-dichtholen.html",
+        "https://www.segeln-lernen.de/segellexikon-cunningham-stropp.html"
+      ],
+      "reviewerScope": "15–20",
+      "finalQuestion": "dichtholen",
+      "finalSection": "handling-sails",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "a85eaaf364",
+      "question": "fieren",
+      "section": "handling-sails",
+      "verdict": "PASS",
+      "rationale": "Fieren correctly translates as controlled easing or paying out, opposite to dichtholen; Schot example is valid.",
+      "sourceUrls": [
+        "https://www.segeln-lernen.de/segellexikon-fieren.html"
+      ],
+      "reviewerScope": "15–20",
+      "finalQuestion": "fieren",
+      "finalSection": "handling-sails",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "83d53ef966",
+      "question": "die Leine",
+      "section": "lines-and-knots",
+      "verdict": "PASS",
+      "rationale": "Leine is feminine and line/rope is a suitable beginner translation; role-specific names are appropriately acknowledged.",
+      "sourceUrls": [
+        "https://www.segeln-lernen.de/segellexikon-leine.html"
+      ],
+      "reviewerScope": "15–20",
+      "finalQuestion": "die Leine",
+      "finalSection": "lines-and-knots",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "9c8150595d",
+      "question": "der Palstek",
+      "section": "lines-and-knots",
+      "verdict": "PASS",
+      "rationale": "Palstek is masculine and bowline is the fixed-loop knot. Explicit bowline/bow line distinction avoids confusion with a mooring line.",
+      "sourceUrls": [
+        "https://www.segeln-lernen.de/segellexikon-palstek.html",
+        "https://www.rya.org.uk/products/rya-pocket-guide-to-boating-knots/"
+      ],
+      "reviewerScope": "15–20",
+      "finalQuestion": "der Palstek",
+      "finalSection": "lines-and-knots",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "1908c71f39",
+      "question": "der Webeleinstek",
+      "section": "lines-and-knots",
+      "verdict": "PASS",
+      "rationale": "Webeleinstek is an accepted spelling of the masculine clove hitch. Post/rail and fender-line usage are appropriate; card does not claim universal security.",
+      "sourceUrls": [
+        "https://bootsschule1.de/blog/webeleinstek-schritt-fuer-schritt-anleitung-und-anwendung/",
+        "https://www.boot.de/de/Media_News/Thema_Segeln/Einsteiger/Knotenschule"
+      ],
+      "reviewerScope": "15–20",
+      "finalQuestion": "der Webeleinstek",
+      "finalSection": "lines-and-knots",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "cca57a99c7",
+      "question": "der Achtknoten",
+      "section": "lines-and-knots",
+      "verdict": "PASS",
+      "rationale": "Achtknoten is masculine; figure-of-eight is the stopper knot described, not the loop variant. Near the end does not instruct tying without a tail.",
+      "sourceUrls": [
+        "https://www.boot.de/de/Media_News/Thema_Segeln/Einsteiger/Knotenschule",
+        "https://www.seemannsknoten.info/achtknoten.htm"
+      ],
+      "reviewerScope": "15–20",
+      "finalQuestion": "der Achtknoten",
+      "finalSection": "lines-and-knots",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "f25621bc29",
+      "question": "eine Leine aufschießen",
+      "section": "lines-and-knots",
+      "verdict": "PASS",
+      "rationale": "Eine Leine aufschießen correctly disambiguates coiling from the sailing maneuver also called aufschießen; orderly loops for stowage is accurate.",
+      "sourceUrls": [
+        "https://www.segeln-lernen.de/segellexikon-aufschiessen.html"
+      ],
+      "reviewerScope": "15–20",
+      "finalQuestion": "eine Leine aufschießen",
+      "finalSection": "lines-and-knots",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "d77f6a6bce",
+      "question": "der Festmacher",
+      "section": "mooring-lines",
+      "verdict": "PASS",
+      "rationale": "Festmacher is masculine and means a mooring line/warp in this boating context; berth or mooring use is appropriate.",
+      "sourceUrls": [
+        "https://www.segeln-lernen.de/segellexikon-festmacher.html"
+      ],
+      "reviewerScope": "15–20",
+      "finalQuestion": "der Festmacher",
+      "finalSection": "mooring-lines",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "aed308e0c6",
+      "question": "die Vorleine / die Achterleine",
+      "section": "mooring-lines",
+      "verdict": "PASS",
+      "rationale": "Both line nouns are feminine. Bow line leads forward from bow; stern line leads aft from stern. Reused SVG highlights those exact leads with bow to the right.",
+      "sourceUrls": [
+        "https://www.segeln-lernen.de/segellexikon-vorleine.html",
+        "https://www.segeln-lernen.de/segellexikon-achterleine.html",
+        "https://mecklenburg-vorpommern.dlrg.de/assetService/g2010/a866673g",
+        "https://www.rya.org.uk/media/5umez0fp/2e7_iw_teaching_better_boat_handling.pdf"
+      ],
+      "reviewerScope": "15–20",
+      "finalQuestion": "die Vorleine / die Achterleine",
+      "finalSection": "mooring-lines",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "258983bf4c",
+      "question": "die Vorspring / die Achterspring",
+      "section": "mooring-lines",
+      "verdict": "PASS",
+      "rationale": "Both springs are feminine. Vorspring runs aft from forward boat and checks forward motion; Achterspring runs forward from aft boat and checks aft motion. English-name variation is explicitly acknowledged. SVG lead geometry and restraint captions agree.",
+      "sourceUrls": [
+        "https://www.segeln-lernen.de/segellexikon-vorspring.html",
+        "https://www.segeln-lernen.de/segellexikon-achterspring.html",
+        "https://www.rya.org.uk/media/5umez0fp/2e7_iw_teaching_better_boat_handling.pdf",
+        "https://www.compassrevision.com/tools/docking-lines"
+      ],
+      "reviewerScope": "15–20",
+      "finalQuestion": "die Vorspring / die Achterspring",
+      "finalSection": "mooring-lines",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "eb94cd2fcb",
+      "question": "der Fender",
+      "section": "mooring-lines",
+      "verdict": "PASS",
+      "rationale": "Fender is masculine, translates directly, and cushioning description is correct. Figure points to the separate cushions on the boat side facing the pontoon; other labels are subdued.",
+      "sourceUrls": [
+        "https://www.segeln-lernen.de/segellexikon-fender.html"
+      ],
+      "reviewerScope": "15–20",
+      "finalQuestion": "der Fender",
+      "finalSection": "mooring-lines",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "f80ba69cfb",
+      "question": "anlegen",
+      "section": "berthing-and-anchoring",
+      "verdict": "PASS",
+      "rationale": "Anlegen in a sailing context correctly means berthing/coming alongside; other berth wording avoids restricting the verb to parallel mooring.",
+      "sourceUrls": [
+        "https://www.duden.de/rechtschreibung/anlegen"
+      ],
+      "reviewerScope": "15–20",
+      "finalQuestion": "anlegen",
+      "finalSection": "berthing-and-anchoring",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "3182d44f9f",
+      "question": "ablegen",
+      "section": "berthing-and-anchoring",
+      "verdict": "PASS",
+      "rationale": "Ablegen correctly means departure from berth. Cast off is an accepted English boating equivalent and departure definition prevents ambiguity with removing clothing.",
+      "sourceUrls": [
+        "https://www.duden.de/rechtschreibung/ablegen"
+      ],
+      "reviewerScope": "15–20",
+      "finalQuestion": "ablegen",
+      "finalSection": "berthing-and-anchoring",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "a955eb5165",
+      "question": "festmachen",
+      "section": "berthing-and-anchoring",
+      "verdict": "PASS",
+      "rationale": "Festmachen correctly covers securing a boat or line. German infinitive command is natural and Make the line fast is correct seamanship English.",
+      "sourceUrls": [
+        "https://www.duden.de/rechtschreibung/festmachen"
+      ],
+      "reviewerScope": "15–20",
+      "finalQuestion": "festmachen",
+      "finalSection": "berthing-and-anchoring",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "91db78516d",
+      "question": "der Anker",
+      "section": "berthing-and-anchoring",
+      "verdict": "PASS",
+      "rationale": "Anker is masculine. Anchor and lowering it to the bottom to hold the boat are correct; no misleading anchoring procedure is asserted.",
+      "sourceUrls": [
+        "https://www.segeln-lernen.de/segellexikon-anker.html"
+      ],
+      "reviewerScope": "15–20",
+      "finalQuestion": "der Anker",
+      "finalSection": "berthing-and-anchoring",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "3841d06a91",
+      "question": "die Ankerkette",
+      "section": "berthing-and-anchoring",
+      "verdict": "PASS",
+      "rationale": "Ankerkette is feminine and anchor chain is correct. Chain connecting anchor to boat and possible chain/rope rode are accurate.",
+      "sourceUrls": [
+        "https://www.segeln-lernen.de/segellexikon-ankerkette.html",
+        "https://www.segeln-lernen.de/segellexikon-anker.html"
+      ],
+      "reviewerScope": "15–20",
+      "finalQuestion": "die Ankerkette",
+      "finalSection": "berthing-and-anchoring",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "997183d01a",
+      "question": "der Kompass",
+      "section": "navigation-and-calm",
+      "verdict": "PASS",
+      "rationale": "Kompass is masculine and correctly means compass. Direction relative to north does not falsely guarantee true north for every compass.",
+      "sourceUrls": [
+        "https://www.segeln-lernen.de/segellexikon-kompass.html"
+      ],
+      "reviewerScope": "15–20",
+      "finalQuestion": "der Kompass",
+      "finalSection": "navigation",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "296b8950fb",
+      "question": "der Kurs",
+      "section": "navigation-and-calm",
+      "verdict": "PASS",
+      "rationale": "Kurs is masculine and correctly means course. Generic direction wording plus explicit distinction between steered and over-ground course avoids conflating them.",
+      "sourceUrls": [
+        "https://www.segeln-lernen.de/segellexikon-kurs.html"
+      ],
+      "reviewerScope": "15–20",
+      "finalQuestion": "der Kurs",
+      "finalSection": "navigation",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "f9375f5a80",
+      "question": "die Seemeile",
+      "section": "navigation-and-calm",
+      "verdict": "PASS",
+      "rationale": "Seemeile is feminine and nautical mile is correct. 1,852 metres is the exact unit in English thousands-separator notation.",
+      "sourceUrls": [
+        "https://www.segeln-lernen.de/segellexikon-seemeile.html"
+      ],
+      "reviewerScope": "15–20",
+      "finalQuestion": "die Seemeile",
+      "finalSection": "navigation",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "680cbfba0b",
+      "question": "der Knoten (Geschwindigkeit)",
+      "section": "navigation-and-calm",
+      "verdict": "PASS",
+      "rationale": "Knoten is masculine. One nautical mile per hour is correct; speed qualifier on front and rope-knot note disambiguate the homonym.",
+      "sourceUrls": [
+        "https://www.segeln-lernen.de/segellexikon-knoten.html"
+      ],
+      "reviewerScope": "15–20",
+      "finalQuestion": "der Knoten (Geschwindigkeit)",
+      "finalSection": "navigation",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "57ffb3fd7d",
+      "question": "die Flaute",
+      "section": "navigation-and-calm",
+      "verdict": "PASS",
+      "rationale": "Flaute is feminine; calm with little or no wind is suitable vocabulary-level wording, consistent with very low Beaufort-zero winds.",
+      "sourceUrls": [
+        "https://www.segeln-lernen.de/segellexikon-flaute.html",
+        "https://www.duden.de/rechtschreibung/Flaute"
+      ],
+      "reviewerScope": "15–20",
+      "finalQuestion": "die Flaute",
+      "finalSection": "wind",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "6c7e149ec5",
+      "question": "die Rettungsweste",
+      "section": "personal-safety",
+      "verdict": "PASS",
+      "rationale": "Rettungsweste is feminine and lifejacket is accurate. Flotation description and anlegen command are correct; no unsupported safety guarantee is made.",
+      "sourceUrls": [
+        "https://www.secumar.com/wp-content/uploads/2016/08/bedienungsanleitung4001_401.pdf",
+        "https://www.secumar.com/produkt/junior/"
+      ],
+      "reviewerScope": "15–20",
+      "finalQuestion": "die Rettungsweste",
+      "finalSection": "personal-safety",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "2cb1122452",
+      "question": "der Rettungsring",
+      "section": "personal-safety",
+      "verdict": "PASS",
+      "rationale": "Rettungsring is masculine and correctly means lifebuoy/life ring. Throwing flotation to a person in the water matches DLRG usage.",
+      "sourceUrls": [
+        "https://www.dlrg.de/ertrinken-verhindern",
+        "https://www.dlrg.de/informieren/freizeit-im-wasser/selbst-und-fremdrettung/publicrescuetube/"
+      ],
+      "reviewerScope": "15–20",
+      "finalQuestion": "der Rettungsring",
+      "finalSection": "personal-safety",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "4160adfe72",
+      "question": "der Lifebelt",
+      "section": "personal-safety",
+      "verdict": "PASS",
+      "rationale": "Lifebelt is masculine and in German denotes the safety harness, distinct from its tether. SECUMAR explicitly calls it Lifebelt/Harness and confirms integrated examples.",
+      "sourceUrls": [
+        "https://www.secumar.com/wp-content/uploads/2016/08/bedienungsanleitung4001_401.pdf",
+        "https://www.secumar.com/produkt/junior/",
+        "https://www.secumar.com/wp-content/uploads/2017/03/Sport-2015_DE.pdf"
+      ],
+      "reviewerScope": "15–20",
+      "finalQuestion": "der Lifebelt",
+      "finalSection": "personal-safety",
+      "finalVerdict": "PASS"
+    },
+    {
+      "id": "6ab1bdec83",
+      "question": "Mann über Bord!",
+      "section": "personal-safety",
+      "verdict": "PASS",
+      "rationale": "Mann über Bord and Mensch über Bord are established German alarm expressions. Both man/person overboard translations and meaning are accurate.",
+      "sourceUrls": [
+        "https://www.dsv.org/nachrichten/ausbildung/2022/03/dsv-akademie-unsere-seminar-empfehlungen-fuer-das-fruehjahr/",
+        "https://www.dmyv.de/fileadmin/user_upload/Sicherheit_auf_dem_Wasser_2023_barrierefrei_2.pdf",
+        "https://asvz.ch/sites/default/files/imce/documents/_SPORTARTEN/Segeln%20Yacht/Segeln_Yacht_Handout_2025_mit%20Wasserzeichen.pdf"
+      ],
+      "reviewerScope": "15–20",
+      "finalQuestion": "Mann über Bord!",
+      "finalSection": "personal-safety",
+      "finalVerdict": "PASS"
+    }
+  ],
+  "findings": [
+    {
+      "id": "DE-01-07-F01",
+      "cardIds": [
+        "d553c9df09"
+      ],
+      "file": "content/sailing-in-german/cards/04-hull-in-water.md",
+      "line": 15,
+      "severity": "MEDIUM",
+      "claim": "The card teaches the neuter article das for Freibord, but standard German uses der Freibord.",
+      "scenario": "A beginner memorises the question das Freibord and later produces that incorrect noun gender; the course promises noun articles and directly teaches this form.",
+      "evidence": [
+        "https://www.duden.de/rechtschreibung/Freibord",
+        "https://www.collinsdictionary.com/de/worterbuch/deutsch-englisch/freibord"
+      ],
+      "evidenceSummary": "Duden lists masculine Freibord and gives der Freibord; Collins independently gives masculine inflection. The English meaning and reused drawing are correct.",
+      "suggestedCorrection": "Change the heading to der Freibord, keep the card ID, and rebuild web/courses/sailing-in-german/cards.json."
+    }
+  ],
+  "independentVerification": {
+    "reviewer": "independent-refute-verifier",
+    "review_date": "2026-09-22",
+    "original_candidate": "a6df992c05d2fa669f0eb74c3909f92a705d8a88",
+    "corrected_candidate": "1ca2a160ff40f37c4a4514288ecc934c05d2e65c",
+    "method": "Read original anchored card and decision list before checking final candidate. Searched primary dictionaries for masculine/neuter alternatives; directly opened Duden. Parsed both source and deployment JSON, compared by stable card ID, and independently parsed final Markdown using the existing compiler without writing build outputs.",
+    "findings": [
+      {
+        "id": "freibord-article",
+        "card_id": "d553c9df09",
+        "verdict": "CONFIRMED",
+        "anchor": {
+          "path": "content/sailing-in-german/cards/04-hull-in-water.md",
+          "line": 15,
+          "text": "## das Freibord {#d553c9df09}"
+        },
+        "anchor_exists": true,
+        "settled_by_human_ruling": false,
+        "concrete_failure": "The German prompt teaches neuter das Freibord, while standard dictionary usage is masculine der Freibord. The learner can memorize an incorrect noun article.",
+        "refutation_attempt": "Checked whether a dictionary accepts neuter as an alternative or whether this is a different non-nautical sense. Duden specifies masculine for the nautical height above the waterline. A second dictionary also marks Freibord masculine. No applicable terminology ruling or supported neuter alternative was found.",
+        "evidence": [
+          {
+            "url": "https://www.duden.de/rechtschreibung/Freibord",
+            "publisher": "Duden",
+            "supports": "The entry heading is Freibord, der and the word class is Substantiv, maskulin. The definition concerns height above the waterline."
+          },
+          {
+            "url": "https://www.wissen.de/rechtschreibung/freibord",
+            "publisher": "wissen.de, Grosses Woerterbuch der deutschen Sprache",
+            "supports": "The Freibord entry marks grammatical gender m. Used solely to corroborate gender; its definition differs from the beginner card."
+          }
+        ],
+        "source_limitations": [
+          "DWDS could not be fetched because its robots policy blocked access; it is not used as evidence."
+        ]
+      }
+    ],
+    "resolution": {
+      "verdict": "RESOLVED",
+      "card_id": "d553c9df09",
+      "source_heading": "der Freibord",
+      "compiled_question": "der Freibord",
+      "id_preserved": true,
+      "answer_preserved": true,
+      "figure_preserved": true,
+      "evidence_path": "web/courses/sailing-in-german/cards.json"
+    },
+    "checks": {
+      "verdict": "PASS",
+      "original": {
+        "cards": 87,
+        "unique_ids": 87,
+        "headwords": 100,
+        "unique_headwords": 100,
+        "sections": 20,
+        "max_terms_per_question": 4,
+        "terms_per_question_counts": {
+          "2": 6,
+          "1": 78,
+          "3": 2,
+          "4": 1
+        },
+        "missing_answers": [],
+        "source_cards": 87,
+        "source_ids_equal_compiled_ids": true,
+        "source_questions_equal_compiled_questions": true,
+        "cards_json_sha256": "6fa1c5497bfb1b193b7b42a916e1da953e59428ea043e4f5d3f661489d299af0"
+      },
+      "corrected": {
+        "cards": 87,
+        "unique_ids": 87,
+        "headwords": 100,
+        "unique_headwords": 100,
+        "sections": 20,
+        "max_terms_per_question": 4,
+        "terms_per_question_counts": {
+          "2": 6,
+          "1": 78,
+          "3": 2,
+          "4": 1
+        },
+        "missing_answers": [],
+        "source_cards": 87,
+        "source_ids_equal_compiled_ids": true,
+        "source_questions_equal_compiled_questions": true,
+        "cards_json_sha256": "19635742cfe81cf0159d65cb836d67c515b19603b59dac5cdb470f5e54971143"
+      },
+      "same_87_id_set": true,
+      "all_87_source_answers_preserved": true,
+      "all_87_compiled_answers_preserved": true,
+      "all_card_figure_references_preserved": true,
+      "final_source_compilation_matches_deployed_questions_answers_sections": true,
+      "source_and_compiled_changes": [
+        {
+          "id": "d553c9df09",
+          "changes": {
+            "q": {
+              "before": "das Freibord",
+              "after": "der Freibord"
+            }
+          }
+        },
+        {
+          "id": "997183d01a",
+          "changes": {
+            "s": {
+              "before": "navigation-and-calm",
+              "after": "navigation"
+            }
+          }
+        },
+        {
+          "id": "296b8950fb",
+          "changes": {
+            "s": {
+              "before": "navigation-and-calm",
+              "after": "navigation"
+            }
+          }
+        },
+        {
+          "id": "f9375f5a80",
+          "changes": {
+            "s": {
+              "before": "navigation-and-calm",
+              "after": "navigation"
+            }
+          }
+        },
+        {
+          "id": "680cbfba0b",
+          "changes": {
+            "s": {
+              "before": "navigation-and-calm",
+              "after": "navigation"
+            }
+          }
+        },
+        {
+          "id": "57ffb3fd7d",
+          "changes": {
+            "s": {
+              "before": "navigation-and-calm",
+              "after": "wind"
+            }
+          }
+        }
+      ],
+      "flaute": {
+        "id": "57ffb3fd7d",
+        "old_source": "content/sailing-in-german/cards/19-navigation-and-calm.md",
+        "new_source": "content/sailing-in-german/cards/12-wind.md",
+        "old_section": "navigation-and-calm",
+        "new_section": "wind",
+        "id_preserved": true,
+        "question_preserved": true,
+        "answer_preserved": true
+      },
+      "section_changes_explained": [
+        "Wind section gains Flaute: 4 to 5 cards.",
+        "Navigation section loses Flaute: 5 to 4 cards; section key changes from navigation-and-calm to navigation.",
+        "All section titles and order values remain unchanged."
+      ],
+      "other_changes_explained": [
+        "The source reference list adds Duden evidence for Freibord.",
+        "Compiled build hash changes from 46679a18 to c0160efe because course content changed.",
+        "Migration report adds the new Sailing in German course: 87 cards, 20 sections. Existing four course entries are unchanged; report totals increase from 1062 to 1149 cards."
+      ],
+      "unexplained_content_changes": [],
+      "both_frozen_worktrees_clean": true
+    },
+    "counts": {
+      "findings_received": 1,
+      "confirmed": 1,
+      "refuted": 0,
+      "resolved": 1,
+      "cards_compared": 87,
+      "headwords": 100,
+      "missing_answers": 0,
+      "max_terms_per_question": 4
+    },
+    "repositories_modified": false
+  },
+  "authorRecheck": {
+    "finding": "DE-01-07-F01",
+    "verdict": "CONFIRMED_AND_CORRECTED",
+    "source": "https://www.duden.de/rechtschreibung/Freibord",
+    "sourceAndCompiledPrompt": "der Freibord",
+    "idPreserved": true
+  },
+  "browserChecks": {
+    "url": "http://127.0.0.1:8777/projects/keepclub/web/index.html",
+    "viewports": [
+      {
+        "width": 390,
+        "cards": 87,
+        "figures": 25,
+        "sections": 20,
+        "gradedCards": 3,
+        "overflow": false
+      },
+      {
+        "width": 320,
+        "cards": 87,
+        "figures": 25,
+        "sections": 20,
+        "gradedCards": 3,
+        "overflow": false
+      },
+      {
+        "width": 1280,
+        "cards": 87,
+        "figures": 25,
+        "sections": 20,
+        "gradedCards": 3,
+        "overflow": false
+      }
+    ],
+    "errors": [],
+    "failedRequests": []
+  },
+  "finalBrowserRecheck": {
+    "correctedFreibordPrompt": true,
+    "flauteInWindSection": true,
+    "cardCount": 87,
+    "sectionCount": 20
+  },
+  "stats": {
+    "found": 1,
+    "refuted": 0,
+    "refuteRatePercent": 0,
+    "killedByDecision": 0,
+    "overturnedByAuthor": 0,
+    "resolved": 1,
+    "open": 0
+  },
+  "regressionChecks": {
+    "result": "PASS",
+    "fullGate": "npm test --prefix tests",
+    "completedInitialStages": "All stages through progress-logic.mjs passed.",
+    "interruption": "Local preview server exited during qa-regressions.mjs; navigation received ERR_CONNECTION_REFUSED.",
+    "recovery": "Restarted the preview server and reran qa-regressions.mjs, mirror-migration.mjs and pwa.mjs; all passed (exit 0).",
+    "finalContentChecks": [
+      "course-migration.mjs",
+      "separation.mjs",
+      "final browser correction check"
+    ],
+    "deployPreflight": [
+      "progress sync v2 ready",
+      "public documentation current"
+    ],
+    "unresolvedFailures": []
+  },
+  "completenessCritic": {
+    "verdict": "PASS",
+    "candidate": "1ca2a160ff40f37c4a4514288ecc934c05d2e65c",
+    "finalCardsSha256": "19635742cfe81cf0159d65cb836d67c515b19603b59dac5cdb470f5e54971143",
+    "scope": "Bounded completeness critique of combined content-review evidence and summary against the final frozen deck. No terminology re-review or general app regression tests.",
+    "counts": {
+      "cards": 87,
+      "coveredCardIds": 87,
+      "sourceCards": 87,
+      "terms": 100,
+      "uniqueTerms": 100,
+      "sections": 20,
+      "illustratedCards": 25,
+      "coveredImageUses": 25,
+      "uniqueDiagrams": 7,
+      "findings": 1,
+      "resolvedFindings": 1,
+      "openFindings": 0,
+      "missingCardIds": 0,
+      "extraCardIds": 0,
+      "duplicateReviewIds": 0
+    },
+    "checks": {
+      "pinnedCandidateMatches": true,
+      "finalContentHashMatches": true,
+      "exactCardIdSetMatches": true,
+      "noDuplicateDeckIds": true,
+      "noDuplicateReviewIds": true,
+      "everySourceIdCovered": true,
+      "finalQuestionsAndSectionsMatch": true,
+      "sourceQuestionsMatch": true,
+      "everyCardHasRationaleAndSources": true,
+      "everyFinalCardPassed": true,
+      "everyImageUseCovered": true,
+      "noUnresolvedFinding": true,
+      "correctedFreibordPresent": true,
+      "noUnexplainedChangesInVerification": true,
+      "pendingAppRegressionDisclosed": true,
+      "summaryFinalHashMatches": true,
+      "workingTreeClean": true
+    },
+    "figureCoverage": [
+      {
+        "cardId": "e90241f3fe",
+        "figure": "hull-plan",
+        "labels": [
+          "bow",
+          "stern"
+        ],
+        "evidence": "explicit figure verdict",
+        "covered": true
+      },
+      {
+        "cardId": "287d7a86d1",
+        "figure": "hull-plan",
+        "labels": [
+          "port",
+          "starboard"
+        ],
+        "evidence": "explicit figure verdict",
+        "covered": true
+      },
+      {
+        "cardId": "3fd524f9e0",
+        "figure": "hull-plan",
+        "labels": [
+          "amidships"
+        ],
+        "evidence": "explicit figure verdict",
+        "covered": true
+      },
+      {
+        "cardId": "bed24d1f76",
+        "figure": "hull-profile",
+        "labels": [
+          "waterline"
+        ],
+        "evidence": "explicit figure verdict",
+        "covered": true
+      },
+      {
+        "cardId": "b844d2633a",
+        "figure": "hull-profile",
+        "labels": [
+          "draught",
+          "waterline"
+        ],
+        "evidence": "explicit figure verdict",
+        "covered": true
+      },
+      {
+        "cardId": "d553c9df09",
+        "figure": "hull-profile",
+        "labels": [
+          "freeboard",
+          "waterline"
+        ],
+        "evidence": "explicit figure verdict",
+        "covered": true
+      },
+      {
+        "cardId": "fbcfbf5d68",
+        "figure": "deck-fittings",
+        "labels": [
+          "guardrails",
+          "stanchions"
+        ],
+        "evidence": "explicit figure verdict",
+        "covered": true
+      },
+      {
+        "cardId": "ea99fb2db0",
+        "figure": "deck-fittings",
+        "labels": [
+          "pulpit"
+        ],
+        "evidence": "explicit figure verdict",
+        "covered": true
+      },
+      {
+        "cardId": "08dfc889c8",
+        "figure": "deck-fittings",
+        "labels": [
+          "pushpit"
+        ],
+        "evidence": "explicit figure verdict",
+        "covered": true
+      },
+      {
+        "cardId": "c77f1e709b",
+        "figure": "deck-fittings",
+        "labels": [
+          "cleat"
+        ],
+        "evidence": "explicit figure verdict",
+        "covered": true
+      },
+      {
+        "cardId": "4d5f075010",
+        "figure": "sail-parts",
+        "labels": [
+          "mast"
+        ],
+        "evidence": "explicit figure verdict",
+        "covered": true
+      },
+      {
+        "cardId": "5f747e355b",
+        "figure": "sail-parts",
+        "labels": [
+          "boom"
+        ],
+        "evidence": "explicit figure verdict",
+        "covered": true
+      },
+      {
+        "cardId": "d60b668d74",
+        "figure": "rigging",
+        "labels": [
+          "forestay"
+        ],
+        "evidence": "explicit figure verdict",
+        "covered": true
+      },
+      {
+        "cardId": "0969f5b69c",
+        "figure": "rigging",
+        "labels": [
+          "backstay"
+        ],
+        "evidence": "explicit figure verdict",
+        "covered": true
+      },
+      {
+        "cardId": "ed8c84f696",
+        "figure": "rigging",
+        "labels": [
+          "shrouds"
+        ],
+        "evidence": "explicit figure verdict",
+        "covered": true
+      },
+      {
+        "cardId": "53972dcd54",
+        "figure": "rigging",
+        "labels": [
+          "halyard"
+        ],
+        "evidence": "figure metadata and card rationale",
+        "covered": true
+      },
+      {
+        "cardId": "9ed1f79557",
+        "figure": "rigging",
+        "labels": [
+          "sheet"
+        ],
+        "evidence": "figure metadata and card rationale",
+        "covered": true
+      },
+      {
+        "cardId": "2f0e5cfcb3",
+        "figure": "rigging",
+        "labels": [
+          "topping-lift"
+        ],
+        "evidence": "figure metadata and card rationale",
+        "covered": true
+      },
+      {
+        "cardId": "cfaf3bb2b8",
+        "figure": "rigging",
+        "labels": [
+          "kicker"
+        ],
+        "evidence": "figure metadata and card rationale",
+        "covered": true
+      },
+      {
+        "cardId": "e6aad46196",
+        "figure": "sail-parts",
+        "labels": [
+          "luff",
+          "leech",
+          "foot"
+        ],
+        "evidence": "figure metadata and card rationale",
+        "covered": true
+      },
+      {
+        "cardId": "fcd87b0f0a",
+        "figure": "sail-parts",
+        "labels": [
+          "head",
+          "tack",
+          "clew"
+        ],
+        "evidence": "figure metadata and card rationale",
+        "covered": true
+      },
+      {
+        "cardId": "6b75599557",
+        "figure": "windward-lee",
+        "labels": [
+          "wind",
+          "windward",
+          "leeward"
+        ],
+        "evidence": "figure metadata and card rationale",
+        "covered": true
+      },
+      {
+        "cardId": "aed308e0c6",
+        "figure": "mooring-lines",
+        "labels": [
+          "bow-line",
+          "stern-line"
+        ],
+        "evidence": "explicit image inspection in card rationale",
+        "covered": true
+      },
+      {
+        "cardId": "258983bf4c",
+        "figure": "mooring-lines",
+        "labels": [
+          "fore-spring",
+          "back-spring"
+        ],
+        "evidence": "explicit image inspection in card rationale",
+        "covered": true
+      },
+      {
+        "cardId": "eb94cd2fcb",
+        "figure": "mooring-lines",
+        "labels": [
+          "fenders"
+        ],
+        "evidence": "explicit image inspection in card rationale",
+        "covered": true
+      }
+    ],
+    "workList": [],
+    "pendingOutsideThisPass": [
+      "Deployment verification remains outside this completeness pass."
+    ],
+    "evidenceFiles": [
+      "/tmp/keepclub-german-review-combined.json",
+      "/tmp/keepclub-german-review-summary.md",
+      "/workspaces/sandbox/worktrees/keepclub-german-final-review/content/sailing-in-german/research/review-scope.md",
+      "/workspaces/sandbox/worktrees/keepclub-german-final-review/web/courses/sailing-in-german/cards.json",
+      "/workspaces/sandbox/worktrees/keepclub-german-final-review/web/courses/sailing-in-german/figures.json"
+    ],
+    "appRegressionStatus": {
+      "reportedBy": "root",
+      "status": "PASS",
+      "stages": [
+        "qa-regressions",
+        "mirror-migration",
+        "pwa"
+      ],
+      "exitCode": 0,
+      "independentlyRerun": false,
+      "note": "Root reported completion after the scratch report snapshot; its prior pending wording is not a content-coverage gap."
+    }
+  }
+}
