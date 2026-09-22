@@ -27,6 +27,7 @@ GIT101="${GIT101:-$HERE/content/git-101/build}"
 # Toki Pona is authored here too, same Markdown pipeline as Git 101. v1 ships
 # no figures of its own (content/toki-pona/src/figures.py is an empty set).
 TOKIPONA="${TOKIPONA:-$HERE/content/toki-pona/build}"
+SAILINGGERMAN="${SAILINGGERMAN:-$HERE/content/sailing-in-german/build}"
 FLAG="${1:-}"
 
 copy() { # src dst
@@ -114,6 +115,9 @@ for id in $IDS; do
     toki-pona)
       copy "$TOKIPONA/cards.json" "$DEST/cards.json"
       copy "$TOKIPONA/figures.json" "$DEST/figures.json"
+      ;;
+    sailing-in-german)
+      for f in cards.json figures.json figures.css; do copy "$SAILINGGERMAN/$f" "$DEST/$f"; done
       ;;
     *)
       # Not fatal: a course authored somewhere else — an .apkg-derived deck
