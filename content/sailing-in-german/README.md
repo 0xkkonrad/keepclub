@@ -27,7 +27,8 @@ course; learners never fetch another course's files. Only labels relevant
 to the current card are highlighted. The mainsail caption is shortened to
 remove an assumption about other diagrams. No new raster artwork is needed.
 
-The course has its own umlaut-anchor emblem and a boat with a ß-shaped sail.
+The course emblem is a boat with a billowing ß-shaped sail (the selected B2 design).
+An umlaut anchor appears in the supporting illustrations.
 Its five original icons live in `web/courses/sailing-in-german/doodles.js`;
 `course.json` assigns them to the shelf, loading screen, frieze and sections.
 Burgundy in light mode and rose in dark mode colour the icons and controls.
