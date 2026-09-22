@@ -55,6 +55,28 @@ ok(coldFeedback.label === 'Email feedback' && coldFeedback.mark === '?'
     && coldFeedback.width >= 48 && coldFeedback.height >= 48 && !coldFeedback.theme,
   `Help quietly replaces Theme in the same tap target (${coldFeedback.width}×${coldFeedback.height})`);
 
+// A course's shelf emblem must use the same palette as the course it opens.
+const palettes = Object.fromEntries(REGISTERED.map((id) => {
+  const meta = JSON.parse(readFileSync(join(HERE, '../web/courses', id, 'course.json'), 'utf8'));
+  return [id, { light: '#0e3f39', dark: '#35917f', ...meta.accent }];
+}));
+for (const theme of ['light', 'dark', 'light']) {
+  const mismatches = await p.evaluate(({ theme, palettes }) => {
+    MuninTheme.set(theme);
+    return [...document.querySelectorAll('.shelf-tile[data-course]')].filter((tile) => {
+      const probe = document.createElement('span');
+      probe.style.color = palettes[tile.dataset.course][theme];
+      document.body.appendChild(probe);
+      const expected = getComputedStyle(probe).color;
+      probe.remove();
+      return getComputedStyle(tile).borderLeftColor !== expected
+        || getComputedStyle(tile.querySelector('.dood')).color !== expected;
+    }).map((tile) => tile.dataset.course);
+  }, { theme, palettes });
+  ok(mismatches.length === 0,
+    `shelf icons and borders match each course's ${theme} palette (${mismatches.join(', ') || 'all match'})`);
+}
+
 /* ── share keep club, without leaking a course or local state ── */
 ok(await p.locator('#shelf-share').isVisible(), 'the course selector carries a share button');
 await p.evaluate(() => {

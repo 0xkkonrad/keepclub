@@ -27,8 +27,15 @@ course; learners never fetch another course's files. Only labels relevant
 to the current card are highlighted. The mainsail caption is shortened to
 remove an assumption about other diagrams. No new raster artwork is needed.
 
-The small nautical doodle set is copied from the same course for the shelf
-and loading screen. Other courses' card content is unchanged.
+The course has its own umlaut-anchor emblem and a boat with a ß-shaped sail.
+Its five original icons live in `web/courses/sailing-in-german/doodles.js`;
+`course.json` assigns them to the shelf, loading screen, frieze and sections.
+Burgundy in light mode and rose in dark mode colour the icons and controls.
+After editing the main emblem, regenerate its shelf path and loading scene:
+
+```sh
+node scripts/make-boot.mjs sailing-in-german --force
+```
 
 ## References and review
 
