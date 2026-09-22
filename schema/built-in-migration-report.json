@@ -25316,6 +25316,2670 @@
       ]
     },
     {
+      "courseId": "sailing-in-german",
+      "normalizedCourseId": "sailing-in-german",
+      "courseIdUnchanged": true,
+      "cardCount": 87,
+      "sectionCount": 20,
+      "groupCount": 0,
+      "cards": [
+        {
+          "index": 0,
+          "oldCardId": "e90241f3fe",
+          "newCardId": "e90241f3fe",
+          "idUnchanged": true,
+          "oldSectionId": "boat-directions",
+          "newSectionId": "boat-directions",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "3d8df1470622d07919a28addef7600a044b413fd9744f10276d9ec52f5c0cefd",
+            "newSha256": "3d8df1470622d07919a28addef7600a044b413fd9744f10276d9ec52f5c0cefd",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "9f1c7045514e289e3e6e321bab813a080e25a0647c2cf6fc2b8d3a7ce34e78a8",
+            "newSha256": "9f1c7045514e289e3e6e321bab813a080e25a0647c2cf6fc2b8d3a7ce34e78a8",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "hull-plan",
+              "on": [
+                "bow",
+                "stern"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "hull-plan",
+              "highlightedLabels": [
+                "bow",
+                "stern"
+              ]
+            }
+          }
+        },
+        {
+          "index": 1,
+          "oldCardId": "287d7a86d1",
+          "newCardId": "287d7a86d1",
+          "idUnchanged": true,
+          "oldSectionId": "boat-directions",
+          "newSectionId": "boat-directions",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "d7b6af7b1e5064cbc048b4025fd15d60c8721b9ea82d218f9e3b0d4750affbda",
+            "newSha256": "d7b6af7b1e5064cbc048b4025fd15d60c8721b9ea82d218f9e3b0d4750affbda",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "a1ac87ef014e7a54b35884e32ff5a01f0ae291b9e096523b4af05a79f385ee3a",
+            "newSha256": "a1ac87ef014e7a54b35884e32ff5a01f0ae291b9e096523b4af05a79f385ee3a",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "hull-plan",
+              "on": [
+                "port",
+                "starboard"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "hull-plan",
+              "highlightedLabels": [
+                "port",
+                "starboard"
+              ]
+            }
+          }
+        },
+        {
+          "index": 2,
+          "oldCardId": "3fd524f9e0",
+          "newCardId": "3fd524f9e0",
+          "idUnchanged": true,
+          "oldSectionId": "boat-directions",
+          "newSectionId": "boat-directions",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "67346c370b254f5602b26e048d6761707c5b5ff28f0ffa0205154ac1d1b5fcd8",
+            "newSha256": "67346c370b254f5602b26e048d6761707c5b5ff28f0ffa0205154ac1d1b5fcd8",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "69d1e68e1436f271c0059e09b91fe7ed2f6dfa30c991315cba57aa0a21a77b84",
+            "newSha256": "69d1e68e1436f271c0059e09b91fe7ed2f6dfa30c991315cba57aa0a21a77b84",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "hull-plan",
+              "on": [
+                "amidships"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "hull-plan",
+              "highlightedLabels": [
+                "amidships"
+              ]
+            }
+          }
+        },
+        {
+          "index": 3,
+          "oldCardId": "2f5544e458",
+          "newCardId": "2f5544e458",
+          "idUnchanged": true,
+          "oldSectionId": "relative-directions",
+          "newSectionId": "relative-directions",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "84e86e461d48b7d3f646452a93afa95ef7e8eadec53c022e4f2615bbcb41bece",
+            "newSha256": "84e86e461d48b7d3f646452a93afa95ef7e8eadec53c022e4f2615bbcb41bece",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "b648e6b49e05340f34de50342f1439d7c666628ef535f6932468b45db294ef89",
+            "newSha256": "b648e6b49e05340f34de50342f1439d7c666628ef535f6932468b45db294ef89",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 4,
+          "oldCardId": "979a4cc592",
+          "newCardId": "979a4cc592",
+          "idUnchanged": true,
+          "oldSectionId": "relative-directions",
+          "newSectionId": "relative-directions",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "44968791bbcd7ba2ccbfe5ed47ac7b134025573d39452ca0fc81472cc4928970",
+            "newSha256": "44968791bbcd7ba2ccbfe5ed47ac7b134025573d39452ca0fc81472cc4928970",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "0b4dd87fb925b4a19da991ac435fc05963af4486a7ee5b25f8966e141d90760a",
+            "newSha256": "0b4dd87fb925b4a19da991ac435fc05963af4486a7ee5b25f8966e141d90760a",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 5,
+          "oldCardId": "7955561190",
+          "newCardId": "7955561190",
+          "idUnchanged": true,
+          "oldSectionId": "relative-directions",
+          "newSectionId": "relative-directions",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "a18c53ba6ad40877c8d14c79a54445b0c6f1163491b922716fc0a3ec9ce7d8d8",
+            "newSha256": "a18c53ba6ad40877c8d14c79a54445b0c6f1163491b922716fc0a3ec9ce7d8d8",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "88ae89d32dbd04ae3a6ba9089fbb1e747e6561c9991dc5bd27f18171d0f239c1",
+            "newSha256": "88ae89d32dbd04ae3a6ba9089fbb1e747e6561c9991dc5bd27f18171d0f239c1",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 6,
+          "oldCardId": "ca5bc7403b",
+          "newCardId": "ca5bc7403b",
+          "idUnchanged": true,
+          "oldSectionId": "relative-directions",
+          "newSectionId": "relative-directions",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "eb46193251b55a42fdd04fc71b2dec0da510991016b56c6139f9a98bc5cd413b",
+            "newSha256": "eb46193251b55a42fdd04fc71b2dec0da510991016b56c6139f9a98bc5cd413b",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "79238c5d7fa848e485dbdc9b1625e387c6836a3aec34c666d234343d5c7c9f16",
+            "newSha256": "79238c5d7fa848e485dbdc9b1625e387c6836a3aec34c666d234343d5c7c9f16",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 7,
+          "oldCardId": "ad78c0c3fc",
+          "newCardId": "ad78c0c3fc",
+          "idUnchanged": true,
+          "oldSectionId": "hull-and-steering",
+          "newSectionId": "hull-and-steering",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "c067d971a7c5eaa4dea1cedc47f716f2f09535d6174d8d1c5c1cc625aaa2c1bc",
+            "newSha256": "c067d971a7c5eaa4dea1cedc47f716f2f09535d6174d8d1c5c1cc625aaa2c1bc",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "ce1ca9de55ed47df0186ead090a0bdf9216ee343a07f119b8ad43f407df79cb0",
+            "newSha256": "ce1ca9de55ed47df0186ead090a0bdf9216ee343a07f119b8ad43f407df79cb0",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 8,
+          "oldCardId": "cb8f07ceb2",
+          "newCardId": "cb8f07ceb2",
+          "idUnchanged": true,
+          "oldSectionId": "hull-and-steering",
+          "newSectionId": "hull-and-steering",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "deef758717818a960e6b8809029fdb320ae1507b128056da7c11ee9cbd969ad2",
+            "newSha256": "deef758717818a960e6b8809029fdb320ae1507b128056da7c11ee9cbd969ad2",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "0735239bc617d0414e62579e6266e706647064043113aaa7aae3478b4f83df6e",
+            "newSha256": "0735239bc617d0414e62579e6266e706647064043113aaa7aae3478b4f83df6e",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 9,
+          "oldCardId": "8a43f43948",
+          "newCardId": "8a43f43948",
+          "idUnchanged": true,
+          "oldSectionId": "hull-and-steering",
+          "newSectionId": "hull-and-steering",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "194af599da5863cc1061e7065dbeb1a848eb77b78bffb221636d8009d0d04d8a",
+            "newSha256": "194af599da5863cc1061e7065dbeb1a848eb77b78bffb221636d8009d0d04d8a",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "e32656b708710feb13b61659efd410af5f7af17be08221c0ff84c5e3a4962d6d",
+            "newSha256": "e32656b708710feb13b61659efd410af5f7af17be08221c0ff84c5e3a4962d6d",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 10,
+          "oldCardId": "d86879dd55",
+          "newCardId": "d86879dd55",
+          "idUnchanged": true,
+          "oldSectionId": "hull-and-steering",
+          "newSectionId": "hull-and-steering",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "5c85b2475cc707f3839b9769fdb5fbc99d692ed84b7d50271cd7d6bd6b65fdd2",
+            "newSha256": "5c85b2475cc707f3839b9769fdb5fbc99d692ed84b7d50271cd7d6bd6b65fdd2",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "ff5a6a3b4a6929308b17a0af76126e727d06e735da03f6609ff552e18667aea9",
+            "newSha256": "ff5a6a3b4a6929308b17a0af76126e727d06e735da03f6609ff552e18667aea9",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 11,
+          "oldCardId": "1b819ffb97",
+          "newCardId": "1b819ffb97",
+          "idUnchanged": true,
+          "oldSectionId": "hull-and-steering",
+          "newSectionId": "hull-and-steering",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "53e591c8488f8271a80c2e6a418c02bdba871801648f934b78bf18380dd53a72",
+            "newSha256": "53e591c8488f8271a80c2e6a418c02bdba871801648f934b78bf18380dd53a72",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "a82c5a3bae95133ab7c7e6329509d829775debc05641e7d3819ced6d3d092b9e",
+            "newSha256": "a82c5a3bae95133ab7c7e6329509d829775debc05641e7d3819ced6d3d092b9e",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 12,
+          "oldCardId": "bed24d1f76",
+          "newCardId": "bed24d1f76",
+          "idUnchanged": true,
+          "oldSectionId": "hull-in-water",
+          "newSectionId": "hull-in-water",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "e1c45c0ef971778f48c16965ca7ad6a21b9fc3e195814cdba6f9e37b605057f9",
+            "newSha256": "e1c45c0ef971778f48c16965ca7ad6a21b9fc3e195814cdba6f9e37b605057f9",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "05301b899842c36eeb0b34c57ff700087f67049f3ab39d802b6579f0bea7b8b0",
+            "newSha256": "05301b899842c36eeb0b34c57ff700087f67049f3ab39d802b6579f0bea7b8b0",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "hull-profile",
+              "on": [
+                "waterline"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "hull-profile",
+              "highlightedLabels": [
+                "waterline"
+              ]
+            }
+          }
+        },
+        {
+          "index": 13,
+          "oldCardId": "b844d2633a",
+          "newCardId": "b844d2633a",
+          "idUnchanged": true,
+          "oldSectionId": "hull-in-water",
+          "newSectionId": "hull-in-water",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "cac3a5224dfd160acf398d22bdc6a4cdedfa5c6fef7ed08aa2796acb72976bb9",
+            "newSha256": "cac3a5224dfd160acf398d22bdc6a4cdedfa5c6fef7ed08aa2796acb72976bb9",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "1c2e14838327bc09c0924ae35b5b57d58f63b7f11bd201b1eb7044ab7a78b34c",
+            "newSha256": "1c2e14838327bc09c0924ae35b5b57d58f63b7f11bd201b1eb7044ab7a78b34c",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "hull-profile",
+              "on": [
+                "draught",
+                "waterline"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "hull-profile",
+              "highlightedLabels": [
+                "draught",
+                "waterline"
+              ]
+            }
+          }
+        },
+        {
+          "index": 14,
+          "oldCardId": "d553c9df09",
+          "newCardId": "d553c9df09",
+          "idUnchanged": true,
+          "oldSectionId": "hull-in-water",
+          "newSectionId": "hull-in-water",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "5c2d552d11d2aee8dc750c7ee37d6e75ef5fee62bfb3c5488e6f335a7ec48248",
+            "newSha256": "5c2d552d11d2aee8dc750c7ee37d6e75ef5fee62bfb3c5488e6f335a7ec48248",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "265637daea684f0a0a68e2307d581288b5a3cf123bdc85795331ca3541c94f02",
+            "newSha256": "265637daea684f0a0a68e2307d581288b5a3cf123bdc85795331ca3541c94f02",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "hull-profile",
+              "on": [
+                "freeboard",
+                "waterline"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "hull-profile",
+              "highlightedLabels": [
+                "freeboard",
+                "waterline"
+              ]
+            }
+          }
+        },
+        {
+          "index": 15,
+          "oldCardId": "61114a3d8e",
+          "newCardId": "61114a3d8e",
+          "idUnchanged": true,
+          "oldSectionId": "hull-in-water",
+          "newSectionId": "hull-in-water",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "2719d9601d59dddea408f546f8dd2e9d23c19ffb59f82f8064f69183eb2136a8",
+            "newSha256": "2719d9601d59dddea408f546f8dd2e9d23c19ffb59f82f8064f69183eb2136a8",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "3850be47b0ca77966a21f387aaee54f109600f5d44f7bb5ab2fb45d72d8af3ae",
+            "newSha256": "3850be47b0ca77966a21f387aaee54f109600f5d44f7bb5ab2fb45d72d8af3ae",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 16,
+          "oldCardId": "1340bb654a",
+          "newCardId": "1340bb654a",
+          "idUnchanged": true,
+          "oldSectionId": "hull-in-water",
+          "newSectionId": "hull-in-water",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "74a8f9b802643a0bb048789c0b30e0007ebb72e171b4304e2f21f97dbfb938e6",
+            "newSha256": "74a8f9b802643a0bb048789c0b30e0007ebb72e171b4304e2f21f97dbfb938e6",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "5f822d6ed8c91ea9e719ac7ede9c40ccbcf20ced06fda94dcb057072d0211017",
+            "newSha256": "5f822d6ed8c91ea9e719ac7ede9c40ccbcf20ced06fda94dcb057072d0211017",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 17,
+          "oldCardId": "608c09e7a4",
+          "newCardId": "608c09e7a4",
+          "idUnchanged": true,
+          "oldSectionId": "deck-and-openings",
+          "newSectionId": "deck-and-openings",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "173a45f87c7524cfabac94dd2562ed8929c0a91176eab6099af9222a1d95bc29",
+            "newSha256": "173a45f87c7524cfabac94dd2562ed8929c0a91176eab6099af9222a1d95bc29",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "0943513ab6d269b379c7c0199479a7ce2fc7b517eca7043a380d32a07d47cb27",
+            "newSha256": "0943513ab6d269b379c7c0199479a7ce2fc7b517eca7043a380d32a07d47cb27",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 18,
+          "oldCardId": "f4e6795142",
+          "newCardId": "f4e6795142",
+          "idUnchanged": true,
+          "oldSectionId": "deck-and-openings",
+          "newSectionId": "deck-and-openings",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "0a87c9557e08694555188f996afe04340d3772b6998a5fc54097bd945c9b5e16",
+            "newSha256": "0a87c9557e08694555188f996afe04340d3772b6998a5fc54097bd945c9b5e16",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "843bdbd37dc21113c587974befa924b7c82709dc34fb2f85adfd75da52ec355a",
+            "newSha256": "843bdbd37dc21113c587974befa924b7c82709dc34fb2f85adfd75da52ec355a",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 19,
+          "oldCardId": "0dc6bbfd8a",
+          "newCardId": "0dc6bbfd8a",
+          "idUnchanged": true,
+          "oldSectionId": "deck-and-openings",
+          "newSectionId": "deck-and-openings",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "ff3362e121f32a28ee0e80673a2232746c07f0cb22f561ee6bf312bc471c685c",
+            "newSha256": "ff3362e121f32a28ee0e80673a2232746c07f0cb22f561ee6bf312bc471c685c",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "a463584cbef821de1f1b876c5324e69dec97de1dcd57e3cff0e1b816a690d6b1",
+            "newSha256": "a463584cbef821de1f1b876c5324e69dec97de1dcd57e3cff0e1b816a690d6b1",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 20,
+          "oldCardId": "d067d153ab",
+          "newCardId": "d067d153ab",
+          "idUnchanged": true,
+          "oldSectionId": "deck-and-openings",
+          "newSectionId": "deck-and-openings",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "d929ab77bb70754c9e827e5b6af7e75f3c1626aba22fbaed7ddd70a8786a2947",
+            "newSha256": "d929ab77bb70754c9e827e5b6af7e75f3c1626aba22fbaed7ddd70a8786a2947",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "0cccc1cdb66dbc45d0aec8300f4603227a585532397fcf59ca186f3b7f85211a",
+            "newSha256": "0cccc1cdb66dbc45d0aec8300f4603227a585532397fcf59ca186f3b7f85211a",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 21,
+          "oldCardId": "f56f4faa94",
+          "newCardId": "f56f4faa94",
+          "idUnchanged": true,
+          "oldSectionId": "deck-and-openings",
+          "newSectionId": "deck-and-openings",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "7182c33dfe67d3712e4de0e97d05e31e592a7c4de08edd899f69f920c688b614",
+            "newSha256": "7182c33dfe67d3712e4de0e97d05e31e592a7c4de08edd899f69f920c688b614",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "1b452ea83f619d29ca6876a44c7778e56378397ab8a44868ce9bead0beffdc58",
+            "newSha256": "1b452ea83f619d29ca6876a44c7778e56378397ab8a44868ce9bead0beffdc58",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 22,
+          "oldCardId": "fbcfbf5d68",
+          "newCardId": "fbcfbf5d68",
+          "idUnchanged": true,
+          "oldSectionId": "rails-and-cleats",
+          "newSectionId": "rails-and-cleats",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "fa630bd1ca782eca33b4aa5010c350beadd66f14c23446e187f3814f1a2f5836",
+            "newSha256": "fa630bd1ca782eca33b4aa5010c350beadd66f14c23446e187f3814f1a2f5836",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "bd1bf1ed37ce1c4c589c762c3e231cfbd5682c3d47c36675f1c22a76da523ac7",
+            "newSha256": "bd1bf1ed37ce1c4c589c762c3e231cfbd5682c3d47c36675f1c22a76da523ac7",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "deck-fittings",
+              "on": [
+                "guardrails",
+                "stanchions"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "deck-fittings",
+              "highlightedLabels": [
+                "guardrails",
+                "stanchions"
+              ]
+            }
+          }
+        },
+        {
+          "index": 23,
+          "oldCardId": "ea99fb2db0",
+          "newCardId": "ea99fb2db0",
+          "idUnchanged": true,
+          "oldSectionId": "rails-and-cleats",
+          "newSectionId": "rails-and-cleats",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "be4ef9c9cab385c10b8a6482aa8e9e55094b214010eb86b3d11e674bc20e71e7",
+            "newSha256": "be4ef9c9cab385c10b8a6482aa8e9e55094b214010eb86b3d11e674bc20e71e7",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "b56e4baa45e08db5a26f6061be5ec4d798f165f6e387c35d0aa01be5339e1746",
+            "newSha256": "b56e4baa45e08db5a26f6061be5ec4d798f165f6e387c35d0aa01be5339e1746",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "deck-fittings",
+              "on": [
+                "pulpit"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "deck-fittings",
+              "highlightedLabels": [
+                "pulpit"
+              ]
+            }
+          }
+        },
+        {
+          "index": 24,
+          "oldCardId": "08dfc889c8",
+          "newCardId": "08dfc889c8",
+          "idUnchanged": true,
+          "oldSectionId": "rails-and-cleats",
+          "newSectionId": "rails-and-cleats",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "1b0947dab88f89a98d5d7fafbc94b220343e35795b351d2d6d41175a1fdaf224",
+            "newSha256": "1b0947dab88f89a98d5d7fafbc94b220343e35795b351d2d6d41175a1fdaf224",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "0ef229fd662b64c613528a849145524fd6792e6c778a015bfcc782cd13db0a6c",
+            "newSha256": "0ef229fd662b64c613528a849145524fd6792e6c778a015bfcc782cd13db0a6c",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "deck-fittings",
+              "on": [
+                "pushpit"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "deck-fittings",
+              "highlightedLabels": [
+                "pushpit"
+              ]
+            }
+          }
+        },
+        {
+          "index": 25,
+          "oldCardId": "c77f1e709b",
+          "newCardId": "c77f1e709b",
+          "idUnchanged": true,
+          "oldSectionId": "rails-and-cleats",
+          "newSectionId": "rails-and-cleats",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "c295270e429e13dff45363e6a731216664a4e5eb9519b8a55e88c5d1e5dad548",
+            "newSha256": "c295270e429e13dff45363e6a731216664a4e5eb9519b8a55e88c5d1e5dad548",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "7f07d8f74db42bf1a654570354c0c1e8cf7fb871a79b6e94f4de5634efa73475",
+            "newSha256": "7f07d8f74db42bf1a654570354c0c1e8cf7fb871a79b6e94f4de5634efa73475",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "deck-fittings",
+              "on": [
+                "cleat"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "deck-fittings",
+              "highlightedLabels": [
+                "cleat"
+              ]
+            }
+          }
+        },
+        {
+          "index": 26,
+          "oldCardId": "4d5f075010",
+          "newCardId": "4d5f075010",
+          "idUnchanged": true,
+          "oldSectionId": "mast-and-stays",
+          "newSectionId": "mast-and-stays",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "9e5e76f6f4234264faedd2e1530c5deccd670cfe3e2b3151547c00464b4a148c",
+            "newSha256": "9e5e76f6f4234264faedd2e1530c5deccd670cfe3e2b3151547c00464b4a148c",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "220343035686a00297f460870f75c0468178afc83b77ead02163dbf0073e0bd9",
+            "newSha256": "220343035686a00297f460870f75c0468178afc83b77ead02163dbf0073e0bd9",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "sail-parts",
+              "on": [
+                "mast"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "sail-parts",
+              "highlightedLabels": [
+                "mast"
+              ]
+            }
+          }
+        },
+        {
+          "index": 27,
+          "oldCardId": "5f747e355b",
+          "newCardId": "5f747e355b",
+          "idUnchanged": true,
+          "oldSectionId": "mast-and-stays",
+          "newSectionId": "mast-and-stays",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "d860a4c469bab7aea8dbf7bdfa92db6fb327d0a52538995a7883d3bf8f071b7e",
+            "newSha256": "d860a4c469bab7aea8dbf7bdfa92db6fb327d0a52538995a7883d3bf8f071b7e",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "d53dd4e09c5e48adbac8a6c925b637f9b7322e5882c7d6008a6146ed34df0f43",
+            "newSha256": "d53dd4e09c5e48adbac8a6c925b637f9b7322e5882c7d6008a6146ed34df0f43",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "sail-parts",
+              "on": [
+                "boom"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "sail-parts",
+              "highlightedLabels": [
+                "boom"
+              ]
+            }
+          }
+        },
+        {
+          "index": 28,
+          "oldCardId": "d60b668d74",
+          "newCardId": "d60b668d74",
+          "idUnchanged": true,
+          "oldSectionId": "mast-and-stays",
+          "newSectionId": "mast-and-stays",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "f10d3634680971c60440415b274deeede3f3b1862f6d1ca1cb0a2f8f40f92588",
+            "newSha256": "f10d3634680971c60440415b274deeede3f3b1862f6d1ca1cb0a2f8f40f92588",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "8639fa3f2a94b5fcd1cd9124fa7885c06227748686b8dc10f40b510ba9879c1f",
+            "newSha256": "8639fa3f2a94b5fcd1cd9124fa7885c06227748686b8dc10f40b510ba9879c1f",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "rigging",
+              "on": [
+                "forestay"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "rigging",
+              "highlightedLabels": [
+                "forestay"
+              ]
+            }
+          }
+        },
+        {
+          "index": 29,
+          "oldCardId": "0969f5b69c",
+          "newCardId": "0969f5b69c",
+          "idUnchanged": true,
+          "oldSectionId": "mast-and-stays",
+          "newSectionId": "mast-and-stays",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "ae76a080c29e0e5e88e444bab633ab42fd7a2353659e4cdd57d9deacd1f8bca2",
+            "newSha256": "ae76a080c29e0e5e88e444bab633ab42fd7a2353659e4cdd57d9deacd1f8bca2",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "8a415b309df188c33b59e77607fd7b77ab15804791b78bc56fadf12adae1c21e",
+            "newSha256": "8a415b309df188c33b59e77607fd7b77ab15804791b78bc56fadf12adae1c21e",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "rigging",
+              "on": [
+                "backstay"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "rigging",
+              "highlightedLabels": [
+                "backstay"
+              ]
+            }
+          }
+        },
+        {
+          "index": 30,
+          "oldCardId": "ed8c84f696",
+          "newCardId": "ed8c84f696",
+          "idUnchanged": true,
+          "oldSectionId": "mast-and-stays",
+          "newSectionId": "mast-and-stays",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "859375e2bbba8acb97cf800476dff116075218783404d148da76bd85875d55c5",
+            "newSha256": "859375e2bbba8acb97cf800476dff116075218783404d148da76bd85875d55c5",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "0bff885de7f8e02c84fedce1cfdccaee5a6d71f6a703e60709973b7e24afede9",
+            "newSha256": "0bff885de7f8e02c84fedce1cfdccaee5a6d71f6a703e60709973b7e24afede9",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "rigging",
+              "on": [
+                "shrouds"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "rigging",
+              "highlightedLabels": [
+                "shrouds"
+              ]
+            }
+          }
+        },
+        {
+          "index": 31,
+          "oldCardId": "53972dcd54",
+          "newCardId": "53972dcd54",
+          "idUnchanged": true,
+          "oldSectionId": "sail-control-lines",
+          "newSectionId": "sail-control-lines",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "9918f2cf57d60ee885d7169286d903fb3908cad7b3d2abc00fc0eeca8c2b15a6",
+            "newSha256": "9918f2cf57d60ee885d7169286d903fb3908cad7b3d2abc00fc0eeca8c2b15a6",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "d26bb9614ccb1496d61763513f19acfe1c706ea2ca66ad38e7131ecf4808d6b1",
+            "newSha256": "d26bb9614ccb1496d61763513f19acfe1c706ea2ca66ad38e7131ecf4808d6b1",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "rigging",
+              "on": [
+                "halyard"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "rigging",
+              "highlightedLabels": [
+                "halyard"
+              ]
+            }
+          }
+        },
+        {
+          "index": 32,
+          "oldCardId": "9ed1f79557",
+          "newCardId": "9ed1f79557",
+          "idUnchanged": true,
+          "oldSectionId": "sail-control-lines",
+          "newSectionId": "sail-control-lines",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "e01f505485aaf7198c894fe7a2c1ea6f6189c5e5975667882122502fe6defb26",
+            "newSha256": "e01f505485aaf7198c894fe7a2c1ea6f6189c5e5975667882122502fe6defb26",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "b2ea8c81cf27d5fc110f0d83183f09b5c3926b6d9db329e8ebcbfee3b011fefd",
+            "newSha256": "b2ea8c81cf27d5fc110f0d83183f09b5c3926b6d9db329e8ebcbfee3b011fefd",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "rigging",
+              "on": [
+                "sheet"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "rigging",
+              "highlightedLabels": [
+                "sheet"
+              ]
+            }
+          }
+        },
+        {
+          "index": 33,
+          "oldCardId": "824261ed2b",
+          "newCardId": "824261ed2b",
+          "idUnchanged": true,
+          "oldSectionId": "sail-control-lines",
+          "newSectionId": "sail-control-lines",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "fbe6705655fba94b23db21f2ca59bb06f026a0bb33f7fca5580ff1a06d2306e5",
+            "newSha256": "fbe6705655fba94b23db21f2ca59bb06f026a0bb33f7fca5580ff1a06d2306e5",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "772669211eec966ddabdb27834de9d7ed179f84e99dd5e95cfe4cea27c729855",
+            "newSha256": "772669211eec966ddabdb27834de9d7ed179f84e99dd5e95cfe4cea27c729855",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 34,
+          "oldCardId": "808aaf2d02",
+          "newCardId": "808aaf2d02",
+          "idUnchanged": true,
+          "oldSectionId": "sail-control-lines",
+          "newSectionId": "sail-control-lines",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "3802ed8b7966ee3eb600f0402a592d7b3c300328ad3115fbd7a562ea0d21f7ff",
+            "newSha256": "3802ed8b7966ee3eb600f0402a592d7b3c300328ad3115fbd7a562ea0d21f7ff",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "2c51cb88d19aecbcbf7669f087750227f41b804035e79e9dd04b80e5134311b9",
+            "newSha256": "2c51cb88d19aecbcbf7669f087750227f41b804035e79e9dd04b80e5134311b9",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 35,
+          "oldCardId": "2f0e5cfcb3",
+          "newCardId": "2f0e5cfcb3",
+          "idUnchanged": true,
+          "oldSectionId": "sail-control-lines",
+          "newSectionId": "sail-control-lines",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "a49aa589f53e91a66fc44d5b240c48e294aa42a6dc284db1763522302df7674e",
+            "newSha256": "a49aa589f53e91a66fc44d5b240c48e294aa42a6dc284db1763522302df7674e",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "9b700dd8ddea8ad29e004afde5d2d183e2d6a7629235be5d2fb64bc126359550",
+            "newSha256": "9b700dd8ddea8ad29e004afde5d2d183e2d6a7629235be5d2fb64bc126359550",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "rigging",
+              "on": [
+                "topping-lift"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "rigging",
+              "highlightedLabels": [
+                "topping-lift"
+              ]
+            }
+          }
+        },
+        {
+          "index": 36,
+          "oldCardId": "cfaf3bb2b8",
+          "newCardId": "cfaf3bb2b8",
+          "idUnchanged": true,
+          "oldSectionId": "trim-and-hardware",
+          "newSectionId": "trim-and-hardware",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "452299941ceb67fb48c2718e1611c222f3c49b4ea613edf2dee5765f16b3b214",
+            "newSha256": "452299941ceb67fb48c2718e1611c222f3c49b4ea613edf2dee5765f16b3b214",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "4b613869fbda631ff5025adf70ca4b2e0593860a6e907eda3abc5fbfa5afda79",
+            "newSha256": "4b613869fbda631ff5025adf70ca4b2e0593860a6e907eda3abc5fbfa5afda79",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "rigging",
+              "on": [
+                "kicker"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "rigging",
+              "highlightedLabels": [
+                "kicker"
+              ]
+            }
+          }
+        },
+        {
+          "index": 37,
+          "oldCardId": "43c1fd41d6",
+          "newCardId": "43c1fd41d6",
+          "idUnchanged": true,
+          "oldSectionId": "trim-and-hardware",
+          "newSectionId": "trim-and-hardware",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "16804e189e94097163267ea793ec021c0a2b9b557c9daa0c1803d65af3bfc509",
+            "newSha256": "16804e189e94097163267ea793ec021c0a2b9b557c9daa0c1803d65af3bfc509",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "29193096d630f6c41c9249d01f7a2d6fde00eedf6a0de577cf24f1d09b6d0817",
+            "newSha256": "29193096d630f6c41c9249d01f7a2d6fde00eedf6a0de577cf24f1d09b6d0817",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 38,
+          "oldCardId": "2cb599651f",
+          "newCardId": "2cb599651f",
+          "idUnchanged": true,
+          "oldSectionId": "trim-and-hardware",
+          "newSectionId": "trim-and-hardware",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "cc7b76a2c83bdfac27d6d7bfee19e3f01723b3ceaff8f27f5cd0f57549b4407a",
+            "newSha256": "cc7b76a2c83bdfac27d6d7bfee19e3f01723b3ceaff8f27f5cd0f57549b4407a",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "7ea98d325b98a8b3a4f8fcb415b02e5472afe71fc9f82fb93e62d6fec4d8607c",
+            "newSha256": "7ea98d325b98a8b3a4f8fcb415b02e5472afe71fc9f82fb93e62d6fec4d8607c",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 39,
+          "oldCardId": "084efae95f",
+          "newCardId": "084efae95f",
+          "idUnchanged": true,
+          "oldSectionId": "trim-and-hardware",
+          "newSectionId": "trim-and-hardware",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "e628051ae52cc602be630503382b7fe5afb860b3be9fff47f2cca4dd89f4c570",
+            "newSha256": "e628051ae52cc602be630503382b7fe5afb860b3be9fff47f2cca4dd89f4c570",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "f2a7b14eaac8f8f5e4b8c5dc2f56e79a89aab803ec6598d58c81f32e58377780",
+            "newSha256": "f2a7b14eaac8f8f5e4b8c5dc2f56e79a89aab803ec6598d58c81f32e58377780",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 40,
+          "oldCardId": "cb292ab232",
+          "newCardId": "cb292ab232",
+          "idUnchanged": true,
+          "oldSectionId": "trim-and-hardware",
+          "newSectionId": "trim-and-hardware",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "01173071c3dded72288e825eed1fe216423dbe33a3eba9d8d46cd63cffa98ce1",
+            "newSha256": "01173071c3dded72288e825eed1fe216423dbe33a3eba9d8d46cd63cffa98ce1",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "7e66c2bb3d7a7cf95e4609057bda0d8368ce783dd6236ec568cc5649a59fd668",
+            "newSha256": "7e66c2bb3d7a7cf95e4609057bda0d8368ce783dd6236ec568cc5649a59fd668",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 41,
+          "oldCardId": "0bacef3b0d",
+          "newCardId": "0bacef3b0d",
+          "idUnchanged": true,
+          "oldSectionId": "sails",
+          "newSectionId": "sails",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "fd132455f6810823f4728a39a82e44afef5d2a69539245d43de4cf1211c69ecc",
+            "newSha256": "fd132455f6810823f4728a39a82e44afef5d2a69539245d43de4cf1211c69ecc",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "79540dd9f3892393b5abeacb77002269eea72b97c7719a00070b94631fd725e3",
+            "newSha256": "79540dd9f3892393b5abeacb77002269eea72b97c7719a00070b94631fd725e3",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 42,
+          "oldCardId": "e65bd7e719",
+          "newCardId": "e65bd7e719",
+          "idUnchanged": true,
+          "oldSectionId": "sails",
+          "newSectionId": "sails",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "92fe0c094d2e47169175f663c6b9584563ba752d4244b506c9a2cf5913bd678c",
+            "newSha256": "92fe0c094d2e47169175f663c6b9584563ba752d4244b506c9a2cf5913bd678c",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "b788c4e16d08807cbdc037be44f29427b08482362177127767cbd2abff6f54b4",
+            "newSha256": "b788c4e16d08807cbdc037be44f29427b08482362177127767cbd2abff6f54b4",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 43,
+          "oldCardId": "5a6633fc50",
+          "newCardId": "5a6633fc50",
+          "idUnchanged": true,
+          "oldSectionId": "sails",
+          "newSectionId": "sails",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "2fdafd55a894816066506b23583d5f2b8dfbdaf4513fd0d0380e1a072b0b7e67",
+            "newSha256": "2fdafd55a894816066506b23583d5f2b8dfbdaf4513fd0d0380e1a072b0b7e67",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "8dee7c26151ead6164c7c738c195ef5f8ae08dd39b8a872c07fecd91f8c31fea",
+            "newSha256": "8dee7c26151ead6164c7c738c195ef5f8ae08dd39b8a872c07fecd91f8c31fea",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 44,
+          "oldCardId": "19fe6e5fea",
+          "newCardId": "19fe6e5fea",
+          "idUnchanged": true,
+          "oldSectionId": "sails",
+          "newSectionId": "sails",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "cc3b3a3d8bd51d4646b684f61622a6d7b337815f7e427cac420ff6c44fca2d26",
+            "newSha256": "cc3b3a3d8bd51d4646b684f61622a6d7b337815f7e427cac420ff6c44fca2d26",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "1bb62ab59e37edded644f4c206484e412e13cb8740efd68b9e2290d6bda3483e",
+            "newSha256": "1bb62ab59e37edded644f4c206484e412e13cb8740efd68b9e2290d6bda3483e",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 45,
+          "oldCardId": "bcfc0f41e6",
+          "newCardId": "bcfc0f41e6",
+          "idUnchanged": true,
+          "oldSectionId": "sails",
+          "newSectionId": "sails",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "aef8f000a76f816836aa5082e32cfdcebd751433c78fc16c66fbb75babe17789",
+            "newSha256": "aef8f000a76f816836aa5082e32cfdcebd751433c78fc16c66fbb75babe17789",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "886c2e59600bfc36d97fd258708240121664ed661e22f3221118ab9f589d0cc6",
+            "newSha256": "886c2e59600bfc36d97fd258708240121664ed661e22f3221118ab9f589d0cc6",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 46,
+          "oldCardId": "e6aad46196",
+          "newCardId": "e6aad46196",
+          "idUnchanged": true,
+          "oldSectionId": "sail-edges-and-corners",
+          "newSectionId": "sail-edges-and-corners",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "9415850dbc40b2aeb6727dfb29c34cba4d40aef691a7826d7ef1bbee97e290e8",
+            "newSha256": "9415850dbc40b2aeb6727dfb29c34cba4d40aef691a7826d7ef1bbee97e290e8",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "896c3b68af44281976973d7039294ee5fee550c0ce6e5f48ad3f1242afd384e3",
+            "newSha256": "896c3b68af44281976973d7039294ee5fee550c0ce6e5f48ad3f1242afd384e3",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "sail-parts",
+              "on": [
+                "luff",
+                "leech",
+                "foot"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "sail-parts",
+              "highlightedLabels": [
+                "luff",
+                "leech",
+                "foot"
+              ]
+            }
+          }
+        },
+        {
+          "index": 47,
+          "oldCardId": "fcd87b0f0a",
+          "newCardId": "fcd87b0f0a",
+          "idUnchanged": true,
+          "oldSectionId": "sail-edges-and-corners",
+          "newSectionId": "sail-edges-and-corners",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "bd9627c506b5b427fe07c66c2b81438877e19e23ec6227d8bb00c9ab3b74028b",
+            "newSha256": "bd9627c506b5b427fe07c66c2b81438877e19e23ec6227d8bb00c9ab3b74028b",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "1781e54b8707e65ca83fb7a6b81db8a63c5d5c33b34d12ca6b74e99278254ac1",
+            "newSha256": "1781e54b8707e65ca83fb7a6b81db8a63c5d5c33b34d12ca6b74e99278254ac1",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "sail-parts",
+              "on": [
+                "head",
+                "tack",
+                "clew"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "sail-parts",
+              "highlightedLabels": [
+                "head",
+                "tack",
+                "clew"
+              ]
+            }
+          }
+        },
+        {
+          "index": 48,
+          "oldCardId": "6b75599557",
+          "newCardId": "6b75599557",
+          "idUnchanged": true,
+          "oldSectionId": "wind",
+          "newSectionId": "wind",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "b920c5ce28a179897e5ac0073d5ac0efe7a4f64afe54a9d0bc9f75724a4f5d7a",
+            "newSha256": "b920c5ce28a179897e5ac0073d5ac0efe7a4f64afe54a9d0bc9f75724a4f5d7a",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "2d1ec2bd8f56531b2044e62f3892035aa1a40c89d212254d5053d0ed43a7958d",
+            "newSha256": "2d1ec2bd8f56531b2044e62f3892035aa1a40c89d212254d5053d0ed43a7958d",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "windward-lee",
+              "on": [
+                "wind",
+                "windward",
+                "leeward"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "windward-lee",
+              "highlightedLabels": [
+                "wind",
+                "windward",
+                "leeward"
+              ]
+            }
+          }
+        },
+        {
+          "index": 49,
+          "oldCardId": "cf0172c8fd",
+          "newCardId": "cf0172c8fd",
+          "idUnchanged": true,
+          "oldSectionId": "wind",
+          "newSectionId": "wind",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "5013ed5636308281a84f6dc93395549ffe7343baf7fb48afa842d9fc78e591df",
+            "newSha256": "5013ed5636308281a84f6dc93395549ffe7343baf7fb48afa842d9fc78e591df",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "ee932171677d4cb1fd7d498135e861b98c7d97f4047751fd21fd9777ede27156",
+            "newSha256": "ee932171677d4cb1fd7d498135e861b98c7d97f4047751fd21fd9777ede27156",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 50,
+          "oldCardId": "1305dc7a8e",
+          "newCardId": "1305dc7a8e",
+          "idUnchanged": true,
+          "oldSectionId": "wind",
+          "newSectionId": "wind",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "9c3d8d86de8d217b00a84252c05e72e5cf8aceba32aa1e44e0619f2b95b81dab",
+            "newSha256": "9c3d8d86de8d217b00a84252c05e72e5cf8aceba32aa1e44e0619f2b95b81dab",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "453fbe785c76b725aad1577f090baaf0cdbd87131df0a4c875a2a8f9984b840d",
+            "newSha256": "453fbe785c76b725aad1577f090baaf0cdbd87131df0a4c875a2a8f9984b840d",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 51,
+          "oldCardId": "a8ab2774d7",
+          "newCardId": "a8ab2774d7",
+          "idUnchanged": true,
+          "oldSectionId": "wind",
+          "newSectionId": "wind",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "9bbc695ec55718aa95ca362aa2e69334df65d3b68969c38a192cd59b809a511b",
+            "newSha256": "9bbc695ec55718aa95ca362aa2e69334df65d3b68969c38a192cd59b809a511b",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "a29b4b3c5bad7dde5c86c55e13b1d2e070f89044b832024b51bdff306451ec79",
+            "newSha256": "a29b4b3c5bad7dde5c86c55e13b1d2e070f89044b832024b51bdff306451ec79",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 52,
+          "oldCardId": "57ffb3fd7d",
+          "newCardId": "57ffb3fd7d",
+          "idUnchanged": true,
+          "oldSectionId": "wind",
+          "newSectionId": "wind",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "fc525bd89de0f39fac10a7de89344f95bd2e10632fe46a8f4c89630e7d8f9acf",
+            "newSha256": "fc525bd89de0f39fac10a7de89344f95bd2e10632fe46a8f4c89630e7d8f9acf",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "2e351490b39f5e3f52d1a86a2e4e064fe8ebc66814844fd6ac92bc451d4992f3",
+            "newSha256": "2e351490b39f5e3f52d1a86a2e4e064fe8ebc66814844fd6ac92bc451d4992f3",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 53,
+          "oldCardId": "e5d35db1ec",
+          "newCardId": "e5d35db1ec",
+          "idUnchanged": true,
+          "oldSectionId": "points-of-sail",
+          "newSectionId": "points-of-sail",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "422d8181fe7cf399392170b224502e516ce9eb66d72cfd445b599521fd46be6b",
+            "newSha256": "422d8181fe7cf399392170b224502e516ce9eb66d72cfd445b599521fd46be6b",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "3ad5052dcba8b1f29f578a91f921378da88ada2015b8d0f51618e067b7d753db",
+            "newSha256": "3ad5052dcba8b1f29f578a91f921378da88ada2015b8d0f51618e067b7d753db",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 54,
+          "oldCardId": "d8fd0cd5d3",
+          "newCardId": "d8fd0cd5d3",
+          "idUnchanged": true,
+          "oldSectionId": "points-of-sail",
+          "newSectionId": "points-of-sail",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "a5f7f6fe9e3f5b998584a7e632f487e99240d865bbb558022146158b074967fc",
+            "newSha256": "a5f7f6fe9e3f5b998584a7e632f487e99240d865bbb558022146158b074967fc",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "b10a7b995e792db3c0a33d092bac3cec8a35ff8bf8f313f221d1b629d3752078",
+            "newSha256": "b10a7b995e792db3c0a33d092bac3cec8a35ff8bf8f313f221d1b629d3752078",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 55,
+          "oldCardId": "d0a24fa730",
+          "newCardId": "d0a24fa730",
+          "idUnchanged": true,
+          "oldSectionId": "turning-under-sail",
+          "newSectionId": "turning-under-sail",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "2b5e51b345be807bec24fc597f19c90873005f4eedf4ec3c0af5f3ad18a6241f",
+            "newSha256": "2b5e51b345be807bec24fc597f19c90873005f4eedf4ec3c0af5f3ad18a6241f",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "33f1a8f81589bb6fbaa74b4b0762ad9e513db59e19f2486d544b98333edeb233",
+            "newSha256": "33f1a8f81589bb6fbaa74b4b0762ad9e513db59e19f2486d544b98333edeb233",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 56,
+          "oldCardId": "b9692b02ca",
+          "newCardId": "b9692b02ca",
+          "idUnchanged": true,
+          "oldSectionId": "turning-under-sail",
+          "newSectionId": "turning-under-sail",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "8ee6209d348190267d281740d0497fe269daa7a1aaebfbedc69afb8ae0540552",
+            "newSha256": "8ee6209d348190267d281740d0497fe269daa7a1aaebfbedc69afb8ae0540552",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "579f0a059d972a9e1d5ce569b6f9cb44044faab37446ff4b5864aac4e42fc869",
+            "newSha256": "579f0a059d972a9e1d5ce569b6f9cb44044faab37446ff4b5864aac4e42fc869",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 57,
+          "oldCardId": "41f21e8a58",
+          "newCardId": "41f21e8a58",
+          "idUnchanged": true,
+          "oldSectionId": "turning-under-sail",
+          "newSectionId": "turning-under-sail",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "2a7a148dc727940e661a4d6f65c943a8d6328212d5e9d9c4515f0c5f2a63e8ec",
+            "newSha256": "2a7a148dc727940e661a4d6f65c943a8d6328212d5e9d9c4515f0c5f2a63e8ec",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "69605d5567e612c763bbecb1d2ae5d8116729cfcd4be7d629e7bdb9fae816e9a",
+            "newSha256": "69605d5567e612c763bbecb1d2ae5d8116729cfcd4be7d629e7bdb9fae816e9a",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 58,
+          "oldCardId": "c8a0248bab",
+          "newCardId": "c8a0248bab",
+          "idUnchanged": true,
+          "oldSectionId": "turning-under-sail",
+          "newSectionId": "turning-under-sail",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "97567f3e00eb0dc8dfd585989519c426ae9f70197f20ff53f54f595e38447094",
+            "newSha256": "97567f3e00eb0dc8dfd585989519c426ae9f70197f20ff53f54f595e38447094",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "7d4186143d00674d360a92d647c1c7bce9cdf5c22e5a88fbc2e745376b4443e2",
+            "newSha256": "7d4186143d00674d360a92d647c1c7bce9cdf5c22e5a88fbc2e745376b4443e2",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 59,
+          "oldCardId": "eee20ad733",
+          "newCardId": "eee20ad733",
+          "idUnchanged": true,
+          "oldSectionId": "turning-under-sail",
+          "newSectionId": "turning-under-sail",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "fdd58e3690b53b5dc849b132c090017e8e667545f606747e3122ec0c66ce21e3",
+            "newSha256": "fdd58e3690b53b5dc849b132c090017e8e667545f606747e3122ec0c66ce21e3",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "616622cdcf0f13c9c737fd78d001a4afa90b29e3895f50439cdeba8cb2e7fce1",
+            "newSha256": "616622cdcf0f13c9c737fd78d001a4afa90b29e3895f50439cdeba8cb2e7fce1",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 60,
+          "oldCardId": "a69a302a2d",
+          "newCardId": "a69a302a2d",
+          "idUnchanged": true,
+          "oldSectionId": "handling-sails",
+          "newSectionId": "handling-sails",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "8792cd1882f82587385dc3a74561b5af285b85bbcc73de31d073ded9ad802518",
+            "newSha256": "8792cd1882f82587385dc3a74561b5af285b85bbcc73de31d073ded9ad802518",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "af367e163780508aed04162edc20a2bfbf11d89de44c8c39dc10df7245269707",
+            "newSha256": "af367e163780508aed04162edc20a2bfbf11d89de44c8c39dc10df7245269707",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 61,
+          "oldCardId": "ecce91cdfa",
+          "newCardId": "ecce91cdfa",
+          "idUnchanged": true,
+          "oldSectionId": "handling-sails",
+          "newSectionId": "handling-sails",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "315e3918301fc283299e85e2f5ed17fc38059c277cfca7e1ea8bacc2eaaf5a1d",
+            "newSha256": "315e3918301fc283299e85e2f5ed17fc38059c277cfca7e1ea8bacc2eaaf5a1d",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "ee5e415ffa98127bfef0fd4ce81ccf351d21d16e65fda57496c5dcd3cef581b5",
+            "newSha256": "ee5e415ffa98127bfef0fd4ce81ccf351d21d16e65fda57496c5dcd3cef581b5",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 62,
+          "oldCardId": "2dd69fa519",
+          "newCardId": "2dd69fa519",
+          "idUnchanged": true,
+          "oldSectionId": "handling-sails",
+          "newSectionId": "handling-sails",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "a0b99fbfa37a70720fc9500a8f132f55bfd860efd825d0ea6ca2b77b491e2f51",
+            "newSha256": "a0b99fbfa37a70720fc9500a8f132f55bfd860efd825d0ea6ca2b77b491e2f51",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "95677b3ba01eb97e1763a541fc4c25a81fae6706e7479436c6fdf66c010cd5a4",
+            "newSha256": "95677b3ba01eb97e1763a541fc4c25a81fae6706e7479436c6fdf66c010cd5a4",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 63,
+          "oldCardId": "7447c6d447",
+          "newCardId": "7447c6d447",
+          "idUnchanged": true,
+          "oldSectionId": "handling-sails",
+          "newSectionId": "handling-sails",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "02383cd592563fb198e8668cd50d51f7b9b3b1eae90ba2a8e7b49f693177c939",
+            "newSha256": "02383cd592563fb198e8668cd50d51f7b9b3b1eae90ba2a8e7b49f693177c939",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "5303a354791e0e4f29bc35475226238d28274b8a669f023d21fff907f8ea6aea",
+            "newSha256": "5303a354791e0e4f29bc35475226238d28274b8a669f023d21fff907f8ea6aea",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 64,
+          "oldCardId": "a85eaaf364",
+          "newCardId": "a85eaaf364",
+          "idUnchanged": true,
+          "oldSectionId": "handling-sails",
+          "newSectionId": "handling-sails",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "0dae9b2e2458afa686fb4adc98d1a18679202930be27de0c0c2d522e74c723c4",
+            "newSha256": "0dae9b2e2458afa686fb4adc98d1a18679202930be27de0c0c2d522e74c723c4",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "2a144639c6bb1d98c749f9fafd58c1ebb61ed9cd36439b74e49320d64c9b6967",
+            "newSha256": "2a144639c6bb1d98c749f9fafd58c1ebb61ed9cd36439b74e49320d64c9b6967",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 65,
+          "oldCardId": "83d53ef966",
+          "newCardId": "83d53ef966",
+          "idUnchanged": true,
+          "oldSectionId": "lines-and-knots",
+          "newSectionId": "lines-and-knots",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "6196062b38839411dfafe70b55d93f2efe4e8da9c1cf82049d2a0514f1e620df",
+            "newSha256": "6196062b38839411dfafe70b55d93f2efe4e8da9c1cf82049d2a0514f1e620df",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "19e814faaca9bcfc3dc8463f613b98228e7c40bd74490b1fc7b13301e989460b",
+            "newSha256": "19e814faaca9bcfc3dc8463f613b98228e7c40bd74490b1fc7b13301e989460b",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 66,
+          "oldCardId": "9c8150595d",
+          "newCardId": "9c8150595d",
+          "idUnchanged": true,
+          "oldSectionId": "lines-and-knots",
+          "newSectionId": "lines-and-knots",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "e0962a663e6f0a0c74ce2b49bb34f97122d140b2fb0d052d7c9dfe9d78d77530",
+            "newSha256": "e0962a663e6f0a0c74ce2b49bb34f97122d140b2fb0d052d7c9dfe9d78d77530",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "5087f1738e4f41807e8ba27ae8e6a6a3b95e2658fa54eaf93b37f0cfada09a1a",
+            "newSha256": "5087f1738e4f41807e8ba27ae8e6a6a3b95e2658fa54eaf93b37f0cfada09a1a",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 67,
+          "oldCardId": "1908c71f39",
+          "newCardId": "1908c71f39",
+          "idUnchanged": true,
+          "oldSectionId": "lines-and-knots",
+          "newSectionId": "lines-and-knots",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "525afeef2a0ee2232ac56f030abb105ccda647655161d40723211a7ee0cc3b85",
+            "newSha256": "525afeef2a0ee2232ac56f030abb105ccda647655161d40723211a7ee0cc3b85",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "118cec3a9aeb9c37cc02758b75b6e6e29e555b006f17d6da34a91fe5076bd9a5",
+            "newSha256": "118cec3a9aeb9c37cc02758b75b6e6e29e555b006f17d6da34a91fe5076bd9a5",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 68,
+          "oldCardId": "cca57a99c7",
+          "newCardId": "cca57a99c7",
+          "idUnchanged": true,
+          "oldSectionId": "lines-and-knots",
+          "newSectionId": "lines-and-knots",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "6839d8695b9193583c2dab4af213ffe95a3f2a19dbbdd91a0c385d5ab5922470",
+            "newSha256": "6839d8695b9193583c2dab4af213ffe95a3f2a19dbbdd91a0c385d5ab5922470",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "61698e988c0f205f0e1fb69d916d565afe04da9b8d9f39382d1cc64ea4e3e594",
+            "newSha256": "61698e988c0f205f0e1fb69d916d565afe04da9b8d9f39382d1cc64ea4e3e594",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 69,
+          "oldCardId": "f25621bc29",
+          "newCardId": "f25621bc29",
+          "idUnchanged": true,
+          "oldSectionId": "lines-and-knots",
+          "newSectionId": "lines-and-knots",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "4708c85fb8b922120e463e4bec478ce95d5a0f985d445c72135b60577e33f8dd",
+            "newSha256": "4708c85fb8b922120e463e4bec478ce95d5a0f985d445c72135b60577e33f8dd",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "a28f70077d1c426b1f894e49d7a2a120096edfae5086b454a07cdb0a54459813",
+            "newSha256": "a28f70077d1c426b1f894e49d7a2a120096edfae5086b454a07cdb0a54459813",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 70,
+          "oldCardId": "d77f6a6bce",
+          "newCardId": "d77f6a6bce",
+          "idUnchanged": true,
+          "oldSectionId": "mooring-lines",
+          "newSectionId": "mooring-lines",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "ce0aba313b999be4e8bdcc593c82a5c100f078f9e2d74e3f888e3847906b97f2",
+            "newSha256": "ce0aba313b999be4e8bdcc593c82a5c100f078f9e2d74e3f888e3847906b97f2",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "8ea2377366975f82dae583c81cdc793556d4e31e223d6a16e98c734b807f3191",
+            "newSha256": "8ea2377366975f82dae583c81cdc793556d4e31e223d6a16e98c734b807f3191",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 71,
+          "oldCardId": "aed308e0c6",
+          "newCardId": "aed308e0c6",
+          "idUnchanged": true,
+          "oldSectionId": "mooring-lines",
+          "newSectionId": "mooring-lines",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "fa2d0ff2e1253fc7c649b89ed9dde13004a951ab8d224c59178c8057df699b30",
+            "newSha256": "fa2d0ff2e1253fc7c649b89ed9dde13004a951ab8d224c59178c8057df699b30",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "9daaa91962ed979ebd6540798952323eac67dd43980c84f32c3f12f5d78b7722",
+            "newSha256": "9daaa91962ed979ebd6540798952323eac67dd43980c84f32c3f12f5d78b7722",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "mooring-lines",
+              "on": [
+                "bow-line",
+                "stern-line"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "mooring-lines",
+              "highlightedLabels": [
+                "bow-line",
+                "stern-line"
+              ]
+            }
+          }
+        },
+        {
+          "index": 72,
+          "oldCardId": "258983bf4c",
+          "newCardId": "258983bf4c",
+          "idUnchanged": true,
+          "oldSectionId": "mooring-lines",
+          "newSectionId": "mooring-lines",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "d9c8a2c5adbdba1557c5eb7c3132a990e90871d88baa50497fc2940b8d8f03bc",
+            "newSha256": "d9c8a2c5adbdba1557c5eb7c3132a990e90871d88baa50497fc2940b8d8f03bc",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "1a70c023852afb11980324614cbfbb3432d0d6a012a5f6d50474156935521e84",
+            "newSha256": "1a70c023852afb11980324614cbfbb3432d0d6a012a5f6d50474156935521e84",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "mooring-lines",
+              "on": [
+                "fore-spring",
+                "back-spring"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "mooring-lines",
+              "highlightedLabels": [
+                "fore-spring",
+                "back-spring"
+              ]
+            }
+          }
+        },
+        {
+          "index": 73,
+          "oldCardId": "eb94cd2fcb",
+          "newCardId": "eb94cd2fcb",
+          "idUnchanged": true,
+          "oldSectionId": "mooring-lines",
+          "newSectionId": "mooring-lines",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "b51d99d383176b02c8e9c845b7b71f005726ef9bbdc5ab7f0403f747f362ac38",
+            "newSha256": "b51d99d383176b02c8e9c845b7b71f005726ef9bbdc5ab7f0403f747f362ac38",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "0d8fcc4923f9ca3f1cb98276020a91176f40a291078405219428dccd15e6576d",
+            "newSha256": "0d8fcc4923f9ca3f1cb98276020a91176f40a291078405219428dccd15e6576d",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": {
+              "n": "mooring-lines",
+              "on": [
+                "fenders"
+              ]
+            },
+            "normalizedFigure": {
+              "figureId": "mooring-lines",
+              "highlightedLabels": [
+                "fenders"
+              ]
+            }
+          }
+        },
+        {
+          "index": 74,
+          "oldCardId": "f80ba69cfb",
+          "newCardId": "f80ba69cfb",
+          "idUnchanged": true,
+          "oldSectionId": "berthing-and-anchoring",
+          "newSectionId": "berthing-and-anchoring",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "5c1058aea6bf5633c8c607bfec1c39f0471627a3f8f72ee5614b057440ea4756",
+            "newSha256": "5c1058aea6bf5633c8c607bfec1c39f0471627a3f8f72ee5614b057440ea4756",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "1d25dd41153144f8cb06c5377cbf9b1f7eaaa732d2b88da170ba89cb9c0b2395",
+            "newSha256": "1d25dd41153144f8cb06c5377cbf9b1f7eaaa732d2b88da170ba89cb9c0b2395",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 75,
+          "oldCardId": "3182d44f9f",
+          "newCardId": "3182d44f9f",
+          "idUnchanged": true,
+          "oldSectionId": "berthing-and-anchoring",
+          "newSectionId": "berthing-and-anchoring",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "bef9be29fc68bed1ac6b069f17c3b45d576469600ec19c109176fc0c2b967b72",
+            "newSha256": "bef9be29fc68bed1ac6b069f17c3b45d576469600ec19c109176fc0c2b967b72",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "e38319288596a558bbad77dff00365edccb69de28df71d385752051f7fb09df1",
+            "newSha256": "e38319288596a558bbad77dff00365edccb69de28df71d385752051f7fb09df1",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 76,
+          "oldCardId": "a955eb5165",
+          "newCardId": "a955eb5165",
+          "idUnchanged": true,
+          "oldSectionId": "berthing-and-anchoring",
+          "newSectionId": "berthing-and-anchoring",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "b4aadbb1f1b9a2947d242cf94fa2ee9647e5f0d1762c948a75570f2b43265d5c",
+            "newSha256": "b4aadbb1f1b9a2947d242cf94fa2ee9647e5f0d1762c948a75570f2b43265d5c",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "db272af3a03bc0001143e7988cfac81214653cb8c81eed07dd96dd4806db4fae",
+            "newSha256": "db272af3a03bc0001143e7988cfac81214653cb8c81eed07dd96dd4806db4fae",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 77,
+          "oldCardId": "91db78516d",
+          "newCardId": "91db78516d",
+          "idUnchanged": true,
+          "oldSectionId": "berthing-and-anchoring",
+          "newSectionId": "berthing-and-anchoring",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "f91407afd0ca4a5f59c2e31afcccd88a4bd6dc0bb22727c4ad8399506a25fbc4",
+            "newSha256": "f91407afd0ca4a5f59c2e31afcccd88a4bd6dc0bb22727c4ad8399506a25fbc4",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "256c7860076e057b639f72f3389cbc89218103f7cf980c974df944ff467ce96b",
+            "newSha256": "256c7860076e057b639f72f3389cbc89218103f7cf980c974df944ff467ce96b",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 78,
+          "oldCardId": "3841d06a91",
+          "newCardId": "3841d06a91",
+          "idUnchanged": true,
+          "oldSectionId": "berthing-and-anchoring",
+          "newSectionId": "berthing-and-anchoring",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "4a44751a6bb52412adcf71c7a4b99195c70cb3a192bd0b8bb964ba09d8aede2e",
+            "newSha256": "4a44751a6bb52412adcf71c7a4b99195c70cb3a192bd0b8bb964ba09d8aede2e",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "5e6ce20d39381743090671d4a40b423110a1fb4ea215fdc792543ca86c00290b",
+            "newSha256": "5e6ce20d39381743090671d4a40b423110a1fb4ea215fdc792543ca86c00290b",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 79,
+          "oldCardId": "997183d01a",
+          "newCardId": "997183d01a",
+          "idUnchanged": true,
+          "oldSectionId": "navigation",
+          "newSectionId": "navigation",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "468720816188c485ea3d07c5e581e94bff9d6d92b1d260a6620c41d6b87438dc",
+            "newSha256": "468720816188c485ea3d07c5e581e94bff9d6d92b1d260a6620c41d6b87438dc",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "a329c11f0942e59292ac97df1be20415c380f496fb638eab5a3117dc1586f0d7",
+            "newSha256": "a329c11f0942e59292ac97df1be20415c380f496fb638eab5a3117dc1586f0d7",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 80,
+          "oldCardId": "296b8950fb",
+          "newCardId": "296b8950fb",
+          "idUnchanged": true,
+          "oldSectionId": "navigation",
+          "newSectionId": "navigation",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "9bed934da45ba8ce82735d870026a31b6adc0317350526eb2907ba79e807f576",
+            "newSha256": "9bed934da45ba8ce82735d870026a31b6adc0317350526eb2907ba79e807f576",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "746a949342a0d0ad2df77f716c2d674ca4de461d64498318edae8b975e58b68c",
+            "newSha256": "746a949342a0d0ad2df77f716c2d674ca4de461d64498318edae8b975e58b68c",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 81,
+          "oldCardId": "f9375f5a80",
+          "newCardId": "f9375f5a80",
+          "idUnchanged": true,
+          "oldSectionId": "navigation",
+          "newSectionId": "navigation",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "1654f698717b20d53c81aeb8857b915b29e93994c891fd3564d9ace5a033f562",
+            "newSha256": "1654f698717b20d53c81aeb8857b915b29e93994c891fd3564d9ace5a033f562",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "ffff227ebfd92d692e861b3234811d535d36b6c6ee7e6643769cdfa07231a049",
+            "newSha256": "ffff227ebfd92d692e861b3234811d535d36b6c6ee7e6643769cdfa07231a049",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 82,
+          "oldCardId": "680cbfba0b",
+          "newCardId": "680cbfba0b",
+          "idUnchanged": true,
+          "oldSectionId": "navigation",
+          "newSectionId": "navigation",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "594aa33b5970a223d67c6d4d74907eadb77fa7f250efe1dc0d1559ad35f92fe8",
+            "newSha256": "594aa33b5970a223d67c6d4d74907eadb77fa7f250efe1dc0d1559ad35f92fe8",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "b7714fbb37dda6bf9c1543bbec9b7a2530f85d7625245613c04c4fb2dbd28c71",
+            "newSha256": "b7714fbb37dda6bf9c1543bbec9b7a2530f85d7625245613c04c4fb2dbd28c71",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 83,
+          "oldCardId": "6c7e149ec5",
+          "newCardId": "6c7e149ec5",
+          "idUnchanged": true,
+          "oldSectionId": "personal-safety",
+          "newSectionId": "personal-safety",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "9935a06a9c8ff6d70ffe8bc7a38c86a168fcf4df454314370a97728e1aa12f12",
+            "newSha256": "9935a06a9c8ff6d70ffe8bc7a38c86a168fcf4df454314370a97728e1aa12f12",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "3020d25309a6a9b7f3a30adc94632a6fa3856d8510e711b3decc511b4087fc2f",
+            "newSha256": "3020d25309a6a9b7f3a30adc94632a6fa3856d8510e711b3decc511b4087fc2f",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 84,
+          "oldCardId": "2cb1122452",
+          "newCardId": "2cb1122452",
+          "idUnchanged": true,
+          "oldSectionId": "personal-safety",
+          "newSectionId": "personal-safety",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "1f638e2a95d084e795aaa7ef1299f0eaaf920eb00bc7aa9fb25f167b332eb9c0",
+            "newSha256": "1f638e2a95d084e795aaa7ef1299f0eaaf920eb00bc7aa9fb25f167b332eb9c0",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "016921217fd344224d8450452e63ba0d1f1b9cc687c2ef40c38ac1dd1f5f5e2f",
+            "newSha256": "016921217fd344224d8450452e63ba0d1f1b9cc687c2ef40c38ac1dd1f5f5e2f",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 85,
+          "oldCardId": "4160adfe72",
+          "newCardId": "4160adfe72",
+          "idUnchanged": true,
+          "oldSectionId": "personal-safety",
+          "newSectionId": "personal-safety",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "2b2911c18b9bb7ffff5e64d2f4d04e4f7326b57552d94c66ce0832d463d394af",
+            "newSha256": "2b2911c18b9bb7ffff5e64d2f4d04e4f7326b57552d94c66ce0832d463d394af",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "a1072e223ed2c0c35b506407f77cf06b551190ba426b93e45d2fc753e73017ca",
+            "newSha256": "a1072e223ed2c0c35b506407f77cf06b551190ba426b93e45d2fc753e73017ca",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        },
+        {
+          "index": 86,
+          "oldCardId": "6ab1bdec83",
+          "newCardId": "6ab1bdec83",
+          "idUnchanged": true,
+          "oldSectionId": "personal-safety",
+          "newSectionId": "personal-safety",
+          "sectionUnchanged": true,
+          "renderedFront": {
+            "oldSha256": "1676eb7ec08701723eb14a1e33c98a933c46f14fdb9bc306cb11c7104fd56590",
+            "newSha256": "1676eb7ec08701723eb14a1e33c98a933c46f14fdb9bc306cb11c7104fd56590",
+            "unchanged": true
+          },
+          "renderedBack": {
+            "oldSha256": "c5d00f7046808a10a62731a0d87d06b6f4b9af27bc838f3c7a297be10b67e17f",
+            "newSha256": "c5d00f7046808a10a62731a0d87d06b6f4b9af27bc838f3c7a297be10b67e17f",
+            "unchanged": true
+          },
+          "media": {
+            "oldImage": null,
+            "normalized": [],
+            "oldFigure": null,
+            "normalizedFigure": null
+          }
+        }
+      ],
+      "sections": [
+        {
+          "oldSectionId": "boat-directions",
+          "newSectionId": "boat-directions",
+          "idUnchanged": true,
+          "oldTitleSha256": "689d99159cd013be571d2de1180d8b27d1f466b27491c5dd23458820d1594ca2",
+          "newTitleSha256": "689d99159cd013be571d2de1180d8b27d1f466b27491c5dd23458820d1594ca2",
+          "titleUnchanged": true,
+          "oldCardCount": 3,
+          "derivedCardCount": 3
+        },
+        {
+          "oldSectionId": "relative-directions",
+          "newSectionId": "relative-directions",
+          "idUnchanged": true,
+          "oldTitleSha256": "c955bb4efc3fa6ea7d96d49ab82507252ac5afa87d735d6a71948ce173182741",
+          "newTitleSha256": "c955bb4efc3fa6ea7d96d49ab82507252ac5afa87d735d6a71948ce173182741",
+          "titleUnchanged": true,
+          "oldCardCount": 4,
+          "derivedCardCount": 4
+        },
+        {
+          "oldSectionId": "hull-and-steering",
+          "newSectionId": "hull-and-steering",
+          "idUnchanged": true,
+          "oldTitleSha256": "312f057fda4dd2514818f61a6f71dd639ad7a01406fc7db482e2ec8ecf00e2b6",
+          "newTitleSha256": "312f057fda4dd2514818f61a6f71dd639ad7a01406fc7db482e2ec8ecf00e2b6",
+          "titleUnchanged": true,
+          "oldCardCount": 5,
+          "derivedCardCount": 5
+        },
+        {
+          "oldSectionId": "hull-in-water",
+          "newSectionId": "hull-in-water",
+          "idUnchanged": true,
+          "oldTitleSha256": "524ad7498ef989f4bfe0ad34ae755e2787553fe4be559f9dd31728f0b4cb89a2",
+          "newTitleSha256": "524ad7498ef989f4bfe0ad34ae755e2787553fe4be559f9dd31728f0b4cb89a2",
+          "titleUnchanged": true,
+          "oldCardCount": 5,
+          "derivedCardCount": 5
+        },
+        {
+          "oldSectionId": "deck-and-openings",
+          "newSectionId": "deck-and-openings",
+          "idUnchanged": true,
+          "oldTitleSha256": "ecdd7c8d2c0cd07c4681a60d70b571743e2020d8bfdae1cfc0cf6cd4c7bd58b9",
+          "newTitleSha256": "ecdd7c8d2c0cd07c4681a60d70b571743e2020d8bfdae1cfc0cf6cd4c7bd58b9",
+          "titleUnchanged": true,
+          "oldCardCount": 5,
+          "derivedCardCount": 5
+        },
+        {
+          "oldSectionId": "rails-and-cleats",
+          "newSectionId": "rails-and-cleats",
+          "idUnchanged": true,
+          "oldTitleSha256": "d118000142573715eedef5fb463374be083ba3c4741a2fe89caf0eba79cdba2e",
+          "newTitleSha256": "d118000142573715eedef5fb463374be083ba3c4741a2fe89caf0eba79cdba2e",
+          "titleUnchanged": true,
+          "oldCardCount": 4,
+          "derivedCardCount": 4
+        },
+        {
+          "oldSectionId": "mast-and-stays",
+          "newSectionId": "mast-and-stays",
+          "idUnchanged": true,
+          "oldTitleSha256": "ee81af3e8245f363a7cb759e18cd97b3f1d592e8bf8627cfc0c6f6c5a5793a5f",
+          "newTitleSha256": "ee81af3e8245f363a7cb759e18cd97b3f1d592e8bf8627cfc0c6f6c5a5793a5f",
+          "titleUnchanged": true,
+          "oldCardCount": 5,
+          "derivedCardCount": 5
+        },
+        {
+          "oldSectionId": "sail-control-lines",
+          "newSectionId": "sail-control-lines",
+          "idUnchanged": true,
+          "oldTitleSha256": "06ba85e005a266709ed40281cb7f5e7558d86b716453a111bebb79fb8d0eabe9",
+          "newTitleSha256": "06ba85e005a266709ed40281cb7f5e7558d86b716453a111bebb79fb8d0eabe9",
+          "titleUnchanged": true,
+          "oldCardCount": 5,
+          "derivedCardCount": 5
+        },
+        {
+          "oldSectionId": "trim-and-hardware",
+          "newSectionId": "trim-and-hardware",
+          "idUnchanged": true,
+          "oldTitleSha256": "b6893d35cfb858c4e01f0af6f8b635cc23532e919cc9e7301a5261b8c2f31353",
+          "newTitleSha256": "b6893d35cfb858c4e01f0af6f8b635cc23532e919cc9e7301a5261b8c2f31353",
+          "titleUnchanged": true,
+          "oldCardCount": 5,
+          "derivedCardCount": 5
+        },
+        {
+          "oldSectionId": "sails",
+          "newSectionId": "sails",
+          "idUnchanged": true,
+          "oldTitleSha256": "d78786131ee5c1f3afe952cc7a91cca1f1896d2953e3f02095c8531a4519b1c8",
+          "newTitleSha256": "d78786131ee5c1f3afe952cc7a91cca1f1896d2953e3f02095c8531a4519b1c8",
+          "titleUnchanged": true,
+          "oldCardCount": 5,
+          "derivedCardCount": 5
+        },
+        {
+          "oldSectionId": "sail-edges-and-corners",
+          "newSectionId": "sail-edges-and-corners",
+          "idUnchanged": true,
+          "oldTitleSha256": "e986c4cd044c47261ab6ff9b481f267dc792b4d105e56f5242831abebcde0c7c",
+          "newTitleSha256": "e986c4cd044c47261ab6ff9b481f267dc792b4d105e56f5242831abebcde0c7c",
+          "titleUnchanged": true,
+          "oldCardCount": 2,
+          "derivedCardCount": 2
+        },
+        {
+          "oldSectionId": "wind",
+          "newSectionId": "wind",
+          "idUnchanged": true,
+          "oldTitleSha256": "4f75de6aac86e11250c12280811c1217b0e5eb5b87a3b45874053d7eb49f296d",
+          "newTitleSha256": "4f75de6aac86e11250c12280811c1217b0e5eb5b87a3b45874053d7eb49f296d",
+          "titleUnchanged": true,
+          "oldCardCount": 5,
+          "derivedCardCount": 5
+        },
+        {
+          "oldSectionId": "points-of-sail",
+          "newSectionId": "points-of-sail",
+          "idUnchanged": true,
+          "oldTitleSha256": "68ca571478fbbbfe4c00ecc1e6be4a82fed7ee4a2bc8c007961847bd42fdb792",
+          "newTitleSha256": "68ca571478fbbbfe4c00ecc1e6be4a82fed7ee4a2bc8c007961847bd42fdb792",
+          "titleUnchanged": true,
+          "oldCardCount": 2,
+          "derivedCardCount": 2
+        },
+        {
+          "oldSectionId": "turning-under-sail",
+          "newSectionId": "turning-under-sail",
+          "idUnchanged": true,
+          "oldTitleSha256": "a382de4af085aa4647b57f5095dcf881393fa5ab2520abcf3902b8cf50ec706a",
+          "newTitleSha256": "a382de4af085aa4647b57f5095dcf881393fa5ab2520abcf3902b8cf50ec706a",
+          "titleUnchanged": true,
+          "oldCardCount": 5,
+          "derivedCardCount": 5
+        },
+        {
+          "oldSectionId": "handling-sails",
+          "newSectionId": "handling-sails",
+          "idUnchanged": true,
+          "oldTitleSha256": "07cea4ce3e060dad270d450b75a4354e3f760ed64c1e83e01aea55a9d6b1372c",
+          "newTitleSha256": "07cea4ce3e060dad270d450b75a4354e3f760ed64c1e83e01aea55a9d6b1372c",
+          "titleUnchanged": true,
+          "oldCardCount": 5,
+          "derivedCardCount": 5
+        },
+        {
+          "oldSectionId": "lines-and-knots",
+          "newSectionId": "lines-and-knots",
+          "idUnchanged": true,
+          "oldTitleSha256": "3bf11176de48a94f1dcee7c4358ce3e03c0caa9d98a9378b4b31947e187b5311",
+          "newTitleSha256": "3bf11176de48a94f1dcee7c4358ce3e03c0caa9d98a9378b4b31947e187b5311",
+          "titleUnchanged": true,
+          "oldCardCount": 5,
+          "derivedCardCount": 5
+        },
+        {
+          "oldSectionId": "mooring-lines",
+          "newSectionId": "mooring-lines",
+          "idUnchanged": true,
+          "oldTitleSha256": "7934ccd9292f2f1a28b34154b94b1537a8128650da4ea01f2d12a3fd7b21d82e",
+          "newTitleSha256": "7934ccd9292f2f1a28b34154b94b1537a8128650da4ea01f2d12a3fd7b21d82e",
+          "titleUnchanged": true,
+          "oldCardCount": 4,
+          "derivedCardCount": 4
+        },
+        {
+          "oldSectionId": "berthing-and-anchoring",
+          "newSectionId": "berthing-and-anchoring",
+          "idUnchanged": true,
+          "oldTitleSha256": "d0c3444daa2c3f3ae242bc79cd5cb1c86bf32470bc24b77459a14415a6302989",
+          "newTitleSha256": "d0c3444daa2c3f3ae242bc79cd5cb1c86bf32470bc24b77459a14415a6302989",
+          "titleUnchanged": true,
+          "oldCardCount": 5,
+          "derivedCardCount": 5
+        },
+        {
+          "oldSectionId": "navigation",
+          "newSectionId": "navigation",
+          "idUnchanged": true,
+          "oldTitleSha256": "d78f9ed3ac439245d80294cc66b51a510d75784d2d94b11ad134be0f5aa8abf8",
+          "newTitleSha256": "d78f9ed3ac439245d80294cc66b51a510d75784d2d94b11ad134be0f5aa8abf8",
+          "titleUnchanged": true,
+          "oldCardCount": 4,
+          "derivedCardCount": 4
+        },
+        {
+          "oldSectionId": "personal-safety",
+          "newSectionId": "personal-safety",
+          "idUnchanged": true,
+          "oldTitleSha256": "9d9a1bd4327f73f2e3aa1b1b645a98f2d0bc1972f205f1c17f0a3713ec314cb7",
+          "newTitleSha256": "9d9a1bd4327f73f2e3aa1b1b645a98f2d0bc1972f205f1c17f0a3713ec314cb7",
+          "titleUnchanged": true,
+          "oldCardCount": 4,
+          "derivedCardCount": 4
+        }
+      ],
+      "groups": []
+    },
+    {
       "courseId": "toki-pona",
       "normalizedCourseId": "toki-pona",
       "courseIdUnchanged": true,
@@ -30204,11 +32868,11 @@
     }
   ],
   "summary": {
-    "courses": 4,
-    "cards": 1062,
-    "unchangedCardIds": 1062,
-    "unchangedRenderedFronts": 1062,
-    "unchangedRenderedBacks": 1062,
-    "unchangedSectionMemberships": 1062
+    "courses": 5,
+    "cards": 1149,
+    "unchangedCardIds": 1149,
+    "unchangedRenderedFronts": 1149,
+    "unchangedRenderedBacks": 1149,
+    "unchangedSectionMemberships": 1149
   }
 }

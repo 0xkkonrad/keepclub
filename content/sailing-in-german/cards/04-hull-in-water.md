@@ -12,7 +12,7 @@
 
 ![Draught](fig:hull-profile@draught,waterline)
 
-## das Freibord {#d553c9df09}
+## der Freibord {#d553c9df09}
 
 **Freeboard** — the vertical distance from the waterline to the deck edge.
 

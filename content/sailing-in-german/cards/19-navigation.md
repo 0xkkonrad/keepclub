@@ -15,7 +15,3 @@
 ## der Knoten (Geschwindigkeit) {#680cbfba0b}
 
 **Knot** — a unit of speed equal to **one nautical mile per hour**. **Knoten** can also mean a knot tied in a rope.
-
-## die Flaute {#57ffb3fd7d}
-
-**Calm** — a period of little or no wind.

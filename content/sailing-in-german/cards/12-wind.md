@@ -18,3 +18,7 @@
 ## die Bö {#a8ab2774d7}
 
 **Gust** — a brief increase in wind speed. Also written **die Böe**; the plural is **die Böen**.
+
+## die Flaute {#57ffb3fd7d}
+
+**Calm** — a period of little or no wind.
