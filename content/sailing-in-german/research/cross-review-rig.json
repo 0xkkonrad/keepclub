@@ -1,0 +1,281 @@
+{
+  "reviewer": "hull_translations (independent of rig draft author)",
+  "reviewed_at": "2026-09-27",
+  "draft_path": "content/sailing-in-german/research/illustrations-rig.json",
+  "draft_sha256": "e7a2397279b35b7bde6f1fd89a3f67a6dce5779943478fff1aafdb1edeb4b2f7",
+  "verdict": "pass_with_source_correction",
+  "scope": {
+    "text_occurrences": 18,
+    "captions": 2,
+    "empty_notes": 2,
+    "method": "Opened actual German sailing-lexicon entries, checked related German course cards, and traced label leaders against the SVG generator anatomy. Browser layout review belongs to the root agent."
+  },
+  "anatomy_files": [
+    "content/day-skipper/src/figures.py",
+    "web/courses/competent-crew/figures.json"
+  ],
+  "course_cards_checked": [
+    "content/sailing-in-german/cards/07-mast-and-stays.md",
+    "content/sailing-in-german/cards/08-sail-control-lines.md",
+    "content/sailing-in-german/cards/09-trim-and-hardware.md",
+    "content/sailing-in-german/cards/11-sail-edges-and-corners.md"
+  ],
+  "figures": {
+    "rigging": {
+      "texts": [
+        {
+          "index": 0,
+          "en": "forestay",
+          "de": "Vorstag",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segeln-lernen.de/segellexikon-vorstag.html",
+            "https://sailnator.de/begriffe/"
+          ],
+          "rationale": "Forward stay ends at the bow on the right of the mast. Vorstag is the fixed support in that direction."
+        },
+        {
+          "index": 1,
+          "en": "backstay",
+          "de": "Achterstag",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segeln-lernen.de/segellexikon-achterstag.html",
+            "https://www.segeln-lernen.de/segellexikon-backstag.html"
+          ],
+          "rationale": "Aft stay runs from masthead to the stern at left. Achterstag is the permanent support; Backstag would name a running backstay."
+        },
+        {
+          "index": 2,
+          "en": "shrouds",
+          "de": "Wanten",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segelcrew.at/lexikon/w",
+            "https://sailnator.de/begriffe/"
+          ],
+          "rationale": "Two rigging members reach the deck on either side of the mast. Wanten correctly names the lateral supports and preserves the plural."
+        },
+        {
+          "index": 3,
+          "en": "spreaders",
+          "de": "Salinge",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.mytilus.de/segellexikon.html",
+            "https://segelcrew.at/lexikon/s"
+          ],
+          "rationale": "The transverse strut at mast height y=96 is the spreader pair. Mytilus explicitly uses Salinge as the plural; it is not Segel or Sailing."
+        },
+        {
+          "index": 4,
+          "en": "halyard",
+          "de": "Fall",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segeln-lernen.de/segellexikon-fall.html",
+            "https://sailnator.de/begriffe/"
+          ],
+          "rationale": "The line along the mast is a sail-hoisting line. Fall is distinct from Dirk, Schot, and the separate mast-rake meaning of Fall."
+        },
+        {
+          "index": 5,
+          "en": "sheet",
+          "de": "Schot",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://segelcrew.at/lexikon/s",
+            "https://www.mytilus.de/segellexikon.html",
+            "https://sailnator.de/begriffe/"
+          ],
+          "rationale": "The line from boom to cockpit/deck aft of the mast controls the mainsail through the boom. Generic Schot is valid and matches the card."
+        },
+        {
+          "index": 6,
+          "en": "kicker",
+          "de": "Baumniederholer",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segeln-lernen.de/segellexikon-baumniederholer.html",
+            "https://esys.org/esys/saildict.html"
+          ],
+          "rationale": "The diagonal control below the boom runs toward the lower mast, restraining boom rise. Baumniederholer is the UK sailing kicker/boom-vang meaning."
+        },
+        {
+          "index": 7,
+          "en": "topping lift",
+          "de": "Dirk",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segeln-lernen.de/segellexikon-dirk.html",
+            "https://sailnator.de/begriffe/"
+          ],
+          "rationale": "The line from high on the mast to the outer boom end supports the boom. This is Dirk, not the sail-hoisting Fall."
+        },
+        {
+          "index": 8,
+          "en": "standing — holds the mast up",
+          "de": "Stehendes Gut: stützt den Mast",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.mytilus.de/segellexikon.html",
+            "https://www.sportbootfuehrerschein.de/wissen/laufendes-gut.html"
+          ],
+          "rationale": "Stays and shrouds support the mast. The wording and category are correct; the draft’s sole Segelcrew URL lacks this entry, so the verified sources here replace it."
+        },
+        {
+          "index": 9,
+          "en": "running — moves the sails",
+          "de": "Laufendes Gut: setzt und trimmt Segel",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.sportbootfuehrerschein.de/wissen/laufendes-gut.html",
+            "https://boats2sail.com/lexikon/laufendes-gut/",
+            "https://www.mytilus.de/segellexikon.html"
+          ],
+          "rationale": "Setzen und Trimmen describes the movable rigging’s principal functions. It is a concise category description rather than a claim that each displayed line directly moves sailcloth."
+        }
+      ],
+      "caption": {
+        "en": "Standing rigging holds the mast up. Running rigging moves.",
+        "de": "Stehendes Gut stützt den Mast. Laufendes Gut dient zum Setzen und Trimmen der Segel.",
+        "verdict": "pass",
+        "sources_checked": [
+          "https://www.mytilus.de/segellexikon.html",
+          "https://www.sportbootfuehrerschein.de/wissen/laufendes-gut.html",
+          "https://boats2sail.com/lexikon/laufendes-gut/"
+        ],
+        "rationale": "Both categories match the same support/operation distinction used by the nautical dictionaries. Setzen and Trimmen clarify the very broad English moves without changing the intended teaching point."
+      },
+      "note": {
+        "en": "",
+        "de": "",
+        "verdict": "pass",
+        "rationale": "Both source and translated notes are empty."
+      }
+    },
+    "sail-parts": {
+      "texts": [
+        {
+          "index": 0,
+          "en": "head",
+          "de": "Segelkopf",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://segeln-segelschule.de/lexikon/teile-eines-segels/",
+            "https://sailnator.de/begriffe/",
+            "https://segelplanet.de/seglerlatein-segelbegriffe/"
+          ],
+          "rationale": "The upper corner near (292,50) is the sail head. Segelkopf is an explicit sailing compound also used by the existing card."
+        },
+        {
+          "index": 1,
+          "en": "tack",
+          "de": "Hals",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://segeln-segelschule.de/lexikon/teile-eines-segels/",
+            "https://sailnator.de/begriffe/"
+          ],
+          "rationale": "The lower forward corner near (292,254), next to the mast at right, is Hals. Tack does not name a turning manoeuvre here."
+        },
+        {
+          "index": 2,
+          "en": "clew",
+          "de": "Schothorn",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://segeln-segelschule.de/lexikon/teile-eines-segels/",
+            "https://www.mytilus.de/segellexikon.html"
+          ],
+          "rationale": "The lower aft corner near (114,258), away from the mast, is Schothorn."
+        },
+        {
+          "index": 3,
+          "en": "luff",
+          "de": "Vorliek",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://segeln-segelschule.de/lexikon/teile-eines-segels/",
+            "https://sailnator.de/begriffe/"
+          ],
+          "rationale": "The vertical forward edge between head and tack at x=292 is Vorliek; luff is an edge noun here."
+        },
+        {
+          "index": 4,
+          "en": "leech",
+          "de": "Achterliek",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://segeln-segelschule.de/lexikon/teile-eines-segels/",
+            "https://sailnator.de/begriffe/"
+          ],
+          "rationale": "The sloping aft edge from upper right to lower left is Achterliek. It is correctly on the left when the bow faces right."
+        },
+        {
+          "index": 5,
+          "en": "foot",
+          "de": "Unterliek",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://segeln-segelschule.de/lexikon/teile-eines-segels/",
+            "https://sailnator.de/begriffe/"
+          ],
+          "rationale": "The bottom edge between the two lower corners is Unterliek, not Fuß."
+        },
+        {
+          "index": 6,
+          "en": "mast",
+          "de": "Mast",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://sailnator.de/begriffe/",
+            "https://www.mytilus.de/segellexikon.html"
+          ],
+          "rationale": "The separate upright spar at x=312 supports the sail; Mast matches the course term."
+        },
+        {
+          "index": 7,
+          "en": "boom",
+          "de": "Baum",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segeln-lernen.de/segellexikon-baum.html",
+            "https://sailnator.de/begriffe/"
+          ],
+          "rationale": "The separate spar under the sail extends aft from the mast. Baum is correct, with Großbaum as the more specific alternative taught in the card."
+        }
+      ],
+      "caption": {
+        "en": "Triangular mainsail, with the bow to the right.",
+        "de": "Dreieckiges Großsegel. Der Bug ist rechts.",
+        "verdict": "pass",
+        "sources_checked": [
+          "https://sailnator.de/begriffe/",
+          "https://segeln-segelschule.de/lexikon/teile-eines-segels/"
+        ],
+        "rationale": "The SVG is a triangular mainsail aft of the mast. Its luff and mast are on the right, so the stated bow direction is correct."
+      },
+      "note": {
+        "en": "",
+        "de": "",
+        "verdict": "pass",
+        "rationale": "Both source and translated notes are empty."
+      }
+    }
+  },
+  "findings": [
+    {
+      "severity": "low",
+      "kind": "source_correction",
+      "figure": "rigging",
+      "text_index": 8,
+      "en": "standing — holds the mast up",
+      "de": "Stehendes Gut: stützt den Mast",
+      "translation_change_required": false,
+      "issue": "The draft cites only https://segelcrew.at/lexikon/s for this occurrence, but its actual page has no Stehendes Gut entry.",
+      "correction": "Use https://www.mytilus.de/segellexikon.html, entry Stehendes Gut, as a checked sailing-lexicon source. The existing caption’s sportbootfuehrerschein.de reference also supports the claim."
+    }
+  ],
+  "translation_corrections": []
+}

@@ -1,0 +1,309 @@
+{
+  "reviewer": "rig_translations agent, independent from wind/mooring author",
+  "checked_on": "2026-09-27",
+  "draft_sha256": "2667a52f46ed24152343340edab19a72157d103aa8bb415a7c5af22c0756acc5",
+  "method": "Opened German sailing-lexicon entries independently and checked each label against SVG source coordinates in content/day-skipper/src/figures.py. The sailtraining PDF was retrieved directly and its nautical glossary read with pdftotext after the web parser failed. This is semantic review; root performs rendered layout verification.",
+  "summary": {
+    "text_occurrences": 24,
+    "captions": 2,
+    "empty_notes": 2,
+    "passed": 26,
+    "corrections_required": 0
+  },
+  "figures": {
+    "windward-lee": {
+      "texts": [
+        {
+          "index": 0,
+          "en": "wind",
+          "de": "Wind",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segeln-lernen.de/segellexikon-wind.html"
+          ],
+          "reason": "The two arrows run from x=20 toward x=234/194, showing moving air. Wind is the same nautical noun in German."
+        },
+        {
+          "index": 1,
+          "en": "windward",
+          "de": "Luv",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segeln-lernen.de/segellexikon-luv.html"
+          ],
+          "reason": "The arrow approaches the boat from the left, so the left label correctly identifies the wind-facing side as Luv."
+        },
+        {
+          "index": 2,
+          "en": "the wind’s side",
+          "de": "die Windseite",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segeln-lernen.de/segellexikon-luv.html"
+          ],
+          "reason": "Windseite paraphrases the wind-facing side immediately below Luv; its placement fixes which side it means."
+        },
+        {
+          "index": 3,
+          "en": "= the weather side",
+          "de": "= dem Wind zugewandt",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segeln-lernen.de/segellexikon-luv.html"
+          ],
+          "reason": "Dem Wind zugewandt states the defining direction of Luv; weather side here has no meteorological-forecast meaning."
+        },
+        {
+          "index": 4,
+          "en": "leeward",
+          "de": "Lee",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segeln-lernen.de/segellexikon-lee.html"
+          ],
+          "reason": "The right-hand side lies downstream of the left-to-right airflow, so Lee is the correct nautical direction."
+        },
+        {
+          "index": 5,
+          "en": "the sheltered side,",
+          "de": "vom Wind abgewandt",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segeln-lernen.de/segellexikon-lee.html"
+          ],
+          "reason": "Vom Wind abgewandt gives the defining leeward direction. It does not incorrectly promise complete shelter."
+        },
+        {
+          "index": 6,
+          "en": "and the boom’s side",
+          "de": "hier steht der Baum",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segeln-lernen.de/segellexikon-baum.html",
+            "https://www.segeln-lernen.de/segellexikon-lee.html"
+          ],
+          "reason": "The boom path extends from (260,158) to (336,170) before the heel rotation, thus into the right-hand lee side. Hier correctly limits the statement to this drawing."
+        },
+        {
+          "index": 7,
+          "en": "lee shore",
+          "de": "Küste in Lee",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segeln-lernen.de/segellexikon-legerwall.html",
+            "https://www.segeln-lernen.de/segellexikon-lee.html"
+          ],
+          "reason": "The shore drawn near x=430–498 is downwind of the boat near x=260. Küste in Lee preserves that boat-relative hazard."
+        },
+        {
+          "index": 8,
+          "en": "wind sets you onto it",
+          "de": "Wind treibt an Land",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segeln-lernen.de/segellexikon-legerwall.html"
+          ],
+          "reason": "With airflow to the right and land to the right, wind carries the boat toward land. The direction and grounding implication are correct."
+        },
+        {
+          "index": 9,
+          "en": "weather shore",
+          "de": "Küste in Luv",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segeln-lernen.de/segellexikon-luv.html",
+            "https://www.segeln-lernen.de/segellexikon-ablandiger-wind.html"
+          ],
+          "reason": "The shore near x=14–60 is upwind of the boat. Küste in Luv preserves weather shore as viewed from the boat."
+        },
+        {
+          "index": 10,
+          "en": "wind blows off it: shelter",
+          "de": "Wind weht vom Land",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segeln-lernen.de/segellexikon-ablandiger-wind.html"
+          ],
+          "reason": "At the left-hand coast the arrows blow from land toward the water. Omitting the unconditional shelter promise improves precision without reversing direction."
+        }
+      ],
+      "cap": {
+        "en": "Seen from astern. She heels away from the wind.",
+        "de": "Blick von achtern. Das Boot krängt nach Lee.",
+        "verdict": "pass",
+        "sources_checked": [
+          "https://www.segeln-lernen.de/segellexikon-achtern.html",
+          "https://www.segeln-lernen.de/segellexikon-kraengen.html",
+          "https://www.segeln-lernen.de/segellexikon-lee.html"
+        ],
+        "reason": "The source construction explicitly uses an astern view. A positive 16-degree SVG rotation tilts the mast right, away from the left-to-right wind, so the boat krängt nach Lee."
+      },
+      "note": {
+        "en": "",
+        "de": "",
+        "verdict": "pass",
+        "reason": "Both source and translated notes are empty."
+      }
+    },
+    "mooring-lines": {
+      "texts": [
+        {
+          "index": 0,
+          "en": "fenders",
+          "de": "Fender",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segeln-lernen.de/segellexikon-fender.html"
+          ],
+          "reason": "The three protective cushions sit between hull and berth. German Fender is also the plural form used here."
+        },
+        {
+          "index": 1,
+          "en": "breast line",
+          "de": "Querleine",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.sailtraining.de/wp-content/uploads/2024/11/LLaS_BHB_D_v6_LOWRES.pdf#page=49"
+          ],
+          "reason": "The glossary defines Querleine as a transverse line from amidships to shore or another ship. The red path (300,150) to (300,206) is perpendicular to the hull axis."
+        },
+        {
+          "index": 2,
+          "en": "square across, holds her in",
+          "de": "querab, hält am Steg",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segeln-lernen.de/segellexikon-querab.html",
+            "https://www.sailtraining.de/wp-content/uploads/2024/11/LLaS_BHB_D_v6_LOWRES.pdf#page=49"
+          ],
+          "reason": "The line leads straight toward the pontoon at y=214 and opposes motion away from it. Querab names this transverse direction."
+        },
+        {
+          "index": 3,
+          "en": "stern line",
+          "de": "Achterleine",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segeln-lernen.de/segellexikon-achterleine.html",
+            "https://www.segelcrew.at/lexikon/a"
+          ],
+          "reason": "The line starts at the stern (122,140) and reaches the aft shore cleat (60,206). Achterleine matches both origin and lead."
+        },
+        {
+          "index": 4,
+          "en": "aft from the stern",
+          "de": "vom Heck nach achtern",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segeln-lernen.de/segellexikon-achtern.html",
+            "https://www.segelcrew.at/lexikon/a"
+          ],
+          "reason": "The stern line decreases x from 122 to 60. With the bow to the right this is from the stern aft, exactly vom Heck nach achtern."
+        },
+        {
+          "index": 5,
+          "en": "bow line",
+          "de": "Vorleine",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segeln-lernen.de/segellexikon-vorleine.html",
+            "https://www.segelcrew.at/lexikon/v"
+          ],
+          "reason": "The forward mooring line runs from (472,96) to (520,206). Vorleine names a bow mooring line; it is not the bowline knot Palstek."
+        },
+        {
+          "index": 6,
+          "en": "forward from the bow",
+          "de": "vom Bug nach vorn",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segelcrew.at/lexikon/v",
+            "https://www.segeln-lernen.de/segellexikon-bug.html"
+          ],
+          "reason": "The bow line increases x from 472 to 520, so it leads forward from the right-hand bow. Vom Bug nach vorn is correct."
+        },
+        {
+          "index": 7,
+          "en": "fore spring",
+          "de": "Vorspring",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segeln-lernen.de/segellexikon-vorspring.html",
+            "https://www.segelcrew.at/lexikon/v"
+          ],
+          "reason": "The line originates forward at (440,110) and leads aft to (210,206). Vorspring is named for its forward onboard origin."
+        },
+        {
+          "index": 8,
+          "en": "from the bow, led aft:",
+          "de": "vom Bug nach achtern:",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segeln-lernen.de/segellexikon-vorspring.html"
+          ],
+          "reason": "The forward green path decreases x from 440 to 210, confirming vom Bug nach achtern rather than the reverse."
+        },
+        {
+          "index": 9,
+          "en": "stops her surging ahead",
+          "de": "verhindert Vorrutschen",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segelcrew.at/lexikon/v",
+            "https://bootsschule1.de/lexikon/spring/"
+          ],
+          "reason": "Moving the boat forward increases the length demanded of this aft-leading spring. It therefore restrains forward surge: Vorrutschen."
+        },
+        {
+          "index": 10,
+          "en": "back spring",
+          "de": "Achterspring",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segeln-lernen.de/segellexikon-achterspring.html",
+            "https://www.segelcrew.at/lexikon/a"
+          ],
+          "reason": "The other green line originates aft at (150,144) and leads forward to (380,206). Achterspring is the correct name."
+        },
+        {
+          "index": 11,
+          "en": "from the stern, led forward:",
+          "de": "vom Heck nach vorn:",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segeln-lernen.de/segellexikon-achterspring.html"
+          ],
+          "reason": "This path increases x from 150 to 380. With the stern at left, vom Heck nach vorn describes its geometry correctly."
+        },
+        {
+          "index": 12,
+          "en": "stops her surging astern",
+          "de": "verhindert Zurückrutschen",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segelcrew.at/lexikon/a",
+            "https://bootsschule1.de/lexikon/spring/"
+          ],
+          "reason": "Moving the boat aft lengthens this forward-leading spring. It therefore restrains backward surge: Zurückrutschen."
+        }
+      ],
+      "cap": {
+        "en": "Alongside, seen from above. Bow to the right.",
+        "de": "Längsseits am Steg, von oben gesehen. Der Bug zeigt nach rechts.",
+        "verdict": "pass",
+        "sources_checked": [
+          "https://www.sailtraining.de/wp-content/uploads/2024/11/LLaS_BHB_D_v6_LOWRES.pdf#page=48",
+          "https://www.segeln-lernen.de/segellexikon-bug.html",
+          "https://www.segeln-lernen.de/segellexikon-vorspring.html"
+        ],
+        "reason": "The source plan shows the hull parallel to the berth, with its pointed bow at x=480. Längsseits am Steg, von oben and Bug zeigt nach rechts all match the geometry."
+      },
+      "note": {
+        "en": "",
+        "de": "",
+        "verdict": "pass",
+        "reason": "Both source and translated notes are empty."
+      }
+    }
+  }
+}

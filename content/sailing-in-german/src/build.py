@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
-"""Build the German sailing vocabulary deck and copy its reused diagrams."""
+"""Build the German sailing vocabulary deck and its German-labelled diagrams."""
 
 import hashlib
 import json
 from pathlib import Path
-import shutil
 import sys
+
+from illustrations import translate_figures
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTENT = ROOT.parent
@@ -55,14 +56,16 @@ def main():
         json.dumps(body, ensure_ascii=False, sort_keys=True).encode()
     ).hexdigest()[:8]
 
-    # This caption must describe this drawing without referring to other cards.
-    figures["sail-parts"]["cap"] = "Triangular mainsail, with the bow to the right."
+    figures = translate_figures(figures, ROOT / "illustrations.json")
     BUILD.mkdir(exist_ok=True)
     write_json("cards.json", body)
     write_json("figures.json", figures)
-    shutil.copyfile(ART_SOURCE / "figures.css", BUILD / "figures.css")
+    (BUILD / "figures.css").write_text(
+        (ART_SOURCE / "figures.css").read_text()
+        + "\n" + (ROOT / "src/figures.css").read_text(), encoding="utf-8"
+    )
     print(f"{len(cards)} cards · {terms} terms · {len(sections)} sections")
-    print(f"{len(figures)} reused diagrams · build {body['build']}")
+    print(f"{len(figures)} German-labelled diagrams · build {body['build']}")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,132 @@
+{
+  "figures": {
+    "rigging": {
+      "cap": "Stehendes Gut stützt den Mast. Laufendes Gut dient zum Setzen und Trimmen der Segel.",
+      "note": "",
+      "source_cap": "Standing rigging holds the mast up. Running rigging moves.",
+      "source_note": "",
+      "cap_sources": ["https://segelcrew.at/lexikon/s", "https://boats2sail.com/lexikon/laufendes-gut/", "https://www.sportbootfuehrerschein.de/wissen/laufendes-gut.html"],
+      "cap_rationale": "The German nautical categories distinguish mast support from the rigging used to set and trim sails. Both functions match the drawing's color legend.",
+      "texts": [
+        {
+          "en": "forestay",
+          "de": "Vorstag",
+          "sources": ["https://www.segeln-lernen.de/segellexikon-vorstag.html"],
+          "rationale": "The fixed mast-to-bow support is the Vorstag. The label points to that forward stay."
+        },
+        {
+          "en": "backstay",
+          "de": "Achterstag",
+          "sources": ["https://www.segeln-lernen.de/segellexikon-achterstag.html", "https://www.segeln-lernen.de/segellexikon-backstag.html"],
+          "rationale": "The permanent masthead-to-stern stay is the Achterstag. Backstag denotes a running backstay and would misidentify this drawing."
+        },
+        {
+          "en": "shrouds",
+          "de": "Wanten",
+          "sources": ["https://www.segelcrew.at/lexikon/w"],
+          "rationale": "These supports brace the mast sideways. Wanten is the nautical plural of Want."
+        },
+        {
+          "en": "spreaders",
+          "de": "Salinge",
+          "sources": ["https://segelcrew.at/lexikon/s", "https://www.mytilus.de/segellexikon.html"],
+          "rationale": "The transverse mast struts spread the shrouds. Salinge is the plural used by the sailing lexicon."
+        },
+        {
+          "en": "halyard",
+          "de": "Fall",
+          "sources": ["https://www.segeln-lernen.de/segellexikon-fall.html"],
+          "rationale": "Fall identifies a sail-hoisting line; it is not a sheet or the separate meaning of mast rake."
+        },
+        {
+          "en": "sheet",
+          "de": "Schot",
+          "sources": ["https://segelcrew.at/lexikon/s"],
+          "rationale": "Schot is the line that adjusts a sail's position. The diagram shows the mainsheet arrangement at the boom."
+        },
+        {
+          "en": "kicker",
+          "de": "Baumniederholer",
+          "sources": ["https://www.segeln-lernen.de/segellexikon-baumniederholer.html"],
+          "rationale": "The UK sailing term kicker here means the boom vang: tackle preventing the boom from rising."
+        },
+        {
+          "en": "topping lift",
+          "de": "Dirk",
+          "sources": ["https://www.segeln-lernen.de/segellexikon-dirk.html", "https://segeln-segelschule.de/lexikon/dirk/"],
+          "rationale": "This line supports the main boom from the masthead when the sail does not support it. The sailing lexicons call that line Dirk."
+        },
+        {
+          "en": "standing — holds the mast up",
+          "de": "Stehendes Gut: stützt den Mast",
+          "sources": ["https://segelcrew.at/lexikon/s"],
+          "rationale": "Stehendes Gut is the collective nautical term for stays and shrouds supporting the mast; the legend describes their function."
+        },
+        {
+          "en": "running — moves the sails",
+          "de": "Laufendes Gut: setzt und trimmt Segel",
+          "sources": ["https://boats2sail.com/lexikon/laufendes-gut/", "https://www.sportbootfuehrerschein.de/wissen/laufendes-gut.html"],
+          "rationale": "Laufendes Gut is the movable rigging used to hoist and trim sails. The functional wording is more precise than a literal translation of moves."
+        }
+      ]
+    },
+    "sail-parts": {
+      "cap": "Dreieckiges Großsegel. Der Bug ist rechts.",
+      "note": "",
+      "source_cap": "Triangular mainsail, with the bow to the right.",
+      "source_note": "",
+      "cap_sources": ["https://sailnator.de/begriffe/", "https://segeln-segelschule.de/lexikon/teile-eines-segels/"],
+      "cap_rationale": "Großsegel names the mainsail and Bug the bow. The right-facing orientation is a fact of this source drawing, confirmed by its mast and forward sail edge.",
+      "texts": [
+        {
+          "en": "head",
+          "de": "Segelkopf",
+          "sources": ["https://segeln-segelschule.de/lexikon/teile-eines-segels/", "https://sailnator.de/begriffe/"],
+          "rationale": "The upper sail corner is Kopf. Segelkopf makes the referent explicit and matches the existing course card."
+        },
+        {
+          "en": "tack",
+          "de": "Hals",
+          "sources": ["https://segeln-segelschule.de/lexikon/teile-eines-segels/", "https://sailnator.de/begriffe/"],
+          "rationale": "This is the lower forward sail corner, Hals. Tack as a manoeuvre would be Wende, which is wrong for this label."
+        },
+        {
+          "en": "clew",
+          "de": "Schothorn",
+          "sources": ["https://segeln-segelschule.de/lexikon/teile-eines-segels/", "https://sailnator.de/begriffe/"],
+          "rationale": "Schothorn is the lower aft sail corner, opposite the Hals along the Unterliek."
+        },
+        {
+          "en": "luff",
+          "de": "Vorliek",
+          "sources": ["https://segeln-segelschule.de/lexikon/teile-eines-segels/", "https://sailnator.de/begriffe/"],
+          "rationale": "The forward sail edge beside the mast is Vorliek. The noun luff here does not name the manoeuvre anluven."
+        },
+        {
+          "en": "leech",
+          "de": "Achterliek",
+          "sources": ["https://segeln-segelschule.de/lexikon/teile-eines-segels/", "https://sailnator.de/begriffe/"],
+          "rationale": "Achterliek is the aft sail edge from head to clew, on the left because the bow is to the right."
+        },
+        {
+          "en": "foot",
+          "de": "Unterliek",
+          "sources": ["https://segeln-segelschule.de/lexikon/teile-eines-segels/", "https://sailnator.de/begriffe/"],
+          "rationale": "Unterliek names the bottom sail edge, from tack to clew, rather than an anatomical foot."
+        },
+        {
+          "en": "mast",
+          "de": "Mast",
+          "sources": ["https://sailnator.de/begriffe/"],
+          "rationale": "Mast is the upright spar beside the mainsail; the sailing-school diagram uses this same term."
+        },
+        {
+          "en": "boom",
+          "de": "Baum",
+          "sources": ["https://www.segeln-lernen.de/segellexikon-baum.html"],
+          "rationale": "Baum is the spar attached by one end to the mast. The depicted mainsail boom is also called Großbaum."
+        }
+      ]
+    }
+  }
+}

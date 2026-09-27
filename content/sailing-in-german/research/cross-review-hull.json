@@ -1,0 +1,363 @@
+{
+  "reviewer": "wind_mooring_translations",
+  "reviewed_at": "2026-09-27",
+  "draft_sha256": "ad4a9399cc1f50e7deaa523f61c7644962264834eaca0e348f89a728deed7e3f",
+  "scope": {
+    "text_occurrences": 26,
+    "captions": 3,
+    "empty_notes": 3
+  },
+  "method": "Independent German sailing-lexicon lookup, inspection of generated SVG text and dimension coordinates, source generator inspection, and rendered deck-geometry screenshot. Layout is reviewed separately by the integrating agent.",
+  "status": "pass_with_source_correction",
+  "figures": {
+    "hull-plan": {
+      "caption": {
+        "en": "Seen from above, bow at the top — as if you were facing forward.",
+        "de": "Von oben gesehen, mit dem Bug nach oben – wie beim Blick nach vorn.",
+        "verdict": "pass",
+        "sources_checked": [
+          "https://www.segeln-lernen.de/segellexikon-bug.html",
+          "https://www.segeln-lernen.de/segellexikon-backbord.html",
+          "https://www.segeln-lernen.de/segellexikon-steuerbord.html"
+        ],
+        "rationale": "The plan has its bow at the top and preserves left/right when facing toward the bow. No reversed perspective."
+      },
+      "note": {
+        "en": "",
+        "de": "",
+        "verdict": "pass",
+        "rationale": "Both notes are empty."
+      },
+      "texts": [
+        {
+          "index": 0,
+          "en": "bow",
+          "de": "Bug",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segeln-lernen.de/segellexikon-bug.html"
+          ],
+          "rationale": "Bug identifies the forward pointed end at y=34 in the plan. It is not a course/tack meaning of Bug."
+        },
+        {
+          "index": 1,
+          "en": "stern",
+          "de": "Heck",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segeln-lernen.de/segellexikon-heck.html"
+          ],
+          "rationale": "Heck identifies the aft end at y=212, preserving the bow-up view."
+        },
+        {
+          "index": 2,
+          "en": "port",
+          "de": "Backbord",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segeln-lernen.de/segellexikon-backbord.html"
+          ],
+          "rationale": "Backbord is the fixed port side. It is drawn left of the centreline with the bow at the top."
+        },
+        {
+          "index": 3,
+          "en": "starboard",
+          "de": "Steuerbord",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segeln-lernen.de/segellexikon-steuerbord.html"
+          ],
+          "rationale": "Steuerbord is the fixed starboard side, drawn to the right and coloured green."
+        },
+        {
+          "index": 4,
+          "en": "amidships",
+          "de": "mittschiffs",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segeln-lernen.de/segellexikon-mittschiffs.html"
+          ],
+          "rationale": "The leaders indicate the middle part of the boat and centreline. Position adverb mittschiffs fits this use."
+        },
+        {
+          "index": 5,
+          "en": "beam — her greatest breadth",
+          "de": "Breite – an der breitesten Stelle",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://segelplanet.de/segelbegriffe-de-eng/"
+          ],
+          "rationale": "The dimension extends between the maximum hull breadths at approximately x=152 and x=247. Breite is the dimension; neither Balken nor querab would describe it."
+        },
+        {
+          "index": 6,
+          "en": "abeam",
+          "de": "querab",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segeln-lernen.de/segellexikon-querab.html",
+            "https://segelplanet.de/segelbegriffe-de-eng/"
+          ],
+          "rationale": "This outward arrow is transverse to the fore-and-aft axis. querab is the direction, distinct from width Breite."
+        },
+        {
+          "index": 7,
+          "en": "abeam",
+          "de": "querab",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segeln-lernen.de/segellexikon-querab.html",
+            "https://segelplanet.de/segelbegriffe-de-eng/"
+          ],
+          "rationale": "The second arrow shows the same transverse direction on the other side. The repeated label is required."
+        }
+      ]
+    },
+    "hull-profile": {
+      "caption": {
+        "en": "In profile, afloat at her designed waterline.",
+        "de": "Seitenansicht: Das Boot schwimmt auf seiner Konstruktionswasserlinie.",
+        "verdict": "pass",
+        "sources_checked": [
+          "https://www.sailing-coach.de/sailingcoach-lexikon.html",
+          "https://www.segelschule-schweiz.ch/lexikon.php"
+        ],
+        "rationale": "Konstruktionswasserlinie is the designer-intended immersion line, matching the explicit source qualification designed waterline. A side elevation is shown."
+      },
+      "note": {
+        "en": "",
+        "de": "",
+        "verdict": "pass",
+        "rationale": "Both notes are empty."
+      },
+      "texts": [
+        {
+          "index": 0,
+          "en": "air draught",
+          "de": "Masthöhe über Wasser",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.hochseeschule-basel.ch/4-navigationshilfen/",
+            "https://fsa-segelsport.de/wp-content/uploads/2021/11/Eignerhandbuch-VA18.pdf"
+          ],
+          "rationale": "Masthöhe über Wasser specifies the boat height above the water surface. The source dimension is y=28 to y=286 and includes the aerial above the mast at y=40. Basel distinguishes this from available bridge clearance; the adjacent Antenne note preserves the full illustrated height."
+        },
+        {
+          "index": 1,
+          "en": "masthead to waterline,",
+          "de": "Masttopp bis Wasserlinie,",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.sailing-coach.de/sailingcoach-lexikon.html",
+            "https://www.hochseeschule-basel.ch/4-navigationshilfen/"
+          ],
+          "rationale": "Masttopp denotes masthead. Read together with the next note einschließlich Antenne, the endpoint extends to the aerial, consistent with the source phrase and dimension. It must not be shortened to a deck-relative mast length."
+        },
+        {
+          "index": 2,
+          "en": "aerial included",
+          "de": "einschließlich Antenne",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://fsa-segelsport.de/wp-content/uploads/2021/11/Eignerhandbuch-VA18.pdf"
+          ],
+          "rationale": "The manufacturer separately records mast height with added antennas on page 8. This annotation correctly includes the aerial shown at the upper endpoint."
+        },
+        {
+          "index": 3,
+          "en": "draught",
+          "de": "Tiefgang",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segeln-lernen.de/segellexikon-tiefgang.html"
+          ],
+          "rationale": "The source arrow spans y=286 waterline to y=352 keel underside. Tiefgang is that immersed depth, not Wassertiefe to the seabed."
+        },
+        {
+          "index": 4,
+          "en": "freeboard",
+          "de": "Freibord",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segeln-lernen.de/segellexikon-freibord.html",
+            "https://www.sailing-coach.de/sailingcoach-lexikon.html"
+          ],
+          "rationale": "Freibord is the hull-side height above the waterline; the annotation and small arrow specify the vertical deck-edge measurement."
+        },
+        {
+          "index": 5,
+          "en": "deck edge to waterline",
+          "de": "Deckskante bis Wasserlinie",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.sailing-coach.de/sailingcoach-lexikon.html",
+            "https://www.segelschule-schweiz.ch/lexikon.php"
+          ],
+          "rationale": "The two endpoints preserve the freeboard dimension shown at x=160, y=268..286. Deckskante is the side deck edge, not the top of the coachroof."
+        },
+        {
+          "index": 6,
+          "en": "waterline",
+          "de": "Wasserlinie",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.sailing-coach.de/sailingcoach-lexikon.html"
+          ],
+          "rationale": "The long horizontal line meets the hull at the actual water surface. Wasserlinie is the correct hull/water intersection term."
+        },
+        {
+          "index": 7,
+          "en": "seabed",
+          "de": "Meeresgrund",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.sailing-coach.de/sailingcoach-lexikon.html"
+          ],
+          "rationale": "Meeresgrund labels the bottom line below the keel. The German nautical lexicon uses the term for the physical seabed in the Grundsee entry; no hull meaning is implied."
+        }
+      ]
+    },
+    "deck-fittings": {
+      "caption": {
+        "en": "Along the side deck. Flat transom aft, stem and anchor roller forward.",
+        "de": "Am Seitendeck: achtern der flache Spiegel, vorn Vorsteven und Ankerrolle.",
+        "verdict": "pass",
+        "sources_checked": [
+          "https://www.segelschule-schweiz.ch/lexikon.php",
+          "https://www.segeln-lernen.de/segellexikon-spiegel.html",
+          "https://www.segeln-lernen.de/segellexikon-vorsteven.html",
+          "https://www.svb.de/katalog/de/s_51.pdf"
+        ],
+        "rationale": "Seitendeck is supported by the sailing-school Gangbord entry. The flat transom is aft and the inclined forward stem and protruding anchor roller are forward. The Ankerrolle term is additionally corroborated by SVB’s German nautical catalog. Replace the poor-quality Rubicon citation; no text correction is needed."
+      },
+      "note": {
+        "en": "",
+        "de": "",
+        "verdict": "pass",
+        "rationale": "Both notes are empty."
+      },
+      "texts": [
+        {
+          "index": 0,
+          "en": "pushpit",
+          "de": "Heckkorb",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segeln-lernen.de/segellexikon-heckkorb.html"
+          ],
+          "rationale": "The rigid steel-tube rail encloses the flat stern at the left; Heckkorb is correct."
+        },
+        {
+          "index": 1,
+          "en": "pulpit",
+          "de": "Bugkorb",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segeln-lernen.de/segellexikon-bugkorb.html",
+            "https://www.segelschule-schweiz.ch/lexikon.php"
+          ],
+          "rationale": "The rigid rail curves around the forward end on the right; Bugkorb is correct."
+        },
+        {
+          "index": 2,
+          "en": "guardrails",
+          "de": "Reling",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segeln-lernen.de/segellexikon-reling.html"
+          ],
+          "rationale": "Two horizontal safety wires between the end rails form the Reling. German collective singular is appropriate."
+        },
+        {
+          "index": 3,
+          "en": "jackstay",
+          "de": "Strecktau",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.sailing-coach.de/sailingcoach-lexikon.html",
+            "https://bootsschule1.de/lexikon/lifebelt/",
+            "https://www.segelverband.at/fileadmin/user_upload/oesv-web/Dokumente-Website/Dokumente_-_Ausbildung/Dokumente_-_Pruefungswesen_Seefahrt/OeSV_Fragensammlung_FB1_bis_FB4/oesv_fragensammlung_fb3_1_0.pdf"
+          ],
+          "rationale": "The line joins deck eyes inboard of the rail at x=120 and x=452. This is the deck safety jackstay, Strecktau, not a mast stay or a personal tether."
+        },
+        {
+          "index": 4,
+          "en": "clip your tether to it",
+          "de": "Sicherheitsleine hier einpicken",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://bootsschule1.de/lexikon/lifebelt/",
+            "https://www.segelverband.at/fileadmin/user_upload/oesv-web/Dokumente-Website/Dokumente_-_Ausbildung/Dokumente_-_Pruefungswesen_Seefahrt/OeSV_Fragensammlung_FB1_bis_FB4/oesv_fragensammlung_fb3_1_0.pdf"
+          ],
+          "rationale": "The instruction points to the Strecktau. ÖSV questions 335–337 explicitly distinguish the attached Sicherheitsleine and use Einpicken for clipping it to the deck line."
+        },
+        {
+          "index": 5,
+          "en": "stanchions",
+          "de": "Relingsstützen",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://segelplanet.de/segelbegriffe-de-eng/"
+          ],
+          "rationale": "Four vertical supports carry the guard wires. Relingsstützen is the correct plural of the nautical Relingsstütze."
+        },
+        {
+          "index": 6,
+          "en": "cleat",
+          "de": "Klampe",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segeln-lernen.de/segellexikon-klampe.html"
+          ],
+          "rationale": "The fitting at x=161 has a central post and two horns for belaying; it is a Klampe, not a jaw cleat or a fairlead."
+        },
+        {
+          "index": 7,
+          "en": "fairlead",
+          "de": "Lippklampe",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segelschule-schweiz.ch/lexikon.php"
+          ],
+          "rationale": "The rendered source and generator path show two open curved lips at x=356..390, used to guide a line. The sailing-school Lippe/Lippklampe entry describes this fitting. Lippklampe is more specific than the general Klüse and fits the drawn shape."
+        },
+        {
+          "index": 8,
+          "en": "transom",
+          "de": "Spiegel",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segeln-lernen.de/segellexikon-spiegel.html"
+          ],
+          "rationale": "Spiegel names the flat closing surface at the after end. It does not mean the whole Heck."
+        },
+        {
+          "index": 9,
+          "en": "stem",
+          "de": "Vorsteven",
+          "verdict": "pass",
+          "sources_checked": [
+            "https://www.segeln-lernen.de/segellexikon-vorsteven.html"
+          ],
+          "rationale": "The right-hand leader is at the forward hull edge beside the bow roller. Vorsteven identifies the forward stem and avoids the wider term Steven that may also denote an after stem."
+        }
+      ]
+    }
+  },
+  "source_corrections": [
+    {
+      "figure": "deck-fittings",
+      "field": "captionReview.sources",
+      "rejected_url": "https://www.rubicon3adventure.com/de/ein-umfassender-leitfaden-fur-segelbegriffe-und-nautisches-know-how/",
+      "reason": "The German page contains unmistakable literal mistranslations elsewhere, including head as Kopf for a toilet and beat as Schlagen. It is unsuitable authority for this contextual translation audit.",
+      "replacement_urls": [
+        "https://www.segelschule-schweiz.ch/lexikon.php",
+        "https://www.segeln-lernen.de/segellexikon-spiegel.html",
+        "https://www.segeln-lernen.de/segellexikon-vorsteven.html",
+        "https://www.svb.de/katalog/de/s_51.pdf"
+      ],
+      "translation_change_required": false
+    }
+  ],
+  "translation_corrections": []
+}

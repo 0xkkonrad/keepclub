@@ -1,0 +1,11 @@
+/* These rotations use SVG coordinates; the shell's fill-box origin would
+   rotate the height labels outside their drawing. */
+.figure[lang="de"] text[transform] {
+  transform-box: view-box;
+  transform-origin: 0 0;
+}
+
+/* Rigging legends explain both colours on every card. */
+.figure[lang="de"] text.f-note:not([data-l]) {
+  opacity: 1;
+}

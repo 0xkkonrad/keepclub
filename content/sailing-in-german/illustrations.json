@@ -1,0 +1,773 @@
+{
+  "language": "de",
+  "figures": {
+    "hull-plan": {
+      "cap": "Von oben gesehen, mit dem Bug nach oben – wie beim Blick nach vorn.",
+      "note": "",
+      "captionReview": {
+        "sources": [
+          "https://esys.org/esys/saildict.html",
+          "https://www.segelschule-schweiz.ch/lexikon.php"
+        ],
+        "rationale": "The diagram is a plan view with the bow upward. Bug is the forward end; port and starboard are fixed relative to facing the bow."
+      },
+      "texts": [
+        {
+          "en": "bow",
+          "de": "Bug",
+          "sources": [
+            "https://esys.org/esys/saildict.html",
+            "https://www.segelschule-schweiz.ch/lexikon.php"
+          ],
+          "rationale": "The forward end of the boat, matching the pointed end of this plan view.",
+          "layout": {
+            "y": 20
+          }
+        },
+        {
+          "en": "stern",
+          "de": "Heck",
+          "sources": [
+            "https://esys.org/esys/saildict.html",
+            "https://www.segelschule-schweiz.ch/lexikon.php"
+          ],
+          "rationale": "The aft end of the boat, matching the flat lower end of this plan view."
+        },
+        {
+          "en": "port",
+          "de": "Backbord",
+          "sources": [
+            "https://esys.org/esys/saildict.html",
+            "https://www.segelschule-schweiz.ch/lexikon.php"
+          ],
+          "rationale": "The boat’s left side when facing forward; the nautical side, not a harbour."
+        },
+        {
+          "en": "starboard",
+          "de": "Steuerbord",
+          "sources": [
+            "https://esys.org/esys/saildict.html",
+            "https://www.sailing-coach.de/sailingcoach-lexikon.html"
+          ],
+          "rationale": "The boat’s right side when facing forward."
+        },
+        {
+          "en": "amidships",
+          "de": "mittschiffs",
+          "sources": [
+            "https://esys.org/esys/saildict.html",
+            "https://www.sailing-coach.de/sailingcoach-lexikon.html"
+          ],
+          "rationale": "The central area of the boat; lower-case nautical position adverb, matching the course card."
+        },
+        {
+          "en": "beam — her greatest breadth",
+          "de": "Breite – an der breitesten Stelle",
+          "sources": [
+            "https://esys.org/esys/saildict.html"
+          ],
+          "rationale": "Beam denotes boat breadth here. ESYS explicitly distinguishes boat breadth from geographical latitude; the dimension spans the widest hull section."
+        },
+        {
+          "en": "abeam",
+          "de": "querab",
+          "sources": [
+            "https://esys.org/esys/saildict.html",
+            "https://www.segelschule-schweiz.ch/lexikon.php"
+          ],
+          "rationale": "A direction at right angles to the boat’s fore-and-aft axis, unlike the boat dimension Breite."
+        },
+        {
+          "en": "abeam",
+          "de": "querab",
+          "sources": [
+            "https://esys.org/esys/saildict.html",
+            "https://www.segelschule-schweiz.ch/lexikon.php"
+          ],
+          "rationale": "The same transverse direction on the opposite side; the duplicate label must be retained."
+        }
+      ],
+      "sourceCap": "Seen from above, bow at the top — as if you were facing forward.",
+      "sourceNote": ""
+    },
+    "hull-profile": {
+      "cap": "Seitenansicht: Das Boot schwimmt auf seiner Konstruktionswasserlinie.",
+      "note": "",
+      "captionReview": {
+        "sources": [
+          "https://www.sailing-coach.de/sailingcoach-lexikon.html",
+          "https://www.segelschule-schweiz.ch/lexikon.php"
+        ],
+        "rationale": "Both sailing lexicons define Konstruktionswasserlinie as the waterline intended by the designer. This preserves the source’s designed-waterline qualification."
+      },
+      "texts": [
+        {
+          "en": "air draught",
+          "de": "Masthöhe über Wasser",
+          "sources": [
+            "https://www.easyais.com/segellexikon/segelpraxis",
+            "https://www.hochseeschule-basel.ch/4-navigationshilfen/",
+            "https://fsa-segelsport.de/wp-content/uploads/2021/11/Eignerhandbuch-VA18.pdf"
+          ],
+          "rationale": "The sailing lexicon uses Masthöhe über Wasser, and the sailing school measures from the waterline. The adjacent antenna note makes this the full illustrated height. Bare Masthöhe could mean mast length; Durchfahrtshöhe alone could mean bridge clearance."
+        },
+        {
+          "en": "masthead to waterline,",
+          "de": "Masttopp bis Wasserlinie,",
+          "sources": [
+            "https://www.sailing-coach.de/sailingcoach-lexikon.html",
+            "https://www.hochseeschule-basel.ch/4-navigationshilfen/"
+          ],
+          "rationale": "Masttopp is the nautical masthead. Both endpoints are preserved; this is not a height above the deck."
+        },
+        {
+          "en": "aerial included",
+          "de": "einschließlich Antenne",
+          "sources": [
+            "https://fsa-segelsport.de/wp-content/uploads/2021/11/Eignerhandbuch-VA18.pdf",
+            "https://www.easyais.com/segellexikon/segelpraxis"
+          ],
+          "rationale": "The yacht owner’s manual explicitly distinguishes mast clearance with additional antennas. Preserve this inclusion because an antenna can extend above the masthead."
+        },
+        {
+          "en": "draught",
+          "de": "Tiefgang",
+          "sources": [
+            "https://esys.org/esys/saildict.html",
+            "https://www.sailing-coach.de/sailingcoach-lexikon.html"
+          ],
+          "rationale": "The underwater vertical distance from waterline to the lowest keel point, as the measurement arrow shows.",
+          "layout": {
+            "x": 438,
+            "transform": "rotate(-90 438 322)"
+          }
+        },
+        {
+          "en": "freeboard",
+          "de": "Freibord",
+          "sources": [
+            "https://boats2sail.com/lexikon/freibord/",
+            "https://www.segelschule-schweiz.ch/lexikon.php"
+          ],
+          "rationale": "The height between waterline and deck edge at the hull side, not the total height above water."
+        },
+        {
+          "en": "deck edge to waterline",
+          "de": "Deckskante bis Wasserlinie",
+          "sources": [
+            "https://boats2sail.com/lexikon/freibord/",
+            "https://www.sailing-coach.de/sailingcoach-lexikon.html"
+          ],
+          "rationale": "Preserves the freeboard measurement endpoints at the hull side, consistent with the arrow.",
+          "layout": {
+            "x": 240
+          }
+        },
+        {
+          "en": "waterline",
+          "de": "Wasserlinie",
+          "sources": [
+            "https://www.sailing-coach.de/sailingcoach-lexikon.html"
+          ],
+          "rationale": "The hull’s intersection with the water surface."
+        },
+        {
+          "en": "seabed",
+          "de": "Meeresgrund",
+          "sources": [
+            "https://www.sailing-coach.de/sailingcoach-lexikon.html"
+          ],
+          "rationale": "The bottom of the sea below the keel. The lexicon uses Meeresgrund in the Grundsee entry, distinct from the hull or bilge."
+        }
+      ],
+      "sourceCap": "In profile, afloat at her designed waterline.",
+      "sourceNote": ""
+    },
+    "deck-fittings": {
+      "cap": "Am Seitendeck: achtern der flache Spiegel, vorn Vorsteven und Ankerrolle.",
+      "note": "",
+      "captionReview": {
+        "sources": [
+          "https://www.segelschule-schweiz.ch/lexikon.php",
+          "https://esys.org/esys/saildict.html",
+          "https://www.mytilus.de/segellexikon.html",
+          "https://www.svb.de/katalog/de/s_51.pdf"
+        ],
+        "rationale": "The sailing lexicons support Seitendeck, achtern, Spiegel and Vorsteven. SVB’s nautical equipment catalogue corroborates Ankerrolle as the bow fitting shown for handling the anchor and chain."
+      },
+      "texts": [
+        {
+          "en": "pushpit",
+          "de": "Heckkorb",
+          "sources": [
+            "https://esys.org/esys/saildict.html",
+            "https://boats2sail.com/lexikon/reling/"
+          ],
+          "rationale": "The rigid safety rail at the stern, not a cockpit or stern platform."
+        },
+        {
+          "en": "pulpit",
+          "de": "Bugkorb",
+          "sources": [
+            "https://www.segelschule-schweiz.ch/lexikon.php",
+            "https://boats2sail.com/lexikon/reling/"
+          ],
+          "rationale": "The rigid safety rail at the bow, not the general ship’s bow or a literal pulpit."
+        },
+        {
+          "en": "guardrails",
+          "de": "Reling",
+          "sources": [
+            "https://esys.org/esys/saildict.html",
+            "https://boats2sail.com/lexikon/reling/"
+          ],
+          "rationale": "The protective barrier along the deck edge. The collective singular matches German sailing usage and the existing card."
+        },
+        {
+          "en": "jackstay",
+          "de": "Strecktau",
+          "sources": [
+            "https://www.sailing-coach.de/sailingcoach-lexikon.html",
+            "https://bootsschule1.de/lexikon/lifebelt/"
+          ],
+          "rationale": "This deck-length personal-safety attachment is a Strecktau; it is not a rigging stay or the guardrail."
+        },
+        {
+          "en": "clip your tether to it",
+          "de": "Sicherheitsleine hier einpicken",
+          "sources": [
+            "https://bootsschule1.de/lexikon/lifebelt/",
+            "https://www.segelverband.at/fileadmin/user_upload/oesv-web/Dokumente-Website/Dokumente_-_Ausbildung/Dokumente_-_Pruefungswesen_Seefahrt/OeSV_Fragensammlung_FB1_bis_FB4/oesv_fragensammlung_fb3_1_0.pdf"
+          ],
+          "rationale": "The person’s short tether is the Sicherheitsleine and is clipped into the Strecktau; the two lines have different functions. ÖSV questions 335–337 explicitly distinguish them."
+        },
+        {
+          "en": "stanchions",
+          "de": "Relingsstützen",
+          "sources": [
+            "https://esys.org/esys/saildict.html",
+            "https://bootsschule1.de/lexikon/reling/"
+          ],
+          "rationale": "The upright supports of the deck-edge rail; plural is appropriate because several are shown. The spelling matches the course."
+        },
+        {
+          "en": "cleat",
+          "de": "Klampe",
+          "sources": [
+            "https://esys.org/esys/saildict.html",
+            "https://www.segelschule-schweiz.ch/lexikon.php"
+          ],
+          "rationale": "The two-horn fitting used to secure a line, not a clamp or sail-control cleat."
+        },
+        {
+          "en": "fairlead",
+          "de": "Lippklampe",
+          "sources": [
+            "https://www.segelschule-schweiz.ch/lexikon.php"
+          ],
+          "rationale": "The drawing shows an open two-lipped guide for a mooring line. The sailing-school lexicon defines Lippe/Lippklampe as this claw-like deck passage; the more general Klüse would lose the specific shape."
+        },
+        {
+          "en": "transom",
+          "de": "Spiegel",
+          "sources": [
+            "https://esys.org/esys/saildict.html",
+            "https://www.mytilus.de/segellexikon.html"
+          ],
+          "rationale": "The flat aft closing surface of the hull, rather than the whole stern (Heck)."
+        },
+        {
+          "en": "stem",
+          "de": "Vorsteven",
+          "sources": [
+            "https://www.mytilus.de/segellexikon.html",
+            "https://www.sailing-coach.de/sailingcoach-lexikon.html"
+          ],
+          "rationale": "The forward structural edge where the hull sides meet. Vorsteven is more precise than the umbrella term Steven, which can also mean Achtersteven."
+        }
+      ],
+      "sourceCap": "Along the side deck. Flat transom aft, stem and anchor roller forward.",
+      "sourceNote": ""
+    },
+    "rigging": {
+      "cap": "Stehendes Gut stützt den Mast. Laufendes Gut dient zum Setzen und Trimmen der Segel.",
+      "note": "",
+      "texts": [
+        {
+          "en": "forestay",
+          "de": "Vorstag",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-vorstag.html"
+          ],
+          "rationale": "The fixed mast-to-bow support is the Vorstag. The label points to that forward stay."
+        },
+        {
+          "en": "backstay",
+          "de": "Achterstag",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-achterstag.html",
+            "https://www.segeln-lernen.de/segellexikon-backstag.html"
+          ],
+          "rationale": "The permanent masthead-to-stern stay is the Achterstag. Backstag denotes a running backstay and would misidentify this drawing."
+        },
+        {
+          "en": "shrouds",
+          "de": "Wanten",
+          "sources": [
+            "https://www.segelcrew.at/lexikon/w"
+          ],
+          "rationale": "These supports brace the mast sideways. Wanten is the nautical plural of Want."
+        },
+        {
+          "en": "spreaders",
+          "de": "Salinge",
+          "sources": [
+            "https://segelcrew.at/lexikon/s",
+            "https://www.mytilus.de/segellexikon.html"
+          ],
+          "rationale": "The transverse mast struts spread the shrouds. Salinge is the plural used by the sailing lexicon."
+        },
+        {
+          "en": "halyard",
+          "de": "Fall",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-fall.html"
+          ],
+          "rationale": "Fall identifies a sail-hoisting line; it is not a sheet or the separate meaning of mast rake."
+        },
+        {
+          "en": "sheet",
+          "de": "Schot",
+          "sources": [
+            "https://segelcrew.at/lexikon/s"
+          ],
+          "rationale": "Schot is the line that adjusts a sail's position. The diagram shows the mainsheet arrangement at the boom."
+        },
+        {
+          "en": "kicker",
+          "de": "Baumniederholer",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-baumniederholer.html"
+          ],
+          "rationale": "The UK sailing term kicker here means the boom vang: tackle preventing the boom from rising."
+        },
+        {
+          "en": "topping lift",
+          "de": "Dirk",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-dirk.html",
+            "https://segeln-segelschule.de/lexikon/dirk/"
+          ],
+          "rationale": "This line supports the main boom from the masthead when the sail does not support it. The sailing lexicons call that line Dirk."
+        },
+        {
+          "en": "standing — holds the mast up",
+          "de": "Stehendes Gut: stützt den Mast",
+          "sources": [
+            "https://www.mytilus.de/segellexikon.html"
+          ],
+          "rationale": "Stehendes Gut is the collective nautical term for stays and shrouds supporting the mast; the legend describes their function.",
+          "layout": {
+            "y": 4
+          }
+        },
+        {
+          "en": "running — moves the sails",
+          "de": "Laufendes Gut: setzt und trimmt Segel",
+          "sources": [
+            "https://boats2sail.com/lexikon/laufendes-gut/",
+            "https://www.sportbootfuehrerschein.de/wissen/laufendes-gut.html"
+          ],
+          "rationale": "Laufendes Gut is the movable rigging used to hoist and trim sails. The functional wording is more precise than a literal translation of moves.",
+          "layout": {
+            "y": 28
+          }
+        }
+      ],
+      "sourceCap": "Standing rigging holds the mast up. Running rigging moves.",
+      "sourceNote": "",
+      "viewBox": "0 -18 500 338",
+      "captionReview": {
+        "sources": [
+          "https://boats2sail.com/lexikon/laufendes-gut/",
+          "https://www.sportbootfuehrerschein.de/wissen/laufendes-gut.html",
+          "https://www.mytilus.de/segellexikon.html"
+        ],
+        "rationale": "The German nautical categories distinguish mast support from the rigging used to set and trim sails. Both functions match the drawing's color legend."
+      }
+    },
+    "sail-parts": {
+      "cap": "Dreieckiges Großsegel. Der Bug ist rechts.",
+      "note": "",
+      "texts": [
+        {
+          "en": "head",
+          "de": "Segelkopf",
+          "sources": [
+            "https://segeln-segelschule.de/lexikon/teile-eines-segels/",
+            "https://sailnator.de/begriffe/"
+          ],
+          "rationale": "The upper sail corner is Kopf. Segelkopf makes the referent explicit and matches the existing course card."
+        },
+        {
+          "en": "tack",
+          "de": "Hals",
+          "sources": [
+            "https://segeln-segelschule.de/lexikon/teile-eines-segels/",
+            "https://sailnator.de/begriffe/"
+          ],
+          "rationale": "This is the lower forward sail corner, Hals. Tack as a manoeuvre would be Wende, which is wrong for this label."
+        },
+        {
+          "en": "clew",
+          "de": "Schothorn",
+          "sources": [
+            "https://segeln-segelschule.de/lexikon/teile-eines-segels/",
+            "https://sailnator.de/begriffe/"
+          ],
+          "rationale": "Schothorn is the lower aft sail corner, opposite the Hals along the Unterliek.",
+          "layout": {
+            "x": 90,
+            "y": 225
+          }
+        },
+        {
+          "en": "luff",
+          "de": "Vorliek",
+          "sources": [
+            "https://segeln-segelschule.de/lexikon/teile-eines-segels/",
+            "https://sailnator.de/begriffe/"
+          ],
+          "rationale": "The forward sail edge beside the mast is Vorliek. The noun luff here does not name the manoeuvre anluven."
+        },
+        {
+          "en": "leech",
+          "de": "Achterliek",
+          "sources": [
+            "https://segeln-segelschule.de/lexikon/teile-eines-segels/",
+            "https://sailnator.de/begriffe/"
+          ],
+          "rationale": "Achterliek is the aft sail edge from head to clew, on the left because the bow is to the right."
+        },
+        {
+          "en": "foot",
+          "de": "Unterliek",
+          "sources": [
+            "https://segeln-segelschule.de/lexikon/teile-eines-segels/",
+            "https://sailnator.de/begriffe/"
+          ],
+          "rationale": "Unterliek names the bottom sail edge, from tack to clew, rather than an anatomical foot."
+        },
+        {
+          "en": "mast",
+          "de": "Mast",
+          "sources": [
+            "https://sailnator.de/begriffe/"
+          ],
+          "rationale": "Mast is the upright spar beside the mainsail; the sailing-school diagram uses this same term."
+        },
+        {
+          "en": "boom",
+          "de": "Baum",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-baum.html"
+          ],
+          "rationale": "Baum is the spar attached by one end to the mast. The depicted mainsail boom is also called Großbaum."
+        }
+      ],
+      "sourceCap": "The mainsail, her bow to the right like every other drawing here.",
+      "sourceNote": "",
+      "captionReview": {
+        "sources": [
+          "https://sailnator.de/begriffe/",
+          "https://segeln-segelschule.de/lexikon/teile-eines-segels/"
+        ],
+        "rationale": "Großsegel names the mainsail and Bug the bow. The right-facing orientation is a fact of this source drawing, confirmed by its mast and forward sail edge."
+      }
+    },
+    "windward-lee": {
+      "cap": "Blick von achtern. Das Boot krängt nach Lee.",
+      "note": "",
+      "texts": [
+        {
+          "en": "wind",
+          "de": "Wind",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-wind.html"
+          ],
+          "rationale": "The arrows show airflow, not a compass course."
+        },
+        {
+          "en": "windward",
+          "de": "Luv",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-luv.html"
+          ],
+          "rationale": "The side of the boat toward the incoming wind; confirmed by the arrows entering from the left."
+        },
+        {
+          "en": "the wind’s side",
+          "de": "die Windseite",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-luv.html"
+          ],
+          "rationale": "This explains the wind-facing side, not meteorological weather.",
+          "layout": {
+            "y": 222
+          }
+        },
+        {
+          "en": "= the weather side",
+          "de": "= dem Wind zugewandt",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-luv.html"
+          ],
+          "rationale": "Weather side is the nautical synonym for windward; a literal Wetterseite is unnecessary for this learner diagram.",
+          "layout": {
+            "y": 246
+          }
+        },
+        {
+          "en": "leeward",
+          "de": "Lee",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-lee.html"
+          ],
+          "rationale": "The boat side facing away from the wind, shown on the right.",
+          "layout": {
+            "y": 198
+          }
+        },
+        {
+          "en": "the sheltered side,",
+          "de": "vom Wind abgewandt",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-lee.html"
+          ],
+          "rationale": "Uses the defining direction instead of promising that this side is always sheltered.",
+          "layout": {
+            "y": 220
+          }
+        },
+        {
+          "en": "and the boom’s side",
+          "de": "hier steht der Baum",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-lee.html",
+            "https://www.segeln-lernen.de/segellexikon-baum.html"
+          ],
+          "rationale": "Here limits the boom-side statement to the illustrated sailing position, not every manoeuvre or backwinded configuration.",
+          "layout": {
+            "y": 242
+          }
+        },
+        {
+          "en": "lee shore",
+          "de": "Küste in Lee",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-legerwall.html",
+            "https://www.segeln-lernen.de/segellexikon-lee.html"
+          ],
+          "rationale": "Boat-relative wording avoids the ambiguous shore-relative compound Leeküste; this is the shore downwind of the boat.",
+          "layout": {
+            "y": 276
+          }
+        },
+        {
+          "en": "wind sets you onto it",
+          "de": "Wind treibt an Land",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-legerwall.html"
+          ],
+          "rationale": "The illustrated downwind coast is the grounding hazard; the wind drives the boat toward land.",
+          "layout": {
+            "y": 300
+          }
+        },
+        {
+          "en": "weather shore",
+          "de": "Küste in Luv",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-luv.html",
+            "https://www.segeln-lernen.de/segellexikon-ablandiger-wind.html"
+          ],
+          "rationale": "Boat-relative wording preserves weather shore: the coast from which wind comes, not a weather forecast or the exposed side of an island.",
+          "layout": {
+            "y": 276
+          }
+        },
+        {
+          "en": "wind blows off it: shelter",
+          "de": "Wind weht vom Land",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-ablandiger-wind.html"
+          ],
+          "rationale": "Ablandiger Wind means airflow from land toward water. Drops the unconditional shelter claim; offshore wind alone does not guarantee protection.",
+          "layout": {
+            "y": 300
+          }
+        }
+      ],
+      "sourceCap": "Seen from astern. She heels away from the wind.",
+      "sourceNote": "",
+      "captionReview": {
+        "sources": [
+          "https://www.segeln-lernen.de/segellexikon-kraengen.html",
+          "https://www.segeln-lernen.de/segellexikon-lee.html",
+          "https://segelplanet.de/segelbegriffe-de-eng/"
+        ],
+        "rationale": "The view looks forward from behind the stern, so von achtern is correct. Krängen is the nautical verb for heeling. The drawing shows a heel to the right, away from wind entering from the left, hence nach Lee."
+      }
+    },
+    "mooring-lines": {
+      "cap": "Längsseits am Steg, von oben gesehen. Der Bug zeigt nach rechts.",
+      "note": "",
+      "texts": [
+        {
+          "en": "fenders",
+          "de": "Fender",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-fender.html"
+          ],
+          "rationale": "Plural German Fender names the hull-protection cushions; not a road-vehicle wing."
+        },
+        {
+          "en": "breast line",
+          "de": "Querleine",
+          "sources": [
+            "https://www.sailtraining.de/wp-content/uploads/2024/11/LLaS_BHB_D_v6_LOWRES.pdf"
+          ],
+          "rationale": "The German sail-training glossary defines this as a line led athwartships to shore; the red line runs square across from amidships."
+        },
+        {
+          "en": "square across, holds her in",
+          "de": "querab, hält am Steg",
+          "sources": [
+            "https://www.sailtraining.de/wp-content/uploads/2024/11/LLaS_BHB_D_v6_LOWRES.pdf"
+          ],
+          "rationale": "Its transverse lead checks the boat moving away from the pontoon; this is not a spring.",
+          "layout": {
+            "y": 200
+          }
+        },
+        {
+          "en": "stern line",
+          "de": "Achterleine",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-achterleine.html",
+            "https://sks-buddy.de/sks-frage/wie-sind-laengsseits-liegende-fahrzeuge-festzumachenergaenzen-sie-die-skizze-und-benennen-sie-die-leinen/"
+          ],
+          "rationale": "The after-end mooring line, led aft of the stern in this plan view."
+        },
+        {
+          "en": "aft from the stern",
+          "de": "vom Heck nach achtern",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-achterleine.html",
+            "https://sks-buddy.de/sks-frage/wie-sind-laengsseits-liegende-fahrzeuge-festzumachenergaenzen-sie-die-skizze-und-benennen-sie-die-leinen/"
+          ],
+          "rationale": "The stern is at the left; its line leads farther aft to the lower-left shore cleat.",
+          "layout": {
+            "y": 288
+          }
+        },
+        {
+          "en": "bow line",
+          "de": "Vorleine",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-vorleine.html",
+            "https://sks-buddy.de/sks-frage/wie-sind-laengsseits-liegende-fahrzeuge-festzumachenergaenzen-sie-die-skizze-und-benennen-sie-die-leinen/"
+          ],
+          "rationale": "A mooring line from the bow, not Palstek, which would translate the knot bowline."
+        },
+        {
+          "en": "forward from the bow",
+          "de": "vom Bug nach vorn",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-vorleine.html",
+            "https://sks-buddy.de/sks-frage/wie-sind-laengsseits-liegende-fahrzeuge-festzumachenergaenzen-sie-die-skizze-und-benennen-sie-die-leinen/"
+          ],
+          "rationale": "The bow is at the right and this line leads farther forward to the lower-right shore cleat.",
+          "layout": {
+            "y": 288
+          }
+        },
+        {
+          "en": "fore spring",
+          "de": "Vorspring",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-vorspring.html",
+            "https://bootsschule1.de/lexikon/spring/"
+          ],
+          "rationale": "Named by its forward onboard origin, although the line leads aft; the SVG shows that exact geometry."
+        },
+        {
+          "en": "from the bow, led aft:",
+          "de": "vom Bug nach achtern:",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-vorspring.html"
+          ],
+          "rationale": "The forward green line runs aft to the shore cleat left of its onboard attachment.",
+          "layout": {
+            "x": 170,
+            "y": 316
+          }
+        },
+        {
+          "en": "stops her surging ahead",
+          "de": "verhindert Vorrutschen",
+          "sources": [
+            "https://bootsschule1.de/lexikon/spring/"
+          ],
+          "rationale": "A line leading aft opposes forward movement of the boat; the restraint must not be reversed.",
+          "layout": {
+            "x": 170,
+            "y": 340
+          }
+        },
+        {
+          "en": "back spring",
+          "de": "Achterspring",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-achterspring.html",
+            "https://bootsschule1.de/lexikon/spring/"
+          ],
+          "rationale": "Named by its aft onboard origin, although the line leads forward."
+        },
+        {
+          "en": "from the stern, led forward:",
+          "de": "vom Heck nach vorn:",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-achterspring.html"
+          ],
+          "rationale": "The aft green line runs forward to the shore cleat right of its onboard attachment.",
+          "layout": {
+            "x": 410,
+            "y": 316
+          }
+        },
+        {
+          "en": "stops her surging astern",
+          "de": "verhindert Zurückrutschen",
+          "sources": [
+            "https://bootsschule1.de/lexikon/spring/"
+          ],
+          "rationale": "A line leading forward opposes aft movement; matches the source diagram and the existing course card.",
+          "layout": {
+            "x": 410,
+            "y": 340
+          }
+        }
+      ],
+      "sourceCap": "Alongside, seen from above. Bow to the right.",
+      "sourceNote": "",
+      "captionReview": {
+        "sources": [
+          "https://www.segeln-lernen.de/segellexikon-vorspring.html",
+          "https://segelplanet.de/segelbegriffe-de-eng/"
+        ],
+        "rationale": "The boat is shown in plan parallel to the pontoon, hence längsseits am Steg; the pointed bow is at the right. Längsseits and Bug are sailing terminology confirmed by the specialist references."
+      }
+    }
+  }
+}

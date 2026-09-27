@@ -1,0 +1,230 @@
+{
+  "figures": {
+    "windward-lee": {
+      "cap": "Blick von achtern. Das Boot krängt nach Lee.",
+      "note": "",
+      "texts": [
+        {
+          "en": "wind",
+          "de": "Wind",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-wind.html"
+          ],
+          "rationale": "The arrows show airflow, not a compass course."
+        },
+        {
+          "en": "windward",
+          "de": "Luv",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-luv.html"
+          ],
+          "rationale": "The side of the boat toward the incoming wind; confirmed by the arrows entering from the left."
+        },
+        {
+          "en": "the wind’s side",
+          "de": "die Windseite",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-luv.html"
+          ],
+          "rationale": "This explains the wind-facing side, not meteorological weather."
+        },
+        {
+          "en": "= the weather side",
+          "de": "= dem Wind zugewandt",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-luv.html"
+          ],
+          "rationale": "Weather side is the nautical synonym for windward; a literal Wetterseite is unnecessary for this learner diagram."
+        },
+        {
+          "en": "leeward",
+          "de": "Lee",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-lee.html"
+          ],
+          "rationale": "The boat side facing away from the wind, shown on the right."
+        },
+        {
+          "en": "the sheltered side,",
+          "de": "vom Wind abgewandt",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-lee.html"
+          ],
+          "rationale": "Uses the defining direction instead of promising that this side is always sheltered."
+        },
+        {
+          "en": "and the boom’s side",
+          "de": "hier steht der Baum",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-lee.html",
+            "https://www.segeln-lernen.de/segellexikon-baum.html"
+          ],
+          "rationale": "Here limits the boom-side statement to the illustrated sailing position, not every manoeuvre or backwinded configuration."
+        },
+        {
+          "en": "lee shore",
+          "de": "Küste in Lee",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-legerwall.html",
+            "https://www.segeln-lernen.de/segellexikon-lee.html"
+          ],
+          "rationale": "Boat-relative wording avoids the ambiguous shore-relative compound Leeküste; this is the shore downwind of the boat."
+        },
+        {
+          "en": "wind sets you onto it",
+          "de": "Wind treibt an Land",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-legerwall.html"
+          ],
+          "rationale": "The illustrated downwind coast is the grounding hazard; the wind drives the boat toward land."
+        },
+        {
+          "en": "weather shore",
+          "de": "Küste in Luv",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-luv.html",
+            "https://www.segeln-lernen.de/segellexikon-ablandiger-wind.html"
+          ],
+          "rationale": "Boat-relative wording preserves weather shore: the coast from which wind comes, not a weather forecast or the exposed side of an island."
+        },
+        {
+          "en": "wind blows off it: shelter",
+          "de": "Wind weht vom Land",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-ablandiger-wind.html"
+          ],
+          "rationale": "Ablandiger Wind means airflow from land toward water. Drops the unconditional shelter claim; offshore wind alone does not guarantee protection."
+        }
+      ],
+      "capSources": [
+        "https://www.segeln-lernen.de/segellexikon-kraengen.html",
+        "https://www.segeln-lernen.de/segellexikon-lee.html",
+        "https://segelplanet.de/segelbegriffe-de-eng/"
+      ],
+      "capRationale": "The view looks forward from behind the stern, so von achtern is correct. Krängen is the nautical verb for heeling. The drawing shows a heel to the right, away from wind entering from the left, hence nach Lee.",
+      "noteRationale": "The source note is empty, so there is no note text to translate."
+    },
+    "mooring-lines": {
+      "cap": "Längsseits am Steg, von oben gesehen. Der Bug zeigt nach rechts.",
+      "note": "",
+      "texts": [
+        {
+          "en": "fenders",
+          "de": "Fender",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-fender.html"
+          ],
+          "rationale": "Plural German Fender names the hull-protection cushions; not a road-vehicle wing."
+        },
+        {
+          "en": "breast line",
+          "de": "Querleine",
+          "sources": [
+            "https://www.sailtraining.de/wp-content/uploads/2024/11/LLaS_BHB_D_v6_LOWRES.pdf"
+          ],
+          "rationale": "The German sail-training glossary defines this as a line led athwartships to shore; the red line runs square across from amidships."
+        },
+        {
+          "en": "square across, holds her in",
+          "de": "querab, hält am Steg",
+          "sources": [
+            "https://www.sailtraining.de/wp-content/uploads/2024/11/LLaS_BHB_D_v6_LOWRES.pdf"
+          ],
+          "rationale": "Its transverse lead checks the boat moving away from the pontoon; this is not a spring."
+        },
+        {
+          "en": "stern line",
+          "de": "Achterleine",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-achterleine.html",
+            "https://sks-buddy.de/sks-frage/wie-sind-laengsseits-liegende-fahrzeuge-festzumachenergaenzen-sie-die-skizze-und-benennen-sie-die-leinen/"
+          ],
+          "rationale": "The after-end mooring line, led aft of the stern in this plan view."
+        },
+        {
+          "en": "aft from the stern",
+          "de": "vom Heck nach achtern",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-achterleine.html",
+            "https://sks-buddy.de/sks-frage/wie-sind-laengsseits-liegende-fahrzeuge-festzumachenergaenzen-sie-die-skizze-und-benennen-sie-die-leinen/"
+          ],
+          "rationale": "The stern is at the left; its line leads farther aft to the lower-left shore cleat."
+        },
+        {
+          "en": "bow line",
+          "de": "Vorleine",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-vorleine.html",
+            "https://sks-buddy.de/sks-frage/wie-sind-laengsseits-liegende-fahrzeuge-festzumachenergaenzen-sie-die-skizze-und-benennen-sie-die-leinen/"
+          ],
+          "rationale": "A mooring line from the bow, not Palstek, which would translate the knot bowline."
+        },
+        {
+          "en": "forward from the bow",
+          "de": "vom Bug nach vorn",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-vorleine.html",
+            "https://sks-buddy.de/sks-frage/wie-sind-laengsseits-liegende-fahrzeuge-festzumachenergaenzen-sie-die-skizze-und-benennen-sie-die-leinen/"
+          ],
+          "rationale": "The bow is at the right and this line leads farther forward to the lower-right shore cleat."
+        },
+        {
+          "en": "fore spring",
+          "de": "Vorspring",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-vorspring.html",
+            "https://bootsschule1.de/lexikon/spring/"
+          ],
+          "rationale": "Named by its forward onboard origin, although the line leads aft; the SVG shows that exact geometry."
+        },
+        {
+          "en": "from the bow, led aft:",
+          "de": "vom Bug nach achtern:",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-vorspring.html"
+          ],
+          "rationale": "The forward green line runs aft to the shore cleat left of its onboard attachment."
+        },
+        {
+          "en": "stops her surging ahead",
+          "de": "verhindert Vorrutschen",
+          "sources": [
+            "https://bootsschule1.de/lexikon/spring/"
+          ],
+          "rationale": "A line leading aft opposes forward movement of the boat; the restraint must not be reversed."
+        },
+        {
+          "en": "back spring",
+          "de": "Achterspring",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-achterspring.html",
+            "https://bootsschule1.de/lexikon/spring/"
+          ],
+          "rationale": "Named by its aft onboard origin, although the line leads forward."
+        },
+        {
+          "en": "from the stern, led forward:",
+          "de": "vom Heck nach vorn:",
+          "sources": [
+            "https://www.segeln-lernen.de/segellexikon-achterspring.html"
+          ],
+          "rationale": "The aft green line runs forward to the shore cleat right of its onboard attachment."
+        },
+        {
+          "en": "stops her surging astern",
+          "de": "verhindert Zurückrutschen",
+          "sources": [
+            "https://bootsschule1.de/lexikon/spring/"
+          ],
+          "rationale": "A line leading forward opposes aft movement; matches the source diagram and the existing course card."
+        }
+      ],
+      "capSources": [
+        "https://www.segeln-lernen.de/segellexikon-vorspring.html",
+        "https://segelplanet.de/segelbegriffe-de-eng/"
+      ],
+      "capRationale": "The boat is shown in plan parallel to the pontoon, hence längsseits am Steg; the pointed bow is at the right. Längsseits and Bug are sailing terminology confirmed by the specialist references.",
+      "noteRationale": "The source note is empty, so there is no note text to translate."
+    }
+  }
+}

@@ -9,7 +9,11 @@ support terminology; no single dictionary is treated as infallible.
 - [Bretagne Atlantic Yachting trilingual dictionary, hosted by Regatta.lu](https://www.regatta.lu/wp-content/uploads/2019/03/lexiquevoile_d_f_e.pdf) — bilingual cross-check of rigging, deck fittings, sail parts, commands and mooring. Some English spellings and broad translations are dated; the course uses current standard spellings and checks meanings independently.
 
 The seven drawings come from Keep Club's existing Competent Crew course,
-which shares that artwork with Day Skipper. This course uses the English
-labels as an answer-side aid, with only the current term's labels highlighted.
+which shares that artwork with Day Skipper. Since 2026-09-27 all labels,
+annotations, captions and accessible descriptions are German, with only the
+current term's labels highlighted. The source and evidence for every label are
+in [illustrations.json](../illustrations.json). The three `cross-review-*.json`
+files record independent sailing-context checks of all 68 text occurrences
+and seven captions, using German sailing dictionaries and specialist sources.
 No procedural knot sheet or broad points-of-sail poster is attached: those
 would add unrelated material to a vocabulary recall card.

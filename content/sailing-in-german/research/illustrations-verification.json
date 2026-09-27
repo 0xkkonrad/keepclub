@@ -1,0 +1,30 @@
+{
+  "date": "2026-09-27",
+  "status": "passed",
+  "figures": 7,
+  "textOccurrences": 68,
+  "captions": 7,
+  "illustratedCards": 25,
+  "method": "Three translation agents used German sailing dictionaries; each then independently reviewed another agent’s complete set. An additional rendered visual review covered all seven figures and both themes.",
+  "resolutions": [
+    "Replaced the unsupported standing-rigging citation with the verified Mytilus sailing lexicon.",
+    "Rejected the poor Rubicon glossary translation and replaced its Ankerrolle evidence with specialist nautical references and the SVB catalogue.",
+    "Retained boat-relative Küste in Luv/Lee and qualified boom-side and shelter claims.",
+    "Repositioned longer labels; fixed rotated height labels; moved rigging legends above the masthead and restored their contrast."
+  ],
+  "checks": [
+    "Final German text and captions exactly match all independent review verdicts.",
+    "All SVG boat geometry and semantic highlight IDs unchanged.",
+    "All 87 compiled cards byte-identical: learner progress IDs preserved.",
+    "Missing diagrams, extra English labels and changed source captions rejected by the build.",
+    "25 illustrated cards pass German accessibility, highlight and phone-bound checks in light and dark themes.",
+    "All seven all-label diagrams inspected for text overlap and independently reviewed visually.",
+    "Existing npm test suite passes; new sailing-german-ui.mjs passes; separation gate 133 checks passes.",
+    "Public documentation and live progress-sync deployment preflights pass."
+  ],
+  "sha256": {
+    "content/sailing-in-german/illustrations.json": "1dd5e420744e4da37e0088f8a98ae5df68c9c0cba441e632ff749f8bd9eb3f27",
+    "web/courses/sailing-in-german/figures.json": "22d384661c6b96b87a3322512d9875adfb8da4801d387488e4825b7790a8d7a8",
+    "web/courses/sailing-in-german/figures.css": "8688285a658f1b7cba9b1fc51eb6ea3276af10259464f923daa344ef58b53971"
+  }
+}

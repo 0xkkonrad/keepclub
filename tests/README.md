@@ -70,6 +70,10 @@ Day Skipper app's key, asserted UNTOUCHED) → cold open resumes the course.
 burnt-orange theme, four beginner-to-agentic groups, the first labelled
 working-tree/staging/repository figure, responsive width, and page errors.
 
+`sailing-german-ui.mjs` — all 25 illustrated German sailing cards at phone
+width in light and dark mode: translated accessible labels, semantic
+highlighting, text bounds, and the English fallback for other courses.
+
 `sync-merge.mjs` — the cross-device merge algebra without a server:
 commutativity, idempotence, monotonic review history, streak reconstruction,
 key validation, and the guarantee that only a SHA-256 hash is transported. Then

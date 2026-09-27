@@ -1,0 +1,288 @@
+{
+  "figures": {
+    "hull-plan": {
+      "cap": "Von oben gesehen, mit dem Bug nach oben – wie beim Blick nach vorn.",
+      "note": "",
+      "captionReview": {
+        "sources": [
+          "https://esys.org/esys/saildict.html",
+          "https://www.segelschule-schweiz.ch/lexikon.php"
+        ],
+        "rationale": "The diagram is a plan view with the bow upward. Bug is the forward end; port and starboard are fixed relative to facing the bow."
+      },
+      "noteReview": {
+        "sources": [],
+        "rationale": "The source note is empty; retained."
+      },
+      "texts": [
+        {
+          "en": "bow",
+          "de": "Bug",
+          "sources": [
+            "https://esys.org/esys/saildict.html",
+            "https://www.segelschule-schweiz.ch/lexikon.php"
+          ],
+          "rationale": "The forward end of the boat, matching the pointed end of this plan view."
+        },
+        {
+          "en": "stern",
+          "de": "Heck",
+          "sources": [
+            "https://esys.org/esys/saildict.html",
+            "https://www.segelschule-schweiz.ch/lexikon.php"
+          ],
+          "rationale": "The aft end of the boat, matching the flat lower end of this plan view."
+        },
+        {
+          "en": "port",
+          "de": "Backbord",
+          "sources": [
+            "https://esys.org/esys/saildict.html",
+            "https://www.segelschule-schweiz.ch/lexikon.php"
+          ],
+          "rationale": "The boat’s left side when facing forward; the nautical side, not a harbour."
+        },
+        {
+          "en": "starboard",
+          "de": "Steuerbord",
+          "sources": [
+            "https://esys.org/esys/saildict.html",
+            "https://www.sailing-coach.de/sailingcoach-lexikon.html"
+          ],
+          "rationale": "The boat’s right side when facing forward."
+        },
+        {
+          "en": "amidships",
+          "de": "mittschiffs",
+          "sources": [
+            "https://esys.org/esys/saildict.html",
+            "https://www.sailing-coach.de/sailingcoach-lexikon.html"
+          ],
+          "rationale": "The central area of the boat; lower-case nautical position adverb, matching the course card."
+        },
+        {
+          "en": "beam — her greatest breadth",
+          "de": "Breite – an der breitesten Stelle",
+          "sources": [
+            "https://esys.org/esys/saildict.html"
+          ],
+          "rationale": "Beam denotes boat breadth here. ESYS explicitly distinguishes boat breadth from geographical latitude; the dimension spans the widest hull section."
+        },
+        {
+          "en": "abeam",
+          "de": "querab",
+          "sources": [
+            "https://esys.org/esys/saildict.html",
+            "https://www.segelschule-schweiz.ch/lexikon.php"
+          ],
+          "rationale": "A direction at right angles to the boat’s fore-and-aft axis, unlike the boat dimension Breite."
+        },
+        {
+          "en": "abeam",
+          "de": "querab",
+          "sources": [
+            "https://esys.org/esys/saildict.html",
+            "https://www.segelschule-schweiz.ch/lexikon.php"
+          ],
+          "rationale": "The same transverse direction on the opposite side; the duplicate label must be retained."
+        }
+      ]
+    },
+    "hull-profile": {
+      "cap": "Seitenansicht: Das Boot schwimmt auf seiner Konstruktionswasserlinie.",
+      "note": "",
+      "captionReview": {
+        "sources": [
+          "https://www.sailing-coach.de/sailingcoach-lexikon.html",
+          "https://www.segelschule-schweiz.ch/lexikon.php"
+        ],
+        "rationale": "Both sailing lexicons define Konstruktionswasserlinie as the waterline intended by the designer. This preserves the source’s designed-waterline qualification."
+      },
+      "noteReview": {
+        "sources": [],
+        "rationale": "The source note is empty; retained."
+      },
+      "texts": [
+        {
+          "en": "air draught",
+          "de": "Masthöhe über Wasser",
+          "sources": [
+            "https://www.easyais.com/segellexikon/segelpraxis",
+            "https://www.hochseeschule-basel.ch/4-navigationshilfen/",
+            "https://fsa-segelsport.de/wp-content/uploads/2021/11/Eignerhandbuch-VA18.pdf"
+          ],
+          "rationale": "The sailing lexicon uses Masthöhe über Wasser, and the sailing school measures from the waterline. The adjacent antenna note makes this the full illustrated height. Bare Masthöhe could mean mast length; Durchfahrtshöhe alone could mean bridge clearance."
+        },
+        {
+          "en": "masthead to waterline,",
+          "de": "Masttopp bis Wasserlinie,",
+          "sources": [
+            "https://www.sailing-coach.de/sailingcoach-lexikon.html",
+            "https://www.hochseeschule-basel.ch/4-navigationshilfen/"
+          ],
+          "rationale": "Masttopp is the nautical masthead. Both endpoints are preserved; this is not a height above the deck."
+        },
+        {
+          "en": "aerial included",
+          "de": "einschließlich Antenne",
+          "sources": [
+            "https://fsa-segelsport.de/wp-content/uploads/2021/11/Eignerhandbuch-VA18.pdf",
+            "https://www.easyais.com/segellexikon/segelpraxis"
+          ],
+          "rationale": "The yacht owner’s manual explicitly distinguishes mast clearance with additional antennas. Preserve this inclusion because an antenna can extend above the masthead."
+        },
+        {
+          "en": "draught",
+          "de": "Tiefgang",
+          "sources": [
+            "https://esys.org/esys/saildict.html",
+            "https://www.sailing-coach.de/sailingcoach-lexikon.html"
+          ],
+          "rationale": "The underwater vertical distance from waterline to the lowest keel point, as the measurement arrow shows."
+        },
+        {
+          "en": "freeboard",
+          "de": "Freibord",
+          "sources": [
+            "https://boats2sail.com/lexikon/freibord/",
+            "https://www.segelschule-schweiz.ch/lexikon.php"
+          ],
+          "rationale": "The height between waterline and deck edge at the hull side, not the total height above water."
+        },
+        {
+          "en": "deck edge to waterline",
+          "de": "Deckskante bis Wasserlinie",
+          "sources": [
+            "https://boats2sail.com/lexikon/freibord/",
+            "https://www.sailing-coach.de/sailingcoach-lexikon.html"
+          ],
+          "rationale": "Preserves the freeboard measurement endpoints at the hull side, consistent with the arrow."
+        },
+        {
+          "en": "waterline",
+          "de": "Wasserlinie",
+          "sources": [
+            "https://www.sailing-coach.de/sailingcoach-lexikon.html"
+          ],
+          "rationale": "The hull’s intersection with the water surface."
+        },
+        {
+          "en": "seabed",
+          "de": "Meeresgrund",
+          "sources": [
+            "https://www.sailing-coach.de/sailingcoach-lexikon.html"
+          ],
+          "rationale": "The bottom of the sea below the keel. The lexicon uses Meeresgrund in the Grundsee entry, distinct from the hull or bilge."
+        }
+      ]
+    },
+    "deck-fittings": {
+      "cap": "Am Seitendeck: achtern der flache Spiegel, vorn Vorsteven und Ankerrolle.",
+      "note": "",
+      "captionReview": {
+        "sources": [
+          "https://www.segelschule-schweiz.ch/lexikon.php",
+          "https://esys.org/esys/saildict.html",
+          "https://www.mytilus.de/segellexikon.html",
+          "https://www.rubicon3adventure.com/de/ein-umfassender-leitfaden-fur-segelbegriffe-und-nautisches-know-how/"
+        ],
+        "rationale": "Seitendeck follows the sailing-school Gangbord entry; achtern is aft, Spiegel is the flat transom, and Vorsteven is specifically the forward stem. Rubicon’s sailing glossary identifies Ankerrolle as the bow fitting for handling anchor and chain."
+      },
+      "noteReview": {
+        "sources": [],
+        "rationale": "The source note is empty; retained."
+      },
+      "texts": [
+        {
+          "en": "pushpit",
+          "de": "Heckkorb",
+          "sources": [
+            "https://esys.org/esys/saildict.html",
+            "https://boats2sail.com/lexikon/reling/"
+          ],
+          "rationale": "The rigid safety rail at the stern, not a cockpit or stern platform."
+        },
+        {
+          "en": "pulpit",
+          "de": "Bugkorb",
+          "sources": [
+            "https://www.segelschule-schweiz.ch/lexikon.php",
+            "https://boats2sail.com/lexikon/reling/"
+          ],
+          "rationale": "The rigid safety rail at the bow, not the general ship’s bow or a literal pulpit."
+        },
+        {
+          "en": "guardrails",
+          "de": "Reling",
+          "sources": [
+            "https://esys.org/esys/saildict.html",
+            "https://boats2sail.com/lexikon/reling/"
+          ],
+          "rationale": "The protective barrier along the deck edge. The collective singular matches German sailing usage and the existing card."
+        },
+        {
+          "en": "jackstay",
+          "de": "Strecktau",
+          "sources": [
+            "https://www.sailing-coach.de/sailingcoach-lexikon.html",
+            "https://bootsschule1.de/lexikon/lifebelt/"
+          ],
+          "rationale": "This deck-length personal-safety attachment is a Strecktau; it is not a rigging stay or the guardrail."
+        },
+        {
+          "en": "clip your tether to it",
+          "de": "Sicherheitsleine hier einpicken",
+          "sources": [
+            "https://bootsschule1.de/lexikon/lifebelt/",
+            "https://www.segelverband.at/fileadmin/user_upload/oesv-web/Dokumente-Website/Dokumente_-_Ausbildung/Dokumente_-_Pruefungswesen_Seefahrt/OeSV_Fragensammlung_FB1_bis_FB4/oesv_fragensammlung_fb3_1_0.pdf"
+          ],
+          "rationale": "The person’s short tether is the Sicherheitsleine and is clipped into the Strecktau; the two lines have different functions. ÖSV questions 335–337 explicitly distinguish them."
+        },
+        {
+          "en": "stanchions",
+          "de": "Relingsstützen",
+          "sources": [
+            "https://esys.org/esys/saildict.html",
+            "https://bootsschule1.de/lexikon/reling/"
+          ],
+          "rationale": "The upright supports of the deck-edge rail; plural is appropriate because several are shown. The spelling matches the course."
+        },
+        {
+          "en": "cleat",
+          "de": "Klampe",
+          "sources": [
+            "https://esys.org/esys/saildict.html",
+            "https://www.segelschule-schweiz.ch/lexikon.php"
+          ],
+          "rationale": "The two-horn fitting used to secure a line, not a clamp or sail-control cleat."
+        },
+        {
+          "en": "fairlead",
+          "de": "Lippklampe",
+          "sources": [
+            "https://www.segelschule-schweiz.ch/lexikon.php"
+          ],
+          "rationale": "The drawing shows an open two-lipped guide for a mooring line. The sailing-school lexicon defines Lippe/Lippklampe as this claw-like deck passage; the more general Klüse would lose the specific shape."
+        },
+        {
+          "en": "transom",
+          "de": "Spiegel",
+          "sources": [
+            "https://esys.org/esys/saildict.html",
+            "https://www.mytilus.de/segellexikon.html"
+          ],
+          "rationale": "The flat aft closing surface of the hull, rather than the whole stern (Heck)."
+        },
+        {
+          "en": "stem",
+          "de": "Vorsteven",
+          "sources": [
+            "https://www.mytilus.de/segellexikon.html",
+            "https://www.sailing-coach.de/sailingcoach-lexikon.html"
+          ],
+          "rationale": "The forward structural edge where the hull sides meet. Vorsteven is more precise than the umbrella term Steven, which can also mean Achtersteven."
+        }
+      ]
+    }
+  }
+}
